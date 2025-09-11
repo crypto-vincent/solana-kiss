@@ -1,14 +1,12 @@
-import { base64Decode } from './base64';
 import { Commitment, Lamports, PublicKey, Rpc, Slot } from './types';
 import {
-  enforceArray,
+  enforceObject,
   enforceBoolean,
   enforceNumber,
-  enforceObject,
   enforceString,
 } from './utils';
 
-export async function getAccount(
+export async function getAccountMetadata(
   rpc: Rpc,
   accountAddress: PublicKey,
   context?: {
@@ -19,26 +17,28 @@ export async function getAccount(
   executable: boolean;
   lamports: Lamports;
   owner: PublicKey;
-  data: Uint8Array;
+  space: number;
 }> {
-  const value = enforceObject(
+  const result = enforceObject(
     await rpc('getAccountInfo', [
       accountAddress,
       {
         commitment: context?.commitment,
         minContextSlot: context?.minSlot,
+        dataSlice: { offset: 0, length: 0 },
         encoding: 'base64',
       },
     ]),
   );
+  const value = enforceObject(result.value);
   const executable = enforceBoolean(value.executable);
   const lamports = BigInt(enforceNumber(value.lamports));
   const owner = enforceString(value.owner);
-  const data = base64Decode(enforceString(enforceArray(value.data)[0]));
+  const space = enforceNumber(value.space);
   return {
     executable,
     lamports,
     owner,
-    data,
+    space,
   };
 }

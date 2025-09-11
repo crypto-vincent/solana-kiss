@@ -1,10 +1,16 @@
+import { Lamports } from './types';
+
 export function valueType(value: any): string {
-  if (value === null) return 'null';
-  if (Array.isArray(value)) return 'array';
+  if (value === null) {
+    return 'null';
+  }
+  if (Array.isArray(value)) {
+    return 'array';
+  }
   return typeof value;
 }
 export function valuePreview(value: any): string {
-  const stringify = value.toString();
+  const stringify = '' + value;
   if (stringify.length > 30) {
     return stringify.slice(0, 37) + '...';
   }
@@ -86,4 +92,8 @@ export function expectEqual<T>(found: T, expected: T) {
     );
   }
   return found;
+}
+
+export function approximateSolsForLamports(lamports: Lamports): number {
+  return Number(lamports) / Number(1_000_000_000);
 }

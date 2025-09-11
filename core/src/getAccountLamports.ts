@@ -1,5 +1,5 @@
 import { Commitment, Lamports, PublicKey, Rpc, Slot } from './types';
-import { enforceNumber } from './utils';
+import { enforceNumber, enforceObject } from './utils';
 
 export async function getAccountLamports(
   rpc: Rpc,
@@ -9,7 +9,7 @@ export async function getAccountLamports(
     minSlot?: Slot;
   },
 ): Promise<Lamports> {
-  const value = enforceNumber(
+  const result = enforceObject(
     await rpc('getBalance', [
       accountAddress,
       {
@@ -19,5 +19,6 @@ export async function getAccountLamports(
       },
     ]),
   );
+  const value = enforceNumber(result.value);
   return BigInt(value);
 }

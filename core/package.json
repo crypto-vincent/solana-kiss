@@ -1,5 +1,5 @@
 {
-  "name": "solana-kiss-core",
+  "name": "solana-kiss-rpc",
   "version": "0.0.1",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
@@ -30,6 +30,7 @@
     ]
   },
   "prettier": {
+    "tabWidth": 2,
     "semi": true,
     "singleQuote": true,
     "trailingComma": "all"

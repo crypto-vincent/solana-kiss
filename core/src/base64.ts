@@ -5,6 +5,8 @@ for (let i = 0; i < alphabet.length; i++) {
   lookupTable[alphabet.charCodeAt(i)] = i;
 }
 
+// TODO - optimize this
+
 export function base64Encode(data: Uint8Array): string {
   let result = '';
   let index: number;

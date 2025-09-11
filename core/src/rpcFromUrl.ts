@@ -26,12 +26,8 @@ export function rpcFromUrl(
         `Error ${enforceNumber(error.code)}: ${enforceString(error.message)}`,
       );
     }
-    if (isArray(json.result)) {
-      return json.result;
-    }
-    const result = enforceObject(json.result);
-    const context = enforceObject(result.context);
-    // TODO - do something with context.slot ?
-    return result.value;
+    return json.result;
   };
 }
+
+// TODO - provide a throttle wrapper that limits the number of requests per second and number of concurrent requests

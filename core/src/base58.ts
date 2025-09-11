@@ -1,16 +1,14 @@
-// Bitcoin-style Base58 alphabet
-const BASE58_ALPHABET =
-  '123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz';
+const alphabet = '123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz';
 
-export function base58Encode(data: Uint8Array): string {
-  if (data.length === 0) {
+// TODO - optimize this
+
+export function base58Encode(input: Uint8Array): string {
+  if (input.length === 0) {
     return '';
   }
-
-  // Convert to big integer base 256
-  let digits = [0];
-  for (let i = 0; i < data.length; i++) {
-    let carry = data[i];
+  const digits = [0];
+  for (let i = 0; i < input.length; i++) {
+    let carry = input[i];
     for (let j = 0; j < digits.length; j++) {
       carry += digits[j] << 8;
       digits[j] = carry % 58;
@@ -21,35 +19,31 @@ export function base58Encode(data: Uint8Array): string {
       carry = (carry / 58) | 0;
     }
   }
-
-  // Handle leading zeros
   let zeros = 0;
-  while (zeros < data.length && data[zeros] === 0) {
+  while (zeros < input.length && input[zeros] === 0) {
     zeros++;
   }
-
-  let result = '';
+  const output: string[] = [];
   for (let i = 0; i < zeros; i++) {
-    result += BASE58_ALPHABET[0];
+    output.push(alphabet.charAt(0));
   }
   for (let i = digits.length - 1; i >= 0; i--) {
-    result += BASE58_ALPHABET[digits[i]];
+    output.push(alphabet.charAt(digits[i]));
   }
-
-  return result;
+  return output.join('');
 }
 
-export function base58Decode(str: string): Uint8Array {
-  if (str.length === 0) return new Uint8Array(0);
-
-  let digits = [0];
-  for (let i = 0; i < str.length; i++) {
-    const c = str[i];
-    const value = BASE58_ALPHABET.indexOf(c);
+export function base58Decode(input: string): Uint8Array {
+  if (input.length === 0) {
+    return new Uint8Array(0);
+  }
+  const digits = [0];
+  for (let i = 0; i < input.length; i++) {
+    const c = input[i];
+    const value = alphabet.indexOf(c);
     if (value < 0) {
       throw new Error(`Invalid base58 character "${c}" at position ${i}`);
     }
-
     let carry = value;
     for (let j = 0; j < digits.length; j++) {
       carry += digits[j] * 58;
@@ -61,17 +55,13 @@ export function base58Decode(str: string): Uint8Array {
       carry >>= 8;
     }
   }
-
-  // Handle leading zeros
   let zeros = 0;
-  while (zeros < str.length && str[zeros] === BASE58_ALPHABET[0]) {
+  while (zeros < input.length && input[zeros] === alphabet.charAt(0)) {
     zeros++;
   }
-
   const output = new Uint8Array(zeros + digits.length);
   for (let i = 0; i < digits.length; i++) {
     output[output.length - 1 - i] = digits[i];
   }
-
   return output;
 }

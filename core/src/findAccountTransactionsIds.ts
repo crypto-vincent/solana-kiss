@@ -1,27 +1,27 @@
 import { Commitment, PublicKey, Rpc, Signature, Slot } from './types';
 import { enforceArray, enforceObject, enforceString } from './utils';
 
-export async function findAccountTransactionsSignatures(
+export async function findAccountTransactionsIds(
   rpc: Rpc,
   accountAddress: PublicKey,
   maxLength: number,
   pagination?: {
-    startBefore?: Signature;
-    rewindUntil?: Signature;
+    startBeforeTransactionId?: Signature;
+    rewindUntilTransactionId?: Signature;
   },
   context?: {
     commitment?: Commitment;
     minSlot?: Slot;
   },
 ): Promise<Array<Signature>> {
-  const signatures = new Array<Signature>();
-  const stopAtSignature = pagination?.rewindUntil;
-  let startFromSignature = pagination?.startBefore;
+  const transactionsIds = new Array<Signature>();
+  const stopAtTransactionId = pagination?.rewindUntilTransactionId;
+  let startFromTransactionId = pagination?.startBeforeTransactionId;
   let retries = 0;
   while (true) {
     let batchSize = Math.min(
       1000,
-      stopAtSignature ? maxLength : retries == 0 ? 10 : 1000,
+      stopAtTransactionId ? (retries == 0 ? 10 : 1000) : maxLength,
     );
     retries++;
     const value = enforceArray(
@@ -29,26 +29,25 @@ export async function findAccountTransactionsSignatures(
         accountAddress,
         {
           limit: batchSize,
-          before: startFromSignature,
+          before: startFromTransactionId,
           commitment: context?.commitment,
           minContextSlot: context?.minSlot,
         },
       ]),
     );
-    console.log('value', value);
     if (value.length === 0) {
-      return signatures;
+      return transactionsIds;
     }
     for (let item of value) {
       const signature = enforceString(enforceObject(item).signature);
-      signatures.push(signature);
-      if (signatures.length >= maxLength) {
-        return signatures;
+      transactionsIds.push(signature);
+      if (transactionsIds.length >= maxLength) {
+        return transactionsIds;
       }
-      if (stopAtSignature && signature == stopAtSignature) {
-        return signatures;
+      if (stopAtTransactionId && signature == stopAtTransactionId) {
+        return transactionsIds;
       }
-      startFromSignature = signature;
+      startFromTransactionId = signature;
     }
   }
 }

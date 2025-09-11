@@ -9,7 +9,7 @@ export async function findProgramAccountsAddresses(
     minSlot?: Slot;
   },
 ): Promise<Set<PublicKey>> {
-  const value = enforceArray(
+  const result = enforceObject(
     await rpc('getProgramAccounts', [
       programAddress,
       {
@@ -22,9 +22,8 @@ export async function findProgramAccountsAddresses(
     ]),
   );
   const addresses = new Set<PublicKey>();
-  for (let item of value) {
-    const obj = enforceObject(item);
-    addresses.add(enforceString(obj.pubkey));
+  for (let item of enforceArray(result.value)) {
+    addresses.add(enforceString(enforceObject(item).pubkey));
   }
   return addresses;
 }

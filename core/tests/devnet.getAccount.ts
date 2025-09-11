@@ -1,9 +1,8 @@
 import { expect, it } from '@jest/globals';
-import { findProgramAccountsAddresses, rpcFromUrl } from '../src';
+import { rpcFromUrl } from '../src';
 import { getAccountLamports } from '../src/getAccountLamports';
 import { getAccount } from '../src/getAccount';
 import { getAccountMetadata } from '../src/getAccountMetadata';
-import { findAccountTransactionsSignatures } from '../src/findAccountTransactionsSignatures';
 
 it('run', async () => {
   let rpc = rpcFromUrl('https://api.devnet.solana.com');
@@ -31,26 +30,4 @@ it('run', async () => {
     'DL8WvebR4WVMu8WDv42zyzWuH9UZELYZ8kdhCaa83skB',
   );
   console.log('getAccountMetadataResult', getAccountMetadataResult);
-
-  let findProgramAccountsAddressesResult = await findProgramAccountsAddresses(
-    rpc,
-    'vVeH6Xd43HAScbxjVtvfwDGqBMaMvNDLsAxwM5WK1pG',
-  );
-  console.log(
-    'findProgramAccountsAddressesResult',
-    findProgramAccountsAddressesResult,
-  );
-
-  let findAccountTransactionsSignaturesResult =
-    await findAccountTransactionsSignatures(
-      rpc,
-      'vVeH6Xd43HAScbxjVtvfwDGqBMaMvNDLsAxwM5WK1pG',
-      4200,
-      {},
-      { commitment: 'confirmed', minSlot: 0 },
-    );
-  console.log(
-    'findAccountTransactionsSignaturesResult',
-    findAccountTransactionsSignaturesResult,
-  );
 });
