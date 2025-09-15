@@ -85,13 +85,12 @@ export function enforceBoolean(value: any): boolean {
   return value;
 }
 
-export function expectEqual<T>(found: T, expected: T) {
+export function expectEqual<T>(found: T, expected: T): void {
   if (found !== expected) {
     throw new Error(
       `Expected ${expected} (found ${valueType(found)}: ${valuePreview(found)})`,
     );
   }
-  return found;
 }
 
 export function approximateSolsForLamports(lamports: Lamports): number {

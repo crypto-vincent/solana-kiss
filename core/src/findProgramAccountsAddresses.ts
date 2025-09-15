@@ -22,8 +22,8 @@ export async function findProgramAccountsAddresses(
     ]),
   );
   const addresses = new Set<PublicKey>();
-  for (let item of enforceArray(result.value)) {
-    addresses.add(enforceString(enforceObject(item).pubkey));
+  for (let item of enforceArray(result['value'])) {
+    addresses.add(enforceString(enforceObject(item)['pubkey']));
   }
   return addresses;
 }

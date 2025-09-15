@@ -39,7 +39,7 @@ export async function findAccountTransactionsIds(
       return transactionsIds;
     }
     for (let item of value) {
-      const signature = enforceString(enforceObject(item).signature);
+      const signature = enforceString(enforceObject(item)['signature']);
       transactionsIds.push(signature);
       if (transactionsIds.length >= maxLength) {
         return transactionsIds;

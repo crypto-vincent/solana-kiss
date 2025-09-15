@@ -4,7 +4,6 @@ import {
   enforceObject,
   enforceString,
   expectEqual,
-  isArray,
 } from './utils';
 
 export function rpcFromUrl(
@@ -18,15 +17,15 @@ export function rpcFromUrl(
       body: JSON.stringify({ jsonrpc: '2.0', id: 1, method, params }),
     });
     let json = enforceObject(await response.json());
-    expectEqual(enforceString(json.jsonrpc), '2.0');
-    expectEqual(enforceNumber(json.id), 1);
-    if (json.error) {
-      let error = enforceObject(json.error);
+    expectEqual(enforceString(json['jsonrpc']), '2.0');
+    expectEqual(enforceNumber(json['id']), 1);
+    if (json['error']) {
+      let error = enforceObject(json['error']);
       throw new Error(
-        `Error ${enforceNumber(error.code)}: ${enforceString(error.message)}`,
+        `Error ${enforceNumber(error['code'])}: ${enforceString(error['message'])}`,
       );
     }
-    return json.result;
+    return json['result'];
   };
 }
 

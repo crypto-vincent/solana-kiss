@@ -10,7 +10,6 @@ enum IdlTypeFullDiscriminant {
   Struct = 'struct',
   Enum = 'enum',
   Padded = 'padded',
-  Const = 'const',
   Primitive = 'primitive',
 }
 
@@ -23,7 +22,6 @@ type IdlTypeFullContent =
   | IdlTypeFullStruct
   | IdlTypeFullEnum
   | IdlTypeFullPadded
-  | IdlTypeFullConst
   | IdlTypePrimitive;
 
 export type IdlTypeFullTypedef = {
@@ -71,10 +69,6 @@ export type IdlTypeFullPadded = {
   minSize: number;
   after: number;
   content: IdlTypeFull;
-};
-
-export type IdlTypeFullConst = {
-  literal: number;
 };
 
 export type IdlTypeFullFieldNamed = {
@@ -131,10 +125,6 @@ export class IdlTypeFull {
     return new IdlTypeFull(IdlTypeFullDiscriminant.Padded, value);
   }
 
-  public static const(value: IdlTypeFullConst): IdlTypeFull {
-    return new IdlTypeFull(IdlTypeFullDiscriminant.Const, value);
-  }
-
   public static primitive(value: IdlTypePrimitive): IdlTypeFull {
     return new IdlTypeFull(IdlTypeFullDiscriminant.Primitive, value);
   }
@@ -180,7 +170,6 @@ export class IdlTypeFull {
         param2: P2,
         param3: P3,
       ) => T;
-      const: (value: IdlTypeFullConst, param1: P1, param2: P2, param3: P3) => T;
       primitive: (
         value: IdlTypePrimitive,
         param1: P1,
@@ -199,25 +188,25 @@ export class IdlTypeFull {
       param3,
     );
   }
-
-  public asConstLiteral(): number | undefined {
-    if (this.discriminant == IdlTypeFullDiscriminant.Const) {
-      return (this.content as IdlTypeFullConst).literal;
-    }
-    return undefined;
-  }
 }
 
 export class IdlTypeFullFields {
-  private discriminant: 'named' | 'unnamed';
-  private content: IdlTypeFullFieldNamed[] | IdlTypeFullFieldUnnamed[];
+  private discriminant: 'nothing' | 'named' | 'unnamed';
+  private content:
+    | never[]
+    | IdlTypeFullFieldNamed[]
+    | IdlTypeFullFieldUnnamed[];
 
   private constructor(
-    discriminant: 'named' | 'unnamed',
-    content: IdlTypeFullFieldNamed[] | IdlTypeFullFieldUnnamed[],
+    discriminant: 'nothing' | 'named' | 'unnamed',
+    content: never[] | IdlTypeFullFieldNamed[] | IdlTypeFullFieldUnnamed[],
   ) {
     this.discriminant = discriminant;
     this.content = content;
+  }
+
+  public static nothing(): IdlTypeFullFields {
+    return new IdlTypeFullFields('nothing', []);
   }
 
   public static named(content: IdlTypeFullFieldNamed[]): IdlTypeFullFields {
@@ -228,16 +217,9 @@ export class IdlTypeFullFields {
     return new IdlTypeFullFields('unnamed', content);
   }
 
-  public static nothing(): IdlTypeFullFields {
-    return new IdlTypeFullFields('unnamed', []);
-  }
-
-  public isEmpty(): boolean {
-    return this.content.length === 0;
-  }
-
   public traverse<P1, P2, P3, T>(
     visitor: {
+      nothing: (value: never[], param1: P1, param2: P2, param3: P3) => T;
       named: (
         value: IdlTypeFullFieldNamed[],
         param1: P1,

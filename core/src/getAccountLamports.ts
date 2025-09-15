@@ -19,6 +19,6 @@ export async function getAccountLamports(
       },
     ]),
   );
-  const value = enforceNumber(result.value);
+  const value = enforceNumber(result['value']);
   return BigInt(value);
 }

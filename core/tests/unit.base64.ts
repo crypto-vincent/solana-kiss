@@ -8,11 +8,29 @@ it('run', async () => {
     [1, 2, 3, 4, 5, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
     [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
     [255, 255, 255, 255, 255],
+    [42, 42, 42, 42, 42, 42, 42, 42, 42, 42, 42, 42, 42, 42, 42, 42, 42],
   ];
-  for (let data of datas) {
-    let array = new Uint8Array(data);
-    let encoded = base64Encode(array);
-    let decoded = base64Decode(encoded);
-    expect(decoded).toStrictEqual(array);
+  for (const data of datas) {
+    const bytes = new Uint8Array(data);
+    const encoded = base64Encode(bytes);
+    const decoded = base64Decode(encoded);
+    expect(decoded).toStrictEqual(bytes);
+  }
+  let tests = [
+    {
+      base64: 'SGVsbG8sIFdvcmxkIQ==',
+      utf8: 'Hello, World!',
+    },
+    {
+      base64: 'QUJDREVGR0hJSktMTU5PUFFSU1RVVldYWVo=',
+      utf8: 'ABCDEFGHIJKLMNOPQRSTUVWXYZ',
+    },
+  ];
+  for (const test of tests) {
+    const bytes = test.bytes ?? new TextEncoder().encode(test.utf8);
+    const encoded = base64Encode(bytes);
+    const decoded = base64Decode(encoded);
+    expect(test.base64).toStrictEqual(encoded);
+    expect(decoded).toStrictEqual(bytes);
   }
 });

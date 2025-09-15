@@ -5,7 +5,7 @@ export async function getLatestBlockHash(
   rpc: Rpc,
   context?: {
     commitment?: Commitment;
-    minSlot?: Slot;
+    minSlot?: Slot; // TODO - check the context params are valid in all cases
   },
 ): Promise<Hash> {
   const result = enforceObject(
