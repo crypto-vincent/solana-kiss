@@ -18,12 +18,12 @@ it('run', async () => {
   }
   let tests = [
     {
-      base58: '72k1xXWG59fYdzSNoA',
       utf8: 'Hello, World!',
+      base58: '72k1xXWG59fYdzSNoA',
     },
     {
-      base58: '2zuFXTJSTRK6ESktqhM2QDBkCnH1U46CnxaD',
       utf8: 'ABCDEFGHIJKLMNOPQRSTUVWXYZ',
+      base58: '2zuFXTJSTRK6ESktqhM2QDBkCnH1U46CnxaD',
     },
     {
       base58: '1111111QLbz7JHiBTspS962RLKV8GndWFwiEaqKM',
@@ -45,6 +45,13 @@ it('run', async () => {
       bytes: new Uint8Array([
         140, 151, 37, 143, 78, 36, 137, 241, 187, 61, 16, 41, 20, 142, 13, 131,
         11, 90, 19, 153, 218, 255, 16, 132, 4, 142, 123, 216, 219, 233, 248, 89,
+      ]),
+    },
+    {
+      base58: 'BPFLoaderUpgradeab1e11111111111111111111111',
+      bytes: new Uint8Array([
+        2, 168, 246, 145, 78, 136, 161, 176, 226, 16, 21, 62, 247, 99, 174, 43,
+        0, 194, 185, 61, 22, 193, 36, 210, 192, 83, 122, 16, 4, 128, 0, 0,
       ]),
     },
     {

@@ -1,28 +1,32 @@
-import { base64Decode } from './base64';
+import { base58Decode } from './base58';
 import {
   Commitment,
   Execution,
   Instruction,
   PublicKey,
-  Rpc,
+  RpcHttp,
   Signature,
 } from './types';
 import {
-  enforceObject,
-  enforceNumber,
-  enforceString,
-  enforceArray,
-} from './utils';
+  expectJsonObject,
+  expectJsonNumber,
+  expectJsonString,
+  expectJsonObjectFromObject,
+  expectJsonArrayFromObject,
+  expectJsonStringFromArray,
+  expectJsonNumberFromObject,
+  expectJsonStringFromObject,
+} from './json';
 
 export async function getTransactionExecution(
-  rpc: Rpc,
+  rpcHttp: RpcHttp,
   transactionId: Signature,
   context?: {
     commitment?: Commitment;
   },
 ): Promise<Execution> {
-  const result = enforceObject(
-    await rpc('getTransaction', [
+  const result = expectJsonObject(
+    await rpcHttp('getTransaction', [
       transactionId,
       {
         commitment: context?.commitment,
@@ -32,52 +36,63 @@ export async function getTransactionExecution(
     ]),
   );
   // console.log('getTransactionExecution.result', result);
-  const meta = enforceObject(result.meta);
+  const meta = expectJsonObjectFromObject(result, 'meta');
   // TODO - handle errors in outcome (meta.err)?
-  // TODO - handle innerInstructions (meta.innerInstructions)?
-  const loadedAddresses = enforceObject(meta.loadedAddresses);
-  const loadedWritableAddresses = enforceArray(loadedAddresses.writable);
-  const loadedReadonlyAddresses = enforceArray(loadedAddresses.readonly);
-  const logMessages = enforceArray(meta.logMessages).map(enforceString);
-  const transaction = enforceObject(result.transaction);
-  const message = enforceObject(transaction.message);
-  const header = enforceObject(message.header);
-  const accountKeys = enforceArray(message.accountKeys).map(enforceString);
-  const instructions = enforceArray(message.instructions).map(enforceObject);
+  const loadedAddresses = expectJsonObjectFromObject(meta, 'loadedAddresses');
+  const loadedWritableAddresses = expectJsonArrayFromObject(
+    loadedAddresses,
+    'writable',
+  );
+  const loadedReadonlyAddresses = expectJsonArrayFromObject(
+    loadedAddresses,
+    'readonly',
+  );
+  const logMessages = expectJsonArrayFromObject(meta, 'logMessages').map(
+    expectJsonString,
+  );
+  const transaction = expectJsonObjectFromObject(result, 'transaction');
+  const message = expectJsonObjectFromObject(transaction, 'message');
+  const header = expectJsonObjectFromObject(message, 'header');
+  const accountKeys = expectJsonArrayFromObject(message, 'accountKeys').map(
+    expectJsonString,
+  );
+  const instructions = expectJsonArrayFromObject(message, 'instructions').map(
+    expectJsonObject,
+  );
   return {
     transaction: {
-      payerAddress: decompileTransactionPayerAddress(accountKeys),
+      payerAddress: expectJsonStringFromArray(accountKeys, 0),
       instructions: decompileTransactionInstructions(
-        enforceNumber(header.numRequiredSignatures),
-        enforceNumber(header.numReadonlySignedAccounts),
-        enforceNumber(header.numReadonlyUnsignedAccounts),
+        expectJsonNumberFromObject(header, 'numRequiredSignatures'),
+        expectJsonNumberFromObject(header, 'numReadonlySignedAccounts'),
+        expectJsonNumberFromObject(header, 'numReadonlyUnsignedAccounts'),
         accountKeys,
-        loadedWritableAddresses.map(enforceString),
-        loadedReadonlyAddresses.map(enforceString),
+        loadedWritableAddresses.map(expectJsonString),
+        loadedReadonlyAddresses.map(expectJsonString),
         instructions.map((instruction) => ({
-          programIndex: enforceNumber(instruction.programIdIndex),
-          accountsIndexes: enforceArray(instruction.accounts).map(
-            enforceNumber,
+          programIndex: expectJsonNumberFromObject(
+            instruction,
+            'programIdIndex',
           ),
-          data: enforceString(instruction.data),
+          accountsIndexes: expectJsonArrayFromObject(
+            instruction,
+            'accounts',
+          ).map(expectJsonNumber),
+          data: expectJsonStringFromObject(instruction, 'data'),
         })),
       ),
-      recentBlockHash: enforceString(message.recentBlockhash),
+      recentBlockHash: expectJsonStringFromObject(message, 'recentBlockhash'),
     },
     outcome: {
-      error: meta.err,
+      error: expectJsonObjectFromObject(meta, 'err'),
       logs: logMessages,
-      chargedFees: BigInt(enforceNumber(meta.fee)),
-      computeUnitsConsumed: enforceNumber(meta.computeUnitsConsumed),
+      chargedFees: String(expectJsonNumberFromObject(meta, 'fee')),
+      computeUnitsConsumed: expectJsonNumberFromObject(
+        meta,
+        'computeUnitsConsumed',
+      ),
     },
   };
-}
-
-function decompileTransactionPayerAddress(staticAddresses: Array<PublicKey>) {
-  if (staticAddresses.length === 0) {
-    throw new Error('No static addresses provided');
-  }
-  return staticAddresses[0];
 }
 
 function decompileTransactionInstructions(
@@ -95,7 +110,7 @@ function decompileTransactionInstructions(
 ): Array<Instruction> {
   let signerAddresses = new Set<PublicKey>();
   for (let index = 0; index < headerNumRequiredSignatures; index++) {
-    signerAddresses.add(staticAddresses[index]);
+    signerAddresses.add(expectAddressAtIndex(staticAddresses, index));
   }
   let readonlyAddresses = new Set<PublicKey>();
   for (
@@ -104,7 +119,7 @@ function decompileTransactionInstructions(
     readonlyIndex < headerNumRequiredSignatures;
     readonlyIndex++
   ) {
-    readonlyAddresses.add(staticAddresses[readonlyIndex]);
+    readonlyAddresses.add(expectAddressAtIndex(staticAddresses, readonlyIndex));
   }
   for (
     let readonlyIndex =
@@ -112,7 +127,7 @@ function decompileTransactionInstructions(
     readonlyIndex < staticAddresses.length;
     readonlyIndex++
   ) {
-    readonlyAddresses.add(staticAddresses[readonlyIndex]);
+    readonlyAddresses.add(expectAddressAtIndex(staticAddresses, readonlyIndex));
   }
   for (let loadedReadonlyAddress of loadedReadonlyAddresses) {
     readonlyAddresses.add(loadedReadonlyAddress);
@@ -123,20 +138,13 @@ function decompileTransactionInstructions(
   usedAddresses.push(...loadedReadonlyAddresses);
   let instructions = new Array<Instruction>();
   for (let compiledInstruction of compiledInstructions) {
-    let programAddress = usedAddresses[compiledInstruction.programIndex];
-    if (programAddress === undefined) {
-      throw new Error(
-        `Invalid program ID index: ${compiledInstruction.programIndex}`,
-      );
-    }
-    let accountsDescriptors = new Array<
-      Instruction['accountsDescriptors'][0]
-    >();
+    let programAddress = expectAddressAtIndex(
+      usedAddresses,
+      compiledInstruction.programIndex,
+    );
+    let accountsDescriptors = new Array();
     for (let accountIndex of compiledInstruction.accountsIndexes) {
-      let accountAddress = usedAddresses[accountIndex];
-      if (accountAddress === undefined) {
-        throw new Error(`Invalid account index: ${accountIndex}`);
-      }
+      let accountAddress = expectAddressAtIndex(usedAddresses, accountIndex);
       accountsDescriptors.push({
         address: accountAddress,
         writable: !readonlyAddresses.has(accountAddress),
@@ -146,8 +154,20 @@ function decompileTransactionInstructions(
     instructions.push({
       programAddress,
       accountsDescriptors,
-      data: base64Decode(compiledInstruction.data),
+      data: base58Decode(compiledInstruction.data),
     });
   }
   return instructions;
+}
+
+function expectAddressAtIndex(
+  addresses: Array<PublicKey>,
+  index: number,
+): PublicKey {
+  if (index < 0 || index >= addresses.length) {
+    throw new Error(
+      `Address index ${index} out of bounds (length: ${addresses.length})`,
+    );
+  }
+  return addresses[index]!;
 }

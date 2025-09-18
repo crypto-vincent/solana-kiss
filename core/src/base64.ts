@@ -56,7 +56,7 @@ export function base64Encode(bytes: Uint8Array): string {
 export function base64Decode(message: string): Uint8Array {
   const length = message.length;
   if (length % 4 != 0) {
-    throw new Error(`Invalid Base64 string length: ${length}`);
+    throw new Error(`Base64: decode: invalid encoded length: ${length}`);
   }
   const chunks = length / 4;
   let bytes: Uint8Array;
@@ -95,7 +95,7 @@ function base64DecodeDigit(message: string, codeIndex: number): number {
   let digit = codeToDigit[code] ?? -1;
   if (digit < 0) {
     throw new Error(
-      `Invalid Base64 string character code: ${code} (${String.fromCharCode(code)}), at index: ${codeIndex}`,
+      `Base64: decode: invalid character "${message[codeIndex]}" at index: ${codeIndex}`,
     );
   }
   return digit;

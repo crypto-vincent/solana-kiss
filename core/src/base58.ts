@@ -54,7 +54,7 @@ export function base58Decode(message: string): Uint8Array {
     const digit = codeToDigit[code] ?? -1;
     if (digit < 0) {
       throw new Error(
-        `Invalid base58 character: ${code} (${String.fromCharCode(code)}) at position ${codeIndex}`,
+        `Base58: decode: invalid character "${message[codeIndex]}" at index: ${codeIndex}`,
       );
     }
     let carry = digit;

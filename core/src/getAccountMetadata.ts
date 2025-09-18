@@ -1,13 +1,14 @@
-import { Commitment, Lamports, PublicKey, Rpc, Slot } from './types';
+import { Commitment, Lamports, PublicKey, RpcHttp, Slot } from './types';
 import {
-  enforceObject,
-  enforceBoolean,
-  enforceNumber,
-  enforceString,
-} from './utils';
+  expectJsonObject,
+  expectJsonBooleanFromObject,
+  expectJsonNumberFromObject,
+  expectJsonObjectFromObject,
+  expectJsonStringFromObject,
+} from './json';
 
 export async function getAccountMetadata(
-  rpc: Rpc,
+  rpcHttp: RpcHttp,
   accountAddress: PublicKey,
   context?: {
     commitment?: Commitment;
@@ -19,8 +20,8 @@ export async function getAccountMetadata(
   owner: PublicKey;
   space: number;
 }> {
-  const result = enforceObject(
-    await rpc('getAccountInfo', [
+  const result = expectJsonObject(
+    await rpcHttp('getAccountInfo', [
       accountAddress,
       {
         commitment: context?.commitment,
@@ -30,11 +31,11 @@ export async function getAccountMetadata(
       },
     ]),
   );
-  const value = enforceObject(result.value);
-  const executable = enforceBoolean(value.executable);
-  const lamports = BigInt(enforceNumber(value.lamports));
-  const owner = enforceString(value.owner);
-  const space = enforceNumber(value.space);
+  const value = expectJsonObjectFromObject(result, 'value');
+  const executable = expectJsonBooleanFromObject(value, 'executable');
+  const lamports = String(expectJsonNumberFromObject(value, 'lamports'));
+  const owner = expectJsonStringFromObject(value, 'owner');
+  const space = expectJsonNumberFromObject(value, 'space');
   return {
     executable,
     lamports,

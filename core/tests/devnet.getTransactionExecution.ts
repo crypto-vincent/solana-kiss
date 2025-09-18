@@ -1,4 +1,4 @@
-import { expect, it } from '@jest/globals';
+import { it } from '@jest/globals';
 import { getTransactionExecution, rpcFromUrl } from '../src';
 
 it('run', async () => {
@@ -21,4 +21,10 @@ it('run', async () => {
     '2MZyi9uezffec3YyAHpkC33r8Nmgwf3cBHKH1Y9H4EHfoKtZ8sQEKVCHF2Rwb17qQCrUDXS1u1wpNnxgz79U6yWY',
   );
   console.log('result3', result3);
+
+  let result4 = await getTransactionExecution(
+    rpc,
+    '3MZyi9uezffec3YyAHpkC33r8Nmgwf3cBHKH1Y9H4EHfoKtZ8sQEKVCHF2Rwb17qQCrUDXS1u1wpNnxgz79U6yWY',
+  );
+  console.log('result4', result4);
 });

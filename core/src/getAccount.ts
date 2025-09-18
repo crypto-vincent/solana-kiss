@@ -1,15 +1,17 @@
 import { base64Decode } from './base64';
-import { Commitment, Lamports, PublicKey, Rpc, Slot } from './types';
+import { Commitment, Lamports, PublicKey, RpcHttp, Slot } from './types';
 import {
-  enforceArray,
-  enforceBoolean,
-  enforceNumber,
-  enforceObject,
-  enforceString,
-} from './utils';
+  expectJsonStringFromArray,
+  expectJsonObject,
+  expectJsonArrayFromObject,
+  expectJsonBooleanFromObject,
+  expectJsonNumberFromObject,
+  expectJsonObjectFromObject,
+  expectJsonStringFromObject,
+} from './json';
 
 export async function getAccount(
-  rpc: Rpc,
+  rpcHttp: RpcHttp,
   accountAddress: PublicKey,
   context?: {
     commitment?: Commitment;
@@ -21,8 +23,8 @@ export async function getAccount(
   owner: PublicKey;
   data: Uint8Array;
 }> {
-  const result = enforceObject(
-    await rpc('getAccountInfo', [
+  const result = expectJsonObject(
+    await rpcHttp('getAccountInfo', [
       accountAddress,
       {
         commitment: context?.commitment,
@@ -31,11 +33,13 @@ export async function getAccount(
       },
     ]),
   );
-  const value = enforceObject(result.value);
-  const executable = enforceBoolean(value.executable);
-  const lamports = BigInt(enforceNumber(value.lamports));
-  const owner = enforceString(value.owner);
-  const data = base64Decode(enforceString(enforceArray(value.data)[0]));
+  const value = expectJsonObjectFromObject(result, 'value');
+  const executable = expectJsonBooleanFromObject(value, 'executable');
+  const lamports = String(expectJsonNumberFromObject(value, 'lamports'));
+  const owner = expectJsonStringFromObject(value, 'owner');
+  const data = base64Decode(
+    expectJsonStringFromArray(expectJsonArrayFromObject(value, 'data'), 0),
+  );
   return {
     executable,
     lamports,

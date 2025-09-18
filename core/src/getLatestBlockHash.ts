@@ -1,21 +1,25 @@
-import { Commitment, Hash, Rpc, Slot } from './types';
-import { enforceObject, enforceString } from './utils';
+import { Commitment, Hash, RpcHttp, Slot } from './types';
+import {
+  expectJsonObjectFromObject,
+  expectJsonObject,
+  expectJsonStringFromObject,
+} from './json';
 
 export async function getLatestBlockHash(
-  rpc: Rpc,
+  rpcHttp: RpcHttp,
   context?: {
     commitment?: Commitment;
     minSlot?: Slot; // TODO - check the context params are valid in all cases
   },
 ): Promise<Hash> {
-  const result = enforceObject(
-    await rpc('getLatestBlockhash', [
+  const result = expectJsonObject(
+    await rpcHttp('getLatestBlockhash', [
       {
         commitment: context?.commitment,
         minContextSlot: context?.minSlot,
       },
     ]),
   );
-  const value = enforceObject(result.value);
-  return enforceString(value.blockhash);
+  const value = expectJsonObjectFromObject(result, 'value');
+  return expectJsonStringFromObject(value, 'blockhash');
 }

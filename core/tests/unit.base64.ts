@@ -18,12 +18,20 @@ it('run', async () => {
   }
   let tests = [
     {
-      base64: 'SGVsbG8sIFdvcmxkIQ==',
       utf8: 'Hello, World!',
+      base64: 'SGVsbG8sIFdvcmxkIQ==',
     },
     {
-      base64: 'QUJDREVGR0hJSktMTU5PUFFSU1RVVldYWVo=',
       utf8: 'ABCDEFGHIJKLMNOPQRSTUVWXYZ',
+      base64: 'QUJDREVGR0hJSktMTU5PUFFSU1RVVldYWVo=',
+    },
+    {
+      utf8: '1234567890',
+      base64: 'MTIzNDU2Nzg5MA==',
+    },
+    {
+      bytes: new Uint8Array([1, 2, 3, 4, 5, 5]),
+      base64: 'AQIDBAUF',
     },
   ];
   for (const test of tests) {

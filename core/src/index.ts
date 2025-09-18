@@ -8,5 +8,6 @@ export * from './getAccountMetadata';
 export * from './findProgramAccountsAddresses';
 export * from './findAccountTransactionsIds';
 export * from './getTransactionExecution';
-export * from './utils';
+export * from './json';
 export * from './getLatestBlockHash';
+export * from './utils';

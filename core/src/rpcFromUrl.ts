@@ -1,32 +1,58 @@
-import { Rpc } from './types';
+import { RpcHttp } from './types';
 import {
-  enforceNumber,
-  enforceObject,
-  enforceString,
-  expectEqual,
-} from './utils';
+  JsonValue,
+  expectJsonObject,
+  expectJsonStringFromObject,
+  expectJsonNumberFromObject,
+  expectJsonValueFromObject,
+  expectJsonValueShallowEquals,
+} from './json';
 
 export function rpcFromUrl(
   url: string,
   // TODO - support custom fetch implementations (for environments that don't have fetch natively)
-): Rpc {
+): RpcHttp {
   return async function (method, params) {
-    let response = await fetch(url, {
+    const response = await fetch(url, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ jsonrpc: '2.0', id: 1, method, params }),
     });
-    let json = enforceObject(await response.json());
-    expectEqual(enforceString(json['jsonrpc']), '2.0');
-    expectEqual(enforceNumber(json['id']), 1);
+    const json = expectJsonObject((await response.json()) as JsonValue);
+    const version = expectJsonStringFromObject(json, 'jsonrpc');
+    const id = expectJsonNumberFromObject(json, 'id');
+    expectJsonValueShallowEquals(version, '2.0');
+    expectJsonValueShallowEquals(id, 1);
     if (json['error']) {
-      let error = enforceObject(json['error']);
-      throw new Error(
-        `Error ${enforceNumber(error['code'])}: ${enforceString(error['message'])}`,
-      );
+      const error = expectJsonObject(json['error']);
+      const errorCode = expectJsonNumberFromObject(error, 'code');
+      const errorMessage = expectJsonStringFromObject(error, 'message');
+      throw new Error(`Rpc error ${errorCode}: ${errorMessage}`);
     }
-    return json['result'];
+    return expectJsonValueFromObject(json, 'result');
   };
 }
 
-// TODO - provide a throttle wrapper that limits the number of requests per second and number of concurrent requests
+// TODO - is that sufficient ? where should this be located
+export function rpcThrottledRequestsInParallel(
+  rpc: RpcHttp,
+  requestsInParallel: number,
+): RpcHttp {
+  let ongoingRequests = 0;
+  let queue = new Array<() => void>();
+  return async function (method, params) {
+    if (ongoingRequests >= requestsInParallel) {
+      await new Promise<void>((resolve) => queue.push(resolve));
+    }
+    ongoingRequests++;
+    try {
+      return await rpc(method, params);
+    } finally {
+      ongoingRequests--;
+      queue.shift()?.();
+    }
+  };
+}
+
+// TODO - add a request per second limiter
+// TODO - add a retry layer somehow ?

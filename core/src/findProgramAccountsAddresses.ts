@@ -1,16 +1,20 @@
-import { Commitment, PublicKey, Rpc, Slot } from './types';
-import { enforceArray, enforceObject, enforceString } from './utils';
+import { Commitment, PublicKey, RpcHttp, Slot } from './types';
+import {
+  expectJsonObject,
+  expectJsonArrayFromObject,
+  expectJsonStringFromObject,
+} from './json';
 
 export async function findProgramAccountsAddresses(
-  rpc: Rpc,
+  rpcHttp: RpcHttp,
   programAddress: PublicKey,
   context?: {
     commitment?: Commitment;
     minSlot?: Slot;
   },
 ): Promise<Set<PublicKey>> {
-  const result = enforceObject(
-    await rpc('getProgramAccounts', [
+  const result = expectJsonObject(
+    await rpcHttp('getProgramAccounts', [
       programAddress,
       {
         commitment: context?.commitment,
@@ -22,8 +26,8 @@ export async function findProgramAccountsAddresses(
     ]),
   );
   const addresses = new Set<PublicKey>();
-  for (let item of enforceArray(result['value'])) {
-    addresses.add(enforceString(enforceObject(item)['pubkey']));
+  for (let item of expectJsonArrayFromObject(result, 'value')) {
+    addresses.add(expectJsonStringFromObject(expectJsonObject(item), 'pubkey'));
   }
   return addresses;
 }
