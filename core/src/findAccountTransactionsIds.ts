@@ -1,9 +1,10 @@
-import { Commitment, PublicKey, RpcHttp, Signature, Slot } from './types';
+import { Commitment, PublicKey, Signature, Slot } from './types';
 import {
-  expectJsonArray,
-  expectJsonObject,
-  expectJsonStringFromObject,
+  jsonExpectArray,
+  jsonExpectObject,
+  jsonExpectStringFromObject,
 } from './json';
+import { RpcHttp } from './rpc';
 
 export async function findAccountTransactionsIds(
   rpcHttp: RpcHttp,
@@ -28,7 +29,7 @@ export async function findAccountTransactionsIds(
       rewindUntilTransactionId ? (requestCount == 0 ? 10 : 1000) : maxLength,
     );
     requestCount++;
-    const result = expectJsonArray(
+    const result = jsonExpectArray(
       await rpcHttp('getSignaturesForAddress', [
         accountAddress,
         {
@@ -43,8 +44,8 @@ export async function findAccountTransactionsIds(
       return transactionsIds;
     }
     for (let item of result) {
-      const transactionId = expectJsonStringFromObject(
-        expectJsonObject(item),
+      const transactionId = jsonExpectStringFromObject(
+        jsonExpectObject(item),
         'signature',
       );
       transactionsIds.push(transactionId);

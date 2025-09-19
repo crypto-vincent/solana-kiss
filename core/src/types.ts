@@ -1,16 +1,11 @@
-import { JsonValue } from './json';
-
-export type RpcHttp = (
-  method: string,
-  params: Array<any>,
-) => Promise<JsonValue>;
-
-export type Commitment = 'processed' | 'confirmed' | 'finalized';
+export type Commitment = "processed" | "confirmed" | "finalized";
 
 export type Slot = number; // TODO - clarify those names and consider using bigint
-export type Hash = string;
+export type Hash = string; // TODO - should this be Uint8Array ?
 
-export type PublicKey = string;
+export type PrivateKey = Uint8Array; // TODO - how ?
+
+export type PublicKey = string; // TODO - should this be a harder type ?
 export type Lamports = string;
 
 // TODO - keypair/privatekey type?

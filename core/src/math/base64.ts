@@ -92,7 +92,7 @@ export function base64Decode(message: string): Uint8Array {
 
 function base64DecodeDigit(message: string, codeIndex: number): number {
   const code = message.charCodeAt(codeIndex);
-  let digit = codeToDigit[code] ?? -1;
+  const digit = codeToDigit[code] ?? -1;
   if (digit < 0) {
     throw new Error(
       `Base64: decode: invalid character "${message[codeIndex]}" at index: ${codeIndex}`,

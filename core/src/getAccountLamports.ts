@@ -1,5 +1,6 @@
-import { Commitment, Lamports, PublicKey, RpcHttp, Slot } from './types';
-import { expectJsonNumberFromObject, expectJsonObject } from './json';
+import { Commitment, Lamports, PublicKey, Slot } from './types';
+import { jsonExpectNumberFromObject, jsonExpectObject } from './json';
+import { RpcHttp } from './rpc';
 
 export async function getAccountLamports(
   rpcHttp: RpcHttp,
@@ -9,7 +10,7 @@ export async function getAccountLamports(
     minSlot?: Slot;
   },
 ): Promise<Lamports> {
-  const result = expectJsonObject(
+  const result = jsonExpectObject(
     await rpcHttp('getBalance', [
       accountAddress,
       {
@@ -19,6 +20,6 @@ export async function getAccountLamports(
       },
     ]),
   );
-  const value = expectJsonNumberFromObject(result, 'value');
+  const value = jsonExpectNumberFromObject(result, 'value');
   return String(value);
 }

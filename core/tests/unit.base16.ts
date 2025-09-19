@@ -1,8 +1,15 @@
 import { expect, it } from "@jest/globals";
-import { base64Decode, base64Encode } from "../src/math/base64";
+import { base16Decode, base16Encode } from "../src";
 
 function referenceImplementation(data: Uint8Array): string {
-  return btoa(String.fromCharCode(...data));
+  const hex = "0123456789abcdef";
+  let result = "";
+  for (let i = 0; i < data.length; i++) {
+    const byte = data[i]!;
+    result += hex[(byte >> 4) & 0x0f];
+    result += hex[byte & 0x0f];
+  }
+  return result;
 }
 
 it("run", async () => {
@@ -37,8 +44,8 @@ it("run", async () => {
     const bytes = test.bytes
       ? new Uint8Array(test.bytes)
       : new TextEncoder().encode(test.utf8);
-    const encoded = base64Encode(bytes);
-    const decoded = base64Decode(encoded);
+    const encoded = base16Encode(bytes);
+    const decoded = base16Decode(encoded);
     const reference = referenceImplementation(bytes);
     expect(decoded).toStrictEqual(bytes);
     expect(encoded).toStrictEqual(reference);

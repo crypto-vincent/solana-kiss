@@ -1,9 +1,10 @@
-import { Commitment, Hash, RpcHttp, Slot } from './types';
+import { Commitment, Hash, Slot } from './types';
 import {
-  expectJsonObjectFromObject,
-  expectJsonObject,
-  expectJsonStringFromObject,
+  jsonExpectObjectFromObject,
+  jsonExpectObject,
+  jsonExpectStringFromObject,
 } from './json';
+import { RpcHttp } from './rpc';
 
 export async function getLatestBlockHash(
   rpcHttp: RpcHttp,
@@ -12,7 +13,7 @@ export async function getLatestBlockHash(
     minSlot?: Slot; // TODO - check the context params are valid in all cases
   },
 ): Promise<Hash> {
-  const result = expectJsonObject(
+  const result = jsonExpectObject(
     await rpcHttp('getLatestBlockhash', [
       {
         commitment: context?.commitment,
@@ -20,6 +21,6 @@ export async function getLatestBlockHash(
       },
     ]),
   );
-  const value = expectJsonObjectFromObject(result, 'value');
-  return expectJsonStringFromObject(value, 'blockhash');
+  const value = jsonExpectObjectFromObject(result, 'value');
+  return jsonExpectStringFromObject(value, 'blockhash');
 }

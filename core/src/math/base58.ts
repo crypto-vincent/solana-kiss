@@ -1,4 +1,4 @@
-const alphabet = '123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz';
+const alphabet = "123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz";
 
 const digitToCode = new Uint8Array(alphabet.length);
 for (let digit = 0; digit < alphabet.length; digit++) {
@@ -9,12 +9,12 @@ for (let digit = 0; digit < alphabet.length; digit++) {
   codeToDigit[alphabet.charCodeAt(digit)!] = digit;
 }
 
-const codePadding = '1'.charCodeAt(0);
+const codePadding = "1".charCodeAt(0);
 const codeDecoder = new TextDecoder();
 
 export function base58Encode(bytes: Uint8Array): string {
   if (bytes.length === 0) {
-    return '';
+    return "";
   }
   const digits = new Array<number>();
   for (let byte of bytes) {
@@ -44,6 +44,7 @@ export function base58Encode(bytes: Uint8Array): string {
   return codeDecoder.decode(codes);
 }
 
+// TODO - how to make this easily passable to the pda seeds ?
 export function base58Decode(message: string): Uint8Array {
   if (message.length === 0) {
     return new Uint8Array(0);

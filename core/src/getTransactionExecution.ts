@@ -1,22 +1,22 @@
-import { base58Decode } from './base58';
+import {
+  jsonExpectArrayFromObject,
+  jsonExpectNumber,
+  jsonExpectNumberFromObject,
+  jsonExpectObject,
+  jsonExpectObjectFromObject,
+  jsonExpectString,
+  jsonExpectStringFromArray,
+  jsonExpectStringFromObject,
+} from "./json";
+import { base58Decode } from "./math/base58";
+import { RpcHttp } from "./rpc";
 import {
   Commitment,
   Execution,
   Instruction,
   PublicKey,
-  RpcHttp,
   Signature,
-} from './types';
-import {
-  expectJsonObject,
-  expectJsonNumber,
-  expectJsonString,
-  expectJsonObjectFromObject,
-  expectJsonArrayFromObject,
-  expectJsonStringFromArray,
-  expectJsonNumberFromObject,
-  expectJsonStringFromObject,
-} from './json';
+} from "./types";
 
 export async function getTransactionExecution(
   rpcHttp: RpcHttp,
@@ -25,71 +25,70 @@ export async function getTransactionExecution(
     commitment?: Commitment;
   },
 ): Promise<Execution> {
-  const result = expectJsonObject(
-    await rpcHttp('getTransaction', [
+  const result = jsonExpectObject(
+    await rpcHttp("getTransaction", [
       transactionId,
       {
         commitment: context?.commitment,
-        encoding: 'json',
+        encoding: "json",
         maxSupportedTransactionVersion: 0,
       },
     ]),
   );
-  // console.log('getTransactionExecution.result', result);
-  const meta = expectJsonObjectFromObject(result, 'meta');
+  const meta = jsonExpectObjectFromObject(result, "meta");
   // TODO - handle errors in outcome (meta.err)?
-  const loadedAddresses = expectJsonObjectFromObject(meta, 'loadedAddresses');
-  const loadedWritableAddresses = expectJsonArrayFromObject(
+  const loadedAddresses = jsonExpectObjectFromObject(meta, "loadedAddresses");
+  const loadedWritableAddresses = jsonExpectArrayFromObject(
     loadedAddresses,
-    'writable',
+    "writable",
   );
-  const loadedReadonlyAddresses = expectJsonArrayFromObject(
+  const loadedReadonlyAddresses = jsonExpectArrayFromObject(
     loadedAddresses,
-    'readonly',
+    "readonly",
   );
-  const logMessages = expectJsonArrayFromObject(meta, 'logMessages').map(
-    expectJsonString,
+  const logMessages = jsonExpectArrayFromObject(meta, "logMessages").map(
+    jsonExpectString,
   );
-  const transaction = expectJsonObjectFromObject(result, 'transaction');
-  const message = expectJsonObjectFromObject(transaction, 'message');
-  const header = expectJsonObjectFromObject(message, 'header');
-  const accountKeys = expectJsonArrayFromObject(message, 'accountKeys').map(
-    expectJsonString,
+  const transaction = jsonExpectObjectFromObject(result, "transaction");
+  const message = jsonExpectObjectFromObject(transaction, "message");
+  const header = jsonExpectObjectFromObject(message, "header");
+  const accountKeys = jsonExpectArrayFromObject(message, "accountKeys").map(
+    jsonExpectString,
   );
-  const instructions = expectJsonArrayFromObject(message, 'instructions').map(
-    expectJsonObject,
+  const instructions = jsonExpectArrayFromObject(message, "instructions").map(
+    jsonExpectObject,
   );
   return {
     transaction: {
-      payerAddress: expectJsonStringFromArray(accountKeys, 0),
+      payerAddress: jsonExpectStringFromArray(accountKeys, 0),
       instructions: decompileTransactionInstructions(
-        expectJsonNumberFromObject(header, 'numRequiredSignatures'),
-        expectJsonNumberFromObject(header, 'numReadonlySignedAccounts'),
-        expectJsonNumberFromObject(header, 'numReadonlyUnsignedAccounts'),
+        jsonExpectNumberFromObject(header, "numRequiredSignatures"),
+        jsonExpectNumberFromObject(header, "numReadonlySignedAccounts"),
+        jsonExpectNumberFromObject(header, "numReadonlyUnsignedAccounts"),
         accountKeys,
-        loadedWritableAddresses.map(expectJsonString),
-        loadedReadonlyAddresses.map(expectJsonString),
+        loadedWritableAddresses.map(jsonExpectString),
+        loadedReadonlyAddresses.map(jsonExpectString),
         instructions.map((instruction) => ({
-          programIndex: expectJsonNumberFromObject(
+          programIndex: jsonExpectNumberFromObject(
             instruction,
-            'programIdIndex',
+            "programIdIndex",
           ),
-          accountsIndexes: expectJsonArrayFromObject(
+          accountsIndexes: jsonExpectArrayFromObject(
             instruction,
-            'accounts',
-          ).map(expectJsonNumber),
-          data: expectJsonStringFromObject(instruction, 'data'),
+            "accounts",
+          ).map(jsonExpectNumber),
+          data: jsonExpectStringFromObject(instruction, "data"),
         })),
       ),
-      recentBlockHash: expectJsonStringFromObject(message, 'recentBlockhash'),
+      recentBlockHash: jsonExpectStringFromObject(message, "recentBlockhash"),
     },
     outcome: {
-      error: expectJsonObjectFromObject(meta, 'err'),
+      error: jsonExpectObjectFromObject(meta, "err"),
       logs: logMessages,
-      chargedFees: String(expectJsonNumberFromObject(meta, 'fee')),
-      computeUnitsConsumed: expectJsonNumberFromObject(
+      chargedFees: String(jsonExpectNumberFromObject(meta, "fee")),
+      computeUnitsConsumed: jsonExpectNumberFromObject(
         meta,
-        'computeUnitsConsumed',
+        "computeUnitsConsumed",
       ),
     },
   };

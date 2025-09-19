@@ -1,8 +1,8 @@
 import { expect, it } from "@jest/globals";
-import { base64Decode, base64Encode } from "../src/math/base64";
+import { base16Encode, sha256Hash } from "../src";
 
-function referenceImplementation(data: Uint8Array): string {
-  return btoa(String.fromCharCode(...data));
+async function referenceImplementation(data: Uint8Array): Promise<Uint8Array> {
+  return new Uint8Array(await crypto.subtle.digest("SHA-256", data as any));
 }
 
 it("run", async () => {
@@ -37,10 +37,8 @@ it("run", async () => {
     const bytes = test.bytes
       ? new Uint8Array(test.bytes)
       : new TextEncoder().encode(test.utf8);
-    const encoded = base64Encode(bytes);
-    const decoded = base64Decode(encoded);
-    const reference = referenceImplementation(bytes);
-    expect(decoded).toStrictEqual(bytes);
-    expect(encoded).toStrictEqual(reference);
+    const hashed = base16Encode(sha256Hash([bytes]));
+    const reference = base16Encode(await referenceImplementation(bytes));
+    expect(hashed).toStrictEqual(reference);
   }
 });

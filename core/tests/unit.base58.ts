@@ -1,72 +1,47 @@
-import { expect, it } from '@jest/globals';
-import { base58Decode, base58Encode } from '../src/base58';
+import { expect, it } from "@jest/globals";
+import bs58 from "bs58";
+import { base58Decode, base58Encode } from "../src/math/base58";
 
-it('run', async () => {
-  let datas = [
-    [1, 2, 3, 4, 5],
-    [],
-    [1, 2, 3, 4, 5, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
-    [255, 255, 255, 255, 255],
-    [42, 42, 42, 42, 42, 42, 42, 42, 42, 42, 42, 42, 42, 42, 42, 42, 42],
-  ];
-  for (let data of datas) {
-    let array = new Uint8Array(data);
-    let encoded = base58Encode(array);
-    let decoded = base58Decode(encoded);
-    expect(decoded).toStrictEqual(array);
-  }
+function referenceImplementation(data: Uint8Array): string {
+  return bs58.encode(data);
+}
+
+it("run", async () => {
   let tests = [
+    { bytes: [1, 2, 3, 4, 5] },
+    { bytes: [] },
+    { bytes: [1, 2, 3, 4, 5, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0] },
+    { bytes: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1] },
+    { bytes: [255, 255, 255, 255, 255] },
+    { bytes: [42, 42, 42, 42, 42, 42, 42, 42, 42, 42, 42, 42, 42, 42, 42, 42] },
+    { bytes: [1, 2, 3, 4, 5, 6, 7] },
+    { utf8: "" },
+    { utf8: "a" },
+    { utf8: "abc" },
+    { utf8: "Hello, World!" },
+    { utf8: "ABCDEFGHIJKLMNOPQRSTUVWXYZ" },
+    { utf8: "1234567890" },
+    { utf8: "abcdefghijklmnopqrstuvwxyz" },
+    { utf8: "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789" },
+    { utf8: "+1234567890123456789012345678901234567890123456789012345678901+" },
     {
-      utf8: 'Hello, World!',
-      base58: '72k1xXWG59fYdzSNoA',
-    },
-    {
-      utf8: 'ABCDEFGHIJKLMNOPQRSTUVWXYZ',
-      base58: '2zuFXTJSTRK6ESktqhM2QDBkCnH1U46CnxaD',
-    },
-    {
-      base58: '1111111QLbz7JHiBTspS962RLKV8GndWFwiEaqKM',
-      bytes: new Uint8Array([
-        0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-        0, 0, 0, 0, 0, 0, 0, 0,
-      ]),
-    },
-    {
-      base58: 'TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA',
-      bytes: new Uint8Array([
-        6, 221, 246, 225, 215, 101, 161, 147, 217, 203, 225, 70, 206, 235, 121,
-        172, 28, 180, 133, 237, 95, 91, 55, 145, 58, 140, 245, 133, 126, 255, 0,
-        169,
-      ]),
-    },
-    {
-      base58: 'ATokenGPvbdGVxr1b2hvZbsiqW5xWH25efTNsLJA8knL',
-      bytes: new Uint8Array([
-        140, 151, 37, 143, 78, 36, 137, 241, 187, 61, 16, 41, 20, 142, 13, 131,
-        11, 90, 19, 153, 218, 255, 16, 132, 4, 142, 123, 216, 219, 233, 248, 89,
-      ]),
-    },
-    {
-      base58: 'BPFLoaderUpgradeab1e11111111111111111111111',
-      bytes: new Uint8Array([
-        2, 168, 246, 145, 78, 136, 161, 176, 226, 16, 21, 62, 247, 99, 174, 43,
-        0, 194, 185, 61, 22, 193, 36, 210, 192, 83, 122, 16, 4, 128, 0, 0,
-      ]),
-    },
-    {
-      base58: '11111111111111111111111111111111',
-      bytes: new Uint8Array([
-        0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-        0, 0, 0, 0, 0, 0, 0, 0,
-      ]),
+      utf8: [
+        "Lorem ipsum dolor sit amet, consectetur adipiscing elit,",
+        "sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.",
+        "Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.",
+        "Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur.",
+        "Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.",
+      ].join(" "),
     },
   ];
   for (const test of tests) {
-    const bytes = test.bytes ?? new TextEncoder().encode(test.utf8);
+    const bytes = test.bytes
+      ? new Uint8Array(test.bytes)
+      : new TextEncoder().encode(test.utf8);
     const encoded = base58Encode(bytes);
     const decoded = base58Decode(encoded);
-    expect(test.base58).toStrictEqual(encoded);
+    const reference = referenceImplementation(bytes);
     expect(decoded).toStrictEqual(bytes);
+    expect(encoded).toStrictEqual(reference);
   }
 });
