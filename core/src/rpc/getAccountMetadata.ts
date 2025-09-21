@@ -1,17 +1,14 @@
 import {
-  jsonExpectArrayFromObject,
   jsonExpectBooleanFromObject,
   jsonExpectNumberFromObject,
   jsonExpectObject,
   jsonExpectObjectFromObject,
-  jsonExpectStringFromArray,
   jsonExpectStringFromObject,
-} from "./json";
-import { base64Decode } from "./math/base64";
-import { RpcHttp } from "./rpc";
-import { Commitment, Lamports, PublicKey, Slot } from "./types";
+} from "../json";
+import { RpcHttp } from "../rpc";
+import { Commitment, Lamports, PublicKey, Slot } from "../types";
 
-export async function getAccount(
+export async function getAccountMetadata(
   rpcHttp: RpcHttp,
   accountAddress: PublicKey,
   context?: {
@@ -22,7 +19,7 @@ export async function getAccount(
   executable: boolean;
   lamports: Lamports;
   owner: PublicKey;
-  data: Uint8Array;
+  space: number;
 }> {
   const result = jsonExpectObject(
     await rpcHttp("getAccountInfo", [
@@ -30,6 +27,7 @@ export async function getAccount(
       {
         commitment: context?.commitment,
         minContextSlot: context?.minSlot,
+        dataSlice: { offset: 0, length: 0 },
         encoding: "base64",
       },
     ]),
@@ -38,13 +36,11 @@ export async function getAccount(
   const executable = jsonExpectBooleanFromObject(value, "executable");
   const lamports = String(jsonExpectNumberFromObject(value, "lamports"));
   const owner = jsonExpectStringFromObject(value, "owner");
-  const data = base64Decode(
-    jsonExpectStringFromArray(jsonExpectArrayFromObject(value, "data"), 0),
-  );
+  const space = jsonExpectNumberFromObject(value, "space");
   return {
     executable,
     lamports,
     owner,
-    data,
+    space,
   };
 }

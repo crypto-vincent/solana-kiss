@@ -1,31 +1,31 @@
 import { it } from "@jest/globals";
 import { rpcHttpFromUrl } from "../src";
-import { getAccount } from "../src/getAccount";
-import { getAccountLamports } from "../src/getAccountLamports";
-import { getAccountMetadata } from "../src/getAccountMetadata";
+import { getAccount } from "../src/rpc/getAccount";
+import { getAccountLamports } from "../src/rpc/getAccountLamports";
+import { getAccountMetadata } from "../src/rpc/getAccountMetadata";
 
 it("run", async () => {
-  let rpc = rpcHttpFromUrl("https://api.devnet.solana.com");
+  const rpc = rpcHttpFromUrl("https://api.devnet.solana.com");
 
-  let dudu1 = await getAccount(
+  const dudu1 = await getAccount(
     rpc,
     "7fiDhdDH1Mp9V2teYAHdAnbpY9W5wDo8cpCV85eocynN",
   );
   console.log("dudu1", dudu1);
 
-  let getAccountResult = await getAccount(
+  const getAccountResult = await getAccount(
     rpc,
     "DL8WvebR4WVMu8WDv42zyzWuH9UZELYZ8kdhCaa83skB",
   );
   console.log("getAccountResult", getAccountResult);
 
-  let getAccountLamportsResult = await getAccountLamports(
+  const getAccountLamportsResult = await getAccountLamports(
     rpc,
     "DL8WvebR4WVMu8WDv42zyzWuH9UZELYZ8kdhCaa83skB",
   );
   console.log("getAccountLamportsResult", getAccountLamportsResult);
 
-  let getAccountMetadataResult = await getAccountMetadata(
+  const getAccountMetadataResult = await getAccountMetadata(
     rpc,
     "DL8WvebR4WVMu8WDv42zyzWuH9UZELYZ8kdhCaa83skB",
   );

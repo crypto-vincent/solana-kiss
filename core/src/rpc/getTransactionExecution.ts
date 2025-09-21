@@ -7,16 +7,16 @@ import {
   jsonExpectString,
   jsonExpectStringFromArray,
   jsonExpectStringFromObject,
-} from "./json";
-import { base58Decode } from "./math/base58";
-import { RpcHttp } from "./rpc";
+} from "../json";
+import { base58Decode } from "../math/base58";
+import { RpcHttp } from "../rpc";
 import {
   Commitment,
   Execution,
   Instruction,
   PublicKey,
   Signature,
-} from "./types";
+} from "../types";
 
 export async function getTransactionExecution(
   rpcHttp: RpcHttp,
@@ -83,7 +83,7 @@ export async function getTransactionExecution(
       recentBlockHash: jsonExpectStringFromObject(message, "recentBlockhash"),
     },
     outcome: {
-      error: jsonExpectObjectFromObject(meta, "err"),
+      error: meta["err"] ? jsonExpectObjectFromObject(meta, "err") : null,
       logs: logMessages,
       chargedFees: String(jsonExpectNumberFromObject(meta, "fee")),
       computeUnitsConsumed: jsonExpectNumberFromObject(
@@ -107,11 +107,15 @@ function decompileTransactionInstructions(
     data: string;
   }>,
 ): Array<Instruction> {
-  let signerAddresses = new Set<PublicKey>();
-  for (let index = 0; index < headerNumRequiredSignatures; index++) {
-    signerAddresses.add(expectAddressAtIndex(staticAddresses, index));
+  const signerAddresses = new Set<PublicKey>();
+  for (
+    let signerIndex = 0;
+    signerIndex < headerNumRequiredSignatures;
+    signerIndex++
+  ) {
+    signerAddresses.add(expectAddressAtIndex(staticAddresses, signerIndex));
   }
-  let readonlyAddresses = new Set<PublicKey>();
+  const readonlyAddresses = new Set<PublicKey>();
   for (
     let readonlyIndex =
       headerNumRequiredSignatures - headerNumReadonlySignedAccounts;
@@ -128,22 +132,22 @@ function decompileTransactionInstructions(
   ) {
     readonlyAddresses.add(expectAddressAtIndex(staticAddresses, readonlyIndex));
   }
-  for (let loadedReadonlyAddress of loadedReadonlyAddresses) {
+  for (const loadedReadonlyAddress of loadedReadonlyAddresses) {
     readonlyAddresses.add(loadedReadonlyAddress);
   }
-  let usedAddresses = new Array<PublicKey>();
+  const usedAddresses = new Array<PublicKey>();
   usedAddresses.push(...staticAddresses);
   usedAddresses.push(...loadedWritableAddresses);
   usedAddresses.push(...loadedReadonlyAddresses);
-  let instructions = new Array<Instruction>();
-  for (let compiledInstruction of compiledInstructions) {
-    let programAddress = expectAddressAtIndex(
+  const instructions = new Array<Instruction>();
+  for (const compiledInstruction of compiledInstructions) {
+    const programAddress = expectAddressAtIndex(
       usedAddresses,
       compiledInstruction.programIndex,
     );
-    let accountsDescriptors = new Array();
-    for (let accountIndex of compiledInstruction.accountsIndexes) {
-      let accountAddress = expectAddressAtIndex(usedAddresses, accountIndex);
+    const accountsDescriptors = new Array();
+    for (const accountIndex of compiledInstruction.accountsIndexes) {
+      const accountAddress = expectAddressAtIndex(usedAddresses, accountIndex);
       accountsDescriptors.push({
         address: accountAddress,
         writable: !readonlyAddresses.has(accountAddress),

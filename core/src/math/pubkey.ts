@@ -3,7 +3,6 @@ import { sha256Hash } from "./sha256";
 
 export type Pubkey = string;
 
-let uniqueCounter = 1n;
 export function pubkeyNewDummy(): Pubkey {
   const bytes = new Uint8Array(32);
   const view = new DataView(bytes.buffer);
@@ -19,20 +18,20 @@ export function pubkeyNewRandom(): Pubkey {
 
 export function pubkeyFindPdaAddress(
   programAddress: Pubkey,
-  seeds: Array<Uint8Array>,
+  seedsBlobs: Array<Uint8Array>,
 ): Pubkey {
-  return pubkeyFindPdaAddressWithBump(programAddress, seeds).address;
+  return pubkeyFindPdaAddressAndBump(programAddress, seedsBlobs).address;
 }
 
-export function pubkeyFindPdaAddressWithBump(
+export function pubkeyFindPdaAddressAndBump(
   programAddress: Pubkey,
-  seeds: Array<Uint8Array>,
+  seedsBlobs: Array<Uint8Array>,
 ): { address: Pubkey; bump: number } {
   const seedBump = new Uint8Array([0]);
   for (let bump = 255; bump >= 0; bump--) {
     seedBump[0] = bump;
     const pdaAddress = pubkeyCreatePdaAddress(programAddress, [
-      ...seeds,
+      ...seedsBlobs,
       seedBump,
     ]);
     if (pdaAddress !== undefined) {
@@ -46,19 +45,27 @@ export function pubkeyFindPdaAddressWithBump(
 
 export function pubkeyCreatePdaAddress(
   programAddress: Pubkey,
-  seeds: Array<Uint8Array>,
+  seedsBlobs: Array<Uint8Array>,
 ): Pubkey | undefined {
-  if (seeds.length > 16) {
+  const programBlob = base58Decode(programAddress);
+  if (programBlob.length !== 32) {
+    throw new Error(
+      `Pubkey: Create PDA: Invalid program public key byte length: ${programBlob.length}`,
+    );
+  }
+  if (seedsBlobs.length > 16) {
     throw new Error("Pubkey: Create PDA: Too many seeds, max is 16");
   }
-  for (const seed of seeds) {
-    if (seed.length > 32) {
-      // TODO - better error message
-      throw new Error("Pubkey: Create PDA: Seed length too long, max is 32");
+  for (let seedIndex = 0; seedIndex < seedsBlobs.length; seedIndex++) {
+    let seedBlob = seedsBlobs[seedIndex]!;
+    if (seedBlob.length > 32) {
+      throw new Error(
+        `Pubkey: Create PDA: Seed at index ${seedIndex} is too big, max is 32 bytes`,
+      );
     }
   }
   const pdaAddress = base58Encode(
-    sha256Hash([...seeds, base58Decode(programAddress), pdaMarker]),
+    sha256Hash([...seedsBlobs, programBlob, pdaMarker]),
   );
   if (pubkeyIsOnCurve(pdaAddress)) {
     return undefined;
@@ -70,7 +77,7 @@ export function pubkeyIsOnCurve(address: Pubkey): boolean {
   const bytes = base58Decode(address);
   if (bytes.length !== 32) {
     throw new Error(
-      `Pubkey: Is on curve: Invalid public key length: ${bytes.length}`,
+      `Pubkey: Is on curve: Invalid public key byte length: ${bytes.length}`,
     );
   }
   const sign = (bytes[31]! >> 7) & 1;
@@ -129,6 +136,8 @@ function pow(value: bigint, exponent: bigint) {
 function inv(value: bigint) {
   return pow(value, fieldModulusP - 2n);
 }
+
+let uniqueCounter = 1n;
 
 const pdaMarker = new Uint8Array([
   80, 114, 111, 103, 114, 97, 109, 68, 101, 114, 105, 118, 101, 100, 65, 100,

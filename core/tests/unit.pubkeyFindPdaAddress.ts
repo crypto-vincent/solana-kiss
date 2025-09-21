@@ -1,8 +1,15 @@
 import { PublicKey } from "@solana/web3.js";
-import { base58Decode, pubkeyFindPdaAddress, pubkeyNewRandom } from "../src";
+import {
+  base58Decode,
+  pubkeyFindPdaAddressAndBump,
+  pubkeyNewRandom,
+} from "../src";
 
 it("run", async () => {
-  const tests = [
+  const tests: Array<{
+    programId: string;
+    seeds: Array<Uint8Array>;
+  }> = [
     {
       programId: "11111111111111111111111111111111",
       seeds: [],
@@ -27,25 +34,32 @@ it("run", async () => {
   for (let i = 0; i < 100; i++) {
     tests.push({
       programId: pubkeyNewRandom(),
-      seeds: [new Uint8Array([1, 2, 3]), new Uint8Array([4, 5, 6])],
+      seeds: [
+        new Uint8Array([1, 2, 3]),
+        new Uint8Array([4, 5, 6]),
+        new Uint8Array([7, 8, 9]),
+      ],
     });
   }
   for (let i = 0; i < 100; i++) {
     tests.push({
       programId: pubkeyNewRandom(),
       seeds: [
-        new Uint8Array(base58Decode(pubkeyNewRandom())),
-        new Uint8Array(base58Decode(pubkeyNewRandom())),
+        base58Decode(pubkeyNewRandom()),
+        base58Decode(pubkeyNewRandom()),
+        base58Decode(pubkeyNewRandom()),
       ],
     });
   }
   for (const test of tests) {
     const seeds = test.seeds.map((seed) => new Uint8Array(seed));
-    const pdaAddress = pubkeyFindPdaAddress(test.programId, seeds);
-    const referenceAddress = PublicKey.findProgramAddressSync(
+    const { address: foundAddress, bump: foundBump } =
+      pubkeyFindPdaAddressAndBump(test.programId, seeds);
+    const [expectedKey, expectedBump] = PublicKey.findProgramAddressSync(
       seeds,
       new PublicKey(test.programId),
-    )[0].toBase58();
-    expect(pdaAddress).toStrictEqual(referenceAddress);
+    );
+    expect(foundAddress).toStrictEqual(expectedKey.toBase58());
+    expect(foundBump).toStrictEqual(expectedBump);
   }
 });

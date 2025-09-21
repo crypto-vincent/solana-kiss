@@ -1,11 +1,11 @@
 import { it } from "@jest/globals";
 import { rpcHttpFromUrl } from "../src";
-import { findAccountTransactionsIds } from "../src/findAccountTransactionsIds";
+import { findAccountTransactionsIds } from "../src/rpc/findAccountTransactionsIds";
 
 it("run", async () => {
-  let rpc = rpcHttpFromUrl("https://api.devnet.solana.com");
+  const rpc = rpcHttpFromUrl("https://api.devnet.solana.com");
 
-  let result = await findAccountTransactionsIds(
+  const result = await findAccountTransactionsIds(
     rpc,
     "vVeH6Xd43HAScbxjVtvfwDGqBMaMvNDLsAxwM5WK1pG",
     4200,

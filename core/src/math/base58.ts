@@ -17,7 +17,7 @@ export function base58Encode(bytes: Uint8Array): string {
     return "";
   }
   const digits = new Array<number>();
-  for (let byte of bytes) {
+  for (const byte of bytes) {
     let carry = byte;
     for (let digitIndex = 0; digitIndex < digits.length; digitIndex++) {
       carry += digits[digitIndex]! << 8;
@@ -44,13 +44,13 @@ export function base58Encode(bytes: Uint8Array): string {
   return codeDecoder.decode(codes);
 }
 
-// TODO - how to make this easily passable to the pda seeds ?
 export function base58Decode(message: string): Uint8Array {
-  if (message.length === 0) {
+  const messageLength = message.length;
+  if (messageLength === 0) {
     return new Uint8Array(0);
   }
   const digits = new Array<number>();
-  for (let codeIndex = 0; codeIndex < message.length; codeIndex++) {
+  for (let codeIndex = 0; codeIndex < messageLength; codeIndex++) {
     const code = message.charCodeAt(codeIndex)!;
     const digit = codeToDigit[code] ?? -1;
     if (digit < 0) {
@@ -70,7 +70,7 @@ export function base58Decode(message: string): Uint8Array {
     }
   }
   let zeros = 0;
-  while (zeros < message.length && message.charCodeAt(zeros) === codePadding) {
+  while (zeros < messageLength && message.charCodeAt(zeros) === codePadding) {
     zeros++;
   }
   const bytes = new Uint8Array(zeros + digits.length);

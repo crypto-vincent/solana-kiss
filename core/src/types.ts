@@ -1,3 +1,5 @@
+import { JsonValue } from "./json";
+
 export type Commitment = "processed" | "confirmed" | "finalized";
 
 export type Slot = number; // TODO - clarify those names and consider using bigint
@@ -30,7 +32,7 @@ export type Transaction = {
 export type Execution = {
   transaction: Transaction;
   outcome: {
-    error?: any;
+    error?: JsonValue;
     logs: Array<string>;
     chargedFees: Lamports;
     computeUnitsConsumed: number;

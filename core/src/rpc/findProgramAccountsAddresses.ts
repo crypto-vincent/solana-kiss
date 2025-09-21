@@ -1,10 +1,10 @@
-import { Commitment, PublicKey, Slot } from './types';
 import {
-  jsonExpectObject,
   jsonExpectArrayFromObject,
+  jsonExpectObject,
   jsonExpectStringFromObject,
-} from './json';
-import { RpcHttp } from './rpc';
+} from "../json";
+import { RpcHttp } from "../rpc";
+import { Commitment, PublicKey, Slot } from "../types";
 
 export async function findProgramAccountsAddresses(
   rpcHttp: RpcHttp,
@@ -15,20 +15,22 @@ export async function findProgramAccountsAddresses(
   },
 ): Promise<Set<PublicKey>> {
   const result = jsonExpectObject(
-    await rpcHttp('getProgramAccounts', [
+    await rpcHttp("getProgramAccounts", [
       programAddress,
       {
         commitment: context?.commitment,
         minContextSlot: context?.minSlot,
         dataSlice: { offset: 0, length: 0 },
-        encoding: 'base64',
+        encoding: "base64",
         withContext: true,
       },
     ]),
   );
-  const addresses = new Set<PublicKey>();
-  for (let item of jsonExpectArrayFromObject(result, 'value')) {
-    addresses.add(jsonExpectStringFromObject(jsonExpectObject(item), 'pubkey'));
+  const accountsAddresses = new Set<PublicKey>();
+  for (const item of jsonExpectArrayFromObject(result, "value")) {
+    accountsAddresses.add(
+      jsonExpectStringFromObject(jsonExpectObject(item), "pubkey"),
+    );
   }
-  return addresses;
+  return accountsAddresses;
 }

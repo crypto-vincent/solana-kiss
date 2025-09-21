@@ -1,10 +1,10 @@
-import { Commitment, PublicKey, Signature, Slot } from './types';
 import {
   jsonExpectArray,
   jsonExpectObject,
   jsonExpectStringFromObject,
-} from './json';
-import { RpcHttp } from './rpc';
+} from "../json";
+import { RpcHttp } from "../rpc";
+import { Commitment, PublicKey, Signature, Slot } from "../types";
 
 export async function findAccountTransactionsIds(
   rpcHttp: RpcHttp,
@@ -22,15 +22,15 @@ export async function findAccountTransactionsIds(
   const transactionsIds = new Array<Signature>();
   const rewindUntilTransactionId = pagination?.rewindUntilTransactionId;
   let startBeforeTransactionId = pagination?.startBeforeTransactionId;
-  let requestCount = 0;
+  let requestCounter = 0;
   while (true) {
-    let batchSize = Math.min(
+    const batchSize = Math.min(
       1000,
-      rewindUntilTransactionId ? (requestCount == 0 ? 10 : 1000) : maxLength,
+      rewindUntilTransactionId ? (requestCounter == 0 ? 10 : 1000) : maxLength,
     );
-    requestCount++;
+    requestCounter++;
     const result = jsonExpectArray(
-      await rpcHttp('getSignaturesForAddress', [
+      await rpcHttp("getSignaturesForAddress", [
         accountAddress,
         {
           limit: batchSize,
@@ -43,10 +43,10 @@ export async function findAccountTransactionsIds(
     if (result.length === 0) {
       return transactionsIds;
     }
-    for (let item of result) {
+    for (const item of result) {
       const transactionId = jsonExpectStringFromObject(
         jsonExpectObject(item),
-        'signature',
+        "signature",
       );
       transactionsIds.push(transactionId);
       if (transactionsIds.length >= maxLength) {

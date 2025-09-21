@@ -10,30 +10,40 @@ export interface JsonObject {
   [key: string]: JsonValue;
 }
 
-export function jsonPreviewValue(value: JsonValue): string {
+export function jsonPreview(value: JsonValue): string {
   if (jsonIsNull(value)) {
     return "Null";
   }
-  const stringify = JSON.stringify(value);
-  if (stringify.length > 30) {
-    return stringify.slice(0, 37) + "..."; // TODO - we can do better than this
-  }
   if (jsonIsBoolean(value)) {
-    return `Boolean: ${stringify}`;
+    return `Boolean: ${value}`;
   }
   if (jsonIsNumber(value)) {
-    return `Number: ${stringify}`;
+    return `Number: ${value}`;
   }
   if (jsonIsString(value)) {
-    return `String: "${stringify}"`;
+    return `String: "${value}"`;
   }
+  const maxColumns = 40;
   if (jsonIsArray(value)) {
-    return `Array(x${(value as JsonArray).length}): ${stringify}`;
+    let array = value as JsonArray;
+    let previews = array.map(jsonPreview).join(", ");
+    if (previews.length > maxColumns) {
+      previews = previews.slice(0, maxColumns - 3) + "...";
+    }
+    return `Array(x${array.length}): [${previews}]`;
   }
   if (jsonIsObject(value)) {
-    return `Object(x${Object.keys(value as JsonObject).length}): ${stringify}`;
+    let object = value as JsonObject;
+    let entries = Object.entries(object);
+    let previews = entries
+      .map(([key, val]) => `${key}: ${jsonPreview(val)}`)
+      .join(", ");
+    if (previews.length > maxColumns) {
+      previews = previews.slice(0, maxColumns - 3) + "...";
+    }
+    return `Object(x${entries.length}): {${previews}}`;
   }
-  throw new Error(`JSON: Unknown value: ${stringify}`);
+  throw new Error(`JSON: Unknown value: ${value?.toString()}`);
 }
 
 export function jsonIsNull(value: JsonValue): boolean {
@@ -55,10 +65,7 @@ export function jsonIsObject(value: JsonValue): boolean {
   return typeof value === "object" && !jsonIsArray(value) && value !== null;
 }
 
-export function jsonIsIndexInArray(array: JsonArray, index: number): boolean {
-  return index >= 0 && index < array.length;
-}
-export function jsonIsKeyInObject(object: JsonObject, key: string): boolean {
+export function jsonObjectHasKey(object: JsonObject, key: string): boolean {
   return Object.prototype.hasOwnProperty.call(object, key);
 }
 
@@ -67,8 +74,8 @@ export function jsonExpectValueShallowEquals(
   expected: JsonValue,
 ) {
   if (found !== expected) {
-    let foundPreview = jsonPreviewValue(found);
-    let expectedPreview = jsonPreviewValue(expected);
+    const foundPreview = jsonPreview(found);
+    const expectedPreview = jsonPreview(expected);
     throw new Error(
       `JSON: Expected: ${expectedPreview} (found: ${foundPreview})`,
     );
@@ -77,41 +84,31 @@ export function jsonExpectValueShallowEquals(
 
 export function jsonExpectBoolean(value: JsonValue): boolean {
   if (!jsonIsBoolean(value)) {
-    throw new Error(
-      `JSON: Expected a boolean (found: ${jsonPreviewValue(value)})`,
-    );
+    throw new Error(`JSON: Expected a boolean (found: ${jsonPreview(value)})`);
   }
   return value as boolean;
 }
 export function jsonExpectNumber(value: JsonValue): number {
   if (!jsonIsNumber(value)) {
-    throw new Error(
-      `JSON: Expected a number (found: ${jsonPreviewValue(value)})`,
-    );
+    throw new Error(`JSON: Expected a number (found: ${jsonPreview(value)})`);
   }
   return value as number;
 }
 export function jsonExpectString(value: JsonValue): string {
   if (!jsonIsString(value)) {
-    throw new Error(
-      `JSON: Expected a string (found: ${jsonPreviewValue(value)})`,
-    );
+    throw new Error(`JSON: Expected a string (found: ${jsonPreview(value)})`);
   }
   return value as string;
 }
 export function jsonExpectArray(value: JsonValue): JsonArray {
   if (!jsonIsArray(value)) {
-    throw new Error(
-      `JSON: Expected an array (found: ${jsonPreviewValue(value)})`,
-    );
+    throw new Error(`JSON: Expected an array (found: ${jsonPreview(value)})`);
   }
   return value as JsonArray;
 }
 export function jsonExpectObject(value: JsonValue): JsonObject {
   if (!jsonIsObject(value)) {
-    throw new Error(
-      `JSON: Expected an object (found: ${jsonPreviewValue(value)})`,
-    );
+    throw new Error(`JSON: Expected an object (found: ${jsonPreview(value)})`);
   }
   return value as JsonObject;
 }

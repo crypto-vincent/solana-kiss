@@ -1,5 +1,5 @@
 const alphabet =
-  'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/';
+  "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
 
 const digitToCode = new Uint8Array(alphabet.length);
 for (let digit = 0; digit < alphabet.length; digit++) {
@@ -10,7 +10,7 @@ for (let digit = 0; digit < alphabet.length; digit++) {
   codeToDigit[alphabet.charCodeAt(digit)!] = digit;
 }
 
-const codePadding = '='.charCodeAt(0);
+const codePadding = "=".charCodeAt(0);
 const codeDecoder = new TextDecoder();
 
 export function base64Encode(bytes: Uint8Array): string {
@@ -54,15 +54,15 @@ export function base64Encode(bytes: Uint8Array): string {
 }
 
 export function base64Decode(message: string): Uint8Array {
-  const length = message.length;
-  if (length % 4 != 0) {
-    throw new Error(`Base64: decode: invalid encoded length: ${length}`);
+  const messageLength = message.length;
+  if (messageLength % 4 != 0) {
+    throw new Error(`Base64: decode: invalid message length: ${messageLength}`);
   }
-  const chunks = length / 4;
+  const chunks = messageLength / 4;
   let bytes: Uint8Array;
-  if (message.endsWith('==')) {
+  if (message.endsWith("==")) {
     bytes = new Uint8Array(chunks * 3 - 2);
-  } else if (message.endsWith('=')) {
+  } else if (message.endsWith("=")) {
     bytes = new Uint8Array(chunks * 3 - 1);
   } else {
     bytes = new Uint8Array(chunks * 3);

@@ -78,6 +78,7 @@ export class Sha256Hasher {
 }
 
 const sha256Hasher = new Sha256Hasher();
+
 export function sha256Hash(blobs: Array<Uint8Array>): Uint8Array {
   for (const blob of blobs) {
     sha256Hasher.update(blob);

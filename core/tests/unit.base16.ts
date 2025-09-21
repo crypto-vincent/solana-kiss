@@ -13,7 +13,7 @@ function referenceImplementation(data: Uint8Array): string {
 }
 
 it("run", async () => {
-  let tests = [
+  const tests = [
     { bytes: [1, 2, 3, 4, 5] },
     { bytes: [] },
     { bytes: [1, 2, 3, 4, 5, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0] },
@@ -46,8 +46,8 @@ it("run", async () => {
       : new TextEncoder().encode(test.utf8);
     const encoded = base16Encode(bytes);
     const decoded = base16Decode(encoded);
-    const reference = referenceImplementation(bytes);
+    const expected = referenceImplementation(bytes);
     expect(decoded).toStrictEqual(bytes);
-    expect(encoded).toStrictEqual(reference);
+    expect(encoded).toStrictEqual(expected);
   }
 });

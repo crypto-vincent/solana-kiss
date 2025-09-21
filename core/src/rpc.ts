@@ -17,16 +17,17 @@ export function rpcHttpFromUrl(
   // TODO - support custom fetch implementations (for environments that don't have fetch natively)
 ): RpcHttp {
   return async function (method, params) {
+    const requestId = uniqueRequestId++;
     const response = await fetch(url, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ jsonrpc: "2.0", id: 1, method, params }),
+      body: JSON.stringify({ jsonrpc: "2.0", id: requestId, method, params }),
     });
     const json = jsonExpectObject((await response.json()) as JsonValue);
-    const version = jsonExpectStringFromObject(json, "jsonrpc");
-    const id = jsonExpectNumberFromObject(json, "id");
-    jsonExpectValueShallowEquals(version, "2.0");
-    jsonExpectValueShallowEquals(id, 1);
+    const resultVersion = jsonExpectStringFromObject(json, "jsonrpc");
+    const resultId = jsonExpectNumberFromObject(json, "id");
+    jsonExpectValueShallowEquals(resultVersion, "2.0");
+    jsonExpectValueShallowEquals(resultId, requestId);
     if (json["error"]) {
       const error = jsonExpectObject(json["error"]);
       const errorCode = jsonExpectNumberFromObject(error, "code");
@@ -46,7 +47,7 @@ export function rpcHttpThrottledRequestsInParallel(
     throw new Error("RpcHttp: requestsInParallel must be > 0");
   }
   let ongoingRequests = 0;
-  let queue = new Array<() => void>();
+  const queue = new Array<() => void>();
   return async function (method, params) {
     if (ongoingRequests >= requestsInParallel) {
       await new Promise<void>((resolve) => queue.push(resolve));
@@ -63,3 +64,5 @@ export function rpcHttpThrottledRequestsInParallel(
 
 // TODO - add a request per second limiter
 // TODO - add a retry layer somehow ?
+
+let uniqueRequestId = 1;

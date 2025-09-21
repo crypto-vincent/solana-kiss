@@ -1,4 +1,4 @@
-const alphabet = '0123456789abcdef';
+const alphabet = "0123456789abcdef";
 
 const digitToCode = new Uint8Array(16);
 for (let digit = 0; digit < alphabet.length; digit++) {
@@ -12,22 +12,21 @@ for (let digit = 0; digit < alphabet.length; digit++) {
 const codeDecoder = new TextDecoder();
 
 export function base16Encode(data: Uint8Array): string {
-    const codes = new Uint8Array(data.length * 2);
-    let codeIndex = 0;
-    for (const byte of data) {
-        codes[codeIndex++] = digitToCode[byte >> 4]!;
-        codes[codeIndex++] = digitToCode[byte & 0x0f]!;
-    }
-    return codeDecoder.decode(codes);
+  const codes = new Uint8Array(data.length * 2);
+  let codeIndex = 0;
+  for (const byte of data) {
+    codes[codeIndex++] = digitToCode[byte >> 4]!;
+    codes[codeIndex++] = digitToCode[byte & 0x0f]!;
+  }
+  return codeDecoder.decode(codes);
 }
 
 export function base16Decode(message: string): Uint8Array {
-  if (message.length % 2 !== 0) {
-    throw new Error(
-      `Base16: decode: invalid message length: ${message.length}`,
-    );
+  const messageLength = message.length;
+  if (messageLength % 2 !== 0) {
+    throw new Error(`Base16: decode: invalid message length: ${messageLength}`);
   }
-  const bytes = new Uint8Array(message.length / 2);
+  const bytes = new Uint8Array(messageLength / 2);
   for (let byteIndex = 0; byteIndex < bytes.length; byteIndex++) {
     const codeIndex1 = byteIndex * 2;
     const codeIndex2 = byteIndex * 2 + 1;

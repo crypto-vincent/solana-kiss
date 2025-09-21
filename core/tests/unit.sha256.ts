@@ -6,7 +6,7 @@ async function referenceImplementation(data: Uint8Array): Promise<Uint8Array> {
 }
 
 it("run", async () => {
-  let tests = [
+  const tests = [
     { bytes: [1, 2, 3, 4, 5] },
     { bytes: [] },
     { bytes: [1, 2, 3, 4, 5, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0] },
@@ -37,8 +37,8 @@ it("run", async () => {
     const bytes = test.bytes
       ? new Uint8Array(test.bytes)
       : new TextEncoder().encode(test.utf8);
-    const hashed = base16Encode(sha256Hash([bytes]));
-    const reference = base16Encode(await referenceImplementation(bytes));
-    expect(hashed).toStrictEqual(reference);
+    const found = base16Encode(sha256Hash([bytes]));
+    const expected = base16Encode(await referenceImplementation(bytes));
+    expect(found).toStrictEqual(expected);
   }
 });
