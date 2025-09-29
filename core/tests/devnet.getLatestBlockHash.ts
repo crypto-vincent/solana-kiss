@@ -1,9 +1,9 @@
 import { it } from "@jest/globals";
-import { getLatestBlockHash, rpcHttpFromUrl } from "../src";
+import { rpcHttpFromUrl, rpcHttpGetLatestBlockHash } from "../src";
 
 it("run", async () => {
-  const rpc = rpcHttpFromUrl("https://api.devnet.solana.com");
+  const rpcHttp = rpcHttpFromUrl("https://api.devnet.solana.com");
 
-  const result1 = await getLatestBlockHash(rpc);
+  const result1 = await rpcHttpGetLatestBlockHash(rpcHttp);
   console.log("result1", result1);
 });

@@ -1,12 +1,8 @@
-import {
-  jsonExpectArray,
-  jsonExpectObject,
-  jsonExpectStringFromObject,
-} from "../json";
-import { RpcHttp } from "../rpc";
-import { Commitment, PublicKey, Signature, Slot } from "../types";
+import { jsonTypeArray, jsonTypeObject, jsonTypeString } from "../data/json";
+import { Commitment, PublicKey, Signature } from "../types";
+import { RpcHttp } from "./rpcHttp";
 
-export async function findAccountTransactionsIds(
+export async function rpcHttpFindAccountTransactionsIds(
   rpcHttp: RpcHttp,
   accountAddress: PublicKey,
   maxLength: number,
@@ -16,7 +12,6 @@ export async function findAccountTransactionsIds(
   },
   context?: {
     commitment?: Commitment;
-    minSlot?: Slot;
   },
 ): Promise<Array<Signature>> {
   const transactionsIds = new Array<Signature>();
@@ -29,25 +24,18 @@ export async function findAccountTransactionsIds(
       rewindUntilTransactionId ? (requestCounter == 0 ? 10 : 1000) : maxLength,
     );
     requestCounter++;
-    const result = jsonExpectArray(
+    const result = resultJsonType.decode(
       await rpcHttp("getSignaturesForAddress", [
         accountAddress,
         {
           limit: batchSize,
           before: startBeforeTransactionId,
           commitment: context?.commitment,
-          minContextSlot: context?.minSlot,
         },
       ]),
     );
-    if (result.length === 0) {
-      return transactionsIds;
-    }
     for (const item of result) {
-      const transactionId = jsonExpectStringFromObject(
-        jsonExpectObject(item),
-        "signature",
-      );
+      const transactionId = item.signature;
       transactionsIds.push(transactionId);
       if (transactionsIds.length >= maxLength) {
         return transactionsIds;
@@ -60,5 +48,14 @@ export async function findAccountTransactionsIds(
       }
       startBeforeTransactionId = transactionId;
     }
+    if (result.length < batchSize) {
+      return transactionsIds;
+    }
   }
 }
+
+const resultJsonType = jsonTypeArray(
+  jsonTypeObject({
+    signature: jsonTypeString(),
+  }),
+);

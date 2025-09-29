@@ -35,7 +35,7 @@ export function base58Encode(bytes: Uint8Array): string {
   }
   const codes = new Uint8Array(zeros + digits.length);
   let codeIndex = 0;
-  for (let i = 0; i < zeros; i++) {
+  for (let counter = 0; counter < zeros; counter++) {
     codes[codeIndex++] = codePadding;
   }
   for (let digitIndex = digits.length - 1; digitIndex >= 0; digitIndex--) {

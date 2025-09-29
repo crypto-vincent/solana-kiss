@@ -1,4 +1,3 @@
-// eslint.config.js
 import eslintPluginTs from "@typescript-eslint/eslint-plugin";
 import parserTs from "@typescript-eslint/parser";
 
@@ -23,6 +22,7 @@ export default [
         "warn",
         { argsIgnorePattern: "^_" },
       ],
+      "@typescript-eslint/array-type": ["error", { "default": "generic" }],
       "no-var": "error",
       "no-const-assign": "error",
       "prefer-template": "warn",
@@ -30,3 +30,4 @@ export default [
     },
   },
 ];
+// TODO - make linting work

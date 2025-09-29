@@ -54,8 +54,8 @@ export class Sha256Hasher {
     const bitLenLo = bytesHashed << 3;
     const padLength = bytesHashed % 64 < 56 ? 64 : 128;
     this.buffer[left] = 0x80;
-    for (let i = left + 1; i < padLength - 8; i++) {
-      this.buffer[i] = 0;
+    for (let index = left + 1; index < padLength - 8; index++) {
+      this.buffer[index] = 0;
     }
     this.buffer[padLength - 8] = (bitLenHi >>> 24) & 0xff;
     this.buffer[padLength - 7] = (bitLenHi >>> 16) & 0xff;
@@ -66,11 +66,12 @@ export class Sha256Hasher {
     this.buffer[padLength - 2] = (bitLenLo >>> 8) & 0xff;
     this.buffer[padLength - 1] = (bitLenLo >>> 0) & 0xff;
     sha256HashBlock(this.temp, this.state, this.buffer, 0, padLength);
-    for (let i = 0; i < 8; i++) {
-      hash[i * 4 + 0] = (this.state[i]! >>> 24) & 0xff;
-      hash[i * 4 + 1] = (this.state[i]! >>> 16) & 0xff;
-      hash[i * 4 + 2] = (this.state[i]! >>> 8) & 0xff;
-      hash[i * 4 + 3] = (this.state[i]! >>> 0) & 0xff;
+    for (let index = 0; index < 8; index++) {
+      const state = this.state[index]!;
+      hash[index * 4 + 0] = (state >>> 24) & 0xff;
+      hash[index * 4 + 1] = (state >>> 16) & 0xff;
+      hash[index * 4 + 2] = (state >>> 8) & 0xff;
+      hash[index * 4 + 3] = (state >>> 0) & 0xff;
     }
     this.clear();
     return hash;
@@ -78,7 +79,6 @@ export class Sha256Hasher {
 }
 
 const sha256Hasher = new Sha256Hasher();
-
 export function sha256Hash(blobs: Array<Uint8Array>): Uint8Array {
   for (const blob of blobs) {
     sha256Hasher.update(blob);

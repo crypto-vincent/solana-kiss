@@ -4,8 +4,8 @@ import { base16Decode, base16Encode } from "../src";
 function referenceImplementation(data: Uint8Array): string {
   const hex = "0123456789abcdef";
   let result = "";
-  for (let i = 0; i < data.length; i++) {
-    const byte = data[i]!;
+  for (let byteIndex = 0; byteIndex < data.length; byteIndex++) {
+    const byte = data[byteIndex]!;
     result += hex[(byte >> 4) & 0x0f];
     result += hex[byte & 0x0f];
   }

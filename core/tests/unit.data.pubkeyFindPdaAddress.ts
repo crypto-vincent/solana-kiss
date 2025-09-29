@@ -1,6 +1,7 @@
 import { PublicKey } from "@solana/web3.js";
 import {
   base58Decode,
+  pubkeyDefault,
   pubkeyFindPdaAddressAndBump,
   pubkeyNewRandom,
 } from "../src";
@@ -11,15 +12,15 @@ it("run", async () => {
     seeds: Array<Uint8Array>;
   }> = [
     {
-      programId: "11111111111111111111111111111111",
+      programId: pubkeyDefault(),
       seeds: [],
     },
     {
-      programId: "11111111111111111111111111111111",
+      programId: pubkeyDefault(),
       seeds: [new Uint8Array(), new Uint8Array(), new Uint8Array()],
     },
     {
-      programId: "11111111111111111111111111111111",
+      programId: pubkeyDefault(),
       seeds: [new Uint8Array([1, 2, 3]), new Uint8Array([4, 5, 6])],
     },
     {
@@ -31,7 +32,7 @@ it("run", async () => {
       seeds: [new Uint8Array([1, 2, 3]), new Uint8Array([4, 5, 6])],
     },
   ];
-  for (let i = 0; i < 100; i++) {
+  for (let counter = 0; counter < 100; counter++) {
     tests.push({
       programId: pubkeyNewRandom(),
       seeds: [
@@ -41,7 +42,7 @@ it("run", async () => {
       ],
     });
   }
-  for (let i = 0; i < 100; i++) {
+  for (let counter = 0; counter < 100; counter++) {
     tests.push({
       programId: pubkeyNewRandom(),
       seeds: [

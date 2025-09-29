@@ -1,0 +1,282 @@
+import { base58Decode } from "../data/base58";
+import {
+  jsonTypeArray,
+  jsonTypeNullableToOptional,
+  jsonTypeNumber,
+  jsonTypeObject,
+  jsonTypeString,
+  jsonTypeValue,
+} from "../data/json";
+import {
+  Commitment,
+  Execution,
+  Input,
+  Instruction,
+  Invokation,
+  PublicKey,
+  Signature,
+} from "../types";
+import { expectItemInArray } from "../utils";
+import { RpcHttp } from "./rpcHttp";
+
+// TODO - should this just be named "getExecution" ?
+export async function rpcHttpGetTransactionExecution(
+  rpcHttp: RpcHttp,
+  transactionId: Signature,
+  context?: {
+    commitment?: Commitment;
+  },
+): Promise<Execution | undefined> {
+  const result = resultJsonType.decode(
+    await rpcHttp("getTransaction", [
+      transactionId,
+      {
+        commitment: context?.commitment,
+        encoding: "json",
+        maxSupportedTransactionVersion: 0,
+      },
+    ]),
+  );
+  if (result === undefined) {
+    return undefined;
+  }
+  const meta = result.meta;
+  const loadedAddresses = meta.loadedAddresses;
+  const message = result.transaction.message;
+  const header = message.header;
+  const accountKeys = message.accountKeys;
+  if (accountKeys.length <= 0) {
+    throw new Error("RpcHttp: Invalid transaction with no accounts keys");
+  }
+  const transactionInputs = decompileTransactionInputs(
+    header.numRequiredSignatures,
+    header.numReadonlySignedAccounts,
+    header.numReadonlyUnsignedAccounts,
+    accountKeys,
+    loadedAddresses.writable,
+    loadedAddresses.readonly,
+  );
+  const transactionInstructions = decompileTransactionInstructions(
+    transactionInputs,
+    message.instructions,
+  );
+  return {
+    slot: result.slot,
+    transaction: {
+      payerAddress: accountKeys[0]!,
+      instructions: transactionInstructions,
+      recentBlockHash: message.recentBlockhash,
+    },
+    error: meta.err,
+    logs: meta.logMessages,
+    chargedFees: String(meta.fee),
+    computeUnitsConsumed: meta.computeUnitsConsumed,
+    invokations: decompileTransactionInvokations(
+      transactionInputs,
+      transactionInstructions,
+      meta.innerInstructions,
+    ),
+  };
+}
+
+function decompileTransactionInputs(
+  headerNumRequiredSignatures: number,
+  headerNumReadonlySignedAccounts: number,
+  headerNumReadonlyUnsignedAccounts: number,
+  staticAddresses: Array<PublicKey>,
+  loadedWritableAddresses: Array<PublicKey>,
+  loadedReadonlyAddresses: Array<PublicKey>,
+) {
+  const signerAddresses = new Set<PublicKey>();
+  for (
+    let signerIndex = 0;
+    signerIndex < headerNumRequiredSignatures;
+    signerIndex++
+  ) {
+    signerAddresses.add(expectItemInArray(staticAddresses, signerIndex));
+  }
+  const readonlyAddresses = new Set<PublicKey>();
+  for (
+    let readonlyIndex =
+      headerNumRequiredSignatures - headerNumReadonlySignedAccounts;
+    readonlyIndex < headerNumRequiredSignatures;
+    readonlyIndex++
+  ) {
+    readonlyAddresses.add(expectItemInArray(staticAddresses, readonlyIndex));
+  }
+  for (
+    let readonlyIndex =
+      staticAddresses.length - headerNumReadonlyUnsignedAccounts;
+    readonlyIndex < staticAddresses.length;
+    readonlyIndex++
+  ) {
+    readonlyAddresses.add(expectItemInArray(staticAddresses, readonlyIndex));
+  }
+  for (const loadedReadonlyAddress of loadedReadonlyAddresses) {
+    readonlyAddresses.add(loadedReadonlyAddress);
+  }
+  const inputsAddresses = new Array<PublicKey>();
+  inputsAddresses.push(...staticAddresses);
+  inputsAddresses.push(...loadedWritableAddresses);
+  inputsAddresses.push(...loadedReadonlyAddresses);
+  const transactionInputs = new Array<Input>();
+  for (const inputAddress of inputsAddresses) {
+    transactionInputs.push({
+      address: inputAddress,
+      writable: !readonlyAddresses.has(inputAddress),
+      signer: signerAddresses.has(inputAddress),
+    });
+  }
+  return transactionInputs;
+}
+
+function decompileTransactionInstructions(
+  transactionInputs: Array<Input>,
+  compiledInstructions: Array<CompiledInstruction>,
+): Array<Instruction> {
+  const instructions = new Array<Instruction>();
+  for (const compiledInstruction of compiledInstructions) {
+    const stackIndex = compiledInstruction.stackHeight - 1;
+    if (stackIndex !== 0) {
+      throw new Error(
+        `RpcHttp: Expected instruction stack index to be 0 (found ${stackIndex})`,
+      );
+    }
+    instructions.push(
+      decompileTransactionInstruction(transactionInputs, compiledInstruction),
+    );
+  }
+  return instructions;
+}
+
+function decompileTransactionInvokations(
+  transactionInputs: Array<Input>,
+  transactionInstructions: Array<Instruction>,
+  compiledInnerInstructions: Array<{
+    index: number;
+    instructions: Array<CompiledInstruction>;
+  }>,
+): Array<Invokation> {
+  const rootInvokations = new Array<Invokation>();
+  for (let index = 0; index < transactionInstructions.length; index++) {
+    rootInvokations.push({
+      instruction: transactionInstructions[index]!,
+      invokations: [],
+    });
+  }
+  for (const compiledInnerInstructionBlock of compiledInnerInstructions) {
+    const rootInvokation = expectItemInArray(
+      rootInvokations,
+      compiledInnerInstructionBlock.index,
+    );
+    const invokationStack = new Array<Invokation>();
+    invokationStack.push(rootInvokation);
+    for (const compiledInnerInstruction of compiledInnerInstructionBlock.instructions) {
+      const innerInvokation = {
+        instruction: decompileTransactionInstruction(
+          transactionInputs,
+          compiledInnerInstruction,
+        ),
+        invokations: [],
+      };
+      const stackIndex = compiledInnerInstruction.stackHeight - 1;
+      if (stackIndex < 1 || stackIndex > invokationStack.length) {
+        throw new Error(
+          `RpcHttp: Expected inner instruction stack index to be betweem 1 and ${invokationStack.length} (found: ${stackIndex})`,
+        );
+      }
+      if (stackIndex === invokationStack.length) {
+        invokationStack[stackIndex - 1]!.invokations.push(innerInvokation);
+        invokationStack.push(innerInvokation);
+      } else {
+        while (stackIndex < invokationStack.length) {
+          invokationStack.pop();
+        }
+        invokationStack[stackIndex - 1]!.invokations.push(innerInvokation);
+      }
+    }
+  }
+  return rootInvokations;
+}
+
+type CompiledInstruction = {
+  stackHeight: number;
+  programIndex: number;
+  accountsIndexes: Array<number>;
+  data: string;
+};
+
+function decompileTransactionInstruction(
+  transactionInputs: Array<Input>,
+  compiledInstruction: CompiledInstruction,
+): Instruction {
+  const instructionProgram = expectItemInArray(
+    transactionInputs,
+    compiledInstruction.programIndex,
+  );
+  const instructionInputs = new Array<Input>();
+  for (const accountIndex of compiledInstruction.accountsIndexes) {
+    instructionInputs.push(expectItemInArray(transactionInputs, accountIndex));
+  }
+  return {
+    programAddress: instructionProgram.address,
+    inputs: instructionInputs,
+    data: base58Decode(compiledInstruction.data),
+  };
+}
+
+const instructionJsonType = jsonTypeObject(
+  {
+    stackHeight: jsonTypeNumber(),
+    programIndex: jsonTypeNumber(),
+    accountsIndexes: jsonTypeArray(jsonTypeNumber()),
+    data: jsonTypeString(),
+  },
+  {
+    programIndex: "programIdIndex",
+    accountsIndexes: "accounts",
+  },
+);
+
+const resultJsonType = jsonTypeNullableToOptional(
+  jsonTypeObject({
+    blockTime: jsonTypeNumber(),
+    meta: jsonTypeObject({
+      computeUnitsConsumed: jsonTypeNumber(),
+      err: jsonTypeNullableToOptional(jsonTypeValue()),
+      fee: jsonTypeNumber(),
+      innerInstructions: jsonTypeArray(
+        jsonTypeObject({
+          index: jsonTypeNumber(),
+          instructions: jsonTypeArray(instructionJsonType),
+        }),
+      ),
+      loadedAddresses: jsonTypeObject({
+        writable: jsonTypeArray(jsonTypeString()),
+        readonly: jsonTypeArray(jsonTypeString()),
+      }),
+      logMessages: jsonTypeArray(jsonTypeString()),
+    }),
+    slot: jsonTypeNumber(),
+    transaction: jsonTypeObject({
+      message: jsonTypeObject({
+        accountKeys: jsonTypeArray(jsonTypeString()),
+        addressTableLookups: jsonTypeArray(
+          jsonTypeObject({
+            accountKey: jsonTypeString(),
+            readonlyIndexes: jsonTypeArray(jsonTypeNumber()),
+            writableIndexes: jsonTypeArray(jsonTypeNumber()),
+          }),
+        ),
+        header: jsonTypeObject({
+          numReadonlySignedAccounts: jsonTypeNumber(),
+          numReadonlyUnsignedAccounts: jsonTypeNumber(),
+          numRequiredSignatures: jsonTypeNumber(),
+        }),
+        instructions: jsonTypeArray(instructionJsonType),
+        recentBlockhash: jsonTypeString(),
+      }),
+      signatures: jsonTypeArray(jsonTypeString()),
+    }),
+  }),
+);

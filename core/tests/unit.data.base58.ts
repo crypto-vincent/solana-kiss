@@ -1,6 +1,6 @@
 import { expect, it } from "@jest/globals";
 import bs58 from "bs58";
-import { base58Decode, base58Encode } from "../src/math/base58";
+import { base58Decode, base58Encode } from "../src/data/base58";
 
 function referenceImplementation(data: Uint8Array): string {
   return bs58.encode(data);

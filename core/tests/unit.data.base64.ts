@@ -1,5 +1,5 @@
 import { expect, it } from "@jest/globals";
-import { base64Decode, base64Encode } from "../src/math/base64";
+import { base64Decode, base64Encode } from "../src/data/base64";
 
 function referenceImplementation(data: Uint8Array): string {
   return btoa(String.fromCharCode(...data));

@@ -3,17 +3,27 @@ import { sha256Hash } from "./sha256";
 
 export type Pubkey = string;
 
-export function pubkeyNewDummy(): Pubkey {
-  const bytes = new Uint8Array(32);
-  const view = new DataView(bytes.buffer);
-  view.setBigUint64(24, uniqueCounter++);
-  return base58Encode(bytes);
+export function pubkeyIsValid(address: Pubkey): boolean {
+  try {
+    const bytes = base58Decode(address);
+    return bytes.length === 32;
+  } catch (e) {
+    return false;
+  }
+}
+
+export function pubkeyDefault(): Pubkey {
+  return "11111111111111111111111111111111";
 }
 
 export function pubkeyNewRandom(): Pubkey {
   const bytes = new Uint8Array(32);
   crypto.getRandomValues(bytes);
   return base58Encode(bytes);
+}
+
+export function pubkeyToBytes(pubkey: Pubkey): Uint8Array {
+  return base58Decode(pubkey);
 }
 
 export function pubkeyFindPdaAddress(
@@ -25,13 +35,13 @@ export function pubkeyFindPdaAddress(
 
 export function pubkeyFindPdaAddressAndBump(
   programAddress: Pubkey,
-  seedsBlobs: Array<Uint8Array>,
+  seedsBytes: Array<Uint8Array>,
 ): { address: Pubkey; bump: number } {
   const seedBump = new Uint8Array([0]);
   for (let bump = 255; bump >= 0; bump--) {
     seedBump[0] = bump;
     const pdaAddress = pubkeyCreatePdaAddress(programAddress, [
-      ...seedsBlobs,
+      ...seedsBytes,
       seedBump,
     ]);
     if (pdaAddress !== undefined) {
@@ -45,27 +55,27 @@ export function pubkeyFindPdaAddressAndBump(
 
 export function pubkeyCreatePdaAddress(
   programAddress: Pubkey,
-  seedsBlobs: Array<Uint8Array>,
+  seedsBytes: Array<Uint8Array>,
 ): Pubkey | undefined {
-  const programBlob = base58Decode(programAddress);
-  if (programBlob.length !== 32) {
+  const programBytes = pubkeyToBytes(programAddress);
+  if (programBytes.length !== 32) {
     throw new Error(
-      `Pubkey: Create PDA: Invalid program public key byte length: ${programBlob.length}`,
+      `Pubkey: Create PDA: Invalid program public key byte length: ${programBytes.length}`,
     );
   }
-  if (seedsBlobs.length > 16) {
+  if (seedsBytes.length > 16) {
     throw new Error("Pubkey: Create PDA: Too many seeds, max is 16");
   }
-  for (let seedIndex = 0; seedIndex < seedsBlobs.length; seedIndex++) {
-    let seedBlob = seedsBlobs[seedIndex]!;
-    if (seedBlob.length > 32) {
+  for (let seedIndex = 0; seedIndex < seedsBytes.length; seedIndex++) {
+    let seedBytes = seedsBytes[seedIndex]!;
+    if (seedBytes.length > 32) {
       throw new Error(
         `Pubkey: Create PDA: Seed at index ${seedIndex} is too big, max is 32 bytes`,
       );
     }
   }
   const pdaAddress = base58Encode(
-    sha256Hash([...seedsBlobs, programBlob, pdaMarker]),
+    sha256Hash([...seedsBytes, programBytes, pdaMarker]),
   );
   if (pubkeyIsOnCurve(pdaAddress)) {
     return undefined;
@@ -74,7 +84,7 @@ export function pubkeyCreatePdaAddress(
 }
 
 export function pubkeyIsOnCurve(address: Pubkey): boolean {
-  const bytes = base58Decode(address);
+  const bytes = pubkeyToBytes(address);
   if (bytes.length !== 32) {
     throw new Error(
       `Pubkey: Is on curve: Invalid public key byte length: ${bytes.length}`,
@@ -136,8 +146,6 @@ function pow(value: bigint, exponent: bigint) {
 function inv(value: bigint) {
   return pow(value, fieldModulusP - 2n);
 }
-
-let uniqueCounter = 1n;
 
 const pdaMarker = new Uint8Array([
   80, 114, 111, 103, 114, 97, 109, 68, 101, 114, 105, 118, 101, 100, 65, 100,

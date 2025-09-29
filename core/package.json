@@ -20,7 +20,7 @@
     "typescript": "^5.8.3"
   },
   "scripts": {
-    "build": "tsup src/index.ts --dts",
+    "build": "tsup src/index.ts --dts --clean --minify --sourcemap --out-dir dist",
     "fmt": "prettier --write src && prettier --write tests",
     "lint": "eslint src && eslint tests",
     "test": "jest"

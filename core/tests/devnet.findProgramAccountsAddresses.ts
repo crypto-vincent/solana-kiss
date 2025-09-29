@@ -1,12 +1,12 @@
 import { it } from "@jest/globals";
 import { rpcHttpFromUrl } from "../src";
-import { findProgramAccountsAddresses } from "../src/rpc/findProgramAccountsAddresses";
+import { rpcHttpFindProgramAccountsAddresses } from "../src/rpc/rpcHttpFindProgramAccountsAddresses";
 
 it("run", async () => {
-  const rpc = rpcHttpFromUrl("https://api.devnet.solana.com");
+  const rpcHttp = rpcHttpFromUrl("https://api.devnet.solana.com");
 
-  const result = await findProgramAccountsAddresses(
-    rpc,
+  const result = await rpcHttpFindProgramAccountsAddresses(
+    rpcHttp,
     "vVeH6Xd43HAScbxjVtvfwDGqBMaMvNDLsAxwM5WK1pG",
   );
   console.log("result", result);

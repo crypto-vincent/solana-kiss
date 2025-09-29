@@ -1,4 +1,4 @@
-import { JsonValue } from "./json";
+import { JsonValue } from "./data/json";
 
 export type Commitment = "processed" | "confirmed" | "finalized";
 
@@ -7,19 +7,21 @@ export type Hash = string; // TODO - should this be Uint8Array ?
 
 export type PrivateKey = Uint8Array; // TODO - how ?
 
-export type PublicKey = string; // TODO - should this be a harder type ?
+export type PublicKey = string; // TODO - should this be a stronger type ?
 export type Lamports = string;
 
 // TODO - keypair/privatekey type?
 export type Signature = string;
 
+export type Input = {
+  address: PublicKey;
+  writable: boolean;
+  signer: boolean;
+};
+
 export type Instruction = {
   programAddress: PublicKey;
-  accountsDescriptors: Array<{
-    address: PublicKey;
-    writable: boolean;
-    signer: boolean;
-  }>;
+  inputs: Array<Input>;
   data: Uint8Array;
 };
 
@@ -30,11 +32,16 @@ export type Transaction = {
 };
 
 export type Execution = {
+  slot: Slot;
   transaction: Transaction;
-  outcome: {
-    error?: JsonValue;
-    logs: Array<string>;
-    chargedFees: Lamports;
-    computeUnitsConsumed: number;
-  };
+  error: JsonValue | undefined;
+  logs: Array<string>;
+  chargedFees: Lamports;
+  computeUnitsConsumed: number;
+  invokations: Array<Invokation>;
+};
+
+export type Invokation = {
+  instruction: Instruction;
+  invokations: Array<Invokation>;
 };
