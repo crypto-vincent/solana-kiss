@@ -1,32 +1,32 @@
 import { base58Decode } from "../data/base58";
 import {
   jsonTypeArray,
-  jsonTypeNullableToOptional,
+  jsonTypeNullable,
   jsonTypeNumber,
   jsonTypeObject,
   jsonTypeString,
   jsonTypeValue,
 } from "../data/json";
+import { Pubkey } from "../data/pubkey";
 import {
   Commitment,
-  Execution,
   Input,
   Instruction,
   Invokation,
-  PublicKey,
   Signature,
+  Transaction,
 } from "../types";
 import { expectItemInArray } from "../utils";
 import { RpcHttp } from "./rpcHttp";
 
 // TODO - should this just be named "getExecution" ?
-export async function rpcHttpGetTransactionExecution(
+export async function rpcHttpGetTransaction(
   rpcHttp: RpcHttp,
   transactionId: Signature,
   context?: {
     commitment?: Commitment;
   },
-): Promise<Execution | undefined> {
+): Promise<Transaction | undefined> {
   const result = resultJsonType.decode(
     await rpcHttp("getTransaction", [
       transactionId,
@@ -37,7 +37,7 @@ export async function rpcHttpGetTransactionExecution(
       },
     ]),
   );
-  if (result === undefined) {
+  if (result === null) {
     return undefined;
   }
   const meta = result.meta;
@@ -62,7 +62,7 @@ export async function rpcHttpGetTransactionExecution(
   );
   return {
     slot: result.slot,
-    transaction: {
+    message: {
       payerAddress: accountKeys[0]!,
       instructions: transactionInstructions,
       recentBlockHash: message.recentBlockhash,
@@ -83,11 +83,11 @@ function decompileTransactionInputs(
   headerNumRequiredSignatures: number,
   headerNumReadonlySignedAccounts: number,
   headerNumReadonlyUnsignedAccounts: number,
-  staticAddresses: Array<PublicKey>,
-  loadedWritableAddresses: Array<PublicKey>,
-  loadedReadonlyAddresses: Array<PublicKey>,
+  staticAddresses: Array<Pubkey>,
+  loadedWritableAddresses: Array<Pubkey>,
+  loadedReadonlyAddresses: Array<Pubkey>,
 ) {
-  const signerAddresses = new Set<PublicKey>();
+  const signerAddresses = new Set<Pubkey>();
   for (
     let signerIndex = 0;
     signerIndex < headerNumRequiredSignatures;
@@ -95,7 +95,7 @@ function decompileTransactionInputs(
   ) {
     signerAddresses.add(expectItemInArray(staticAddresses, signerIndex));
   }
-  const readonlyAddresses = new Set<PublicKey>();
+  const readonlyAddresses = new Set<Pubkey>();
   for (
     let readonlyIndex =
       headerNumRequiredSignatures - headerNumReadonlySignedAccounts;
@@ -115,7 +115,7 @@ function decompileTransactionInputs(
   for (const loadedReadonlyAddress of loadedReadonlyAddresses) {
     readonlyAddresses.add(loadedReadonlyAddress);
   }
-  const inputsAddresses = new Array<PublicKey>();
+  const inputsAddresses = new Array<Pubkey>();
   inputsAddresses.push(...staticAddresses);
   inputsAddresses.push(...loadedWritableAddresses);
   inputsAddresses.push(...loadedReadonlyAddresses);
@@ -238,12 +238,12 @@ const instructionJsonType = jsonTypeObject(
   },
 );
 
-const resultJsonType = jsonTypeNullableToOptional(
+const resultJsonType = jsonTypeNullable(
   jsonTypeObject({
     blockTime: jsonTypeNumber(),
     meta: jsonTypeObject({
       computeUnitsConsumed: jsonTypeNumber(),
-      err: jsonTypeNullableToOptional(jsonTypeValue()),
+      err: jsonTypeNullable(jsonTypeValue()),
       fee: jsonTypeNumber(),
       innerInstructions: jsonTypeArray(
         jsonTypeObject({

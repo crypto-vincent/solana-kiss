@@ -4,7 +4,7 @@ import {
   rpcHttpGetAccount,
   rpcHttpGetAccountLamports,
   rpcHttpGetAccountMetadata,
-  rpcHttpGetTransactionExecution,
+  rpcHttpGetTransaction,
 } from "../src";
 
 it("run", async () => {
@@ -56,7 +56,7 @@ it("run", async () => {
   );
   console.log("dudu3", dudu3);
 
-  const result5 = await rpcHttpGetTransactionExecution(
+  const result5 = await rpcHttpGetTransaction(
     rpcHttp,
     "4MZyi9uezffec3YyAHpkC33r8Nmgwf3cBHKH1Y9H4EHfoKtZ8sQEKVCHF2Rwb17qQCrUDXS1u1wpNnxgz79U6yWY",
   );

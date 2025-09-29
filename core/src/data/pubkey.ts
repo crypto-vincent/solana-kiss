@@ -16,9 +16,16 @@ export function pubkeyDefault(): Pubkey {
   return "11111111111111111111111111111111";
 }
 
-export function pubkeyNewRandom(): Pubkey {
+export function pubkeyNewDummy(): Pubkey {
   const bytes = new Uint8Array(32);
-  crypto.getRandomValues(bytes);
+  bytes[0] = 0x03;
+  bytes[1] = 0x4e;
+  bytes[2] = 0xa3;
+  bytes[3] = 0xa1;
+  bytes[4] = 0xa5;
+  for (let i = 5; i < 32; i++) {
+    bytes[i] = Math.floor(Math.random() * 256);
+  }
   return base58Encode(bytes);
 }
 

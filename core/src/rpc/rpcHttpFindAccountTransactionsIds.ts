@@ -1,10 +1,11 @@
 import { jsonTypeArray, jsonTypeObject, jsonTypeString } from "../data/json";
-import { Commitment, PublicKey, Signature } from "../types";
+import { Pubkey } from "../data/pubkey";
+import { Commitment, Signature } from "../types";
 import { RpcHttp } from "./rpcHttp";
 
 export async function rpcHttpFindAccountTransactionsIds(
   rpcHttp: RpcHttp,
-  accountAddress: PublicKey,
+  accountAddress: Pubkey,
   maxLength: number,
   pagination?: {
     startBeforeTransactionId?: Signature;

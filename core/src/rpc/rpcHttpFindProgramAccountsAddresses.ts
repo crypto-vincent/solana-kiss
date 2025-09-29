@@ -1,14 +1,17 @@
 import { jsonTypeArray, jsonTypeObject, jsonTypeString } from "../data/json";
-import { Commitment, PublicKey } from "../types";
+import { Pubkey } from "../data/pubkey";
+import { Commitment } from "../types";
 import { RpcHttp } from "./rpcHttp";
 
+// TODO - naming: find Owned accounts ?
 export async function rpcHttpFindProgramAccountsAddresses(
   rpcHttp: RpcHttp,
-  programAddress: PublicKey,
+  programAddress: Pubkey,
+  // TODO - support filters
   context?: {
     commitment?: Commitment;
   },
-): Promise<Set<PublicKey>> {
+): Promise<Set<Pubkey>> {
   const result = resultJsonType.decode(
     await rpcHttp("getProgramAccounts", [
       programAddress,
@@ -19,7 +22,7 @@ export async function rpcHttpFindProgramAccountsAddresses(
       },
     ]),
   );
-  const accountsAddresses = new Set<PublicKey>();
+  const accountsAddresses = new Set<Pubkey>();
   for (const item of result) {
     accountsAddresses.add(item.pubkey);
   }
@@ -27,7 +30,5 @@ export async function rpcHttpFindProgramAccountsAddresses(
 }
 
 const resultJsonType = jsonTypeArray(
-  jsonTypeObject({
-    pubkey: jsonTypeString(),
-  }),
+  jsonTypeObject({ pubkey: jsonTypeString() }),
 );

@@ -1,26 +1,27 @@
 import { base64Decode } from "../data/base64";
 import {
-  jsonTypeArray,
+  jsonTypeArrayToTuple,
   jsonTypeBoolean,
-  jsonTypeNullableToOptional,
+  jsonTypeConst,
+  jsonTypeNullable,
   jsonTypeNumber,
   jsonTypeObject,
   jsonTypeString,
 } from "../data/json";
-import { pubkeyDefault } from "../data/pubkey";
-import { Commitment, Lamports, PublicKey } from "../types";
+import { Pubkey, pubkeyDefault } from "../data/pubkey";
+import { Commitment, Lamports } from "../types";
 import { RpcHttp } from "./rpcHttp";
 
 export async function rpcHttpGetAccount(
   rpcHttp: RpcHttp,
-  accountAddress: PublicKey,
+  accountAddress: Pubkey,
   context?: {
     commitment?: Commitment;
   },
 ): Promise<{
   executable: boolean;
   lamports: Lamports;
-  owner: PublicKey;
+  owner: Pubkey;
   data: Uint8Array;
 }> {
   const result = resultJsonType.decode(
@@ -32,7 +33,7 @@ export async function rpcHttpGetAccount(
       },
     ]),
   );
-  if (result.value === undefined) {
+  if (result.value === null) {
     return {
       executable: false,
       lamports: "0",
@@ -44,22 +45,23 @@ export async function rpcHttpGetAccount(
   const executable = value.executable;
   const lamports = String(value.lamports);
   const owner = value.owner;
-  const data = base64Decode(value.data[0]!); // TODO - use tuple type parsing
-  return {
-    executable,
-    lamports,
-    owner,
-    data,
-  };
+  const data = base64Decode(value.data[0]!);
+  if (data.length != value.space) {
+    throw new Error(
+      `RpcHttp: Expected account data length (${data.length}) to match space (${value.space})`,
+    );
+  }
+  return { executable, lamports, owner, data };
 }
 
 const resultJsonType = jsonTypeObject({
-  value: jsonTypeNullableToOptional(
+  value: jsonTypeNullable(
     jsonTypeObject({
       executable: jsonTypeBoolean(),
       lamports: jsonTypeNumber(),
       owner: jsonTypeString(),
-      data: jsonTypeArray(jsonTypeString()),
+      data: jsonTypeArrayToTuple([jsonTypeString(), jsonTypeConst("base64")]),
+      space: jsonTypeNumber(),
     }),
   ),
 });

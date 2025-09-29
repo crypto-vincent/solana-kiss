@@ -1,7 +1,7 @@
 import { Immutable, withContext } from "../utils";
-import { camelCaseToSnakeCase } from "./casing";
 
 export type JsonValue =
+  | undefined
   | null
   | boolean
   | number
@@ -14,7 +14,10 @@ export interface JsonObject {
 }
 
 export function jsonPreview(value: JsonValue): string {
-  if (jsonAsNull(value) !== undefined) {
+  if (value === undefined) {
+    return "Undefined";
+  }
+  if (value === null) {
     return "Null";
   }
   const boolean = jsonAsBoolean(value);
@@ -52,12 +55,6 @@ export function jsonPreview(value: JsonValue): string {
   throw new Error(`JSON: Unknown value: ${value?.toString()}`);
 }
 
-export function jsonAsNull(value: JsonValue): null | undefined {
-  if (value === null) {
-    return null;
-  }
-  return undefined;
-}
 export function jsonAsBoolean(value: JsonValue): boolean | undefined {
   if (typeof value === "boolean" || value instanceof Boolean) {
     return value as boolean;
@@ -89,10 +86,6 @@ export function jsonAsObject(value: JsonValue): JsonObject | undefined {
   return undefined;
 }
 
-export function jsonObjectHasKey(object: JsonObject, key: string): boolean {
-  return Object.prototype.hasOwnProperty.call(object, key);
-}
-
 export function jsonExpectValueShallowEquals(
   found: JsonValue,
   expected: JsonValue,
@@ -110,20 +103,23 @@ export function jsonExpectValueIsSubset(
   subset: JsonValue,
   superset: JsonValue,
 ) {
-  if (jsonAsNull(subset) !== undefined && jsonAsNull(superset) !== undefined) {
+  if (subset === undefined) {
     return true;
+  }
+  if (subset === null) {
+    return superset === null;
   }
   const boolean = jsonAsBoolean(subset);
-  if (boolean !== undefined && jsonAsBoolean(superset) === boolean) {
-    return true;
+  if (boolean !== undefined) {
+    return jsonAsBoolean(superset) === boolean;
   }
   const number = jsonAsNumber(subset);
-  if (number !== undefined && jsonAsNumber(superset) === number) {
-    return true;
+  if (number !== undefined) {
+    return jsonAsNumber(superset) === number;
   }
   const string = jsonAsString(subset);
-  if (string !== undefined && jsonAsString(superset) === number) {
-    return true;
+  if (string !== undefined) {
+    return jsonAsString(superset) === string;
   }
   const subsetArray = jsonAsArray(subset);
   if (subsetArray !== undefined) {
@@ -149,11 +145,8 @@ export function jsonExpectValueIsSubset(
     if (supersetObject === undefined) {
       return false;
     }
-    for (const key in Object.keys(subsetObject)) {
-      if (!jsonObjectHasKey(supersetObject, key)) {
-        return false;
-      }
-      if (!jsonExpectValueIsSubset(subsetObject[key]!, supersetObject[key]!)) {
+    for (const key of Object.keys(subsetObject)) {
+      if (!jsonExpectValueIsSubset(subsetObject[key]!, supersetObject[key])) {
         return false;
       }
     }
@@ -162,12 +155,17 @@ export function jsonExpectValueIsSubset(
   throw new Error(`JSON: Unknown value: ${subset?.toString()}`);
 }
 
+export function jsonExpectUndefined(value: JsonValue): undefined {
+  if (value !== undefined) {
+    throw new Error(`JSON: Expected undefined (found: ${jsonPreview(value)})`);
+  }
+  return undefined;
+}
 export function jsonExpectNull(value: JsonValue): null {
-  const result = jsonAsNull(value);
-  if (result === undefined) {
+  if (value !== null) {
     throw new Error(`JSON: Expected null (found: ${jsonPreview(value)})`);
   }
-  return result;
+  return null;
 }
 export function jsonExpectBoolean(value: JsonValue): boolean {
   const result = jsonAsBoolean(value);
@@ -203,31 +201,6 @@ export function jsonExpectObject(value: JsonValue): JsonObject {
     throw new Error(`JSON: Expected an object (found: ${jsonPreview(value)})`);
   }
   return result;
-}
-
-export function jsonExpectValueFromArray(
-  array: JsonArray,
-  index: number,
-): JsonValue {
-  const item = array[index];
-  if (item === undefined) {
-    throw new Error(
-      `JSON: Expected value in array at index: ${index} (array length: ${array.length})`,
-    );
-  }
-  return item;
-}
-export function jsonExpectValueFromObject(
-  object: JsonObject,
-  key: string,
-): JsonValue {
-  const value = object[key];
-  if (value === undefined) {
-    throw new Error(
-      `JSON: Expected object to contain key "${key}" (object keys: ${Object.keys(object).join(", ")})`,
-    );
-  }
-  return value;
 }
 
 export type JsonTypeContent<S> = S extends JsonType<infer T> ? T : never;
@@ -337,50 +310,53 @@ export function jsonTypeArray<Item>(
         ),
       );
     },
-    encode(decoded: Immutable<Array<Item>>): Array<JsonValue> {
+    encode(decoded: Immutable<Array<Item>>): JsonValue {
       return decoded.map((item) => itemType.encode(item));
     },
   };
 }
 
-/*
-// TODO = try implement this ?
-export function jsonTypeArrayToTuple<Shape extends [JsonType<any>]>(
-  shape: Shape,
-): JsonType<[JsonTypeContent<Shape[K]>]> {
+export function jsonTypeArrayToTuple<
+  Items extends [JsonType<any>, ...JsonType<any>[]],
+>(
+  itemsTypes: Items,
+): JsonType<{ [K in keyof Items]: JsonTypeContent<Items[K]> }> {
   return {
-    decode(encoded: JsonValue) {
+    decode(encoded: JsonValue): {
+      [K in keyof Items]: JsonTypeContent<Items[K]>;
+    } {
       const array = jsonExpectArray(encoded);
-      if (array.length !== shape.length) {
+      if (array.length !== itemsTypes.length) {
         throw new Error(
-          `JSON: Expected tuple array of length ${shape.length} (found length: ${array.length})`,
+          `JSON: Expected tuple array of length ${itemsTypes.length} (found length: ${array.length})`,
         );
       }
-      const decoded = new Array();
-      for (let index = 0; index < shape.length; index++) {
-        decoded.push(
-          withContext(`JSON: Decode Array[${index}] =>`, () =>
-            shape[index]!.decode(array[index]!),
-          ),
-        );
+      const decoded = {} as { [K in keyof Items]: JsonTypeContent<Items[K]> };
+      for (let index = 0; index < itemsTypes.length; index++) {
+        decoded[index as keyof typeof decoded] = withContext(
+          `JSON: Decode Array[${index}] =>`,
+          () => itemsTypes[index]!.decode(array[index]!),
+        ) as JsonTypeContent<Items[typeof index]>;
       }
       return decoded;
     },
-    encode(decoded: (any)[]): JsonValue {
+    encode(
+      decoded: Immutable<{ [K in keyof Items]: JsonTypeContent<Items[K]> }>,
+    ): JsonValue {
       const array = new Array<JsonValue>();
-      for (let index = 0; index < shape.length; index++) {
-        shape[index]!.encode(decoded[index]!);
+      for (let index = 0; index < itemsTypes.length; index++) {
+        array.push(
+          itemsTypes[index]!.encode(decoded[index as keyof typeof decoded]),
+        );
       }
       return array;
     },
   };
 }
-export function jsonTypeArrayToObject()
-  */
 
 export function jsonTypeObject<Shape extends { [key: string]: JsonType<any> }>(
   shape: Shape,
-  keysEncoded?: { [K in keyof Shape]?: string },
+  keysEncoding?: { [K in keyof Shape]?: string },
 ): JsonType<{ [K in keyof Shape]: JsonTypeContent<Shape[K]> }> {
   return {
     decode(encoded: JsonValue): {
@@ -389,13 +365,10 @@ export function jsonTypeObject<Shape extends { [key: string]: JsonType<any> }>(
       const object = jsonExpectObject(encoded);
       const decoded = {} as { [K in keyof Shape]: JsonTypeContent<Shape[K]> };
       for (const keyDecoded in shape) {
-        const keyEncoded = keysEncoded?.[keyDecoded] ?? keyDecoded;
+        const keyEncoded = keysEncoding?.[keyDecoded] ?? keyDecoded;
         decoded[keyDecoded] = withContext(
           `JSON: Decode Object["${keyEncoded}"] =>`,
-          () =>
-            shape[keyDecoded]!.decode(
-              jsonExpectValueFromObject(object, keyEncoded),
-            ),
+          () => shape[keyDecoded]!.decode(object[keyEncoded]),
         );
       }
       return decoded;
@@ -407,7 +380,7 @@ export function jsonTypeObject<Shape extends { [key: string]: JsonType<any> }>(
     ): JsonValue {
       const encoded = {} as JsonObject;
       for (const keyDecoded in shape) {
-        const keyEncoded = keysEncoded?.[keyDecoded] ?? keyDecoded;
+        const keyEncoded = keysEncoding?.[keyDecoded] ?? keyDecoded;
         encoded[keyEncoded] = shape[keyDecoded]!.encode(
           decoded[keyDecoded as keyof typeof decoded],
         );
@@ -420,17 +393,11 @@ export function jsonTypeObject<Shape extends { [key: string]: JsonType<any> }>(
 export function jsonTypeObjectWithKeyEncoder<
   Shape extends { [key: string]: JsonType<any> },
 >(shape: Shape, keyEncoder: (key: string) => string) {
-  const keysEncoded = {} as { [K in keyof Shape]: string };
+  const keysEncoding = {} as { [K in keyof Shape]: string };
   for (const keyDecoded in shape) {
-    keysEncoded[keyDecoded] = keyEncoder(keyDecoded);
+    keysEncoding[keyDecoded] = keyEncoder(keyDecoded);
   }
-  return jsonTypeObject(shape, keysEncoded);
-}
-
-export function jsonTypeObjectSnakeCaseToCamelCase<
-  Shape extends { [key: string]: JsonType<any> },
->(shape: Shape) {
-  return jsonTypeObjectWithKeyEncoder(shape, camelCaseToSnakeCase);
+  return jsonTypeObject(shape, keysEncoding);
 }
 
 export function jsonTypeObjectToRecord<Value>(
@@ -440,7 +407,7 @@ export function jsonTypeObjectToRecord<Value>(
     decode(encoded: JsonValue): Record<string, Value> {
       const object = jsonExpectObject(encoded);
       const decoded: Record<string, Value> = {};
-      for (const key in object) {
+      for (const key of Object.keys(object)) {
         decoded[key] = withContext(`JSON: Decode Object["${key}"] =>`, () =>
           valueType.decode(object[key]!),
         );
@@ -464,7 +431,7 @@ export function jsonTypeObjectToMap<Value>(
     decode(encoded: JsonValue): Map<string, Value> {
       const object = jsonExpectObject(encoded);
       const decoded = new Map<string, Value>();
-      for (const key in object) {
+      for (const key of Object.keys(object)) {
         decoded.set(
           key,
           withContext(`JSON: Decode Object["${key}"] =>`, () =>
@@ -525,7 +492,7 @@ export function jsonTypeNullable<Content>(
 ): JsonType<Content | null> {
   return {
     decode(encoded: JsonValue): Content | null {
-      if (encoded === null) {
+      if (encoded === null || encoded === undefined) {
         return null;
       }
       return contentType.decode(encoded);
@@ -539,19 +506,19 @@ export function jsonTypeNullable<Content>(
   };
 }
 
-export function jsonTypeNullableToOptional<Content>(
+export function jsonTypeOptional<Content>(
   contentType: JsonType<Content>,
 ): JsonType<Content | undefined> {
   return {
     decode(encoded: JsonValue): Content | undefined {
-      if (encoded === null) {
+      if (encoded === null || encoded === undefined) {
         return undefined;
       }
       return contentType.decode(encoded);
     },
     encode(decoded: Immutable<Content | undefined>): JsonValue {
       if (decoded === undefined) {
-        return null;
+        return undefined;
       }
       return contentType.encode(decoded);
     },

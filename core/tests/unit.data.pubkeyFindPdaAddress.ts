@@ -3,7 +3,7 @@ import {
   base58Decode,
   pubkeyDefault,
   pubkeyFindPdaAddressAndBump,
-  pubkeyNewRandom,
+  pubkeyNewDummy,
 } from "../src";
 
 it("run", async () => {
@@ -34,7 +34,7 @@ it("run", async () => {
   ];
   for (let counter = 0; counter < 100; counter++) {
     tests.push({
-      programId: pubkeyNewRandom(),
+      programId: pubkeyNewDummy(),
       seeds: [
         new Uint8Array([1, 2, 3]),
         new Uint8Array([4, 5, 6]),
@@ -44,11 +44,11 @@ it("run", async () => {
   }
   for (let counter = 0; counter < 100; counter++) {
     tests.push({
-      programId: pubkeyNewRandom(),
+      programId: pubkeyNewDummy(),
       seeds: [
-        base58Decode(pubkeyNewRandom()),
-        base58Decode(pubkeyNewRandom()),
-        base58Decode(pubkeyNewRandom()),
+        base58Decode(pubkeyNewDummy()),
+        base58Decode(pubkeyNewDummy()),
+        base58Decode(pubkeyNewDummy()),
       ],
     });
   }

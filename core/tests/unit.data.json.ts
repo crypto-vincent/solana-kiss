@@ -4,7 +4,6 @@ import {
   jsonTypeBoolean,
   jsonTypeConst,
   jsonTypeNullable,
-  jsonTypeNullableToOptional,
   jsonTypeNumber,
   jsonTypeObject,
   jsonTypeString,
@@ -27,7 +26,7 @@ it("run", async () => {
     },
     {
       data: [null, "Hello"],
-      type: jsonTypeArray(jsonTypeNullableToOptional(jsonTypeString())),
+      type: jsonTypeArray(jsonTypeNullable(jsonTypeString())),
     },
     {
       data: {

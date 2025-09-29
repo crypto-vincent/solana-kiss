@@ -20,6 +20,7 @@
     "noUncheckedIndexedAccess": true,
     "exactOptionalPropertyTypes": true,
     "useUnknownInCatchVariables": true,
+    "erasableSyntaxOnly": true,
     "forceConsistentCasingInFileNames": true
   },
   "include": ["src", "tests"]

@@ -2,7 +2,15 @@ import { expect, it } from "@jest/globals";
 import { base16Encode, sha256Hash } from "../src";
 
 async function referenceImplementation(data: Uint8Array): Promise<Uint8Array> {
-  return new Uint8Array(await crypto.subtle.digest("SHA-256", data as any));
+  if (globalThis.crypto?.subtle !== undefined) {
+    return new Uint8Array(
+      await globalThis.crypto.subtle.digest("SHA-256", data as any),
+    );
+  } else {
+    return new Uint8Array(
+      (await import("crypto")).createHash("sha256").update(data).digest(),
+    );
+  }
 }
 
 it("run", async () => {

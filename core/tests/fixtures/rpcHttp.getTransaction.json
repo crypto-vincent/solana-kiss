@@ -59,66 +59,6 @@
       "Program SQDS4ep65T869zMMBKyuUq6aD6EgTu8psMjkvj52pCf consumed 41931 of 499550 compute units",
       "Program SQDS4ep65T869zMMBKyuUq6aD6EgTu8psMjkvj52pCf success"
     ],
-    "postBalances": [
-      999196985, 4050720, 702218672, 2039280, 4732800, 2039280, 1, 1, 1141440,
-      2728320, 3208560, 17093760, 1141440, 56880387, 934087680
-    ],
-    "postTokenBalances": [
-      {
-        "accountIndex": 3,
-        "mint": "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",
-        "owner": "8PDYaC2zz9UYN3qVoAyZvAF7qRkmTByBT5TnT2mHGPuZ",
-        "programId": "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA",
-        "uiTokenAmount": {
-          "amount": "1044",
-          "decimals": 6,
-          "uiAmount": 0.001044,
-          "uiAmountString": "0.001044"
-        }
-      },
-      {
-        "accountIndex": 5,
-        "mint": "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",
-        "owner": "8sWsVPJpjcBrmmuAQCk1Tp6BgAmEc8A5UM8RhJn1qzED",
-        "programId": "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA",
-        "uiTokenAmount": {
-          "amount": "9958",
-          "decimals": 6,
-          "uiAmount": 0.009958,
-          "uiAmountString": "0.009958"
-        }
-      }
-    ],
-    "preBalances": [
-      999329495, 4050720, 702218672, 2039280, 4732800, 2039280, 1, 1, 1141440,
-      2728320, 3208560, 17093760, 1141440, 56780387, 934087680
-    ],
-    "preTokenBalances": [
-      {
-        "accountIndex": 3,
-        "mint": "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",
-        "owner": "8PDYaC2zz9UYN3qVoAyZvAF7qRkmTByBT5TnT2mHGPuZ",
-        "programId": "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA",
-        "uiTokenAmount": {
-          "amount": "1002",
-          "decimals": 6,
-          "uiAmount": 0.001002,
-          "uiAmountString": "0.001002"
-        }
-      },
-      {
-        "accountIndex": 5,
-        "mint": "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",
-        "owner": "8sWsVPJpjcBrmmuAQCk1Tp6BgAmEc8A5UM8RhJn1qzED",
-        "programId": "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA",
-        "uiTokenAmount": {
-          "amount": "10000",
-          "decimals": 6,
-          "uiAmount": 0.01,
-          "uiAmountString": "0.01"
-        }
-      }
-    ],
     "rewards": [],
     "status": {
       "Ok": null

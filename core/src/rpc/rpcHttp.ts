@@ -1,8 +1,8 @@
 import {
   JsonValue,
-  jsonTypeNullableToOptional,
   jsonTypeNumber,
   jsonTypeObject,
+  jsonTypeOptional,
   jsonTypeString,
   jsonTypeValue,
 } from "../data/json";
@@ -46,11 +46,12 @@ export function rpcHttpFromUrl(
         params,
       }),
     });
-    const responseJson = await responseRaw.json();
+    const responseJson = (await responseRaw.json()) as JsonValue;
+    console.log("responseJson", JSON.stringify(responseJson, null, 2));
     const response = responseJsonType.decode(responseJson);
-    if (response.version !== "2.0") {
+    if (response.jsonrpc !== "2.0") {
       throw new Error(
-        `RpcHttp: Expected response version: "2.0" (found: "${response.version}")`,
+        `RpcHttp: Expected response jsonrpc: "2.0" (found: "${response.jsonrpc}")`,
       );
     }
     if (response.id !== requestId) {
@@ -91,17 +92,17 @@ export function rpcHttpWithMaxConcurrentRequests(
 
 export function rpcHttpWithRetryOnError(
   rpc: RpcHttp,
-  nextRetryDelayMs: (retryCounter: number, lastError: unknown) => number,
+  nextRetryDelayMs: (retryCount: number, error: any) => number,
 ): RpcHttp {
   return async function (method, params) {
-    let retryCounter = 0;
+    let retryCount = 0;
     while (true) {
       try {
         return await rpc(method, params);
       } catch (error) {
-        const delay = nextRetryDelayMs(retryCounter, error);
+        const delay = nextRetryDelayMs(retryCount, error);
         await new Promise((resolve) => setTimeout(resolve, delay));
-        retryCounter++;
+        retryCount++;
       }
     }
   };
@@ -110,13 +111,13 @@ export function rpcHttpWithRetryOnError(
 let uniqueRequestId = 1;
 
 const responseJsonType = jsonTypeObject({
-  version: jsonTypeString(),
+  jsonrpc: jsonTypeString(),
   id: jsonTypeNumber(),
-  error: jsonTypeNullableToOptional(
+  error: jsonTypeOptional(
     jsonTypeObject({
       code: jsonTypeNumber(),
       message: jsonTypeString(),
     }),
   ),
-  result: jsonTypeValue(),
+  result: jsonTypeOptional(jsonTypeValue()),
 });

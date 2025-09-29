@@ -1,24 +1,24 @@
 import {
   jsonTypeBoolean,
-  jsonTypeNullableToOptional,
+  jsonTypeNullable,
   jsonTypeNumber,
   jsonTypeObject,
   jsonTypeString,
 } from "../data/json";
-import { pubkeyDefault } from "../data/pubkey";
-import { Commitment, Lamports, PublicKey } from "../types";
+import { Pubkey, pubkeyDefault } from "../data/pubkey";
+import { Commitment, Lamports } from "../types";
 import { RpcHttp } from "./rpcHttp";
 
 export async function rpcHttpGetAccountMetadata(
   rpcHttp: RpcHttp,
-  accountAddress: PublicKey,
+  accountAddress: Pubkey,
   context?: {
     commitment?: Commitment;
   },
 ): Promise<{
   executable: boolean;
   lamports: Lamports;
-  owner: PublicKey;
+  owner: Pubkey;
   space: number;
 }> {
   const result = resultJsonType.decode(
@@ -31,7 +31,7 @@ export async function rpcHttpGetAccountMetadata(
       },
     ]),
   );
-  if (result.value === undefined) {
+  if (result.value === null) {
     return {
       executable: false,
       lamports: "0",
@@ -44,16 +44,11 @@ export async function rpcHttpGetAccountMetadata(
   const lamports = String(value.lamports);
   const owner = value.owner;
   const space = value.space;
-  return {
-    executable,
-    lamports,
-    owner,
-    space,
-  };
+  return { executable, lamports, owner, space };
 }
 
 const resultJsonType = jsonTypeObject({
-  value: jsonTypeNullableToOptional(
+  value: jsonTypeNullable(
     jsonTypeObject({
       executable: jsonTypeBoolean(),
       lamports: jsonTypeNumber(),

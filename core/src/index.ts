@@ -12,6 +12,6 @@ export * from "./rpc/rpcHttpGetAccount";
 export * from "./rpc/rpcHttpGetAccountLamports";
 export * from "./rpc/rpcHttpGetAccountMetadata";
 export * from "./rpc/rpcHttpGetLatestBlockHash";
-export * from "./rpc/rpcHttpGetTransactionExecution";
+export * from "./rpc/rpcHttpGetTransaction";
 export * from "./types";
 export * from "./utils";

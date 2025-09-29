@@ -14,6 +14,7 @@ export function withContext<T>(message: string, fn: () => T): T {
   }
 }
 
+// TODO - is this needed ?
 export function expectItemInArray<T>(array: Array<T>, index: number): T {
   if (index < 0 || index >= array.length) {
     throw new Error(
