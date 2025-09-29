@@ -6,5 +6,6 @@ it("run", async () => {
     return require("./fixtures/rpcHttp.getTransaction.json");
   };
   const dudu = await rpcHttpGetTransactionExecution(rpcHttp, "!");
+  // TODO - check the content of the execution
   console.log("dudu", JSON.stringify(dudu, null, 2));
 });
