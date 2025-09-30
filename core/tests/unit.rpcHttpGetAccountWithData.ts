@@ -7,7 +7,7 @@ it("run", async () => {
   };
   const accountInfo = await rpcHttpGetAccountWithData(rpcHttp, "!");
   expect(accountInfo.executable).toStrictEqual(true);
-  expect(accountInfo.lamports).toStrictEqual(42_000_000_000_000n.toString());
+  expect(accountInfo.lamports).toStrictEqual(42_000_000_000_000n);
   expect(accountInfo.owner).toStrictEqual(
     "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA",
   );

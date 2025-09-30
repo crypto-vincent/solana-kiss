@@ -4,6 +4,7 @@ import {
   jsonTypeNullable,
   jsonTypeNumber,
   jsonTypeObject,
+  jsonTypeObjectToRecord,
   jsonTypeString,
   jsonTypeValue,
 } from "../data/json";
@@ -19,7 +20,6 @@ import {
 import { expectItemInArray } from "../utils";
 import { RpcHttp } from "./rpcHttp";
 
-// TODO - should this just be named "getExecution" ?
 export async function rpcHttpGetTransaction(
   rpcHttp: RpcHttp,
   transactionId: Signature,
@@ -69,7 +69,7 @@ export async function rpcHttpGetTransaction(
     },
     error: meta.err,
     logs: meta.logMessages,
-    chargedFees: String(meta.fee),
+    chargedFees: BigInt(meta.fee),
     computeUnitsConsumed: meta.computeUnitsConsumed,
     invokations: decompileTransactionInvokations(
       transactionInputs,
@@ -243,7 +243,7 @@ const resultJsonType = jsonTypeNullable(
     blockTime: jsonTypeNumber(),
     meta: jsonTypeObject({
       computeUnitsConsumed: jsonTypeNumber(),
-      err: jsonTypeNullable(jsonTypeValue()),
+      err: jsonTypeNullable(jsonTypeObjectToRecord(jsonTypeValue())),
       fee: jsonTypeNumber(),
       innerInstructions: jsonTypeArray(
         jsonTypeObject({

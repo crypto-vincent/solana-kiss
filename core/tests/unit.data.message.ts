@@ -2,24 +2,20 @@ import { it } from "@jest/globals";
 import {
   Keypair,
   PublicKey,
-  TransactionInstruction,
   TransactionMessage,
   VersionedTransaction,
 } from "@solana/web3.js";
-import { Instruction, Pubkey, pubkeyNewDummy } from "../src";
+import { Pubkey, pubkeyNewDummy } from "../src";
 import { keypairFromSecret } from "../src/data/keypair";
-import { compileMessage } from "../src/rpc/rpcHttpScheduleTransaction";
+import { messageCompile, messageSign } from "../src/data/message";
 
 it("run", async () => {
   const payerReference = Keypair.fromSecretKey(payerSecret);
-  const payerCurrent = await keypairFromSecret(payerSecret);
-
   const signer1Reference = Keypair.fromSecretKey(signer1Secret);
-  const signer1Current = await keypairFromSecret(signer1Secret);
-
   const signer2Reference = Keypair.fromSecretKey(signer2Secret);
+  const payerCurrent = await keypairFromSecret(payerSecret);
+  const signer1Current = await keypairFromSecret(signer1Secret);
   const signer2Current = await keypairFromSecret(signer2Secret);
-
   const blockHash = pubkeyNewDummy();
   const generatedInstruction1 = generateInstruction(
     signer1Reference.publicKey.toBase58(),
@@ -29,39 +25,39 @@ it("run", async () => {
     signer1Current.address,
     signer2Reference.publicKey.toBase58(),
   );
-
-  const referenceMessage = new TransactionMessage({
+  const referenceCompiledMessage = new TransactionMessage({
     payerKey: payerReference.publicKey,
     recentBlockhash: blockHash,
     instructions: [
       generatedInstruction1.reference,
       generatedInstruction2.reference,
     ],
-  }).compileToV0Message([]); // TODO - handle lookup tables
-
-  const referenceTransaction = new VersionedTransaction(referenceMessage);
-  referenceTransaction.sign([
+  }).compileToV0Message([]); // TODO - handle address lookup tables
+  const referenceSignedMessage = new VersionedTransaction(
+    referenceCompiledMessage,
+  );
+  referenceSignedMessage.sign([
     payerReference,
     signer1Reference,
     signer2Reference,
   ]);
-
-  const referenceBytes = referenceTransaction.serialize();
-  console.log("referenceBytes", referenceBytes);
-
-  const currentBytes = await compileMessage(
-    {
-      payerAddress: payerCurrent.address,
-      instructions: [
-        generatedInstruction1.current,
-        generatedInstruction2.current,
-      ],
-      recentBlockHash: blockHash,
-    },
-    [payerCurrent, signer1Current, signer2Current],
-  );
-  console.log("currentBytes", currentBytes);
-  expect(currentBytes).toStrictEqual(referenceBytes);
+  const referenceCompiledBytes = referenceCompiledMessage.serialize();
+  const currentCompiledBytes = messageCompile({
+    payerAddress: payerCurrent.address,
+    instructions: [
+      generatedInstruction1.current,
+      generatedInstruction2.current,
+    ],
+    recentBlockHash: blockHash,
+  });
+  expect(currentCompiledBytes).toStrictEqual(referenceCompiledBytes);
+  const referenceSignedBytes = referenceSignedMessage.serialize();
+  const currentSignedBytes = await messageSign(currentCompiledBytes, [
+    payerCurrent,
+    signer1Current,
+    signer2Current,
+  ]);
+  expect(currentSignedBytes).toStrictEqual(referenceSignedBytes);
 });
 
 function generateInstruction(
@@ -75,7 +71,7 @@ function generateInstruction(
   for (let index = 0; index < data.length; index++) {
     data[index] = Math.floor(Math.random() * 256);
   }
-  const referenceIx: TransactionInstruction = {
+  const reference = {
     programId: new PublicKey(programAddress),
     keys: [
       {
@@ -101,7 +97,7 @@ function generateInstruction(
     ],
     data: Buffer.from(data),
   };
-  const currentIx: Instruction = {
+  const current = {
     programAddress,
     inputs: [
       { address: signerWritableAddress, signing: true, writable: true },
@@ -111,10 +107,7 @@ function generateInstruction(
     ],
     data,
   };
-  return {
-    reference: referenceIx,
-    current: currentIx,
-  };
+  return { reference, current };
 }
 
 const payerSecret = new Uint8Array([

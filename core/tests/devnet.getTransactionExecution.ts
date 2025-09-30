@@ -13,25 +13,25 @@ it("run", async () => {
   // TODO - proper tests
 
   /*
-  const result1 = await getTransactionExecution(
+  const result1 = await getTransaction(
     rpc,
     "2pqW2HvC2FqVr1GkSgLrPCp55THBzYWP6oMkaB6bZzaRXKYNJ2wfcBCu3M9r64SVcX3fEC5EomwxF939kn4pYXBW",
   );
   console.log("result1", result1);
 
-  const result2 = await getTransactionExecution(
+  const result2 = await getTransaction(
     rpc,
     "3VBrBZQERLxdNjqLTzwx7TMQYbUr8ti4547CUK53WByooyJHJGmnkccw2pCQVv7D7Xi65S1E7mSFZETw6ECjxdmd",
   );
   console.log("result2", result2);
 
-  const result3 = await getTransactionExecution(
+  const result3 = await getTransaction(
     rpc,
     "2MZyi9uezffec3YyAHpkC33r8Nmgwf3cBHKH1Y9H4EHfoKtZ8sQEKVCHF2Rwb17qQCrUDXS1u1wpNnxgz79U6yWY",
   );
   console.log("result3", result3);
 
-  const result4 = await getTransactionExecution(
+  const result4 = await getTransaction(
     rpc,
     "3MZyi9uezffec3YyAHpkC33r8Nmgwf3cBHKH1Y9H4EHfoKtZ8sQEKVCHF2Rwb17qQCrUDXS1u1wpNnxgz79U6yWY",
   );

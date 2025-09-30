@@ -9,11 +9,7 @@ export async function rpcHttpGetLatestBlockHash(
   },
 ): Promise<Hash> {
   const result = resultJsonType.decode(
-    await rpcHttp("getLatestBlockhash", [
-      {
-        commitment: context?.commitment,
-      },
-    ]),
+    await rpcHttp("getLatestBlockhash", [{ commitment: context?.commitment }]),
   );
   return result.value.blockhash;
 }

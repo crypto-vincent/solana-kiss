@@ -5,8 +5,9 @@ import {
   jsonTypeObject,
   jsonTypeString,
 } from "../data/json";
+import { Lamports } from "../data/lamports";
 import { Pubkey, pubkeyDefault } from "../data/pubkey";
-import { Commitment, Lamports } from "../types";
+import { Commitment } from "../types";
 import { RpcHttp } from "./rpcHttp";
 
 export async function rpcHttpGetAccountMetadata(
@@ -34,14 +35,14 @@ export async function rpcHttpGetAccountMetadata(
   if (result.value === null) {
     return {
       executable: false,
-      lamports: "0",
+      lamports: 0n,
       owner: pubkeyDefault(),
       space: 0,
     };
   }
   const value = result.value;
   const executable = value.executable;
-  const lamports = String(value.lamports);
+  const lamports = BigInt(value.lamports);
   const owner = value.owner;
   const space = value.space;
   return { executable, lamports, owner, space };

@@ -2,7 +2,7 @@ import { expect, it } from "@jest/globals";
 import { base16Decode, base16Encode } from "../src";
 
 function referenceImplementation(data: Uint8Array): string {
-  const hex = "0123456789abcdef";
+  const hex = "0123456789ABCDEF";
   let result = "";
   for (let byteIndex = 0; byteIndex < data.length; byteIndex++) {
     const byte = data[byteIndex]!;
@@ -45,7 +45,9 @@ it("run", async () => {
       ? new Uint8Array(test.bytes)
       : new TextEncoder().encode(test.utf8);
     const encoded = base16Encode(bytes);
-    const decoded = base16Decode(encoded);
+    const decoded = base16Decode(
+      Math.random() < 0.5 ? encoded.toLowerCase() : encoded.toUpperCase(),
+    );
     const expected = referenceImplementation(bytes);
     expect(decoded).toStrictEqual(bytes);
     expect(encoded).toStrictEqual(expected);

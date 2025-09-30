@@ -47,7 +47,7 @@ export function rpcHttpFromUrl(
       }),
     });
     const responseJson = (await responseRaw.json()) as JsonValue;
-    console.log("responseJson", JSON.stringify(responseJson, null, 2));
+    console.log("responseJson", responseJson);
     const response = responseJsonType.decode(responseJson);
     if (response.jsonrpc !== "2.0") {
       throw new Error(

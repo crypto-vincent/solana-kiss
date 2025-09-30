@@ -1,12 +1,16 @@
-const alphabet = "0123456789abcdef";
+const alphabetLower = "0123456789abcdef";
+const alphabetUpper = "0123456789ABCDEF";
 
 const digitToCode = new Uint8Array(16);
-for (let digit = 0; digit < alphabet.length; digit++) {
-  digitToCode[digit] = alphabet.charCodeAt(digit)!;
+for (let digit = 0; digit < alphabetUpper.length; digit++) {
+  digitToCode[digit] = alphabetUpper.charCodeAt(digit)!;
 }
 const codeToDigit = new Int8Array(256).fill(-1);
-for (let digit = 0; digit < alphabet.length; digit++) {
-  codeToDigit[alphabet.charCodeAt(digit)!] = digit;
+for (let digit = 0; digit < alphabetLower.length; digit++) {
+  codeToDigit[alphabetLower.charCodeAt(digit)!] = digit;
+}
+for (let digit = 0; digit < alphabetUpper.length; digit++) {
+  codeToDigit[alphabetUpper.charCodeAt(digit)!] = digit;
 }
 
 const codeDecoder = new TextDecoder();

@@ -295,7 +295,6 @@ const jsonTypeStringToBigintCached = {
     return String(decoded);
   },
 };
-// TODO - should this be named "StringAsBigint" or else?
 export function jsonTypeStringToBigint(): JsonType<bigint> {
   return jsonTypeStringToBigintCached;
 }
@@ -327,17 +326,12 @@ export function jsonTypeArrayToTuple<
       [K in keyof Items]: JsonTypeContent<Items[K]>;
     } {
       const array = jsonExpectArray(encoded);
-      if (array.length !== itemsTypes.length) {
-        throw new Error(
-          `JSON: Expected tuple array of length ${itemsTypes.length} (found length: ${array.length})`,
-        );
-      }
       const decoded = {} as { [K in keyof Items]: JsonTypeContent<Items[K]> };
       for (let index = 0; index < itemsTypes.length; index++) {
         decoded[index as keyof typeof decoded] = withContext(
           `JSON: Decode Array[${index}] =>`,
-          () => itemsTypes[index]!.decode(array[index]!),
-        ) as JsonTypeContent<Items[typeof index]>;
+          () => itemsTypes[index]!.decode(array[index]),
+        );
       }
       return decoded;
     },
@@ -351,6 +345,38 @@ export function jsonTypeArrayToTuple<
         );
       }
       return array;
+    },
+  };
+}
+
+export function jsonTypeArrayToObject<
+  Shape extends { [key: string]: JsonType<any> },
+>(shape: Shape): JsonType<{ [K in keyof Shape]: JsonTypeContent<Shape[K]> }> {
+  return {
+    decode(encoded: JsonValue): {
+      [K in keyof Shape]: JsonTypeContent<Shape[K]>;
+    } {
+      const array = jsonExpectArray(encoded);
+      const decoded = {} as { [K in keyof Shape]: JsonTypeContent<Shape[K]> };
+      let index = 0;
+      for (const key in shape) {
+        decoded[key] = withContext(`JSON: Decode Array[${index}] =>`, () =>
+          shape[key]!.decode(array[index++]),
+        );
+      }
+      return decoded;
+    },
+    encode(
+      decoded: Immutable<{ [K in keyof Shape]: JsonTypeContent<Shape[K]> }>,
+    ): JsonValue {
+      const encoded = new Array<JsonValue>();
+      let index = 0;
+      for (const key in shape) {
+        encoded[index++] = shape[key]!.encode(
+          decoded[key as keyof typeof decoded],
+        );
+      }
+      return encoded;
     },
   };
 }
@@ -452,16 +478,6 @@ export function jsonTypeObjectToMap<Value>(
   };
 }
 
-export function jsonTypeObjectToVariant<Variant>(
-  variantKey: string,
-  variantType: JsonType<Variant>,
-): JsonType<Variant> {
-  return jsonTypeMapped(jsonTypeObject({ [variantKey]: variantType }), {
-    map: (unmapped) => unmapped[variantKey]!,
-    unmap: (mapped) => ({ [variantKey]: mapped }),
-  });
-}
-
 export function jsonTypeArrayToMap<Key, Value>(
   keyType: JsonType<Key>,
   valueType: JsonType<Value>,
@@ -549,6 +565,46 @@ export function jsonTypeMapped<Mapped, Unmapped>(
     },
     encode(decoded: Immutable<Mapped>): JsonValue {
       return unmappedType.encode(processors.unmap(decoded));
+    },
+  };
+}
+
+export function jsonTypeArrayToVariant<Variant>(
+  variantKey: string,
+  variantType: JsonType<Variant>,
+): JsonType<Variant> {
+  return jsonTypeMapped(
+    jsonTypeArrayToTuple([jsonTypeConst(variantKey), variantType]),
+    {
+      map: (unmapped) => unmapped[1]!,
+      unmap: (mapped) => [variantKey, mapped] as [string, Immutable<Variant>],
+    },
+  );
+}
+
+export function jsonTypeObjectToVariant<Variant>(
+  variantKey: string,
+  variantType: JsonType<Variant>,
+): JsonType<Variant> {
+  return jsonTypeMapped(jsonTypeObject({ [variantKey]: variantType }), {
+    map: (unmapped) => unmapped[variantKey]!,
+    unmap: (mapped) => ({ [variantKey]: mapped }),
+  });
+}
+
+export function jsonTypeWithDefault<Content>(
+  contentType: JsonType<Content>,
+  defaultConstructor: () => Content,
+): JsonType<Content> {
+  return {
+    decode(encoded: JsonValue): Content {
+      if (encoded === undefined) {
+        return defaultConstructor();
+      }
+      return contentType.decode(encoded);
+    },
+    encode(decoded: Immutable<Content>): JsonValue {
+      return contentType.encode(decoded);
     },
   };
 }

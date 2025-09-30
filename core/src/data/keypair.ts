@@ -33,7 +33,7 @@ export async function keypairFromSecret(
   if (!options?.skipValidation) {
     const message = new Uint8Array();
     if (!(await keypair.verify(message, await keypair.sign(message)))) {
-      throw new Error(`Keypair: Secret public and private key mismatch`);
+      throw new Error(`Keypair: Secret public blob and private blob mismatch`);
     }
   }
   return keypair;
@@ -45,7 +45,7 @@ async function keypairGenerateWeb(): Promise<Keypair> {
     false,
     ["sign", "verify"],
   );
-  return keypairBuildWeb(privateKey, publicKey);
+  return keypairWeb(privateKey, publicKey);
 }
 
 async function keypairFromSecretWeb(secret: Uint8Array): Promise<Keypair> {
@@ -63,13 +63,10 @@ async function keypairFromSecretWeb(secret: Uint8Array): Promise<Keypair> {
     true,
     ["verify"],
   );
-  return keypairBuildWeb(privateKey, publicKey);
+  return keypairWeb(privateKey, publicKey);
 }
 
-async function keypairBuildWeb(
-  privateKey: any,
-  publicKey: any,
-): Promise<Keypair> {
+async function keypairWeb(privateKey: any, publicKey: any): Promise<Keypair> {
   const spki = await crypto.subtle.exportKey("spki", publicKey);
   return {
     address: extractPubkeyFromSpki(new Uint8Array(spki)),
@@ -98,7 +95,7 @@ async function keypairBuildWeb(
 async function keypairGenerateNode(): Promise<Keypair> {
   const crypto = await import("crypto");
   const { privateKey, publicKey } = crypto.generateKeyPairSync("ed25519");
-  return keypairBuildNode(privateKey, publicKey);
+  return keypairNode(privateKey, publicKey);
 }
 
 async function keypairFromSecretNode(secret: Uint8Array): Promise<Keypair> {
@@ -113,13 +110,10 @@ async function keypairFromSecretNode(secret: Uint8Array): Promise<Keypair> {
     format: "der",
     type: "spki",
   });
-  return keypairBuildNode(privateKey, publicKey);
+  return keypairNode(privateKey, publicKey);
 }
 
-async function keypairBuildNode(
-  privateKey: any,
-  publicKey: any,
-): Promise<Keypair> {
+async function keypairNode(privateKey: any, publicKey: any): Promise<Keypair> {
   const crypto = await import("crypto");
   const spki = publicKey.export({ type: "spki", format: "der" });
   return {

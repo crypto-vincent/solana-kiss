@@ -29,8 +29,24 @@ export function pubkeyNewDummy(): Pubkey {
   return base58Encode(bytes);
 }
 
+export function pubkeyFromBytes(bytes: Uint8Array): Pubkey {
+  const pubkey = base58Encode(bytes);
+  if (bytes.length !== 32) {
+    throw new Error(
+      `Pubkey: Expected pubkey spanning 32 bytes (found: ${bytes.length}, with ${pubkey})`,
+    );
+  }
+  return pubkey;
+}
+
 export function pubkeyToBytes(pubkey: Pubkey): Uint8Array {
-  return base58Decode(pubkey);
+  const bytes = base58Decode(pubkey);
+  if (bytes.length !== 32) {
+    throw new Error(
+      `Pubkey: Expected pubkey spanning 32 bytes (found: ${bytes.length} with ${pubkey})`,
+    );
+  }
+  return bytes;
 }
 
 export function pubkeyFindPdaAddress(
@@ -65,11 +81,6 @@ export function pubkeyCreatePdaAddress(
   seedsBytes: Array<Uint8Array>,
 ): Pubkey | undefined {
   const programBytes = pubkeyToBytes(programAddress);
-  if (programBytes.length !== 32) {
-    throw new Error(
-      `Pubkey: Create PDA: Invalid program public key byte length: ${programBytes.length}`,
-    );
-  }
   if (seedsBytes.length > 16) {
     throw new Error("Pubkey: Create PDA: Too many seeds, max is 16");
   }
@@ -92,11 +103,6 @@ export function pubkeyCreatePdaAddress(
 
 export function pubkeyIsOnCurve(address: Pubkey): boolean {
   const bytes = pubkeyToBytes(address);
-  if (bytes.length !== 32) {
-    throw new Error(
-      `Pubkey: Is on curve: Invalid public key byte length: ${bytes.length}`,
-    );
-  }
   const sign = (bytes[31]! >> 7) & 1;
   bytes[31]! &= 0x7f;
   let y = 0n;

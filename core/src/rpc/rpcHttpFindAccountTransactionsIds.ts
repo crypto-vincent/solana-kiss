@@ -15,21 +15,16 @@ export async function rpcHttpFindAccountTransactionsIds(
     commitment?: Commitment;
   },
 ): Promise<Array<Signature>> {
+  const requestLimit = 1000;
   const transactionsIds = new Array<Signature>();
   const rewindUntilTransactionId = pagination?.rewindUntilTransactionId;
   let startBeforeTransactionId = pagination?.startBeforeTransactionId;
-  let requestCounter = 0;
   while (true) {
-    const batchSize = Math.min(
-      1000,
-      rewindUntilTransactionId ? (requestCounter == 0 ? 10 : 1000) : maxLength,
-    );
-    requestCounter++;
     const result = resultJsonType.decode(
       await rpcHttp("getSignaturesForAddress", [
         accountAddress,
         {
-          limit: batchSize,
+          limit: requestLimit,
           before: startBeforeTransactionId,
           commitment: context?.commitment,
         },
@@ -49,7 +44,7 @@ export async function rpcHttpFindAccountTransactionsIds(
       }
       startBeforeTransactionId = transactionId;
     }
-    if (result.length < batchSize) {
+    if (result.length < requestLimit) {
       return transactionsIds;
     }
   }

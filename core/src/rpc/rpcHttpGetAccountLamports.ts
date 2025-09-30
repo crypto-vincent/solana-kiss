@@ -1,9 +1,9 @@
 import { jsonTypeNumber, jsonTypeObject } from "../data/json";
+import { Lamports } from "../data/lamports";
 import { Pubkey } from "../data/pubkey";
-import { Commitment, Lamports } from "../types";
+import { Commitment } from "../types";
 import { RpcHttp } from "./rpcHttp";
 
-// TODO - should this return undefined if the account doesnt exist ?
 export async function rpcHttpGetAccountLamports(
   rpcHttp: RpcHttp,
   accountAddress: Pubkey,
@@ -17,7 +17,7 @@ export async function rpcHttpGetAccountLamports(
       { commitment: context?.commitment },
     ]),
   );
-  return String(result.value);
+  return BigInt(result.value);
 }
 
 const resultJsonType = jsonTypeObject({

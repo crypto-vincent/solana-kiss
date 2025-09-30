@@ -1,9 +1,3 @@
-import { Lamports } from "./types";
-
-export function approximateSolsForLamports(lamports: Lamports): number {
-  return Number(lamports) / Number(1_000_000_000);
-}
-
 export function withContext<T>(message: string, fn: () => T): T {
   try {
     return fn();

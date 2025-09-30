@@ -8,8 +8,9 @@ import {
   jsonTypeObject,
   jsonTypeString,
 } from "../data/json";
+import { Lamports } from "../data/lamports";
 import { Pubkey, pubkeyDefault } from "../data/pubkey";
-import { Commitment, Lamports } from "../types";
+import { Commitment } from "../types";
 import { RpcHttp } from "./rpcHttp";
 
 export async function rpcHttpGetAccountWithData(
@@ -36,14 +37,14 @@ export async function rpcHttpGetAccountWithData(
   if (result.value === null) {
     return {
       executable: false,
-      lamports: "0",
+      lamports: 0n,
       owner: pubkeyDefault(),
       data: new Uint8Array(0),
     };
   }
   const value = result.value;
   const executable = value.executable;
-  const lamports = String(value.lamports);
+  const lamports = BigInt(value.lamports);
   const owner = value.owner;
   const data = base64Decode(value.data[0]!);
   if (data.length != value.space) {
