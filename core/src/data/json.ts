@@ -317,7 +317,7 @@ export function jsonTypeArray<Item>(
 }
 
 export function jsonTypeArrayToTuple<
-  Items extends [JsonType<any>, ...JsonType<any>[]],
+  Items extends [JsonType<any>, ...Array<JsonType<any>>],
 >(
   itemsTypes: Items,
 ): JsonType<{ [K in keyof Items]: JsonTypeContent<Items[K]> }> {
@@ -606,6 +606,54 @@ export function jsonTypeWithDefault<Content>(
     encode(decoded: Immutable<Content>): JsonValue {
       return contentType.encode(decoded);
     },
+  };
+}
+
+export function jsonTypeByKind<Content>(
+  decoders: {
+    undefined?: () => Content;
+    null?: () => Content;
+    boolean?: (boolean: boolean) => Content;
+    number?: (number: number) => Content;
+    string?: (string: string) => Content;
+    array?: (array: JsonArray) => Content;
+    object?: (object: JsonObject) => Content;
+  },
+  encoder: (content: Immutable<Content>) => JsonValue,
+) {
+  return {
+    decode(encoded: JsonValue): Content {
+      if (encoded === undefined && decoders.undefined) {
+        return decoders.undefined();
+      }
+      if (encoded === null && decoders.null) {
+        return decoders.null();
+      }
+      const boolean = jsonAsBoolean(encoded);
+      if (boolean !== undefined && decoders.boolean) {
+        return decoders.boolean(boolean);
+      }
+      const number = jsonAsNumber(encoded);
+      if (number !== undefined && decoders.number) {
+        return decoders.number(number);
+      }
+      const string = jsonAsString(encoded);
+      if (string !== undefined && decoders.string) {
+        return decoders.string(string);
+      }
+      const array = jsonAsArray(encoded);
+      if (array !== undefined && decoders.array) {
+        return decoders.array(array);
+      }
+      const object = jsonAsObject(encoded);
+      if (object !== undefined && decoders.object) {
+        return decoders.object(object);
+      }
+      throw new Error(
+        `JSON: Expected ${Object.keys(decoders).join("/")} (found: ${jsonPreview(encoded)})`,
+      );
+    },
+    encode: encoder,
   };
 }
 

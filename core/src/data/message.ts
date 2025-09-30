@@ -101,11 +101,11 @@ export function messageCompile(message: Message): Uint8Array {
 
 export async function messageSign(
   messageCompiled: Uint8Array,
-  signers: Signer[],
+  signers: Array<Signer>,
 ): Promise<Uint8Array> {
   const signerPerAddress = new Map<Pubkey, Signer>();
-  for (const signing of signers) {
-    signerPerAddress.set(signing.address, signing);
+  for (const signer of signers) {
+    signerPerAddress.set(signer.address, signer);
   }
   const compiledHeaderSize = 1 + 3 + 1;
   if (messageCompiled.length < compiledHeaderSize) {
@@ -131,12 +131,12 @@ export async function messageSign(
     const signerAddress = base58Encode(
       messageCompiled.slice(addressIndex, addressIndex + 32),
     );
-    const signing = signerPerAddress.get(signerAddress);
-    if (signing === undefined) {
-      throw new Error(`Missing signing for address: ${signerAddress}`);
+    const signer = signerPerAddress.get(signerAddress);
+    if (signer === undefined) {
+      throw new Error(`Message: Missing signer for address: ${signerAddress}`);
     }
     messageSigned.set(
-      base58Decode(await signing.sign(messageCompiled)),
+      base58Decode(await signer.sign(messageCompiled)),
       1 + index * 64,
     );
   }

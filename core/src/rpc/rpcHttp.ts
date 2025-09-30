@@ -17,6 +17,7 @@ export function rpcHttpFromUrl(
   url: string,
   defaultContext?: {
     commitment?: Commitment; // TODO - should this stay an object?
+    // TODO - how to handle commitment/minContext slot properly?
   },
   // TODO - support custom fetch implementations (for environments that don't have fetch natively)
 ): RpcHttp {
@@ -67,8 +68,25 @@ export function rpcHttpFromUrl(
   };
 }
 
+export function rpcHttpWithTimeout(
+  rpcHttp: RpcHttp,
+  timeoutMs: number,
+): RpcHttp {
+  return async function (method, params) {
+    return await Promise.race<JsonValue>([
+      rpcHttp(method, params),
+      new Promise((_, reject) =>
+        setTimeout(
+          () => reject(new Error(`RpcHttp: Timeout (${timeoutMs}ms)`)),
+          timeoutMs,
+        ),
+      ),
+    ]);
+  };
+}
+
 export function rpcHttpWithMaxConcurrentRequests(
-  rpc: RpcHttp,
+  rpcHttp: RpcHttp,
   maxConcurrentRequests: number,
 ): RpcHttp {
   if (maxConcurrentRequests <= 0) {
@@ -82,7 +100,7 @@ export function rpcHttpWithMaxConcurrentRequests(
     }
     ongoingRequests++;
     try {
-      return await rpc(method, params);
+      return await rpcHttp(method, params);
     } finally {
       ongoingRequests--;
       queue.shift()?.();
@@ -91,14 +109,14 @@ export function rpcHttpWithMaxConcurrentRequests(
 }
 
 export function rpcHttpWithRetryOnError(
-  rpc: RpcHttp,
+  rpcHttp: RpcHttp,
   nextRetryDelayMs: (retryCount: number, error: any) => number,
 ): RpcHttp {
   return async function (method, params) {
     let retryCount = 0;
     while (true) {
       try {
-        return await rpc(method, params);
+        return await rpcHttp(method, params);
       } catch (error) {
         const delay = nextRetryDelayMs(retryCount, error);
         await new Promise((resolve) => setTimeout(resolve, delay));

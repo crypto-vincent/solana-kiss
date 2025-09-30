@@ -3,49 +3,49 @@ import { Pubkey } from "../data/pubkey";
 import { Commitment, Signature } from "../types";
 import { RpcHttp } from "./rpcHttp";
 
-export async function rpcHttpFindAccountTransactionsIds(
+export async function rpcHttpFindAccountTransactionsKeys(
   rpcHttp: RpcHttp,
   accountAddress: Pubkey,
   maxLength: number,
   pagination?: {
-    startBeforeTransactionId?: Signature;
-    rewindUntilTransactionId?: Signature;
+    startBeforeTransactionKey?: Signature;
+    rewindUntilTransactionKey?: Signature;
   },
   context?: {
     commitment?: Commitment;
   },
 ): Promise<Array<Signature>> {
   const requestLimit = 1000;
-  const transactionsIds = new Array<Signature>();
-  const rewindUntilTransactionId = pagination?.rewindUntilTransactionId;
-  let startBeforeTransactionId = pagination?.startBeforeTransactionId;
+  const transactionsKeys = new Array<Signature>();
+  const rewindUntilTransactionKey = pagination?.rewindUntilTransactionKey;
+  let startBeforeTransactionKey = pagination?.startBeforeTransactionKey;
   while (true) {
     const result = resultJsonType.decode(
       await rpcHttp("getSignaturesForAddress", [
         accountAddress,
         {
           limit: requestLimit,
-          before: startBeforeTransactionId,
+          before: startBeforeTransactionKey,
           commitment: context?.commitment,
         },
       ]),
     );
     for (const item of result) {
-      const transactionId = item.signature;
-      transactionsIds.push(transactionId);
-      if (transactionsIds.length >= maxLength) {
-        return transactionsIds;
+      const transactionKey = item.signature;
+      transactionsKeys.push(transactionKey);
+      if (transactionsKeys.length >= maxLength) {
+        return transactionsKeys;
       }
       if (
-        rewindUntilTransactionId &&
-        transactionId == rewindUntilTransactionId
+        rewindUntilTransactionKey &&
+        transactionKey == rewindUntilTransactionKey
       ) {
-        return transactionsIds;
+        return transactionsKeys;
       }
-      startBeforeTransactionId = transactionId;
+      startBeforeTransactionKey = transactionKey;
     }
     if (result.length < requestLimit) {
-      return transactionsIds;
+      return transactionsKeys;
     }
   }
 }

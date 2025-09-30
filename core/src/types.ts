@@ -3,11 +3,10 @@ import { Lamports } from "./data/lamports";
 import { Message } from "./data/message";
 import { Pubkey } from "./data/pubkey";
 
-export type Commitment = "processed" | "confirmed" | "finalized";
+export type Commitment = "confirmed" | "finalized";
 
-export type Slot = number; // TODO - clarify those names and consider using bigint
-export type Hash = string; // TODO - should this be Uint8Array ?
-
+export type Slot = number;
+export type Hash = string;
 export type Signature = string;
 
 export type Input = {

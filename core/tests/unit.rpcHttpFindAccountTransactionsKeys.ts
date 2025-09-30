@@ -1,20 +1,20 @@
 import { it } from "@jest/globals";
-import { RpcHttp, rpcHttpFindAccountTransactionsIds } from "../src";
+import { RpcHttp, rpcHttpFindAccountTransactionsKeys } from "../src";
 
 it("run", async () => {
   const rpcHttp: RpcHttp = async () => {
     return require("./fixtures/rpcHttp.getSignaturesForAddress.json");
   };
-  const transactionsIds = await rpcHttpFindAccountTransactionsIds(
+  const transactionsKeys = await rpcHttpFindAccountTransactionsKeys(
     rpcHttp,
     "!",
     15,
   );
-  expect(transactionsIds.length).toStrictEqual(15);
-  expect(transactionsIds[0]).toStrictEqual(
+  expect(transactionsKeys.length).toStrictEqual(15);
+  expect(transactionsKeys[0]).toStrictEqual(
     "ap239tUavGE8jWq9NKxTYqbwznBPxc4TTfcVWi6S5pJwnvEGjEZQrXqZ4SX44aPrAptwd1rG4f7JJwHRRwXrqNL",
   );
-  expect(transactionsIds[5]).toStrictEqual(
+  expect(transactionsKeys[5]).toStrictEqual(
     "4xCgKR42j964F97d9KzFzUzucX9QMWxdrWuF3FYz5WhexjrzzXvSycxeNcz2TnUkGazWskG3rgjC5eaVfR8ncgC7",
   );
 });
