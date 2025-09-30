@@ -28,7 +28,7 @@ type IdlTypeFullPodFields = {
   value: IdlTypeFullFields;
 };
 
-export function idlTypeFullBytemuck(
+export function idlTypeFullTypedefBytemuck(
   typedef: IdlTypeFullTypedef,
 ): IdlTypeFullPod {
   return withContext(`Bytemuck: Typedef: ${typedef.name}`, () => {
@@ -79,7 +79,7 @@ function bytemuckFields(
 
 const visitorBytemuckC = {
   typedef: (self: IdlTypeFullTypedef): IdlTypeFullPod => {
-    return idlTypeFullBytemuck(self);
+    return idlTypeFullTypedefBytemuck(self);
   },
   option: (self: IdlTypeFullOption): IdlTypeFullPod => {
     const contentPod = bytemuckC(self.content);
@@ -181,7 +181,7 @@ const visitorBytemuckC = {
 
 const visitorBytemuckRust = {
   typedef: (self: IdlTypeFullTypedef): IdlTypeFullPod => {
-    return idlTypeFullBytemuck(self);
+    return idlTypeFullTypedefBytemuck(self);
   },
   option: (self: IdlTypeFullOption): IdlTypeFullPod => {
     const contentPod = bytemuckRust(self.content);
@@ -311,7 +311,7 @@ const visitorBytemuckFields = {
       };
     });
     if (rustReorder) {
-      internalVerifyUnstableOrder(prefixSize, fieldsInfosPods);
+      internalVerifyUnstableOrder(prefixSize, fieldsInfosPods.length);
     }
     const fieldsInfosPadded = internalFieldsInfoAligned(
       prefixSize,
@@ -348,7 +348,7 @@ const visitorBytemuckFields = {
       };
     });
     if (rustReorder) {
-      internalVerifyUnstableOrder(prefixSize, fieldsInfosPods);
+      internalVerifyUnstableOrder(prefixSize, fieldsInfosPods.length);
     }
     const fieldsInfosPadded = internalFieldsInfoAligned(
       prefixSize,
@@ -431,14 +431,11 @@ function internalAlignmentPaddingNeeded(
   return alignment - missalignment;
 }
 
-function internalVerifyUnstableOrder(
-  prefixSize: number,
-  fieldsInfo: Array<any>,
-) {
-  if (prefixSize == 0 && fieldsInfo.length <= 2) {
+function internalVerifyUnstableOrder(prefixSize: number, fieldsCount: number) {
+  if (prefixSize == 0 && fieldsCount <= 2) {
     return;
   }
-  if (fieldsInfo.length <= 1) {
+  if (fieldsCount <= 1) {
     return;
   }
   throw new Error(

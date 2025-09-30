@@ -280,50 +280,50 @@ function jsonExpectFloating(value: JsonValue): number {
 }
 
 const visitorDeserialize = {
-  u8: (data: DataView, dataOffset: number): any => {
+  u8: (data: DataView, dataOffset: number): JsonValue => {
     return data.getUint8(dataOffset);
   },
-  u16: (data: DataView, dataOffset: number): any => {
+  u16: (data: DataView, dataOffset: number): JsonValue => {
     return data.getUint16(dataOffset);
   },
-  u32: (data: DataView, dataOffset: number): any => {
+  u32: (data: DataView, dataOffset: number): JsonValue => {
     return data.getUint32(dataOffset);
   },
-  u64: (data: DataView, dataOffset: number): any => {
+  u64: (data: DataView, dataOffset: number): JsonValue => {
     return data.getBigUint64(dataOffset).toString();
   },
-  u128: (data: DataView, dataOffset: number): any => {
+  u128: (data: DataView, dataOffset: number): JsonValue => {
     const low = data.getBigUint64(dataOffset);
     const high = data.getBigUint64(dataOffset + 8);
     return (low | (high << 64n)).toString();
   },
-  i8: (data: DataView, dataOffset: number): any => {
+  i8: (data: DataView, dataOffset: number): JsonValue => {
     return data.getInt8(dataOffset);
   },
-  i16: (data: DataView, dataOffset: number): any => {
+  i16: (data: DataView, dataOffset: number): JsonValue => {
     return data.getInt16(dataOffset);
   },
-  i32: (data: DataView, dataOffset: number): any => {
+  i32: (data: DataView, dataOffset: number): JsonValue => {
     return data.getInt32(dataOffset);
   },
-  i64: (data: DataView, dataOffset: number): any => {
+  i64: (data: DataView, dataOffset: number): JsonValue => {
     return data.getBigInt64(dataOffset).toString();
   },
-  i128: (data: DataView, dataOffset: number): any => {
+  i128: (data: DataView, dataOffset: number): JsonValue => {
     const low = data.getBigUint64(dataOffset); // TODO - is this correct ?
     const high = data.getBigInt64(dataOffset + 8);
     return (low | (high << 64n)).toString();
   },
-  f32: (data: DataView, dataOffset: number): any => {
+  f32: (data: DataView, dataOffset: number): JsonValue => {
     return data.getFloat32(dataOffset);
   },
-  f64: (data: DataView, dataOffset: number): any => {
+  f64: (data: DataView, dataOffset: number): JsonValue => {
     return data.getFloat64(dataOffset);
   },
-  bool: (data: DataView, dataOffset: number): any => {
+  bool: (data: DataView, dataOffset: number): JsonValue => {
     return data.getUint8(dataOffset) != 0;
   },
-  pubkey: (data: DataView, dataOffset: number): any => {
+  pubkey: (data: DataView, dataOffset: number): JsonValue => {
     return pubkeyFromBytes(new Uint8Array(data.buffer, dataOffset, 32));
   },
 };

@@ -1,3 +1,4 @@
+import { JsonValue } from "../data/json";
 import { IdlTypePrefix } from "./idlTypePRefix";
 import { IdlTypePrimitive } from "./IdlTypePrimitive";
 
@@ -140,11 +141,11 @@ export class IdlTypeFlat {
 
 export type IdlTypeFlatFieldNamed = {
   name: string;
-  docs: any;
+  docs: JsonValue;
   content: IdlTypeFlat;
 };
 export type IdlTypeFlatFieldUnnamed = {
-  docs: any;
+  docs: JsonValue;
   content: IdlTypeFlat;
 };
 
@@ -212,7 +213,7 @@ export class IdlTypeFlatFields {
 
 export type IdlTypeFlatEnumVariant = {
   name: string;
-  docs: any;
+  docs: JsonValue;
   code: bigint;
   fields: IdlTypeFlatFields;
 };

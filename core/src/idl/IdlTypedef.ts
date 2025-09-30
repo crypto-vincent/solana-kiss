@@ -14,7 +14,7 @@ import { idlTypeFlatParse } from "./IdlTypeFlat.parse";
 
 export type IdlTypedef = {
   readonly name: string;
-  readonly docs: any;
+  readonly docs: JsonValue;
   readonly serialization: string | undefined;
   readonly repr: string | undefined;
   readonly generics: Array<string>;

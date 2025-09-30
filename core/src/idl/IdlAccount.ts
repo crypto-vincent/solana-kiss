@@ -16,8 +16,17 @@ import {
   jsonTypeValue,
   JsonValue,
 } from "../data/json";
+import { flattenBlobs } from "../utils";
 import { IdlTypedef } from "./idlTypedef";
-import { idlTypeFlatParse } from "./IdlTypeFlat.parse";
+import { IdlTypeFlat } from "./idlTypeFlat";
+import { idlTypeFlatHydrate } from "./IdlTypeFlat.hydrate";
+import {
+  idlTypeFlatParse,
+  idlTypeFlatParseIsPossible,
+} from "./IdlTypeFlat.parse";
+import { IdlTypeFull } from "./IdlTypeFull";
+import { idlTypeFullDeserialize } from "./IdlTypeFull.deserialize";
+import { idlTypeFullSerialize } from "./IdlTypeFull.serialize";
 
 export type IdlAccount = {
   readonly name: string;
@@ -25,19 +34,19 @@ export type IdlAccount = {
   readonly space: number | undefined;
   readonly blobs: ReadonlyArray<{ offset: number; value: Uint8Array }>;
   readonly discriminator: Uint8Array;
-  //readonly contentTypeFlat: ToolboxIdlTypeFlat;
-  //readonly contentTypeFull: ToolboxIdlTypeFull;
+  readonly contentTypeFlat: IdlTypeFlat;
+  readonly contentTypeFull: IdlTypeFull;
 };
 
 /*
-  public encode(accountState: any): Uint8Array {
+  public encode(accountState: JsonValue): Uint8Array {
     const data: Array<Uint8Array> = [];
     data.push(this.discriminator);
     serialize(this.contentTypeFull, accountState, data, true);
     return Uint8Array.concat(data);
   }
 
-  public decode(accountData: Uint8Array): any {
+  public decode(accountData: Uint8Array): JsonValue {
     this.check(accountData);
     const [, accountState] = deserialize(
       this.contentTypeFull,
@@ -94,8 +103,8 @@ export const idlAccountUnknown = {
   space: undefined,
   blobs: [],
   discriminator: new Uint8Array(),
-  //contentTypeFlat: ToolboxIdlTypeFlat.structNothing(),
-  //contentTypeFull: ToolboxIdlTypeFull.structNothing(),
+  contentTypeFlat: IdlTypeFlat.structNothing(),
+  contentTypeFull: IdlTypeFull.structNothing(),
 };
 
 export function idlAccountParse(
@@ -105,24 +114,47 @@ export function idlAccountParse(
 ): IdlAccount {
   const accountInfo = idlAccountJsonType.decode(accountJson);
 
-  /*
-  const contentTypeFlat = parseObjectIsPossible(idlAccount)
-    ? parse(idlAccount)
-    : parse(accountName);
-  const contentTypeFull = hydrate(contentTypeFlat, new Map(), idlTypedefs);
-  */
+  const contentTypeFlat = idlTypeFlatParseIsPossible(accountJson)
+    ? idlTypeFlatParse(accountJson)
+    : idlTypeFlatParse(accountName);
+  const contentTypeFull = idlTypeFlatHydrate(
+    contentTypeFlat,
+    new Map(),
+    idlTypedefs,
+  );
   return {
     name: accountName,
     docs: accountInfo.docs,
     space: accountInfo.space,
     blobs: accountInfo.blobs ?? [],
     discriminator: accountInfo.discriminator ?? new Uint8Array(), // TODO - default sha256
-    // ToolboxUtils.discriminator(`account:${accountName}`),
-    /*
+    // Utils.discriminator(`account:${accountName}`),
     contentTypeFlat,
     contentTypeFull,
-    */
   };
+}
+
+export function idlAccountEncode(
+  idlAccount: IdlAccount,
+  accountState: JsonValue,
+): Uint8Array {
+  const blobs = new Array<Uint8Array>();
+  blobs.push(idlAccount.discriminator);
+  idlTypeFullSerialize(idlAccount.contentTypeFull, accountState, blobs, true);
+  return flattenBlobs(blobs);
+}
+
+export function idlAccountDecode(
+  idlAccount: IdlAccount,
+  accountData: Uint8Array,
+): JsonValue {
+  // idlAccountCheck(idlAccount, accountData);
+  const [, accountState] = idlTypeFullDeserialize(
+    idlAccount.contentTypeFull,
+    new DataView(accountData.buffer),
+    idlAccount.discriminator.length,
+  );
+  return accountState;
 }
 
 // TODO - relocate this to another spot
@@ -154,8 +186,15 @@ export const idlBytesJsonType: JsonType<Uint8Array> = jsonTypeByKind(
       const type = object["type"];
       if (type !== undefined) {
         const typeFlat = idlTypeFlatParse(type);
-        // TODO - finish this
-        throw new Error("TMP - Idl: Cannot parse type/value bytes yet");
+        const typeFull = idlTypeFlatHydrate(typeFlat, new Map(), new Map());
+        const blobs = new Array<Uint8Array>();
+        idlTypeFullSerialize(
+          typeFull,
+          object["value"],
+          blobs,
+          object["prefixed"] === true,
+        );
+        return flattenBlobs(blobs);
       }
       throw new Error(`Idl: Unknown bytes object: ${jsonPreview(object)}`);
     },

@@ -16,7 +16,7 @@ import {
   IdlTypeFlatVec,
 } from "./idlTypeFlat";
 import { IdlTypeFull, IdlTypeFullFields } from "./IdlTypeFull";
-import { idlTypeFullBytemuck } from "./IdlTypeFull.bytemuck";
+import { idlTypeFullTypedefBytemuck } from "./IdlTypeFull.bytemuck";
 import { IdlTypePrimitive } from "./IdlTypePrimitive";
 
 export function idlTypeFlatHydrate(
@@ -94,7 +94,7 @@ const hydrateOrConstLiteralVisitor = {
       content: typeFull,
     };
     if (typedef.serialization === "bytemuck") {
-      return idlTypeFullBytemuck(typeTypedef).value;
+      return idlTypeFullTypedefBytemuck(typeTypedef).value;
     }
     return IdlTypeFull.typedef(typeTypedef);
   },
