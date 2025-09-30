@@ -1,21 +1,21 @@
 import { base58Decode } from "../data/base58";
-import { jsonTypeObject, jsonTypeString } from "../data/json";
 import { Pubkey } from "../data/pubkey";
 import { Signer } from "../data/signer";
-import { Commitment, Message, Signature } from "../types";
+import { Commitment, Message } from "../types";
 import { RpcHttp } from "./rpcHttp";
 
 export async function rpcHttpScheduleTransaction(
-  rpcHttp: RpcHttp,
-  message: Message,
-  signers: Array<Signer>,
-  context?: {
+  _rpcHttp: RpcHttp,
+  _message: Message,
+  _signers: Array<Signer>,
+  _context?: {
     commitment?: Commitment;
   },
-): Promise<Signature> {
+) {
+  /*
   const compiled = compileMessage(message, signers);
 
-  const result = sendResultJsonType.decode(
+  const result = resultJsonType.decode(
     await rpcHttp("sendTransaction", [
       [], // TODO - compile transaciton
       {
@@ -23,11 +23,14 @@ export async function rpcHttpScheduleTransaction(
       },
     ]),
   );
+  */
 }
 
-const sendResultJsonType = jsonTypeObject({
+/*
+const resultJsonType = jsonTypeObject({
   signature: jsonTypeString(),
 });
+*/
 
 // TODO - export and naming
 export async function compileMessage(message: Message, signers: Array<Signer>) {
@@ -130,9 +133,8 @@ export async function compileMessage(message: Message, signers: Array<Signer>) {
     signerPerAddress.set(signer.address, signer);
   }
 
-  const signed = new Uint8Array(
-    1 + 64 * numRequiredSignatures + unsigned.length,
-  );
+  const prefix = 1 + 64 * numRequiredSignatures;
+  const signed = new Uint8Array(prefix + unsigned.length);
   signed[0] = numRequiredSignatures;
 
   for (let index = 0; index < numRequiredSignatures; index++) {
@@ -142,9 +144,9 @@ export async function compileMessage(message: Message, signers: Array<Signer>) {
       throw new Error(`Missing signer for address: ${signerAddress}`);
     }
     const signature = await signer.sign(unsigned);
-    console.log("signature");
     signed.set(base58Decode(signature), 1 + index * 64);
   }
+  signed.set(unsigned, prefix);
 
   return signed;
 }
