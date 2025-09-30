@@ -96,10 +96,10 @@ function generateInstruction() {
   const currentIx: Instruction = {
     programAddress,
     inputs: [
-      { address: signerWritableAddress, signer: true, writable: true },
-      { address: signerReadonlyAddress, signer: true, writable: false },
-      { address: writableAddress, signer: false, writable: true },
-      { address: readonlyAddress, signer: false, writable: false },
+      { address: signerWritableAddress, signing: true, writable: true },
+      { address: signerReadonlyAddress, signing: true, writable: false },
+      { address: writableAddress, signing: false, writable: true },
+      { address: readonlyAddress, signing: false, writable: false },
     ],
     data,
   };

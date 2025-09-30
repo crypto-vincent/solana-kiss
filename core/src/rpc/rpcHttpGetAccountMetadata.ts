@@ -34,7 +34,7 @@ export async function rpcHttpGetAccountMetadata(
   if (result.value === null) {
     return {
       executable: false,
-      lamports: "0",
+      lamports: 0n,
       owner: pubkeyDefault(),
       space: 0,
     };

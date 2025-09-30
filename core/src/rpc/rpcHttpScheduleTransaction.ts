@@ -1,25 +1,19 @@
 import { base58Decode } from "../data/base58";
 import { jsonTypeObject, jsonTypeString } from "../data/json";
 import { Pubkey } from "../data/pubkey";
+import { Signer } from "../data/signer";
 import { Commitment, Message, Signature } from "../types";
 import { RpcHttp } from "./rpcHttp";
-
-import { generateKeyPairSync } from "crypto";
-
-const dudu = generateKeyPairSync("ed25519");
 
 export async function rpcHttpScheduleTransaction(
   rpcHttp: RpcHttp,
   message: Message,
-  signers: Array<KeyPair>,
+  signers: Array<Signer>,
   context?: {
     commitment?: Commitment;
   },
 ): Promise<Signature> {
-  const compiledUnsigned = compileMessage(message);
-
-  const dudu;
-  // TODO - sign transaction
+  const compiled = compileMessage(message, signers);
 
   const result = sendResultJsonType.decode(
     await rpcHttp("sendTransaction", [
@@ -35,7 +29,8 @@ const sendResultJsonType = jsonTypeObject({
   signature: jsonTypeString(),
 });
 
-function compileMessage(message: Message) {
+// TODO - export and naming
+export async function compileMessage(message: Message, signers: Array<Signer>) {
   const addressToMeta = new Map<
     Pubkey,
     { signer: boolean; writable: boolean; invoked: boolean }
@@ -59,7 +54,7 @@ function compileMessage(message: Message) {
         writable: false,
         invoked: false,
       };
-      inputMeta.signer = inputMeta.signer || input.signer;
+      inputMeta.signer = inputMeta.signer || input.signing;
       inputMeta.writable = inputMeta.writable || input.writable;
       addressToMeta.set(input.address, inputMeta);
     }
@@ -102,33 +97,54 @@ function compileMessage(message: Message) {
   length += 1; // LUTs count
 
   let index = 0;
-  const bytes = new Uint8Array(length);
-  bytes[index++] = 0x80;
-  bytes[index++] = numRequiredSignatures;
-  bytes[index++] = numReadonlySignedAccounts;
-  bytes[index++] = numReadonlyUnsignedAccounts;
-  bytes[index++] = staticAccountKeys.length;
+  const unsigned = new Uint8Array(length);
+  unsigned[index++] = 0x80;
+  unsigned[index++] = numRequiredSignatures;
+  unsigned[index++] = numReadonlySignedAccounts;
+  unsigned[index++] = numReadonlyUnsignedAccounts;
+  unsigned[index++] = staticAccountKeys.length;
   for (const staticAccountKey of staticAccountKeys) {
-    bytes.set(base58Decode(staticAccountKey), index);
+    unsigned.set(base58Decode(staticAccountKey), index);
     index += 32;
   }
-  bytes.set(base58Decode(message.recentBlockHash), index);
+  unsigned.set(base58Decode(message.recentBlockHash), index);
   index += 32;
 
-  bytes[index++] = message.instructions.length;
+  unsigned[index++] = message.instructions.length;
   for (const instruction of message.instructions) {
-    bytes[index++] = addressesToIndexes.get(instruction.programAddress)!;
-    bytes[index++] = instruction.inputs.length;
+    unsigned[index++] = addressesToIndexes.get(instruction.programAddress)!;
+    unsigned[index++] = instruction.inputs.length;
     for (const input of instruction.inputs) {
-      bytes[index++] = addressesToIndexes.get(input.address)!;
+      unsigned[index++] = addressesToIndexes.get(input.address)!;
     }
-    bytes[index++] = instruction.data.length;
-    bytes.set(instruction.data, index);
+    unsigned[index++] = instruction.data.length;
+    unsigned.set(instruction.data, index);
     index += instruction.data.length;
   }
 
-  bytes[index++] = 0; // LUTs count
+  unsigned[index++] = 0; // LUTs count
   // TODO - handle LUTs
 
-  return bytes;
+  const signerPerAddress = new Map<Pubkey, Signer>();
+  for (const signer of signers) {
+    signerPerAddress.set(signer.address, signer);
+  }
+
+  const signed = new Uint8Array(
+    1 + 64 * numRequiredSignatures + unsigned.length,
+  );
+  signed[0] = numRequiredSignatures;
+
+  for (let index = 0; index < numRequiredSignatures; index++) {
+    const signerAddress = staticAccountKeys[index]!;
+    const signer = signerPerAddress.get(signerAddress);
+    if (signer === undefined) {
+      throw new Error(`Missing signer for address: ${signerAddress}`);
+    }
+    const signature = await signer.sign(unsigned);
+    console.log("signature");
+    signed.set(base58Decode(signature), 1 + index * 64);
+  }
+
+  return signed;
 }

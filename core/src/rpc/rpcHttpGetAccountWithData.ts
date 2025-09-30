@@ -12,7 +12,7 @@ import { Pubkey, pubkeyDefault } from "../data/pubkey";
 import { Commitment, Lamports } from "../types";
 import { RpcHttp } from "./rpcHttp";
 
-export async function rpcHttpGetAccount(
+export async function rpcHttpGetAccountWithData(
   rpcHttp: RpcHttp,
   accountAddress: Pubkey,
   context?: {

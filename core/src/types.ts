@@ -16,7 +16,7 @@ export type Signature = string;
 export type Input = {
   address: Pubkey;
   writable: boolean;
-  signer: boolean;
+  signing: boolean;
 };
 
 export type Instruction = {

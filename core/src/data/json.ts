@@ -295,6 +295,7 @@ const jsonTypeStringToBigintCached = {
     return String(decoded);
   },
 };
+// TODO - should this be named "StringAsBigint" or else?
 export function jsonTypeStringToBigint(): JsonType<bigint> {
   return jsonTypeStringToBigintCached;
 }
@@ -451,6 +452,16 @@ export function jsonTypeObjectToMap<Value>(
   };
 }
 
+export function jsonTypeObjectToVariant<Variant>(
+  variantKey: string,
+  variantType: JsonType<Variant>,
+): JsonType<Variant> {
+  return jsonTypeMapped(jsonTypeObject({ [variantKey]: variantType }), {
+    map: (unmapped) => unmapped[variantKey]!,
+    unmap: (mapped) => ({ [variantKey]: mapped }),
+  });
+}
+
 export function jsonTypeArrayToMap<Key, Value>(
   keyType: JsonType<Key>,
   valueType: JsonType<Value>,
@@ -540,16 +551,6 @@ export function jsonTypeMapped<Mapped, Unmapped>(
       return unmappedType.encode(processors.unmap(decoded));
     },
   };
-}
-
-export function jsonTypeObjectToVariant<Variant>(
-  variantKey: string,
-  variantType: JsonType<Variant>,
-): JsonType<Variant> {
-  return jsonTypeMapped(jsonTypeObject({ [variantKey]: variantType }), {
-    map: (unmapped) => unmapped[variantKey]!,
-    unmap: (mapped) => ({ [variantKey]: mapped }),
-  });
 }
 
 export function jsonTypeWithDecodeFallbacks<Content>(

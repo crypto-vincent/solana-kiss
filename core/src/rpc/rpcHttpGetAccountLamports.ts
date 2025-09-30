@@ -14,9 +14,7 @@ export async function rpcHttpGetAccountLamports(
   const result = resultJsonType.decode(
     await rpcHttp("getBalance", [
       accountAddress,
-      {
-        commitment: context?.commitment,
-      },
+      { commitment: context?.commitment },
     ]),
   );
   return String(result.value);

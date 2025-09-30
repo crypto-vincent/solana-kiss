@@ -1,9 +1,9 @@
 import { it } from "@jest/globals";
 import {
   rpcHttpFromUrl,
-  rpcHttpGetAccount,
   rpcHttpGetAccountLamports,
   rpcHttpGetAccountMetadata,
+  rpcHttpGetAccountWithData,
   rpcHttpGetTransaction,
 } from "../src";
 
@@ -38,7 +38,7 @@ it("run", async () => {
   console.log("result4", result4);
   */
 
-  const dudu1 = await rpcHttpGetAccount(
+  const dudu1 = await rpcHttpGetAccountWithData(
     rpcHttp,
     "8fiDhdDH1Mp9V2teYAHdAnbpY9W5wDo8cpCV85eocynN",
   );

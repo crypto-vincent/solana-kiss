@@ -4,6 +4,7 @@ import {
   jsonTypeNullable,
   jsonTypeNumber,
   jsonTypeObject,
+  jsonTypeObjectToRecord,
   jsonTypeString,
   jsonTypeValue,
 } from "../data/json";
@@ -20,7 +21,7 @@ import { expectItemInArray } from "../utils";
 import { RpcHttp } from "./rpcHttp";
 
 // TODO - should this just be named "getExecution" ?
-export async function rpcHttpGetTransaction(
+export async function rpcHttpGetTransactionExecution(
   rpcHttp: RpcHttp,
   transactionId: Signature,
   context?: {
@@ -87,13 +88,13 @@ function decompileTransactionInputs(
   loadedWritableAddresses: Array<Pubkey>,
   loadedReadonlyAddresses: Array<Pubkey>,
 ) {
-  const signingAddresses = new Set<Pubkey>();
+  const signerAddresses = new Set<Pubkey>();
   for (
     let signerIndex = 0;
     signerIndex < headerNumRequiredSignatures;
     signerIndex++
   ) {
-    signingAddresses.add(expectItemInArray(staticAddresses, signerIndex));
+    signerAddresses.add(expectItemInArray(staticAddresses, signerIndex));
   }
   const readonlyAddresses = new Set<Pubkey>();
   for (
@@ -123,7 +124,7 @@ function decompileTransactionInputs(
   for (const inputAddress of inputsAddresses) {
     transactionInputs.push({
       address: inputAddress,
-      signing: signingAddresses.has(inputAddress),
+      signing: signerAddresses.has(inputAddress),
       writable: !readonlyAddresses.has(inputAddress),
     });
   }
@@ -243,7 +244,7 @@ const resultJsonType = jsonTypeNullable(
     blockTime: jsonTypeNumber(),
     meta: jsonTypeObject({
       computeUnitsConsumed: jsonTypeNumber(),
-      err: jsonTypeNullable(jsonTypeValue()),
+      err: jsonTypeNullable(jsonTypeObjectToRecord(jsonTypeValue())),
       fee: jsonTypeNumber(),
       innerInstructions: jsonTypeArray(
         jsonTypeObject({
