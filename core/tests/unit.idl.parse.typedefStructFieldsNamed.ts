@@ -5,7 +5,7 @@ import { IdlTypePrimitive } from "../src/idl/IdlTypePrimitive";
 
 it("run", () => {
   // Create IDL on the fly
-  const idlProgram = idlProgramParse({
+  const programIdl = idlProgramParse({
     types: {
       MyStruct: {
         fields: [
@@ -36,7 +36,7 @@ it("run", () => {
     },
   });
   // Assert that the content is correct
-  expect(idlProgram.typedefs.get("MyStruct")).toStrictEqual({
+  expect(programIdl.typedefs.get("MyStruct")).toStrictEqual({
     name: "MyStruct",
     docs: undefined,
     serialization: undefined,

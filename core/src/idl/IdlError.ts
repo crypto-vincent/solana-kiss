@@ -11,14 +11,14 @@ export type IdlError = {
   name: string;
   docs: any;
   code: number;
-  msg: string;
+  msg: string | undefined;
 };
 
 export const idlErrorUnknown: Immutable<IdlError> = {
   name: "Unknown",
   docs: undefined,
   code: 0,
-  msg: "",
+  msg: undefined,
 };
 
 export function idlErrorParse(
@@ -31,7 +31,7 @@ export function idlErrorParse(
       name: errorName,
       docs: undefined,
       code: errorNumber,
-      msg: "",
+      msg: undefined,
     };
   }
   const errorObject = jsonAsObject(errorValue);
@@ -40,7 +40,7 @@ export function idlErrorParse(
       name: errorName,
       docs: errorObject["docs"],
       code: jsonExpectNumber(errorObject["code"]),
-      msg: jsonAsString(errorObject["msg"]) ?? "",
+      msg: jsonAsString(errorObject["msg"]),
     };
   }
   throw new Error("Unparsable error (expected an object or number)");

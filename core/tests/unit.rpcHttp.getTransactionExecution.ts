@@ -7,5 +7,5 @@ it("run", async () => {
   };
   const dudu = await rpcHttpGetTransaction(rpcHttp, "!");
   // TODO - check the content of the execution
-  console.log("dudu", JSON.stringify(dudu, null, 2));
+  console.log("dudu", dudu);
 });

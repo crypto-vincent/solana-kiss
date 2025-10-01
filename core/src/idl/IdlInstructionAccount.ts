@@ -99,7 +99,7 @@ export function idlInstructionAccountParse(
     jsonAsBoolean(instructionAccountObject["optional"]) ??
     jsonAsBoolean(instructionAccountObject["isOptional"]) ??
     false;
-  let address = jsonAsString(instructionAccountObject["address"]);
+  const address = jsonAsString(instructionAccountObject["address"]);
   let pda: IdlInstructionAccountPda | undefined = undefined;
   const pdaObject = jsonAsObject(instructionAccountObject["pda"]);
   if (pdaObject != undefined) {
