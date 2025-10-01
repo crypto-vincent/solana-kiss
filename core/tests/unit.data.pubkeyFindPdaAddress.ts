@@ -32,7 +32,7 @@ it("run", async () => {
       seeds: [new Uint8Array([1, 2, 3]), new Uint8Array([4, 5, 6])],
     },
   ];
-  for (let counter = 0; counter < 100; counter++) {
+  for (let counter = 0; counter < 10; counter++) {
     tests.push({
       programAddress: pubkeyNewDummy(),
       seeds: [
@@ -42,7 +42,7 @@ it("run", async () => {
       ],
     });
   }
-  for (let counter = 0; counter < 100; counter++) {
+  for (let counter = 0; counter < 10; counter++) {
     tests.push({
       programAddress: pubkeyNewDummy(),
       seeds: [

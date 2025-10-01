@@ -77,7 +77,7 @@ it("run", () => {
     docs: undefined,
     space: undefined,
     blobs: [],
-    discriminator: [77],
+    discriminator: new Uint8Array([77]),
     contentTypeFlat: IdlTypeFlat.struct({
       fields: IdlTypeFlatFields.unnamed([
         {
