@@ -9,6 +9,21 @@ import {
 import { pubkeyFromBytes, pubkeyToBytes } from "../data/pubkey";
 
 export class IdlTypePrimitive {
+  public static readonly U8 = new IdlTypePrimitive("u8", 1, 1);
+  public static readonly U16 = new IdlTypePrimitive("u16", 2, 2);
+  public static readonly U32 = new IdlTypePrimitive("u32", 4, 4);
+  public static readonly U64 = new IdlTypePrimitive("u64", 8, 8);
+  public static readonly U128 = new IdlTypePrimitive("u128", 16, 16);
+  public static readonly I8 = new IdlTypePrimitive("i8", 1, 1);
+  public static readonly I16 = new IdlTypePrimitive("i16", 2, 2);
+  public static readonly I32 = new IdlTypePrimitive("i32", 4, 4);
+  public static readonly I64 = new IdlTypePrimitive("i64", 8, 8);
+  public static readonly I128 = new IdlTypePrimitive("i128", 16, 16);
+  public static readonly F32 = new IdlTypePrimitive("f32", 4, 4);
+  public static readonly F64 = new IdlTypePrimitive("f64", 8, 8);
+  public static readonly Bool = new IdlTypePrimitive("bool", 1, 1);
+  public static readonly Pubkey = new IdlTypePrimitive("pubkey", 32, 1);
+
   public static readonly primitivesByName: ReadonlyMap<
     string,
     IdlTypePrimitive
@@ -40,14 +55,10 @@ export class IdlTypePrimitive {
   public readonly size: number;
   public readonly alignment: number;
 
-  private constructor(value: {
-    name: string;
-    size: number;
-    alignment: number;
-  }) {
-    this.name = value.name;
-    this.size = value.size;
-    this.alignment = value.alignment;
+  private constructor(name: string, size: number, alignment: number) {
+    this.name = name;
+    this.size = size;
+    this.alignment = alignment;
   }
 
   public traverse<P1, P2, T>(
@@ -72,77 +83,6 @@ export class IdlTypePrimitive {
   ): T {
     return visitor[this.name as keyof typeof visitor](p1, p2);
   }
-
-  public static readonly U8 = new IdlTypePrimitive({
-    name: "u8",
-    size: 1,
-    alignment: 1,
-  });
-  public static readonly U16 = new IdlTypePrimitive({
-    name: "u16",
-    size: 2,
-    alignment: 2,
-  });
-  public static readonly U32 = new IdlTypePrimitive({
-    name: "u32",
-    size: 4,
-    alignment: 4,
-  });
-  public static readonly U64 = new IdlTypePrimitive({
-    name: "u64",
-    size: 8,
-    alignment: 8,
-  });
-  public static readonly U128 = new IdlTypePrimitive({
-    name: "u128",
-    size: 16,
-    alignment: 16,
-  });
-  public static readonly I8 = new IdlTypePrimitive({
-    name: "i8",
-    size: 1,
-    alignment: 1,
-  });
-  public static readonly I16 = new IdlTypePrimitive({
-    name: "i16",
-    size: 2,
-    alignment: 2,
-  });
-  public static readonly I32 = new IdlTypePrimitive({
-    name: "i32",
-    size: 4,
-    alignment: 4,
-  });
-  public static readonly I64 = new IdlTypePrimitive({
-    name: "i64",
-    size: 8,
-    alignment: 8,
-  });
-  public static readonly I128 = new IdlTypePrimitive({
-    name: "i128",
-    size: 16,
-    alignment: 16,
-  });
-  public static readonly F32 = new IdlTypePrimitive({
-    name: "f32",
-    size: 4,
-    alignment: 4,
-  });
-  public static readonly F64 = new IdlTypePrimitive({
-    name: "f64",
-    size: 8,
-    alignment: 8,
-  });
-  public static readonly Bool = new IdlTypePrimitive({
-    name: "bool",
-    size: 1,
-    alignment: 1,
-  });
-  public static readonly Pubkey = new IdlTypePrimitive({
-    name: "pubkey",
-    size: 32,
-    alignment: 1,
-  });
 }
 
 export function idlTypePrimitiveSerialize(
@@ -196,11 +136,22 @@ const visitorSerialize = {
   },
   u128: (blob: Uint8Array, value: JsonValue) => {
     const num = jsonExpectInteger(value);
-    const low = num & 0xffffffffffffffffn;
-    const high = (num >> 64n) & 0xffffffffffffffffn;
-    const data = new DataView(blob.buffer);
-    data.setBigUint64(0, low);
-    data.setBigUint64(8, high);
+    blob[0] = Number(num);
+    blob[1] = Number(num >> 8n);
+    blob[2] = Number(num >> 16n);
+    blob[3] = Number(num >> 24n);
+    blob[4] = Number(num >> 32n);
+    blob[5] = Number(num >> 40n);
+    blob[6] = Number(num >> 48n);
+    blob[7] = Number(num >> 56n);
+    blob[8] = Number(num >> 64n);
+    blob[9] = Number(num >> 72n);
+    blob[10] = Number(num >> 80n);
+    blob[11] = Number(num >> 88n);
+    blob[12] = Number(num >> 96n);
+    blob[13] = Number(num >> 104n);
+    blob[14] = Number(num >> 112n);
+    blob[15] = Number(num >> 120n);
   },
   i8: (blob: Uint8Array, value: JsonValue) => {
     const num = jsonExpectInteger(value);
@@ -210,35 +161,35 @@ const visitorSerialize = {
   i16: (blob: Uint8Array, value: JsonValue) => {
     const num = jsonExpectInteger(value);
     const data = new DataView(blob.buffer);
-    data.setInt16(0, Number(num));
+    data.setInt16(0, Number(num), true);
   },
   i32: (blob: Uint8Array, value: JsonValue) => {
     const num = jsonExpectInteger(value);
     const data = new DataView(blob.buffer);
-    data.setInt32(0, Number(num));
+    data.setInt32(0, Number(num), true);
   },
   i64: (blob: Uint8Array, value: JsonValue) => {
     const num = jsonExpectInteger(value);
     const data = new DataView(blob.buffer);
-    data.setBigInt64(0, num);
+    data.setBigInt64(0, num, true);
   },
   i128: (blob: Uint8Array, value: JsonValue) => {
     const num = jsonExpectInteger(value);
     const low = BigInt.asIntN(64, num);
     const high = BigInt.asIntN(64, num >> 64n);
     const data = new DataView(blob.buffer);
-    data.setBigInt64(0, low);
-    data.setBigInt64(8, high);
+    data.setBigInt64(0, low, true);
+    data.setBigInt64(8, high, true);
   },
   f32: (blob: Uint8Array, value: JsonValue) => {
     const num = jsonExpectFloating(value);
     const data = new DataView(blob.buffer);
-    data.setFloat32(0, num);
+    data.setFloat32(0, num, true);
   },
   f64: (blob: Uint8Array, value: JsonValue) => {
     const num = jsonExpectFloating(value);
     const data = new DataView(blob.buffer);
-    data.setFloat64(0, num);
+    data.setFloat64(0, num, true);
   },
   bool: (blob: Uint8Array, value: JsonValue) => {
     const data = new DataView(blob.buffer);
@@ -284,41 +235,41 @@ const visitorDeserialize = {
     return data.getUint8(dataOffset);
   },
   u16: (data: DataView, dataOffset: number): JsonValue => {
-    return data.getUint16(dataOffset);
+    return data.getUint16(dataOffset, true);
   },
   u32: (data: DataView, dataOffset: number): JsonValue => {
-    return data.getUint32(dataOffset);
+    return data.getUint32(dataOffset, true);
   },
   u64: (data: DataView, dataOffset: number): JsonValue => {
-    return data.getBigUint64(dataOffset).toString();
+    return data.getBigUint64(dataOffset, true).toString();
   },
   u128: (data: DataView, dataOffset: number): JsonValue => {
-    const low = data.getBigUint64(dataOffset);
-    const high = data.getBigUint64(dataOffset + 8);
+    const low = data.getBigUint64(dataOffset, true);
+    const high = data.getBigUint64(dataOffset + 8, true);
     return (low | (high << 64n)).toString();
   },
   i8: (data: DataView, dataOffset: number): JsonValue => {
     return data.getInt8(dataOffset);
   },
   i16: (data: DataView, dataOffset: number): JsonValue => {
-    return data.getInt16(dataOffset);
+    return data.getInt16(dataOffset, true);
   },
   i32: (data: DataView, dataOffset: number): JsonValue => {
-    return data.getInt32(dataOffset);
+    return data.getInt32(dataOffset, true);
   },
   i64: (data: DataView, dataOffset: number): JsonValue => {
-    return data.getBigInt64(dataOffset).toString();
+    return data.getBigInt64(dataOffset, true).toString();
   },
   i128: (data: DataView, dataOffset: number): JsonValue => {
-    const low = data.getBigUint64(dataOffset); // TODO - is this correct ?
-    const high = data.getBigInt64(dataOffset + 8);
+    const low = data.getBigUint64(dataOffset, true);
+    const high = data.getBigInt64(dataOffset + 8, true);
     return (low | (high << 64n)).toString();
   },
   f32: (data: DataView, dataOffset: number): JsonValue => {
-    return data.getFloat32(dataOffset);
+    return data.getFloat32(dataOffset, true);
   },
   f64: (data: DataView, dataOffset: number): JsonValue => {
-    return data.getFloat64(dataOffset);
+    return data.getFloat64(dataOffset, true);
   },
   bool: (data: DataView, dataOffset: number): JsonValue => {
     return data.getUint8(dataOffset) != 0;

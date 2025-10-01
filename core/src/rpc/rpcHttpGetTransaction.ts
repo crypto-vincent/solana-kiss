@@ -22,14 +22,14 @@ import { RpcHttp } from "./rpcHttp";
 
 export async function rpcHttpGetTransaction(
   rpcHttp: RpcHttp,
-  transactionId: Signature,
+  transactionKey: Signature,
   context?: {
     commitment?: Commitment;
   },
 ): Promise<Transaction | undefined> {
   const result = resultJsonType.decode(
     await rpcHttp("getTransaction", [
-      transactionId,
+      transactionKey,
       {
         commitment: context?.commitment,
         encoding: "json",

@@ -38,7 +38,7 @@ export async function rpcHttpFindAccountTransactionsKeys(
       }
       if (
         rewindUntilTransactionKey &&
-        transactionKey == rewindUntilTransactionKey
+        transactionKey === rewindUntilTransactionKey
       ) {
         return transactionsKeys;
       }

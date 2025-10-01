@@ -1,4 +1,4 @@
-import { IdlTypePrefix } from "./idlTypePRefix";
+import { IdlTypePrefix } from "./IdlTypePrefix";
 import { IdlTypePrimitive } from "./IdlTypePrimitive";
 
 export type IdlTypeFullTypedef = {

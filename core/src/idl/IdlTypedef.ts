@@ -9,8 +9,8 @@ import {
   jsonTypeWithDefault,
   JsonValue,
 } from "../data/json";
-import { IdlTypeFlat } from "./idlTypeFlat";
-import { idlTypeFlatParse } from "./IdlTypeFlat.parse";
+import { IdlTypeFlat } from "./IdlTypeFlat";
+import { idlTypeFlatParseValue } from "./IdlTypeFlat.parse";
 
 export type IdlTypedef = {
   readonly name: string;
@@ -23,16 +23,16 @@ export type IdlTypedef = {
 
 export function idlTypedefParse(
   typedefName: string,
-  typedefJson: JsonValue,
+  typedefValue: JsonValue,
 ): IdlTypedef {
-  const typedefInfo = typedefJsonType.decode(typedefJson);
+  const typedefInfo = typedefJsonType.decode(typedefValue);
   return {
     name: typedefName,
     docs: typedefInfo.docs,
     serialization: typedefInfo.serialization,
     repr: typedefInfo.repr?.kind,
     generics: typedefInfo.generics.map((generic) => generic.name),
-    typeFlat: idlTypeFlatParse(typedefJson),
+    typeFlat: idlTypeFlatParseValue(typedefValue),
   };
 }
 

@@ -229,9 +229,15 @@ export function jsonTypeConst<Const extends number | string | boolean>(
 
 const jsonTypeValueCached = {
   decode(encoded: JsonValue): JsonValue {
+    if (encoded === undefined) {
+      return undefined;
+    }
     return JSON.parse(JSON.stringify(encoded));
   },
   encode(decoded: JsonValue): JsonValue {
+    if (decoded === undefined) {
+      return undefined;
+    }
     return JSON.parse(JSON.stringify(decoded));
   },
 };
@@ -609,54 +615,6 @@ export function jsonTypeWithDefault<Content>(
   };
 }
 
-export function jsonTypeByKind<Content>(
-  decoders: {
-    undefined?: () => Content;
-    null?: () => Content;
-    boolean?: (boolean: boolean) => Content;
-    number?: (number: number) => Content;
-    string?: (string: string) => Content;
-    array?: (array: JsonArray) => Content;
-    object?: (object: JsonObject) => Content;
-  },
-  encoder: (content: Immutable<Content>) => JsonValue,
-) {
-  return {
-    decode(encoded: JsonValue): Content {
-      if (encoded === undefined && decoders.undefined) {
-        return decoders.undefined();
-      }
-      if (encoded === null && decoders.null) {
-        return decoders.null();
-      }
-      const boolean = jsonAsBoolean(encoded);
-      if (boolean !== undefined && decoders.boolean) {
-        return decoders.boolean(boolean);
-      }
-      const number = jsonAsNumber(encoded);
-      if (number !== undefined && decoders.number) {
-        return decoders.number(number);
-      }
-      const string = jsonAsString(encoded);
-      if (string !== undefined && decoders.string) {
-        return decoders.string(string);
-      }
-      const array = jsonAsArray(encoded);
-      if (array !== undefined && decoders.array) {
-        return decoders.array(array);
-      }
-      const object = jsonAsObject(encoded);
-      if (object !== undefined && decoders.object) {
-        return decoders.object(object);
-      }
-      throw new Error(
-        `JSON: Expected ${Object.keys(decoders).join("/")} (found: ${jsonPreview(encoded)})`,
-      );
-    },
-    encode: encoder,
-  };
-}
-
 export function jsonTypeWithDecodeFallbacks<Content>(
   currentType: JsonType<Content>,
   decodeFallbacks: Array<(value: JsonValue) => Content>,
@@ -682,5 +640,47 @@ export function jsonTypeWithDecodeFallbacks<Content>(
       );
     },
     encode: currentType.encode,
+  };
+}
+
+export function jsonDecoderByType<Content>(decoders: {
+  undefined?: () => Content;
+  null?: () => Content;
+  boolean?: (boolean: boolean) => Content;
+  number?: (number: number) => Content;
+  string?: (string: string) => Content;
+  array?: (array: JsonArray) => Content;
+  object?: (object: JsonObject) => Content;
+}) {
+  return (encoded: JsonValue) => {
+    if (encoded === undefined && decoders.undefined) {
+      return decoders.undefined();
+    }
+    if (encoded === null && decoders.null) {
+      return decoders.null();
+    }
+    const boolean = jsonAsBoolean(encoded);
+    if (boolean !== undefined && decoders.boolean) {
+      return decoders.boolean(boolean);
+    }
+    const number = jsonAsNumber(encoded);
+    if (number !== undefined && decoders.number) {
+      return decoders.number(number);
+    }
+    const string = jsonAsString(encoded);
+    if (string !== undefined && decoders.string) {
+      return decoders.string(string);
+    }
+    const array = jsonAsArray(encoded);
+    if (array !== undefined && decoders.array) {
+      return decoders.array(array);
+    }
+    const object = jsonAsObject(encoded);
+    if (object !== undefined && decoders.object) {
+      return decoders.object(object);
+    }
+    throw new Error(
+      `JSON: Expected ${Object.keys(decoders).join("/")} (found: ${jsonPreview(encoded)})`,
+    );
   };
 }

@@ -23,11 +23,12 @@ import {
   IdlTypeFullTypedef,
   IdlTypeFullVec,
 } from "./IdlTypeFull";
-import { idlTypePrefixSerialize } from "./idlTypePRefix";
+import { idlTypePrefixSerialize } from "./IdlTypePrefix";
 import {
   IdlTypePrimitive,
   idlTypePrimitiveSerialize,
 } from "./IdlTypePrimitive";
+import { idlUtilsBytesJsonType } from "./IdlUtils";
 
 export function idlTypeFullSerialize(
   typeFull: IdlTypeFull,
@@ -35,7 +36,7 @@ export function idlTypeFullSerialize(
   blobs: Array<Uint8Array>,
   prefixed: boolean,
 ) {
-  typeFull.traverse(serializeVisitor, value, blobs, prefixed);
+  typeFull.traverse(visitorSerialize, value, blobs, prefixed);
 }
 
 export function idlTypeFullFieldsSerialize(
@@ -44,10 +45,10 @@ export function idlTypeFullFieldsSerialize(
   blobs: Array<Uint8Array>,
   prefixed: boolean,
 ) {
-  typeFullFields.traverse(serializeFieldsVisitor, value, blobs, prefixed);
+  typeFullFields.traverse(visitorFieldsSerialize, value, blobs, prefixed);
 }
 
-const serializeVisitor = {
+const visitorSerialize = {
   typedef: (
     self: IdlTypeFullTypedef,
     value: JsonValue,
@@ -78,7 +79,7 @@ const serializeVisitor = {
     prefixed: boolean,
   ) => {
     if (self.items.isPrimitive(IdlTypePrimitive.U8)) {
-      const blob = Utils.expectBytes(value); // TODO - bytes parser
+      const blob = idlUtilsBytesJsonType.decode(value);
       if (prefixed) {
         idlTypePrefixSerialize(self.prefix, BigInt(blob.length), blobs);
       }
@@ -100,7 +101,7 @@ const serializeVisitor = {
     prefixed: boolean,
   ) => {
     if (self.items.isPrimitive(IdlTypePrimitive.U8)) {
-      const blob = Utils.expectBytes(value); // TODO - bytes parser
+      const blob = idlUtilsBytesJsonType.decode(value);
       if (blob.length != self.length) {
         throw new Error(
           `Expected an array of size: ${self.length}, found: ${blob.length}`,
@@ -146,7 +147,7 @@ const serializeVisitor = {
     blobs: Array<Uint8Array>,
     prefixed: boolean,
   ) => {
-    if (self.variants.length == 0) {
+    if (self.variants.length === 0) {
       if (value !== null) {
         throw new Error("Expected value to be null for empty enum");
       }
@@ -165,7 +166,7 @@ const serializeVisitor = {
     if (number !== undefined) {
       const code = BigInt(number);
       for (const variant of self.variants) {
-        if (variant.code == code) {
+        if (variant.code === code) {
           return serializeEnumVariant(variant, undefined);
         }
       }
@@ -174,7 +175,7 @@ const serializeVisitor = {
     const string = jsonAsString(value);
     if (string !== undefined) {
       for (const variant of self.variants) {
-        if (variant.name == value) {
+        if (variant.name === string) {
           return serializeEnumVariant(variant, undefined);
         }
       }
@@ -225,7 +226,7 @@ const serializeVisitor = {
   },
 };
 
-const serializeFieldsVisitor = {
+const visitorFieldsSerialize = {
   nothing: (
     _self: null,
     _value: JsonValue,

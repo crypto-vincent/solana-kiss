@@ -13,7 +13,7 @@ import {
   IdlTypeFullTypedef,
   IdlTypeFullVec,
 } from "./IdlTypeFull";
-import { IdlTypePrefix } from "./idlTypePRefix";
+import { IdlTypePrefix } from "./IdlTypePrefix";
 import { IdlTypePrimitive } from "./IdlTypePrimitive";
 
 type IdlTypeFullPod = {
@@ -28,6 +28,7 @@ type IdlTypeFullPodFields = {
   value: IdlTypeFullFields;
 };
 
+// TODO - figure out how to handle discriminator offset
 export function idlTypeFullTypedefBytemuck(
   typedef: IdlTypeFullTypedef,
 ): IdlTypeFullPod {
@@ -129,7 +130,7 @@ const visitorBytemuckC = {
     };
   },
   enum: (self: IdlTypeFullEnum): IdlTypeFullPod => {
-    if (self.variants.length == 0) {
+    if (self.variants.length === 0) {
       return {
         alignment: 1,
         size: 0,
@@ -231,7 +232,7 @@ const visitorBytemuckRust = {
     };
   },
   enum: (self: IdlTypeFullEnum): IdlTypeFullPod => {
-    if (self.variants.length == 0) {
+    if (self.variants.length === 0) {
       return {
         alignment: 1,
         size: 0,
@@ -395,11 +396,11 @@ function internalFieldsInfoAligned<T>(
     const paddingBefore = internalAlignmentPaddingNeeded(size, fieldAlignment);
     size += paddingBefore + fieldSize;
     let paddingAfter = 0;
-    if (fieldIndex == lastFieldIndex) {
+    if (fieldIndex === lastFieldIndex) {
       paddingAfter = internalAlignmentPaddingNeeded(size, alignment);
     }
     size += paddingAfter;
-    if (paddingBefore == 0 && paddingAfter == 0) {
+    if (paddingBefore === 0 && paddingAfter === 0) {
       fieldsInfoPadded.push({ meta: fieldMeta, type: fieldType });
     } else {
       fieldsInfoPadded.push({
@@ -425,14 +426,14 @@ function internalAlignmentPaddingNeeded(
   alignment: number,
 ): number {
   const missalignment = offset % alignment;
-  if (missalignment == 0) {
+  if (missalignment === 0) {
     return 0;
   }
   return alignment - missalignment;
 }
 
 function internalVerifyUnstableOrder(prefixSize: number, fieldsCount: number) {
-  if (prefixSize == 0 && fieldsCount <= 2) {
+  if (prefixSize === 0 && fieldsCount <= 2) {
     return;
   }
   if (fieldsCount <= 1) {

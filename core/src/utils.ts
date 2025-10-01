@@ -18,17 +18,6 @@ export function expectItemInArray<T>(array: Array<T>, index: number): T {
   return array[index]!;
 }
 
-export function flattenBlobs(blobs: Array<Uint8Array>): Uint8Array {
-  const totalLength = blobs.reduce((sum, arr) => sum + arr.length, 0);
-  const bytes = new Uint8Array(totalLength);
-  let offset = 0;
-  for (const arr of blobs) {
-    bytes.set(arr, offset);
-    offset += arr.length;
-  }
-  return bytes;
-}
-
 export type Immutable<T> = T extends
   | string
   | number

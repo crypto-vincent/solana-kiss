@@ -1,32 +1,29 @@
-import { base16Decode } from "../data/base16";
-import { base58Decode } from "../data/base58";
-import { base64Decode } from "../data/base64";
 import {
-  JsonArray,
-  jsonExpectNumber,
-  jsonExpectString,
-  JsonObject,
-  jsonPreview,
-  JsonType,
+  jsonExpectObject,
   jsonTypeArray,
-  jsonTypeByKind,
   jsonTypeNumber,
   jsonTypeObject,
   jsonTypeOptional,
   jsonTypeValue,
   JsonValue,
 } from "../data/json";
-import { flattenBlobs } from "../utils";
-import { IdlTypedef } from "./idlTypedef";
-import { IdlTypeFlat } from "./idlTypeFlat";
+import { IdlTypedef } from "./IdlTypedef";
+import { IdlTypeFlat } from "./IdlTypeFlat";
 import { idlTypeFlatHydrate } from "./IdlTypeFlat.hydrate";
 import {
-  idlTypeFlatParse,
-  idlTypeFlatParseIsPossible,
+  idlTypeFlatParseObject,
+  idlTypeFlatParseObjectIsPossible,
+  idlTypeFlatParseValue,
 } from "./IdlTypeFlat.parse";
 import { IdlTypeFull } from "./IdlTypeFull";
 import { idlTypeFullDeserialize } from "./IdlTypeFull.deserialize";
 import { idlTypeFullSerialize } from "./IdlTypeFull.serialize";
+import {
+  idlUtilsBytesJsonType,
+  idlUtilsDiscriminator,
+  idlUtilsExpectBlobAt,
+  idlUtilsFlattenBlobs,
+} from "./IdlUtils";
 
 export type IdlAccount = {
   readonly name: string;
@@ -38,66 +35,7 @@ export type IdlAccount = {
   readonly contentTypeFull: IdlTypeFull;
 };
 
-/*
-  public encode(accountState: JsonValue): Uint8Array {
-    const data: Array<Uint8Array> = [];
-    data.push(this.discriminator);
-    serialize(this.contentTypeFull, accountState, data, true);
-    return Uint8Array.concat(data);
-  }
-
-  public decode(accountData: Uint8Array): JsonValue {
-    this.check(accountData);
-    const [, accountState] = deserialize(
-      this.contentTypeFull,
-      accountData,
-      this.discriminator.length,
-    );
-    return accountState;
-  }
-
-  public check(accountData: Uint8Array) {
-    if (this.space !== undefined) {
-      if (accountData.length !== this.space) {
-        throw new Error(
-          `Invalid account data length ${accountData.length} for account space ${this.space}`,
-        );
-      }
-    }
-    for (const blob of this.blobs) {
-      if (
-        blob.offset < 0 ||
-        blob.offset + blob.value.length > accountData.length
-      ) {
-        throw new Error(
-          `Invalid blob offset ${blob.offset} with length ${blob.value.length} in account data of length ${accountData.length}`,
-        );
-      }
-      for (let index = 0; index < blob.value.length; index++) {
-        if (accountData[blob.offset + index] !== blob.value[index]) {
-          throw new Error(
-            `Invalid blob value at offset ${blob.offset + index} in account data`,
-          );
-        }
-      }
-    }
-    if (accountData.length < this.discriminator.length) {
-      throw new Error(
-        `Invalid account data length ${accountData.length} for discriminator length ${this.discriminator.length}`,
-      );
-    }
-    for (let index = 0; index < this.discriminator.length; index++) {
-      if (accountData[index] !== this.discriminator[index]) {
-        throw new Error(
-          `Invalid discriminator at index ${index} in account data`,
-        );
-      }
-    }
-  }
-}
-*/
-
-export const idlAccountUnknown = {
+export const idlAccountUnknown: IdlAccount = {
   name: "Unknown",
   docs: undefined,
   space: undefined,
@@ -109,14 +47,14 @@ export const idlAccountUnknown = {
 
 export function idlAccountParse(
   accountName: string,
-  accountJson: JsonValue,
+  accountValue: JsonValue,
   idlTypedefs: Map<string, IdlTypedef>,
 ): IdlAccount {
-  const accountInfo = idlAccountJsonType.decode(accountJson);
-
-  const contentTypeFlat = idlTypeFlatParseIsPossible(accountJson)
-    ? idlTypeFlatParse(accountJson)
-    : idlTypeFlatParse(accountName);
+  const accountInfo = infoJsonType.decode(accountValue);
+  const accountObject = jsonExpectObject(accountValue);
+  const contentTypeFlat = idlTypeFlatParseObjectIsPossible(accountObject)
+    ? idlTypeFlatParseObject(accountObject)
+    : idlTypeFlatParseValue(accountName);
   const contentTypeFull = idlTypeFlatHydrate(
     contentTypeFlat,
     new Map(),
@@ -127,8 +65,9 @@ export function idlAccountParse(
     docs: accountInfo.docs,
     space: accountInfo.space,
     blobs: accountInfo.blobs ?? [],
-    discriminator: accountInfo.discriminator ?? new Uint8Array(), // TODO - default sha256
-    // Utils.discriminator(`account:${accountName}`),
+    discriminator:
+      accountInfo.discriminator ??
+      idlUtilsDiscriminator(`account:${accountName}`),
     contentTypeFlat,
     contentTypeFull,
   };
@@ -141,14 +80,14 @@ export function idlAccountEncode(
   const blobs = new Array<Uint8Array>();
   blobs.push(idlAccount.discriminator);
   idlTypeFullSerialize(idlAccount.contentTypeFull, accountState, blobs, true);
-  return flattenBlobs(blobs);
+  return idlUtilsFlattenBlobs(blobs);
 }
 
 export function idlAccountDecode(
   idlAccount: IdlAccount,
   accountData: Uint8Array,
 ): JsonValue {
-  // idlAccountCheck(idlAccount, accountData);
+  idlAccountExpect(idlAccount, accountData);
   const [, accountState] = idlTypeFullDeserialize(
     idlAccount.contentTypeFull,
     new DataView(accountData.buffer),
@@ -157,61 +96,33 @@ export function idlAccountDecode(
   return accountState;
 }
 
-// TODO - relocate this to another spot
-export const idlBytesJsonType: JsonType<Uint8Array> = jsonTypeByKind(
-  {
-    string: (string: string) => {
-      return new TextEncoder().encode(string);
-    },
-    array: (array: JsonArray) => {
-      return new Uint8Array(array.map((item) => jsonExpectNumber(item)));
-    },
-    object: (object: JsonObject) => {
-      const base16 = object["base16"];
-      if (base16 !== undefined) {
-        return base16Decode(jsonExpectString(base16));
-      }
-      const base58 = object["base58"];
-      if (base58 !== undefined) {
-        return base58Decode(jsonExpectString(base58));
-      }
-      const base64 = object["base64"];
-      if (base64 !== undefined) {
-        return base64Decode(jsonExpectString(base64));
-      }
-      const utf8 = object["utf8"];
-      if (utf8 !== undefined) {
-        return new TextEncoder().encode(jsonExpectString(utf8));
-      }
-      const type = object["type"];
-      if (type !== undefined) {
-        const typeFlat = idlTypeFlatParse(type);
-        const typeFull = idlTypeFlatHydrate(typeFlat, new Map(), new Map());
-        const blobs = new Array<Uint8Array>();
-        idlTypeFullSerialize(
-          typeFull,
-          object["value"],
-          blobs,
-          object["prefixed"] === true,
-        );
-        return flattenBlobs(blobs);
-      }
-      throw new Error(`Idl: Unknown bytes object: ${jsonPreview(object)}`);
-    },
-  },
-  (bytes: Uint8Array) => Array.from(bytes),
-);
+export function idlAccountExpect(
+  idlAccount: IdlAccount,
+  accountData: Uint8Array,
+): void {
+  if (idlAccount.space !== undefined) {
+    if (idlAccount.space !== accountData.length) {
+      throw new Error(
+        `Idl: Expected account space ${idlAccount.space} (found: ${accountData.length})`,
+      );
+    }
+  }
+  for (const blob of idlAccount.blobs) {
+    idlUtilsExpectBlobAt(blob.offset, blob.value, accountData);
+  }
+  idlUtilsExpectBlobAt(0, idlAccount.discriminator, accountData);
+}
 
-const idlAccountJsonType = jsonTypeObject({
+const infoJsonType = jsonTypeObject({
   docs: jsonTypeValue(),
   space: jsonTypeOptional(jsonTypeNumber()),
   blobs: jsonTypeOptional(
     jsonTypeArray(
       jsonTypeObject({
         offset: jsonTypeNumber(),
-        value: idlBytesJsonType,
+        value: idlUtilsBytesJsonType,
       }),
     ),
   ),
-  discriminator: jsonTypeOptional(idlBytesJsonType),
+  discriminator: jsonTypeOptional(idlUtilsBytesJsonType),
 });

@@ -1,4 +1,10 @@
 export class IdlTypePrefix {
+  public static readonly U8 = new IdlTypePrefix("u8", 1);
+  public static readonly U16 = new IdlTypePrefix("u16", 2);
+  public static readonly U32 = new IdlTypePrefix("u32", 4);
+  public static readonly U64 = new IdlTypePrefix("u64", 8);
+  public static readonly U128 = new IdlTypePrefix("u128", 16);
+
   public static readonly prefixesBySize: ReadonlyMap<number, IdlTypePrefix> =
     (() => {
       const prefixes = [
@@ -36,12 +42,6 @@ export class IdlTypePrefix {
   ): T {
     return visitor[this.name as keyof typeof visitor](p1, p2);
   }
-
-  public static readonly U8 = new IdlTypePrefix("u8", 1);
-  public static readonly U16 = new IdlTypePrefix("u16", 2);
-  public static readonly U32 = new IdlTypePrefix("u32", 4);
-  public static readonly U64 = new IdlTypePrefix("u64", 8);
-  public static readonly U128 = new IdlTypePrefix("u128", 16);
 }
 
 export function idlTypePrefixSerialize(
@@ -87,11 +87,22 @@ const visitorSerialize = {
     blob[7] = Number(value >> 56n);
   },
   u128: (blob: Uint8Array, value: bigint) => {
-    const low = value & 0xffffffffffffffffn;
-    const high = (value >> 64n) & 0xffffffffffffffffn;
-    const data = new DataView(blob.buffer);
-    data.setBigUint64(0, low);
-    data.setBigUint64(8, high);
+    blob[0] = Number(value);
+    blob[1] = Number(value >> 8n);
+    blob[2] = Number(value >> 16n);
+    blob[3] = Number(value >> 24n);
+    blob[4] = Number(value >> 32n);
+    blob[5] = Number(value >> 40n);
+    blob[6] = Number(value >> 48n);
+    blob[7] = Number(value >> 56n);
+    blob[8] = Number(value >> 64n);
+    blob[9] = Number(value >> 72n);
+    blob[10] = Number(value >> 80n);
+    blob[11] = Number(value >> 88n);
+    blob[12] = Number(value >> 96n);
+    blob[13] = Number(value >> 104n);
+    blob[14] = Number(value >> 112n);
+    blob[15] = Number(value >> 120n);
   },
 };
 
@@ -100,17 +111,17 @@ const visitorDeserialize = {
     return BigInt(data.getUint8(dataOffset));
   },
   u16: (data: DataView, dataOffset: number): bigint => {
-    return BigInt(data.getUint16(dataOffset));
+    return BigInt(data.getUint16(dataOffset, true));
   },
   u32: (data: DataView, dataOffset: number): bigint => {
-    return BigInt(data.getUint32(dataOffset));
+    return BigInt(data.getUint32(dataOffset, true));
   },
   u64: (data: DataView, dataOffset: number): bigint => {
-    return data.getBigUint64(dataOffset);
+    return data.getBigUint64(dataOffset, true);
   },
   u128: (data: DataView, dataOffset: number): bigint => {
-    const low = data.getBigUint64(dataOffset);
-    const high = data.getBigUint64(dataOffset + 8);
+    const low = data.getBigUint64(dataOffset, true);
+    const high = data.getBigUint64(dataOffset + 8, true);
     return low | (high << 64n);
   },
 };

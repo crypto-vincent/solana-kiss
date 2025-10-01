@@ -1,4 +1,4 @@
-import { IdlTypedef } from "./idlTypedef";
+import { IdlTypedef } from "./IdlTypedef";
 import {
   IdlTypeFlat,
   IdlTypeFlatArray,
@@ -14,7 +14,7 @@ import {
   IdlTypeFlatString,
   IdlTypeFlatStruct,
   IdlTypeFlatVec,
-} from "./idlTypeFlat";
+} from "./IdlTypeFlat";
 import { IdlTypeFull, IdlTypeFullFields } from "./IdlTypeFull";
 import { idlTypeFullTypedefBytemuck } from "./IdlTypeFull.bytemuck";
 import { IdlTypePrimitive } from "./IdlTypePrimitive";
@@ -41,7 +41,7 @@ export function idlTypeFlatHydrateOrConstLiteral(
   typedefs: Map<string, IdlTypedef>,
 ): IdlTypeFull | number {
   return typeFlat.traverse(
-    hydrateOrConstLiteralVisitor,
+    visitorHydrateOrConstLiteral,
     genericsBySymbol,
     typedefs,
   );
@@ -53,13 +53,13 @@ export function idlTypeFlatHydrateFields(
   typedefs: Map<string, IdlTypedef>,
 ): IdlTypeFullFields {
   return typeFlatFields.traverse(
-    hydrateFieldsVisitor,
+    visitorHydrateFields,
     genericsBySymbol,
     typedefs,
   );
 }
 
-const hydrateOrConstLiteralVisitor = {
+const visitorHydrateOrConstLiteral = {
   defined: (
     self: IdlTypeFlatDefined,
     genericsBySymbol: Map<string, IdlTypeFull | number>,
@@ -213,7 +213,7 @@ const hydrateOrConstLiteralVisitor = {
   },
 };
 
-const hydrateFieldsVisitor = {
+const visitorHydrateFields = {
   nothing: (
     _self: null,
     _genericsBySymbol: Map<string, IdlTypeFull | number>,

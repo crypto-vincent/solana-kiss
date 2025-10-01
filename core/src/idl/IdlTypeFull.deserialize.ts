@@ -14,11 +14,11 @@ import {
   IdlTypeFullTypedef,
   IdlTypeFullVec,
 } from "./IdlTypeFull";
+import { idlTypePrefixDeserialize } from "./IdlTypePrefix";
 import {
   IdlTypePrimitive,
   idlTypePrimitiveDeserialize,
 } from "./IdlTypePrimitive";
-import { idlTypePrefixDeserialize } from "./idlTypePRefix";
 
 export function idlTypeFullDeserialize(
   typeFull: IdlTypeFull,
@@ -57,7 +57,7 @@ const visitorDeserialize = {
       data,
       dataOffset,
     );
-    if ((dataPrefix & 1n) == 0n) {
+    if ((dataPrefix & 1n) === 0n) {
       return [dataSize, null];
     }
     const dataContentOffset = dataOffset + dataSize;
@@ -141,7 +141,7 @@ const visitorDeserialize = {
     data: DataView,
     dataOffset: number,
   ): [number, JsonValue] => {
-    if (self.variants.length == 0) {
+    if (self.variants.length === 0) {
       return [0, null];
     }
     let enumMask = 0n;

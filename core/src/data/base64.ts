@@ -74,13 +74,13 @@ export function base64Decode(message: string): Uint8Array {
     const digit2 = base64DecodeDigit(message, codeIndex++);
     const byte1 = (digit1 << 2) | (digit2 >> 4);
     bytes[byteIndex++] = byte1;
-    if (byteIndex == bytes.length) {
+    if (byteIndex === bytes.length) {
       break;
     }
     const digit3 = base64DecodeDigit(message, codeIndex++);
     const byte2 = ((digit2 & 0b00001111) << 4) | (digit3 >> 2);
     bytes[byteIndex++] = byte2;
-    if (byteIndex == bytes.length) {
+    if (byteIndex === bytes.length) {
       break;
     }
     const digit4 = base64DecodeDigit(message, codeIndex++);
