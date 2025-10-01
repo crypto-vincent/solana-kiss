@@ -27,7 +27,7 @@ export type Transaction = {
   error: JsonValue | undefined;
   logs: Array<string>;
   chargedFees: Lamports;
-  computeUnitsConsumed: number;
+  consumedComputeUnits: number;
   invokations: Array<Invokation>;
 };
 

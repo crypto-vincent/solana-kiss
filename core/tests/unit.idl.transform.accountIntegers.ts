@@ -3,7 +3,7 @@ import { idlProgramParse } from "../src/idl/IdlProgram";
 
 it("run", () => {
   // Create an IDL on the fly
-  const idlProgram = idlProgramParse({
+  const programIdl = idlProgramParse({
     accounts: {
       MyAccount: {
         discriminator: [22],
@@ -23,7 +23,7 @@ it("run", () => {
     },
   });
   // Choose the account
-  const idlAccount = idlProgram.accounts.get("MyAccount")!;
+  const accountIdl = programIdl.accounts.get("MyAccount")!;
   // Dummy state we'll encode/decode
   const accountstateRaw = {
     u8: 0xff,
@@ -62,7 +62,7 @@ it("run", () => {
     i128: -128,
   };
   // Check that we can properly serialize every versions
-  const accountDataRaw = idlAccountEncode(idlAccount, accountstateRaw);
+  const accountDataRaw = idlAccountEncode(accountIdl, accountstateRaw);
   expect(accountDataRaw).toStrictEqual(
     new Uint8Array(
       [
@@ -80,7 +80,7 @@ it("run", () => {
       ].flat(),
     ),
   );
-  const accountDataV1 = idlAccountEncode(idlAccount, accountStateV1);
+  const accountDataV1 = idlAccountEncode(accountIdl, accountStateV1);
   expect(accountDataV1).toStrictEqual(
     new Uint8Array(
       [
@@ -98,16 +98,16 @@ it("run", () => {
       ].flat(),
     ),
   );
-  const accountDataV2 = idlAccountEncode(idlAccount, accountStateV2);
+  const accountDataV2 = idlAccountEncode(accountIdl, accountStateV2);
   expect(accountDataV2).toStrictEqual(accountDataV1);
   // Check that we can properly deserialize every versions
-  expect(idlAccountDecode(idlAccount, accountDataRaw)).toStrictEqual(
+  expect(idlAccountDecode(accountIdl, accountDataRaw)).toStrictEqual(
     accountstateRaw,
   );
-  expect(idlAccountDecode(idlAccount, accountDataV1)).toStrictEqual(
+  expect(idlAccountDecode(accountIdl, accountDataV1)).toStrictEqual(
     accountStateV1,
   );
-  expect(idlAccountDecode(idlAccount, accountDataV2)).toStrictEqual(
+  expect(idlAccountDecode(accountIdl, accountDataV2)).toStrictEqual(
     accountStateV1,
   );
 });

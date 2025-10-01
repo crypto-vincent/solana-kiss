@@ -12,12 +12,12 @@ for (let digit = 0; digit < alphabet.length; digit++) {
 const codePadding = "1".charCodeAt(0);
 const codeDecoder = new TextDecoder();
 
-export function base58Encode(bytes: Uint8Array): string {
-  if (bytes.length === 0) {
+export function base58Encode(decoded: Uint8Array): string {
+  if (decoded.length === 0) {
     return "";
   }
   const digits = new Array<number>();
-  for (const byte of bytes) {
+  for (const byte of decoded) {
     let carry = byte;
     for (let digitIndex = 0; digitIndex < digits.length; digitIndex++) {
       carry += digits[digitIndex]! << 8;
@@ -30,7 +30,7 @@ export function base58Encode(bytes: Uint8Array): string {
     }
   }
   let zeros = 0;
-  while (zeros < bytes.length && bytes[zeros] === 0) {
+  while (zeros < decoded.length && decoded[zeros] === 0) {
     zeros++;
   }
   const codes = new Uint8Array(zeros + digits.length);
@@ -44,18 +44,18 @@ export function base58Encode(bytes: Uint8Array): string {
   return codeDecoder.decode(codes);
 }
 
-export function base58Decode(message: string): Uint8Array {
-  const messageLength = message.length;
-  if (messageLength === 0) {
+export function base58Decode(encoded: string): Uint8Array {
+  const encodedLength = encoded.length;
+  if (encodedLength === 0) {
     return new Uint8Array(0);
   }
   const digits = new Array<number>();
-  for (let codeIndex = 0; codeIndex < messageLength; codeIndex++) {
-    const code = message.charCodeAt(codeIndex)!;
+  for (let codeIndex = 0; codeIndex < encodedLength; codeIndex++) {
+    const code = encoded.charCodeAt(codeIndex)!;
     const digit = codeToDigit[code] ?? -1;
     if (digit < 0) {
       throw new Error(
-        `Base58: decode: invalid character "${message[codeIndex]}" at index: ${codeIndex}`,
+        `Base58: decode: invalid character "${encoded[codeIndex]}" at index: ${codeIndex}`,
       );
     }
     let carry = digit;
@@ -70,7 +70,7 @@ export function base58Decode(message: string): Uint8Array {
     }
   }
   let zeros = 0;
-  while (zeros < messageLength && message.charCodeAt(zeros) === codePadding) {
+  while (zeros < encodedLength && encoded.charCodeAt(zeros) === codePadding) {
     zeros++;
   }
   const bytes = new Uint8Array(zeros + digits.length);

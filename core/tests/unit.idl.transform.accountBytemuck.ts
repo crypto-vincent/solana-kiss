@@ -4,7 +4,7 @@ import { idlProgramParse } from "../src/idl/IdlProgram";
 
 it("run", () => {
   // Create an IDL on the fly
-  const idlProgram = idlProgramParse({
+  const programIdl = idlProgramParse({
     accounts: {
       BytemuckAccount: {
         discriminator: [],
@@ -76,7 +76,7 @@ it("run", () => {
     },
   });
   // Choose the instruction
-  const idlAccount = idlProgram.accounts.get("BytemuckAccount")!;
+  const accountIdl = programIdl.accounts.get("BytemuckAccount")!;
   // Bytemuck constants
   const keyF2 = pubkeyFromBytes(
     new Uint8Array([
@@ -267,13 +267,13 @@ it("run", () => {
   ];
   // Actually assert the correctness of the results
   for (const testCase of cases) {
-    const computedData = idlAccountEncode(idlAccount, testCase.state);
+    const computedData = idlAccountEncode(accountIdl, testCase.state);
     // dumpData(testCase.name + ":computedData", computedData);
     // dumpData(testCase.name + ":expectedData", testCase.data);
-    expect(idlAccountDecode(idlAccount, testCase.data)).toStrictEqual(
+    expect(idlAccountDecode(accountIdl, testCase.data)).toStrictEqual(
       testCase.state,
     );
-    expect(idlAccountDecode(idlAccount, computedData)).toStrictEqual(
+    expect(idlAccountDecode(accountIdl, computedData)).toStrictEqual(
       testCase.state,
     );
   }

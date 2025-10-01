@@ -684,3 +684,5 @@ export function jsonDecoderByType<Content>(decoders: {
     );
   };
 }
+
+// TODO - how about decode/encode only objects/types

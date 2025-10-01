@@ -10,15 +10,15 @@ import {
   JsonValue,
 } from "../data/Json";
 import { IdlTypeFlat } from "./IdlTypeFlat";
-import { idlTypeFlatParseValue } from "./IdlTypeFlatParse";
+import { idlTypeFlatParse } from "./IdlTypeFlatParse";
 
 export type IdlTypedef = {
-  readonly name: string;
-  readonly docs: JsonValue;
-  readonly serialization: string | undefined;
-  readonly repr: string | undefined;
-  readonly generics: Array<string>;
-  readonly typeFlat: IdlTypeFlat;
+  name: string;
+  docs: JsonValue;
+  serialization: string | undefined;
+  repr: string | undefined;
+  generics: Array<string>;
+  typeFlat: IdlTypeFlat;
 };
 
 export function idlTypedefParse(
@@ -32,7 +32,7 @@ export function idlTypedefParse(
     serialization: typedefInfo.serialization,
     repr: typedefInfo.repr?.kind,
     generics: typedefInfo.generics.map((generic) => generic.name),
-    typeFlat: idlTypeFlatParseValue(typedefValue),
+    typeFlat: idlTypeFlatParse(typedefValue),
   };
 }
 

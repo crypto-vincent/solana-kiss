@@ -30,47 +30,52 @@ type IdlTypeFullPodFields = {
 
 // TODO - figure out how to handle discriminator offset
 export function idlTypeFullTypedefBytemuck(
-  typedef: IdlTypeFullTypedef,
+  typeFullTypedef: IdlTypeFullTypedef,
 ): IdlTypeFullPod {
-  return withContext(`Bytemuck: Typedef: ${typedef.name}`, () => {
+  return withContext(`Bytemuck: Typedef: ${typeFullTypedef.name}`, () => {
     let contentPod;
-    if (typedef.repr === undefined) {
-      contentPod = bytemuckRust(typedef.content);
-    } else if (typedef.repr === "c") {
-      contentPod = bytemuckC(typedef.content);
-    } else if (typedef.repr === "rust") {
-      contentPod = bytemuckRust(typedef.content);
-    } else if (typedef.repr === "transparent") {
-      contentPod = bytemuckRust(typedef.content);
+    if (typeFullTypedef.repr === undefined) {
+      contentPod = bytemuckRust(typeFullTypedef.content);
+    } else if (typeFullTypedef.repr === "c") {
+      contentPod = bytemuckC(typeFullTypedef.content);
+    } else if (typeFullTypedef.repr === "rust") {
+      contentPod = bytemuckRust(typeFullTypedef.content);
+    } else if (typeFullTypedef.repr === "transparent") {
+      contentPod = bytemuckRust(typeFullTypedef.content);
     } else {
-      throw new Error(`Bytemuck: Unsupported repr: ${typedef.repr}`);
+      throw new Error(`Bytemuck: Unsupported repr: ${typeFullTypedef.repr}`);
     }
     return {
       alignment: contentPod.alignment,
       size: contentPod.size,
       value: IdlTypeFull.typedef({
-        name: typedef.name,
-        repr: typedef.repr,
+        name: typeFullTypedef.name,
+        repr: typeFullTypedef.repr,
         content: contentPod.value,
       }),
     };
   });
 }
 
-function bytemuckC(value: IdlTypeFull): IdlTypeFullPod {
-  return value.traverse(visitorBytemuckC, undefined, undefined, undefined);
+function bytemuckC(typeFull: IdlTypeFull): IdlTypeFullPod {
+  return typeFull.traverse(visitorBytemuckC, undefined, undefined, undefined);
 }
 
-function bytemuckRust(value: IdlTypeFull): IdlTypeFullPod {
-  return value.traverse(visitorBytemuckRust, undefined, undefined, undefined);
+function bytemuckRust(typeFull: IdlTypeFull): IdlTypeFullPod {
+  return typeFull.traverse(
+    visitorBytemuckRust,
+    undefined,
+    undefined,
+    undefined,
+  );
 }
 
 function bytemuckFields(
-  typeFields: IdlTypeFullFields,
+  typeFullFields: IdlTypeFullFields,
   prefixSize: number,
   rustReorder: boolean,
 ): IdlTypeFullPodFields {
-  return typeFields.traverse(
+  return typeFullFields.traverse(
     visitorBytemuckFields,
     prefixSize,
     rustReorder,

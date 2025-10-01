@@ -3,7 +3,7 @@ import { idlProgramParse } from "../src/idl/IdlProgram";
 
 it("run", () => {
   // Create IDLs using different shortened formats
-  const idlProgram1 = idlProgramParse({
+  const programIdl1 = idlProgramParse({
     accounts: {
       MyAccount: {
         discriminator: [77],
@@ -24,7 +24,7 @@ it("run", () => {
       },
     },
   });
-  const idlProgram2 = idlProgramParse({
+  const programIdl2 = idlProgramParse({
     accounts: {
       MyAccount: {
         discriminator: [77],
@@ -46,9 +46,9 @@ it("run", () => {
     },
   });
   // Assert that all are equivalent
-  expect(idlProgram1).toStrictEqual(idlProgram2);
+  expect(programIdl1).toStrictEqual(programIdl2);
   // Choose the account
-  const idlAccount = idlProgram1.accounts.get("MyAccount")!;
+  const accountIdl = programIdl1.accounts.get("MyAccount")!;
   // Dummy state we'll encode/decode
   const accountState = {
     option: 40,
@@ -65,12 +65,12 @@ it("run", () => {
     variants32: "D",
   };
   // Check that we can use the manual IDL to encode/decode our account
-  const accountData = idlAccountEncode(idlAccount, accountState);
+  const accountData = idlAccountEncode(accountIdl, accountState);
   expect(accountData).toStrictEqual(
     new Uint8Array([
       77, 1, 40, 1, 41, 1, 0, 42, 1, 0, 0, 0, 43, 1, 0, 0, 0, 50, 1, 51, 1, 0,
       52, 1, 0, 0, 0, 53, 0, 1, 2, 0, 3, 0, 0, 0,
     ]),
   );
-  expect(idlAccountDecode(idlAccount, accountData)).toStrictEqual(accountState);
+  expect(idlAccountDecode(accountIdl, accountData)).toStrictEqual(accountState);
 });

@@ -5,7 +5,7 @@ import { IdlTypePrimitive } from "../src/idl/IdlTypePrimitive";
 
 it("run", () => {
   // Create IDLs on the fly
-  const idlProgram1 = idlProgramParse({
+  const programIdl1 = idlProgramParse({
     instructions: {
       my_ix: {
         docs: ["my ix doc"],
@@ -36,7 +36,7 @@ it("run", () => {
       },
     },
   });
-  const idlProgram2 = idlProgramParse({
+  const programIdl2 = idlProgramParse({
     instructions: [
       {
         name: "my_ix",
@@ -74,72 +74,68 @@ it("run", () => {
     ],
   });
   // Assert that both versions are equivalent
-  expect(idlProgram1).toStrictEqual(idlProgram2);
+  expect(programIdl1).toStrictEqual(programIdl2);
   // Assert instruction was parsed correctly
-  /* // TODO - implement instruction parsing
-  expect(idlProgram1.instructions.get("my_ix")).toStrictEqual(
-    new IdlInstruction({
-      name: "my_ix",
-      docs: ["my ix doc"],
-      discriminator: new Uint8Array([38, 19, 70, 194, 0, 59, 80, 114]),
-      accounts: [
-        new IdlInstructionAccount({
-          name: "authority",
-          docs: undefined,
-          writable: false,
-          signer: true,
-          optional: false,
-          address: undefined,
-          pda: undefined,
-        }),
-        new IdlInstructionAccount({
-          name: "content",
-          docs: undefined,
-          writable: true,
-          signer: false,
-          optional: false,
-          address: undefined,
-          pda: undefined,
-        }),
-        new IdlInstructionAccount({
-          name: "optional",
-          docs: undefined,
-          writable: false,
-          signer: false,
-          optional: true,
-          address: undefined,
-          pda: undefined,
-        }),
-      ],
-      argsTypeFlatFields: IdlTypeFlatFields.named([
-        {
-          name: "index",
-          docs: undefined,
-          content: IdlTypeFlat.primitive(IdlTypePrimitive.U32),
-        },
-        {
-          name: "id",
-          docs: undefined,
-          content: IdlTypeFlat.primitive(IdlTypePrimitive.I64),
-        },
-      ]),
-      argsTypeFullFields: IdlTypeFullFields.named([
-        {
-          name: "index",
-          content: IdlTypeFull.primitive(IdlTypePrimitive.U32),
-        },
-        {
-          name: "id",
-          content: IdlTypeFull.primitive(IdlTypePrimitive.I64),
-        },
-      ]),
-      returnTypeFlat: IdlTypeFlat.structNothing(),
-      returnTypeFull: IdlTypeFull.structNothing(),
-    }),
-  );
-  */
+  expect(programIdl1.instructions.get("my_ix")).toStrictEqual({
+    name: "my_ix",
+    docs: ["my ix doc"],
+    discriminator: new Uint8Array([38, 19, 70, 194, 0, 59, 80, 114]),
+    accounts: [
+      {
+        name: "authority",
+        docs: undefined,
+        writable: false,
+        signer: true,
+        optional: false,
+        address: undefined,
+        pda: undefined,
+      },
+      {
+        name: "content",
+        docs: undefined,
+        writable: true,
+        signer: false,
+        optional: false,
+        address: undefined,
+        pda: undefined,
+      },
+      {
+        name: "optional",
+        docs: undefined,
+        writable: false,
+        signer: false,
+        optional: true,
+        address: undefined,
+        pda: undefined,
+      },
+    ],
+    argsTypeFlatFields: IdlTypeFlatFields.named([
+      {
+        name: "index",
+        docs: undefined,
+        content: IdlTypeFlat.primitive(IdlTypePrimitive.U32),
+      },
+      {
+        name: "id",
+        docs: undefined,
+        content: IdlTypeFlat.primitive(IdlTypePrimitive.I64),
+      },
+    ]),
+    argsTypeFullFields: IdlTypeFullFields.named([
+      {
+        name: "index",
+        content: IdlTypeFull.primitive(IdlTypePrimitive.U32),
+      },
+      {
+        name: "id",
+        content: IdlTypeFull.primitive(IdlTypePrimitive.I64),
+      },
+    ]),
+    returnTypeFlat: IdlTypeFlat.structNothing(),
+    returnTypeFull: IdlTypeFull.structNothing(),
+  });
   // Assert account was parsed correctly
-  expect(idlProgram1.accounts.get("MyAccount")).toStrictEqual({
+  expect(programIdl1.accounts.get("MyAccount")).toStrictEqual({
     name: "MyAccount",
     docs: ["My Account doc"],
     space: undefined,
@@ -173,14 +169,10 @@ it("run", () => {
     }),
   });
   // Assert error was parsed correctly
-  /*
-  expect(idlProgram1.errors.get("MyError")).toStrictEqual(
-    new IdlError({
-      name: "MyError",
-      docs: undefined,
-      code: 4242,
-      msg: "My error message",
-    }),
-  );
-  */
+  expect(programIdl1.errors.get("MyError")).toStrictEqual({
+    name: "MyError",
+    docs: undefined,
+    code: 4242,
+    msg: "My error message",
+  });
 });

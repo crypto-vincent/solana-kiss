@@ -70,7 +70,7 @@ export async function rpcHttpGetTransaction(
     error: meta.err,
     logs: meta.logMessages,
     chargedFees: BigInt(meta.fee),
-    computeUnitsConsumed: meta.computeUnitsConsumed,
+    consumedComputeUnits: meta.computeUnitsConsumed,
     invokations: decompileTransactionInvokations(
       transactionInputs,
       transactionInstructions,
@@ -80,9 +80,9 @@ export async function rpcHttpGetTransaction(
 }
 
 function decompileTransactionInputs(
-  headerNumRequiredSignatures: number,
-  headerNumReadonlySignedAccounts: number,
-  headerNumReadonlyUnsignedAccounts: number,
+  requiredSignaturesCount: number,
+  readonlySignedAccountsCount: number,
+  readonlyUnsignedAccountsCount: number,
   staticAddresses: Array<Pubkey>,
   loadedWritableAddresses: Array<Pubkey>,
   loadedReadonlyAddresses: Array<Pubkey>,
@@ -90,23 +90,21 @@ function decompileTransactionInputs(
   const signingAddresses = new Set<Pubkey>();
   for (
     let signerIndex = 0;
-    signerIndex < headerNumRequiredSignatures;
+    signerIndex < requiredSignaturesCount;
     signerIndex++
   ) {
     signingAddresses.add(expectItemInArray(staticAddresses, signerIndex));
   }
   const readonlyAddresses = new Set<Pubkey>();
   for (
-    let readonlyIndex =
-      headerNumRequiredSignatures - headerNumReadonlySignedAccounts;
-    readonlyIndex < headerNumRequiredSignatures;
+    let readonlyIndex = requiredSignaturesCount - readonlySignedAccountsCount;
+    readonlyIndex < requiredSignaturesCount;
     readonlyIndex++
   ) {
     readonlyAddresses.add(expectItemInArray(staticAddresses, readonlyIndex));
   }
   for (
-    let readonlyIndex =
-      staticAddresses.length - headerNumReadonlyUnsignedAccounts;
+    let readonlyIndex = staticAddresses.length - readonlyUnsignedAccountsCount;
     readonlyIndex < staticAddresses.length;
     readonlyIndex++
   ) {
@@ -203,7 +201,7 @@ type CompiledInstruction = {
   stackHeight: number;
   programIndex: number;
   accountsIndexes: Array<number>;
-  data: string;
+  dataBase58: string;
 };
 
 function decompileTransactionInstruction(
@@ -221,7 +219,7 @@ function decompileTransactionInstruction(
   return {
     programAddress: instructionProgram.address,
     inputs: instructionInputs,
-    data: base58Decode(compiledInstruction.data),
+    data: base58Decode(compiledInstruction.dataBase58),
   };
 }
 
@@ -230,11 +228,12 @@ const instructionJsonType = jsonTypeObject(
     stackHeight: jsonTypeNumber(),
     programIndex: jsonTypeNumber(),
     accountsIndexes: jsonTypeArray(jsonTypeNumber()),
-    data: jsonTypeString(),
+    dataBase58: jsonTypeString(),
   },
   {
     programIndex: "programIdIndex",
     accountsIndexes: "accounts",
+    dataBase58: "data",
   },
 );
 

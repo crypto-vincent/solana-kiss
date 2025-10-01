@@ -1,39 +1,44 @@
-/*
-import { jsonExpectObject, jsonExpectString, JsonValue } from "../data/json";
-import { Pubkey } from "../data/pubkey";
+import { jsonExpectObject, jsonExpectString, JsonValue } from "../data/Json";
+import { Pubkey } from "../data/Pubkey";
 
 export type IdlMetadata = {
-  readonly name?: string;
-  readonly docs?: any;
-  readonly description?: string;
-  readonly address?: Pubkey;
-  readonly version?: string;
-  readonly spec?: string;
+  name?: string;
+  docs?: any;
+  description?: string;
+  address?: Pubkey;
+  version?: string;
+  spec?: string;
 };
 
 export function idlMetadataParse(metadataValue: JsonValue): IdlMetadata {
   if (!metadataValue) {
     return {};
   }
+  const metadataIdl: IdlMetadata = {};
   const metadataObject = jsonExpectObject(metadataValue);
-  const idlMetadata: IdlMetadata = {};
-  const rawName = metadataObject["name"];
-  if (rawName !== undefined) {
-    idlMetadata.name = jsonExpectString(rawName);
+  const metadataName = metadataObject["name"];
+  if (metadataName !== undefined) {
+    metadataIdl.name = jsonExpectString(metadataName);
   }
-  const rawDocs = metadataObject["docs"];
-  const rawDescription = metadataObject["description"];
-  const rawAddress = metadataObject["address"];
-  const rawVersion = metadataObject["version"];
-  const rawSpec = metadataObject["spec"];
-  if ()
-  return {
-    name: rawName ? jsonExpectString(rawName) : undefined,
-    docs: rawDocs,
-    description: rawDescription ? jsonExpectString(rawDescription) : undefined,
-    address: rawAddress ? jsonExpectString(rawAddress) : undefined,
-    version: rawVersion ? jsonExpectString(rawVersion) : undefined,
-    spec: rawSpec ? jsonExpectString(rawSpec) : undefined,
-  };
+  const metadataDocs = metadataObject["docs"];
+  if (metadataDocs !== undefined) {
+    metadataIdl.docs = metadataDocs;
+  }
+  const metadataDescription = metadataObject["description"];
+  if (metadataDescription !== undefined) {
+    metadataIdl.description = jsonExpectString(metadataDescription);
+  }
+  const metadataAddress = metadataObject["address"];
+  if (metadataAddress !== undefined) {
+    metadataIdl.address = jsonExpectString(metadataAddress);
+  }
+  const metadataVersion = metadataObject["version"];
+  if (metadataVersion !== undefined) {
+    metadataIdl.version = jsonExpectString(metadataVersion);
+  }
+  const metadataSpec = metadataObject["spec"];
+  if (metadataSpec !== undefined) {
+    metadataIdl.spec = jsonExpectString(metadataSpec);
+  }
+  return metadataIdl;
 }
-*/

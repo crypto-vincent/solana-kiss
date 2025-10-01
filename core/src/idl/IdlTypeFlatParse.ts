@@ -10,6 +10,7 @@ import {
   jsonExpectObject,
   jsonExpectString,
   JsonObject,
+  jsonPreview,
   JsonValue,
 } from "../data/Json";
 import {
@@ -55,42 +56,79 @@ export function idlTypeFlatParseObjectIsPossible(
   return false;
 }
 
-// TODO - implement all this
-
 const valueDecoder = jsonDecoderByType({
-  object: idlTypeFlatParseObject,
+  number: idlTypeFlatParseNumber,
   string: idlTypeFlatParseString,
   array: idlTypeFlatParseArray,
-  number: idlTypeFlatParseNumber,
+  object: idlTypeFlatParseObject,
 });
-export function idlTypeFlatParseValue(typeValue: JsonValue): IdlTypeFlat {
+export function idlTypeFlatParse(typeValue: JsonValue): IdlTypeFlat {
   return valueDecoder(typeValue);
-}
-
-export function idlTypeFlatParseArray(typeArray: JsonArray): IdlTypeFlat {
-  if (typeArray.length === 1) {
-    return IdlTypeFlat.vec({
-      prefix: IdlTypePrefix.U32,
-      items: idlTypeFlatParseValue(typeArray[0]!),
-    });
-  }
-  if (typeArray.length === 2) {
-    return IdlTypeFlat.array({
-      items: idlTypeFlatParseValue(typeArray[0]!),
-      length: idlTypeFlatParseValue(typeArray[1]!),
-    });
-  }
-  throw new Error("Idl: Could not parse type array");
 }
 
 export function idlTypeFlatParseNumber(typeNumber: number): IdlTypeFlat {
   return IdlTypeFlat.const({ literal: typeNumber });
 }
 
+export function idlTypeFlatParseString(typeString: string): IdlTypeFlat {
+  if (typeString === "bytes") {
+    return IdlTypeFlat.vec({
+      prefix: IdlTypePrefix.U32,
+      items: IdlTypeFlat.primitive(IdlTypePrimitive.U8),
+    });
+  }
+  if (typeString === "publicKey") {
+    return IdlTypeFlat.primitive(IdlTypePrimitive.Pubkey);
+  }
+  if (typeString === "string") {
+    return IdlTypeFlat.string({ prefix: IdlTypePrefix.U32 });
+  }
+  if (typeString === "string8") {
+    return IdlTypeFlat.string({ prefix: IdlTypePrefix.U8 });
+  }
+  if (typeString === "string16") {
+    return IdlTypeFlat.string({ prefix: IdlTypePrefix.U16 });
+  }
+  if (typeString === "string32") {
+    return IdlTypeFlat.string({ prefix: IdlTypePrefix.U32 });
+  }
+  if (typeString === "string64") {
+    return IdlTypeFlat.string({ prefix: IdlTypePrefix.U64 });
+  }
+  if (typeString === "string128") {
+    return IdlTypeFlat.string({ prefix: IdlTypePrefix.U128 });
+  }
+  const primitive = IdlTypePrimitive.primitivesByName.get(typeString);
+  return primitive
+    ? IdlTypeFlat.primitive(primitive)
+    : IdlTypeFlat.defined({
+        name: typeString,
+        generics: [],
+      });
+}
+
+export function idlTypeFlatParseArray(typeArray: JsonArray): IdlTypeFlat {
+  if (typeArray.length === 1) {
+    return IdlTypeFlat.vec({
+      prefix: IdlTypePrefix.U32,
+      items: idlTypeFlatParse(typeArray[0]!),
+    });
+  }
+  if (typeArray.length === 2) {
+    return IdlTypeFlat.array({
+      items: idlTypeFlatParse(typeArray[0]!),
+      length: idlTypeFlatParse(typeArray[1]!),
+    });
+  }
+  throw new Error(
+    `Idl: Could not parse type array (found: ${jsonPreview(typeArray)})`,
+  );
+}
+
 export function idlTypeFlatParseObject(typeObject: JsonObject): IdlTypeFlat {
   const typeValue = typeObject["type"];
   if (typeValue !== undefined) {
-    return idlTypeFlatParseValue(typeValue);
+    return idlTypeFlatParse(typeValue);
   }
   const definedValue = typeObject["defined"];
   if (definedValue !== undefined) {
@@ -191,67 +229,6 @@ export function idlTypeFlatParseObject(typeObject: JsonObject): IdlTypeFlat {
   throw new Error("Could not parse type object");
 }
 
-export function idlTypeFlatParseOption(
-  optionPrefix: IdlTypePrefix,
-  optionContent: JsonValue,
-): IdlTypeFlat {
-  return IdlTypeFlat.option({
-    prefix: optionPrefix,
-    content: idlTypeFlatParseValue(optionContent),
-  });
-}
-
-export function idlTypeFlatParseVec(
-  vecPrefix: IdlTypePrefix,
-  vecItems: JsonValue,
-): IdlTypeFlat {
-  return IdlTypeFlat.vec({
-    prefix: vecPrefix,
-    items: idlTypeFlatParseValue(vecItems),
-  });
-}
-
-export function idlTypeFlatParseString(typeString: string): IdlTypeFlat {
-  if (typeString === "bytes") {
-    return IdlTypeFlat.vec({
-      prefix: IdlTypePrefix.U32,
-      items: IdlTypeFlat.primitive(IdlTypePrimitive.U8),
-    });
-  }
-  if (typeString === "publicKey") {
-    return IdlTypeFlat.primitive(IdlTypePrimitive.Pubkey);
-  }
-  if (typeString === "string") {
-    return IdlTypeFlat.string({ prefix: IdlTypePrefix.U32 });
-  }
-  if (typeString === "string8") {
-    return IdlTypeFlat.string({ prefix: IdlTypePrefix.U8 });
-  }
-  if (typeString === "string16") {
-    return IdlTypeFlat.string({ prefix: IdlTypePrefix.U16 });
-  }
-  if (typeString === "string32") {
-    return IdlTypeFlat.string({ prefix: IdlTypePrefix.U32 });
-  }
-  if (typeString === "string64") {
-    return IdlTypeFlat.string({ prefix: IdlTypePrefix.U64 });
-  }
-  if (typeString === "string128") {
-    return IdlTypeFlat.string({ prefix: IdlTypePrefix.U128 });
-  }
-  const primitive = IdlTypePrimitive.primitivesByName.get(typeString);
-  return primitive
-    ? IdlTypeFlat.primitive(primitive)
-    : IdlTypeFlat.defined({
-        name: typeString,
-        generics: [],
-      });
-}
-
-function idlTypeFlatParseStruct(structFields: JsonValue): IdlTypeFlat {
-  return IdlTypeFlat.struct({ fields: idlTypeFlatParseFields(structFields) });
-}
-
 export function idlTypeFlatParseDefined(definedValue: JsonValue): IdlTypeFlat {
   const definedString = jsonAsString(definedValue);
   if (definedString !== undefined) {
@@ -266,7 +243,7 @@ export function idlTypeFlatParseDefined(definedValue: JsonValue): IdlTypeFlat {
   const definedGenericsArray = jsonAsArray(definedObject["generics"]);
   if (definedGenericsArray !== undefined) {
     for (const definedGenericValue of definedGenericsArray) {
-      generics.push(idlTypeFlatParseValue(definedGenericValue));
+      generics.push(idlTypeFlatParse(definedGenericValue));
     }
   }
   return IdlTypeFlat.defined({ name, generics });
@@ -275,6 +252,30 @@ export function idlTypeFlatParseDefined(definedValue: JsonValue): IdlTypeFlat {
 export function idlTypeFlatParseGeneric(genericValue: JsonValue): IdlTypeFlat {
   const symbol = jsonExpectString(genericValue);
   return IdlTypeFlat.generic({ symbol });
+}
+
+export function idlTypeFlatParseOption(
+  optionPrefix: IdlTypePrefix,
+  optionContent: JsonValue,
+): IdlTypeFlat {
+  return IdlTypeFlat.option({
+    prefix: optionPrefix,
+    content: idlTypeFlatParse(optionContent),
+  });
+}
+
+export function idlTypeFlatParseVec(
+  vecPrefix: IdlTypePrefix,
+  vecItems: JsonValue,
+): IdlTypeFlat {
+  return IdlTypeFlat.vec({
+    prefix: vecPrefix,
+    items: idlTypeFlatParse(vecItems),
+  });
+}
+
+export function idlTypeFlatParseStruct(structFields: JsonValue): IdlTypeFlat {
+  return IdlTypeFlat.struct({ fields: idlTypeFlatFieldsParse(structFields) });
 }
 
 export function idlTypeFlatParseEnum(
@@ -360,7 +361,7 @@ export function idlTypeFlatParseEnumVariant(
   const variantObject = jsonAsObject(variantValue);
   if (variantObject !== undefined) {
     docs = variantObject["docs"];
-    fields = idlTypeFlatParseFields(variantObject["fields"]);
+    fields = idlTypeFlatFieldsParse(variantObject["fields"]);
   }
   return {
     name: variantName,
@@ -371,6 +372,7 @@ export function idlTypeFlatParseEnumVariant(
 }
 
 export function idlTypeFlatParsePadded(paddedValue: JsonValue): IdlTypeFlat {
+  // TODO - could we use jsonType in those cases?
   const paddedObject = jsonExpectObject(paddedValue);
   return IdlTypeFlat.padded({
     before: jsonExpectNumber(paddedObject["before"] ?? 0),
@@ -386,7 +388,7 @@ export function idlTypeFlatParseConst(constValue: JsonValue): IdlTypeFlat {
   });
 }
 
-export function idlTypeFlatParseFields(
+export function idlTypeFlatFieldsParse(
   fieldsValue: JsonValue,
 ): IdlTypeFlatFields {
   if (fieldsValue === undefined || fieldsValue === null) {
@@ -400,7 +402,7 @@ export function idlTypeFlatParseFields(
   const fieldsInfos: Array<IdlTypeFlatFieldNamed> = [];
   for (let fieldIndex = 0; fieldIndex < fieldsArray.length; fieldIndex++) {
     const fieldValue = fieldsArray[fieldIndex];
-    const fieldContent = idlTypeFlatParseValue(fieldValue);
+    const fieldContent = idlTypeFlatParse(fieldValue);
     const fieldObject = jsonAsObject(fieldValue);
     if (fieldObject !== undefined) {
       const fieldName = jsonAsString(fieldObject["name"]);

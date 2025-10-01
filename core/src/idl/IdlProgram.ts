@@ -7,29 +7,43 @@ import {
   JsonObject,
   JsonValue,
 } from "../data/Json";
-import { IdlAccount, idlAccountParse } from "./IdlAccount";
+import { Input } from "../types";
+import { Immutable } from "../utils";
+import { IdlAccount, idlAccountCheck, idlAccountParse } from "./IdlAccount";
+import { IdlError, idlErrorParse } from "./IdlError";
+import { IdlEvent, idlEventCheck, idlEventParse } from "./IdlEvent";
+import {
+  IdlInstruction,
+  idlInstructionCheck,
+  idlInstructionParse,
+} from "./IdlInstruction";
+import { IdlMetadata, idlMetadataParse } from "./IdlMetadata";
 import { IdlTypedef, idlTypedefParse } from "./IdlTypedef";
 
 export type IdlProgram = {
-  // readonly metadata: IdlProgramMetadata;
-  readonly typedefs: Map<string, IdlTypedef>;
-  readonly accounts: Map<string, IdlAccount>;
-  // readonly instructions: Map<string, IdlInstruction>;
-  // readonly events: Map<string, IdlEvent>;
-  // readonly errors: Map<string, IdlError>;
+  metadata: IdlMetadata;
+  typedefs: Map<string, IdlTypedef>;
+  accounts: Map<string, IdlAccount>;
+  instructions: Map<string, IdlInstruction>;
+  events: Map<string, IdlEvent>;
+  errors: Map<string, IdlError>;
 };
 
-export const IdlProgramUnknown: IdlProgram = {
-  //metadata: {},
+export const idlProgramUnknown: Immutable<IdlProgram> = {
+  metadata: {},
   typedefs: new Map(),
   accounts: new Map(),
-  //instructions: new Map(),
-  //events: new Map(),
-  //errors: new Map(),
+  instructions: new Map(),
+  events: new Map(),
+  errors: new Map(),
 };
 
 export function idlProgramParse(programValue: JsonValue): IdlProgram {
   const programObject = jsonExpectObject(programValue);
+  const metadata = {
+    ...idlMetadataParse(programObject),
+    ...idlMetadataParse(programObject["metadata"]),
+  };
   const typedefs = parseScopedNamedValues(
     programObject,
     "types",
@@ -44,7 +58,28 @@ export function idlProgramParse(programValue: JsonValue): IdlProgram {
     typedefs,
     idlAccountParse,
   );
-  return { typedefs, accounts };
+  const instructions = parseScopedNamedValues(
+    programObject,
+    "instructions",
+    true,
+    typedefs,
+    idlInstructionParse,
+  );
+  const events = parseScopedNamedValues(
+    programObject,
+    "events",
+    false,
+    typedefs,
+    idlEventParse,
+  );
+  const errors = parseScopedNamedValues(
+    programObject,
+    "errors",
+    false,
+    typedefs,
+    idlErrorParse,
+  );
+  return { metadata, typedefs, accounts, instructions, events, errors };
 }
 
 function parseScopedNamedValues<T, P>(
@@ -79,105 +114,54 @@ function parseScopedNamedValues<T, P>(
   return values;
 }
 
-/*
-export class IdlProgram {
-  public static readonly Unknown = new IdlProgram({
-    metadata: {},
-    typedefs: new Map(),
-    accounts: new Map(),
-    instructions: new Map(),
-    events: new Map(),
-    errors: new Map(),
-  });
-
-
-  public static tryParse(idlRoot: any): IdlProgram {
-    const metadata = {
-      ...IdlProgram.tryParseMetadata(idlRoot),
-      ...IdlProgram.tryParseMetadata(idlRoot["metadata"]),
-    };
-    const typedefs = IdlProgram.tryParseScopedNamedValues(
-      idlRoot,
-      "types",
-      false,
-      undefined,
-      IdlTypedef.tryParse,
-    );
-    const accounts = IdlProgram.tryParseScopedNamedValues(
-      idlRoot,
-      "accounts",
-      false,
-      typedefs,
-      IdlAccount.tryParse,
-    );
-    const instructions = IdlProgram.tryParseScopedNamedValues(
-      idlRoot,
-      "instructions",
-      true,
-      typedefs,
-      IdlInstruction.tryParse,
-    );
-    const events = IdlProgram.tryParseScopedNamedValues(
-      idlRoot,
-      "events",
-      false,
-      typedefs,
-      IdlEvent.tryParse,
-    );
-    const errors = IdlProgram.tryParseScopedNamedValues(
-      idlRoot,
-      "errors",
-      false,
-      undefined,
-      IdlError.tryParse,
-    );
-    return new IdlProgram({
-      metadata,
-      typedefs,
-      accounts,
-      instructions,
-      events,
-      errors,
-    });
+export function idlProgramGuessAccount(
+  programIdl: IdlProgram,
+  accountData: Uint8Array,
+): IdlAccount | undefined {
+  for (const accountIdl of programIdl.accounts.values()) {
+    try {
+      idlAccountCheck(accountIdl, accountData);
+      return accountIdl;
+    } catch {}
   }
-
-  public guessAccount(accountData: Buffer): IdlAccount | undefined {
-    for (const account of this.accounts.values()) {
-      try {
-        account.check(accountData);
-        return account;
-      } catch {}
-    }
-    return undefined;
-  }
-
-  public guessInstruction(instructionData: Buffer): IdlInstruction | undefined {
-    for (const instruction of this.instructions.values()) {
-      try {
-        instruction.checkPayload(instructionData);
-        return instruction;
-      } catch {}
-    }
-    return undefined;
-  }
-
-  public guessEvent(eventData: Buffer): IdlEvent | undefined {
-    for (const event of this.events.values()) {
-      try {
-        event.check(eventData);
-        return event;
-      } catch {}
-    }
-    return undefined;
-  }
-
-  public guessError(errorCode: number): IdlError | undefined {
-    for (const error of this.errors.values()) {
-      if (error.code === errorCode) {
-        return error;
-      }
-    }
-    return undefined;
-  }
+  return undefined;
 }
-*/
+
+export function idlProgramGuessInstruction(
+  programIdl: IdlProgram,
+  instructionInputs: Array<Input>,
+  instructionData: Uint8Array,
+): IdlInstruction | undefined {
+  for (const instructionIdl of programIdl.instructions.values()) {
+    try {
+      idlInstructionCheck(instructionIdl, instructionInputs, instructionData);
+      return instructionIdl;
+    } catch {}
+  }
+  return undefined;
+}
+
+export function idlProgramGuessEvent(
+  programIdl: IdlProgram,
+  eventData: Uint8Array,
+): IdlEvent | undefined {
+  for (const eventIdl of programIdl.events.values()) {
+    try {
+      idlEventCheck(eventIdl, eventData);
+      return eventIdl;
+    } catch {}
+  }
+  return undefined;
+}
+
+export function idlProgramGuessError(
+  programIdl: IdlProgram,
+  errorCode: number,
+): IdlError | undefined {
+  for (const errorIdl of programIdl.errors.values()) {
+    if (errorIdl.code === errorCode) {
+      return errorIdl;
+    }
+  }
+  return undefined;
+}

@@ -39,11 +39,11 @@ export function pubkeyFromBytes(bytes: Uint8Array): Pubkey {
   return pubkey;
 }
 
-export function pubkeyToBytes(pubkey: Pubkey): Uint8Array {
-  const bytes = base58Decode(pubkey);
+export function pubkeyToBytes(address: Pubkey): Uint8Array {
+  const bytes = base58Decode(address);
   if (bytes.length !== 32) {
     throw new Error(
-      `Pubkey: Expected pubkey spanning 32 bytes (found: ${bytes.length} with ${pubkey})`,
+      `Pubkey: Expected pubkey spanning 32 bytes (found: ${bytes.length} with ${address})`,
     );
   }
   return bytes;

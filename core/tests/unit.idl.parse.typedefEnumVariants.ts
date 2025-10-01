@@ -7,7 +7,7 @@ import {
 
 it("run", () => {
   // Create IDLs using different shortened formats
-  const idlProgram1 = idlProgramParse({
+  const programIdl1 = idlProgramParse({
     types: {
       MyEnum: {
         variants: [
@@ -19,7 +19,7 @@ it("run", () => {
       },
     },
   });
-  const idlProgram2 = idlProgramParse({
+  const programIdl2 = idlProgramParse({
     types: {
       MyEnum: {
         variants: [
@@ -31,14 +31,14 @@ it("run", () => {
       },
     },
   });
-  const idlProgram3 = idlProgramParse({
+  const programIdl3 = idlProgramParse({
     types: {
       MyEnum: {
         variants: [77, "Case1", { name: "Case2", code: 42 }, "Case3"],
       },
     },
   });
-  const idlProgram4 = idlProgramParse({
+  const programIdl4 = idlProgramParse({
     types: {
       MyEnum: {
         variants: {
@@ -51,11 +51,11 @@ it("run", () => {
     },
   });
   // Assert that all are equivalent
-  expect(idlProgram1).toStrictEqual(idlProgram2);
-  expect(idlProgram1).toStrictEqual(idlProgram3);
-  expect(idlProgram1).toStrictEqual(idlProgram4);
+  expect(programIdl1).toStrictEqual(programIdl2);
+  expect(programIdl1).toStrictEqual(programIdl3);
+  expect(programIdl1).toStrictEqual(programIdl4);
   // Assert that the content is correct
-  expect(idlProgram1.typedefs.get("MyEnum")).toStrictEqual({
+  expect(programIdl1.typedefs.get("MyEnum")).toStrictEqual({
     name: "MyEnum",
     docs: undefined,
     serialization: undefined,

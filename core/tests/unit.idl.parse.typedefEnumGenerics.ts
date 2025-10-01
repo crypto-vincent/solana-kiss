@@ -2,7 +2,7 @@ import { idlProgramParse, IdlTypeFlat, IdlTypePrefix } from "../src";
 
 it("run", () => {
   // Create IDLs using different shortened formats
-  const idlProgram1 = idlProgramParse({
+  const programIdl1 = idlProgramParse({
     types: [
       {
         name: "MyEnum",
@@ -11,7 +11,7 @@ it("run", () => {
       },
     ],
   });
-  const idlProgram2 = idlProgramParse({
+  const programIdl2 = idlProgramParse({
     types: [
       {
         name: "MyEnum",
@@ -20,7 +20,7 @@ it("run", () => {
       },
     ],
   });
-  const idlProgram3 = idlProgramParse({
+  const programIdl3 = idlProgramParse({
     types: [
       {
         name: "MyEnum",
@@ -29,7 +29,7 @@ it("run", () => {
       },
     ],
   });
-  const idlProgram4 = idlProgramParse({
+  const programIdl4 = idlProgramParse({
     types: {
       MyEnum: {
         generics: [{ kind: "type", name: "A" }, { name: "B" }],
@@ -37,7 +37,7 @@ it("run", () => {
       },
     },
   });
-  const idlProgram5 = idlProgramParse({
+  const programIdl5 = idlProgramParse({
     types: {
       MyEnum: {
         generics: ["A", "B"],
@@ -46,12 +46,12 @@ it("run", () => {
     },
   });
   // Assert that all are equivalent
-  expect(idlProgram1).toStrictEqual(idlProgram2);
-  expect(idlProgram1).toStrictEqual(idlProgram3);
-  expect(idlProgram1).toStrictEqual(idlProgram4);
-  expect(idlProgram1).toStrictEqual(idlProgram5);
+  expect(programIdl1).toStrictEqual(programIdl2);
+  expect(programIdl1).toStrictEqual(programIdl3);
+  expect(programIdl1).toStrictEqual(programIdl4);
+  expect(programIdl1).toStrictEqual(programIdl5);
   // Assert that the content is correct
-  expect(idlProgram1.typedefs.get("MyEnum")).toStrictEqual({
+  expect(programIdl1.typedefs.get("MyEnum")).toStrictEqual({
     name: "MyEnum",
     docs: undefined,
     serialization: undefined,

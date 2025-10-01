@@ -3,7 +3,7 @@ import { idlProgramParse } from "../src/idl/IdlProgram";
 
 it("run", () => {
   // Create an IDL on the fly
-  const idlProgram = idlProgramParse({
+  const programIdl = idlProgramParse({
     accounts: {
       MyAccount: {
         fields: [{ name: "value", type: "string" }],
@@ -25,11 +25,11 @@ it("run", () => {
     "Mixed: Hello, 世界! 12345 🚀🔥\nNew line and \t tab.",
   ];
   // Check that we can properly serialize various strings
-  const idlAccount = idlProgram.accounts.get("MyAccount")!;
+  const accountIdl = programIdl.accounts.get("MyAccount")!;
   for (const test of tests) {
     const content = { value: test };
-    const encoded = idlAccountEncode(idlAccount, content);
-    const decoded = idlAccountDecode(idlAccount, encoded);
+    const encoded = idlAccountEncode(accountIdl, content);
+    const decoded = idlAccountDecode(accountIdl, encoded);
     expect(content).toStrictEqual(decoded);
   }
 });

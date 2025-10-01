@@ -8,33 +8,33 @@ import {
 
 it("run", async () => {
   const tests: Array<{
-    programId: string;
+    programAddress: string;
     seeds: Array<Uint8Array>;
   }> = [
     {
-      programId: pubkeyDefault(),
+      programAddress: pubkeyDefault(),
       seeds: [],
     },
     {
-      programId: pubkeyDefault(),
+      programAddress: pubkeyDefault(),
       seeds: [new Uint8Array(), new Uint8Array(), new Uint8Array()],
     },
     {
-      programId: pubkeyDefault(),
+      programAddress: pubkeyDefault(),
       seeds: [new Uint8Array([1, 2, 3]), new Uint8Array([4, 5, 6])],
     },
     {
-      programId: "BPFLoader1111111111111111111111111111111111",
+      programAddress: "BPFLoader1111111111111111111111111111111111",
       seeds: [new Uint8Array([1, 2, 3]), new Uint8Array([4, 5, 6])],
     },
     {
-      programId: "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA",
+      programAddress: "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA",
       seeds: [new Uint8Array([1, 2, 3]), new Uint8Array([4, 5, 6])],
     },
   ];
   for (let counter = 0; counter < 100; counter++) {
     tests.push({
-      programId: pubkeyNewDummy(),
+      programAddress: pubkeyNewDummy(),
       seeds: [
         new Uint8Array([1, 2, 3]),
         new Uint8Array([4, 5, 6]),
@@ -44,7 +44,7 @@ it("run", async () => {
   }
   for (let counter = 0; counter < 100; counter++) {
     tests.push({
-      programId: pubkeyNewDummy(),
+      programAddress: pubkeyNewDummy(),
       seeds: [
         base58Decode(pubkeyNewDummy()),
         base58Decode(pubkeyNewDummy()),
@@ -55,10 +55,10 @@ it("run", async () => {
   for (const test of tests) {
     const seeds = test.seeds.map((seed) => new Uint8Array(seed));
     const { address: foundAddress, bump: foundBump } =
-      pubkeyFindPdaAddressAndBump(test.programId, seeds);
+      pubkeyFindPdaAddressAndBump(test.programAddress, seeds);
     const [expectedKey, expectedBump] = PublicKey.findProgramAddressSync(
       seeds,
-      new PublicKey(test.programId),
+      new PublicKey(test.programAddress),
     );
     expect(foundAddress).toStrictEqual(expectedKey.toBase58());
     expect(foundBump).toStrictEqual(expectedBump);

@@ -15,7 +15,7 @@ import {
 } from "../data/Json";
 import { sha256Hash } from "../data/Sha256";
 import { idlTypeFlatHydrate } from "./IdlTypeFlatHydrate";
-import { idlTypeFlatParseValue } from "./IdlTypeFlatParse";
+import { idlTypeFlatParse } from "./IdlTypeFlatParse";
 import { idlTypeFullSerialize } from "./IdlTypeFullSerialize";
 
 export const idlUtilsBytesJsonDecoder = jsonDecoderByType({
@@ -44,7 +44,7 @@ export const idlUtilsBytesJsonDecoder = jsonDecoderByType({
     }
     const type = object["type"];
     if (type !== undefined) {
-      const typeFlat = idlTypeFlatParseValue(type);
+      const typeFlat = idlTypeFlatParse(type);
       const typeFull = idlTypeFlatHydrate(typeFlat, new Map(), new Map());
       const blobs = new Array<Uint8Array>();
       idlTypeFullSerialize(

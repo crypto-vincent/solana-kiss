@@ -29,11 +29,16 @@ export function idlTypeFullDeserialize(
 }
 
 export function idlTypeFullFieldsDeserialize(
-  fields: IdlTypeFullFields,
+  typeFullFields: IdlTypeFullFields,
   data: DataView,
   dataOffset: number,
 ): [number, JsonValue] {
-  return fields.traverse(visitorFieldsDeserialize, data, dataOffset, undefined);
+  return typeFullFields.traverse(
+    visitorFieldsDeserialize,
+    data,
+    dataOffset,
+    undefined,
+  );
 }
 
 const visitorDeserialize = {

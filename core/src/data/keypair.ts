@@ -133,7 +133,7 @@ function extractPubkeyFromSpki(spkiDer: Uint8Array): string {
   return base58Encode(spkiDer.slice(-32));
 }
 
-function pkcs8FromEd25519(blob32: Uint8Array): Uint8Array {
+function pkcs8FromEd25519(secretBlob32: Uint8Array): Uint8Array {
   let index = 0;
   const pkcs8 = new Uint8Array(48);
   pkcs8[index++] = 0x30;
@@ -152,11 +152,11 @@ function pkcs8FromEd25519(blob32: Uint8Array): Uint8Array {
   pkcs8[index++] = 0x22; // OCTET STRING len=34
   pkcs8[index++] = 0x04;
   pkcs8[index++] = 0x20; //   inner OCTET STRING len=32
-  pkcs8.set(blob32, 16);
+  pkcs8.set(secretBlob32, 16);
   return pkcs8;
 }
 
-function spkiFromEd25519(blob32: Uint8Array): Uint8Array {
+function spkiFromEd25519(publicBlob32: Uint8Array): Uint8Array {
   let index = 0;
   const spki = new Uint8Array(44);
   spki[index++] = 0x30;
@@ -171,6 +171,6 @@ function spkiFromEd25519(blob32: Uint8Array): Uint8Array {
   spki[index++] = 0x03;
   spki[index++] = 0x21;
   spki[index++] = 0x00; // BIT STRING, len 33, 0 unused bits
-  spki.set(blob32, 12);
+  spki.set(publicBlob32, 12);
   return spki;
 }

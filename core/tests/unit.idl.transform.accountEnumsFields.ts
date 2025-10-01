@@ -3,7 +3,7 @@ import { idlProgramParse } from "../src/idl/IdlProgram";
 
 it("run", () => {
   // Create an IDL on the fly
-  const idlProgram = idlProgramParse({
+  const programIdl = idlProgramParse({
     accounts: {
       MyAccount: {
         discriminator: [77, 78],
@@ -35,7 +35,7 @@ it("run", () => {
     },
   });
   // MyAccount info
-  const idlAccount = idlProgram.accounts.get("MyAccount")!;
+  const accountIdl = programIdl.accounts.get("MyAccount")!;
   const accountState = [
     "Empty",
     { Named: { field1: 42 } },
@@ -44,7 +44,7 @@ it("run", () => {
     "BigCode",
   ];
   // Check that we can use the manual IDL to encode/decode our account
-  const accountData = idlAccountEncode(idlAccount, accountState);
+  const accountData = idlAccountEncode(accountIdl, accountState);
   expect(accountData).toStrictEqual(
     new Uint8Array(
       [
@@ -62,7 +62,7 @@ it("run", () => {
       ].flat(),
     ),
   );
-  expect(idlAccountDecode(idlAccount, accountData)).toStrictEqual(accountState);
+  expect(idlAccountDecode(accountIdl, accountData)).toStrictEqual(accountState);
 });
 
 const ff = 0xff;

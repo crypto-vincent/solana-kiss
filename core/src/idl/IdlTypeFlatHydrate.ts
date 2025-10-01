@@ -47,7 +47,7 @@ export function idlTypeFlatHydrateOrConstLiteral(
   );
 }
 
-export function idlTypeFlatHydrateFields(
+export function idlTypeFlatFieldsHydrate(
   typeFlatFields: IdlTypeFlatFields,
   genericsBySymbol: Map<string, IdlTypeFull | number>,
   typedefs: Map<string, IdlTypedef>,
@@ -162,7 +162,7 @@ const visitorHydrateOrConstLiteral = {
     typedefs: Map<string, IdlTypedef>,
   ): IdlTypeFull | number => {
     return IdlTypeFull.struct({
-      fields: idlTypeFlatHydrateFields(self.fields, genericsBySymbol, typedefs),
+      fields: idlTypeFlatFieldsHydrate(self.fields, genericsBySymbol, typedefs),
     });
   },
   enum: (
@@ -176,7 +176,7 @@ const visitorHydrateOrConstLiteral = {
         return {
           name: variant.name,
           code: variant.code,
-          fields: idlTypeFlatHydrateFields(
+          fields: idlTypeFlatFieldsHydrate(
             variant.fields,
             genericsBySymbol,
             typedefs,

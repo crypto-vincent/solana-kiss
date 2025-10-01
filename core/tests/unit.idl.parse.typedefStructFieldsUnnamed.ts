@@ -5,7 +5,7 @@ import { IdlTypePrimitive } from "../src/idl/IdlTypePrimitive";
 
 it("run", () => {
   // Create IDLs using different shortened formats
-  const idlProgram1 = idlProgramParse({
+  const programIdl1 = idlProgramParse({
     types: {
       MyStruct: {
         fields: [
@@ -29,7 +29,7 @@ it("run", () => {
       },
     },
   });
-  const idlProgram2 = idlProgramParse({
+  const programIdl2 = idlProgramParse({
     types: {
       MyStruct: {
         fields: [
@@ -54,9 +54,9 @@ it("run", () => {
     },
   });
   // Asser that the two notations are equivalent
-  expect(idlProgram1).toStrictEqual(idlProgram2);
+  expect(programIdl1).toStrictEqual(programIdl2);
   // Assert that the content is correct
-  expect(idlProgram1.typedefs.get("MyStruct")).toStrictEqual({
+  expect(programIdl1.typedefs.get("MyStruct")).toStrictEqual({
     name: "MyStruct",
     docs: undefined,
     serialization: undefined,
