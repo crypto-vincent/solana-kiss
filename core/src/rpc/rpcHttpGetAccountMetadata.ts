@@ -4,11 +4,11 @@ import {
   jsonTypeNumber,
   jsonTypeObject,
   jsonTypeString,
-} from "../data/json";
-import { Lamports } from "../data/lamports";
-import { Pubkey, pubkeyDefault } from "../data/pubkey";
+} from "../data/Json";
+import { Lamports } from "../data/Lamports";
+import { Pubkey, pubkeyDefault } from "../data/Pubkey";
 import { Commitment } from "../types";
-import { RpcHttp } from "./rpcHttp";
+import { RpcHttp } from "./RpcHttp";
 
 export async function rpcHttpGetAccountMetadata(
   rpcHttp: RpcHttp,

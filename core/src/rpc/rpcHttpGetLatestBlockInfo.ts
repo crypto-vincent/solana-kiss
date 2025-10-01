@@ -1,6 +1,6 @@
-import { jsonTypeNumber, jsonTypeObject, jsonTypeString } from "../data/json";
+import { jsonTypeNumber, jsonTypeObject, jsonTypeString } from "../data/Json";
 import { Commitment, Hash, Slot } from "../types";
-import { RpcHttp } from "./rpcHttp";
+import { RpcHttp } from "./RpcHttp";
 
 export async function rpcHttpGetLatestBlockInfo(
   rpcHttp: RpcHttp,

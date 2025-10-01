@@ -5,8 +5,8 @@ import {
   jsonExpectString,
   jsonPreview,
   JsonValue,
-} from "../data/json";
-import { pubkeyFromBytes, pubkeyToBytes } from "../data/pubkey";
+} from "../data/Json";
+import { pubkeyFromBytes, pubkeyToBytes } from "../data/Pubkey";
 
 export class IdlTypePrimitive {
   public static readonly U8 = new IdlTypePrimitive("u8", 1, 1);
@@ -171,11 +171,10 @@ const visitorSerialize = {
     data.setFloat64(0, num, true);
   },
   bool: (blob: Uint8Array, value: JsonValue) => {
-    const data = new DataView(blob.buffer);
     if (jsonExpectBoolean(value)) {
-      data.setUint8(0, 1);
+      blob[0] = 1;
     } else {
-      data.setUint8(0, 0);
+      blob[0] = 0;
     }
   },
   pubkey: (blob: Uint8Array, value: JsonValue) => {

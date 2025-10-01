@@ -3,7 +3,7 @@ import { RpcHttp, rpcHttpFindAccountTransactionsKeys } from "../src";
 
 it("run", async () => {
   const rpcHttp: RpcHttp = async () => {
-    return require("./fixtures/rpcHttp.getSignaturesForAddress.json");
+    return require("./fixtures/RpcHttpGetSignaturesForAddress.json");
   };
   const transactionsKeys = await rpcHttpFindAccountTransactionsKeys(
     rpcHttp,

@@ -1,7 +1,7 @@
-import { jsonTypeArray, jsonTypeObject, jsonTypeString } from "../data/json";
-import { Pubkey } from "../data/pubkey";
+import { jsonTypeArray, jsonTypeObject, jsonTypeString } from "../data/Json";
+import { Pubkey } from "../data/Pubkey";
 import { Commitment, Signature } from "../types";
-import { RpcHttp } from "./rpcHttp";
+import { RpcHttp } from "./RpcHttp";
 
 export async function rpcHttpFindAccountTransactionsKeys(
   rpcHttp: RpcHttp,

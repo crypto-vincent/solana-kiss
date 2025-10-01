@@ -1,6 +1,6 @@
 import { it } from "@jest/globals";
 import { rpcHttpFromUrl } from "../src";
-import { rpcHttpFindProgramAccountsAddresses } from "../src/rpc/rpcHttpFindProgramAccountsAddresses";
+import { rpcHttpFindProgramAccountsAddresses } from "../src/rpc/RpcHttpFindProgramAccountsAddresses";
 
 it("run", async () => {
   const rpcHttp = rpcHttpFromUrl("https://api.devnet.solana.com");

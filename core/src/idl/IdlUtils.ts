@@ -1,6 +1,6 @@
-import { base16Decode } from "../data/base16";
-import { base58Decode } from "../data/base58";
-import { base64Decode } from "../data/base64";
+import { base16Decode } from "../data/Base16";
+import { base58Decode } from "../data/Base58";
+import { base64Decode } from "../data/Base64";
 import {
   JsonArray,
   jsonDecoderByType,
@@ -12,11 +12,11 @@ import {
   jsonTypeMapped,
   jsonTypeNumber,
   jsonTypeWithDecodeFallbacks,
-} from "../data/json";
-import { sha256Hash } from "../data/sha256";
-import { idlTypeFlatHydrate } from "./IdlTypeFlat.hydrate";
-import { idlTypeFlatParseValue } from "./IdlTypeFlat.parse";
-import { idlTypeFullSerialize } from "./IdlTypeFull.serialize";
+} from "../data/Json";
+import { sha256Hash } from "../data/Sha256";
+import { idlTypeFlatHydrate } from "./IdlTypeFlatHydrate";
+import { idlTypeFlatParseValue } from "./IdlTypeFlatParse";
+import { idlTypeFullSerialize } from "./IdlTypeFullSerialize";
 
 export const idlUtilsBytesJsonDecoder = jsonDecoderByType({
   string: (string: string) => {

@@ -16,7 +16,7 @@ import {
   IdlTypeFlatVec,
 } from "./IdlTypeFlat";
 import { IdlTypeFull, IdlTypeFullFields } from "./IdlTypeFull";
-import { idlTypeFullTypedefBytemuck } from "./IdlTypeFull.bytemuck";
+import { idlTypeFullTypedefBytemuck } from "./IdlTypeFullBytemuck";
 import { IdlTypePrimitive } from "./IdlTypePrimitive";
 
 export function idlTypeFlatHydrate(

@@ -3,7 +3,7 @@ import { RpcHttp, rpcHttpGetAccountWithData } from "../src";
 
 it("run", async () => {
   const rpcHttp: RpcHttp = async () => {
-    return require("./fixtures/rpcHttp.getAccountInfo.json");
+    return require("./fixtures/RpcHttpGetAccountInfo.json");
   };
   const accountInfo = await rpcHttpGetAccountWithData(rpcHttp, "!");
   expect(accountInfo.executable).toStrictEqual(true);

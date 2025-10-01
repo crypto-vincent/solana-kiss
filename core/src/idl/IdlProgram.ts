@@ -1,4 +1,4 @@
-import { camelCaseToSnakeCase } from "../data/casing";
+import { camelCaseToSnakeCase } from "../data/Casing";
 import {
   jsonAsArray,
   jsonAsObject,
@@ -6,7 +6,7 @@ import {
   jsonExpectString,
   JsonObject,
   JsonValue,
-} from "../data/json";
+} from "../data/Json";
 import { IdlAccount, idlAccountParse } from "./IdlAccount";
 import { IdlTypedef, idlTypedefParse } from "./IdlTypedef";
 

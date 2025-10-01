@@ -1,7 +1,7 @@
 import { Hash, Instruction } from "../types";
-import { base58Decode, base58Encode } from "./base58";
-import { Pubkey } from "./pubkey";
-import { Signer } from "./signer";
+import { base58Decode, base58Encode } from "./Base58";
+import { Pubkey } from "./Pubkey";
+import { Signer } from "./Signer";
 
 export type Message = {
   payerAddress: Pubkey;

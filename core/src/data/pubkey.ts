@@ -1,5 +1,5 @@
-import { base58Decode, base58Encode } from "./base58";
-import { sha256Hash } from "./sha256";
+import { base58Decode, base58Encode } from "./Base58";
+import { sha256Hash } from "./Sha256";
 
 export type Pubkey = string;
 

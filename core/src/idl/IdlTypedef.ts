@@ -8,9 +8,9 @@ import {
   jsonTypeWithDecodeFallbacks,
   jsonTypeWithDefault,
   JsonValue,
-} from "../data/json";
+} from "../data/Json";
 import { IdlTypeFlat } from "./IdlTypeFlat";
-import { idlTypeFlatParseValue } from "./IdlTypeFlat.parse";
+import { idlTypeFlatParseValue } from "./IdlTypeFlatParse";
 
 export type IdlTypedef = {
   readonly name: string;

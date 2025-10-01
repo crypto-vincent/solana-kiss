@@ -3,7 +3,7 @@ import { RpcHttp, rpcHttpGetTransaction } from "../src";
 
 it("run", async () => {
   const rpcHttp: RpcHttp = async () => {
-    return require("./fixtures/rpcHttp.getTransaction.json");
+    return require("./fixtures/RpcHttpGetTransaction.json");
   };
   const dudu = await rpcHttpGetTransaction(rpcHttp, "!");
   // TODO - check the content of the execution

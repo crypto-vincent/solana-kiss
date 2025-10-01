@@ -1,6 +1,6 @@
 import { it } from "@jest/globals";
 import { Keypair } from "@solana/web3.js";
-import { keypairFromSecret } from "../src/data/keypair";
+import { keypairFromSecret } from "../src/data/Keypair";
 
 const secret = new Uint8Array([
   96, 11, 209, 132, 49, 92, 144, 135, 105, 211, 34, 171, 125, 156, 217, 148, 65,

@@ -6,7 +6,7 @@ import {
   jsonExpectObject,
   jsonExpectString,
   JsonValue,
-} from "../data/json";
+} from "../data/Json";
 import { withContext } from "../utils";
 import {
   IdlTypeFull,

@@ -1,4 +1,4 @@
-import { base58Decode } from "../data/base58";
+import { base58Decode } from "../data/Base58";
 import {
   jsonTypeArray,
   jsonTypeNullable,
@@ -7,8 +7,8 @@ import {
   jsonTypeObjectToRecord,
   jsonTypeString,
   jsonTypeValue,
-} from "../data/json";
-import { Pubkey } from "../data/pubkey";
+} from "../data/Json";
+import { Pubkey } from "../data/Pubkey";
 import {
   Commitment,
   Input,
@@ -18,7 +18,7 @@ import {
   Transaction,
 } from "../types";
 import { expectItemInArray } from "../utils";
-import { RpcHttp } from "./rpcHttp";
+import { RpcHttp } from "./RpcHttp";
 
 export async function rpcHttpGetTransaction(
   rpcHttp: RpcHttp,

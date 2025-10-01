@@ -6,8 +6,8 @@ import {
   rpcHttpGetLatestBlockInfo,
   rpcHttpGetTransaction,
 } from "../src";
-import { signerFromSecret } from "../src/data/signer";
-import { rpcHttpSendInstructions } from "../src/rpc/rpcHttpSendInstructions";
+import { signerFromSecret } from "../src/data/Signer";
+import { rpcHttpSendInstructions } from "../src/rpc/RpcHttpSendInstructions";
 
 const secret = new Uint8Array([
   96, 11, 209, 132, 49, 92, 144, 135, 105, 211, 34, 171, 125, 156, 217, 148, 65,

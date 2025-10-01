@@ -1,4 +1,4 @@
-import { JsonObject, JsonValue } from "../data/json";
+import { JsonObject, JsonValue } from "../data/Json";
 import { withContext } from "../utils";
 import {
   IdlTypeFull,
@@ -145,8 +145,10 @@ const visitorDeserialize = {
       return [0, null];
     }
     let enumMask = 0n;
+    const codes = [];
     for (const variant of self.variants) {
       enumMask |= variant.code;
+      codes.push(variant.code);
     }
     let [dataSize, dataPrefix] = idlTypePrefixDeserialize(
       self.prefix,

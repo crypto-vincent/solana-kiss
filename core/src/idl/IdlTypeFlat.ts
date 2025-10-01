@@ -1,4 +1,4 @@
-import { JsonValue } from "../data/json";
+import { JsonValue } from "../data/Json";
 import { IdlTypePrefix } from "./IdlTypePrefix";
 import { IdlTypePrimitive } from "./IdlTypePrimitive";
 

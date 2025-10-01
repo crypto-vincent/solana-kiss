@@ -6,8 +6,8 @@ import {
   VersionedTransaction,
 } from "@solana/web3.js";
 import { Pubkey, pubkeyNewDummy } from "../src";
-import { keypairFromSecret } from "../src/data/keypair";
-import { messageCompile, messageSign } from "../src/data/message";
+import { keypairFromSecret } from "../src/data/Keypair";
+import { messageCompile, messageSign } from "../src/data/Message";
 
 it("run", async () => {
   const payerReference = Keypair.fromSecretKey(payerSecret);

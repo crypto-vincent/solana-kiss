@@ -1,7 +1,7 @@
-import { JsonValue } from "./data/json";
-import { Lamports } from "./data/lamports";
-import { Message } from "./data/message";
-import { Pubkey } from "./data/pubkey";
+import { JsonValue } from "./data/Json";
+import { Lamports } from "./data/Lamports";
+import { Message } from "./data/Message";
+import { Pubkey } from "./data/Pubkey";
 
 export type Commitment = "confirmed" | "finalized";
 

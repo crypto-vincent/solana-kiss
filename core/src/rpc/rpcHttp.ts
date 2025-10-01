@@ -5,7 +5,7 @@ import {
   jsonTypeOptional,
   jsonTypeString,
   jsonTypeValue,
-} from "../data/json";
+} from "../data/Json";
 import { Commitment } from "../types";
 
 export type RpcHttp = (

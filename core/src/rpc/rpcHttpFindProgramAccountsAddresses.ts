@@ -1,13 +1,8 @@
-import { base58Encode } from "../data/base58";
-import {
-  jsonTypeArray,
-  jsonTypeNumber,
-  jsonTypeObject,
-  jsonTypeString,
-} from "../data/json";
-import { Pubkey } from "../data/pubkey";
+import { base58Encode } from "../data/Base58";
+import { jsonTypeArray, jsonTypeObject, jsonTypeString } from "../data/Json";
+import { Pubkey } from "../data/Pubkey";
 import { Commitment } from "../types";
-import { RpcHttp } from "./rpcHttp";
+import { RpcHttp } from "./RpcHttp";
 
 // TODO - naming: find Owned accounts ?
 export async function rpcHttpFindProgramAccountsAddresses(
@@ -60,13 +55,5 @@ export async function rpcHttpFindProgramAccountsAddresses(
 }
 
 const resultJsonType = jsonTypeArray(
-  jsonTypeObject({
-    pubkey: jsonTypeString(),
-    account: jsonTypeObject({
-      executable: jsonTypeString(),
-      lamports: jsonTypeNumber(),
-      owner: jsonTypeString(),
-      space: jsonTypeNumber(),
-    }),
-  }),
+  jsonTypeObject({ pubkey: jsonTypeString() }),
 );

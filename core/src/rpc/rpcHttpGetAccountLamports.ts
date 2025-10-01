@@ -1,8 +1,8 @@
-import { jsonTypeNumber, jsonTypeObject } from "../data/json";
-import { Lamports } from "../data/lamports";
-import { Pubkey } from "../data/pubkey";
+import { jsonTypeNumber, jsonTypeObject } from "../data/Json";
+import { Lamports } from "../data/Lamports";
+import { Pubkey } from "../data/Pubkey";
 import { Commitment } from "../types";
-import { RpcHttp } from "./rpcHttp";
+import { RpcHttp } from "./RpcHttp";
 
 export async function rpcHttpGetAccountLamports(
   rpcHttp: RpcHttp,

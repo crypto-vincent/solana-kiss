@@ -6,18 +6,18 @@ import {
   jsonTypeOptional,
   jsonTypeValue,
   JsonValue,
-} from "../data/json";
+} from "../data/Json";
 import { IdlTypedef } from "./IdlTypedef";
 import { IdlTypeFlat } from "./IdlTypeFlat";
-import { idlTypeFlatHydrate } from "./IdlTypeFlat.hydrate";
+import { idlTypeFlatHydrate } from "./IdlTypeFlatHydrate";
 import {
   idlTypeFlatParseObject,
   idlTypeFlatParseObjectIsPossible,
   idlTypeFlatParseValue,
-} from "./IdlTypeFlat.parse";
+} from "./IdlTypeFlatParse";
 import { IdlTypeFull } from "./IdlTypeFull";
-import { idlTypeFullDeserialize } from "./IdlTypeFull.deserialize";
-import { idlTypeFullSerialize } from "./IdlTypeFull.serialize";
+import { idlTypeFullDeserialize } from "./IdlTypeFullDeserialize";
+import { idlTypeFullSerialize } from "./IdlTypeFullSerialize";
 import {
   idlUtilsBytesJsonType,
   idlUtilsDiscriminator,

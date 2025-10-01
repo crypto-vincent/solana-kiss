@@ -1,8 +1,8 @@
 import { it } from "@jest/globals";
 import { rpcHttpFromUrl } from "../src";
-import { rpcHttpGetAccountLamports } from "../src/rpc/rpcHttpGetAccountLamports";
-import { rpcHttpGetAccountMetadata } from "../src/rpc/rpcHttpGetAccountMetadata";
-import { rpcHttpGetAccountWithData } from "../src/rpc/rpcHttpGetAccountWithData";
+import { rpcHttpGetAccountLamports } from "../src/rpc/RpcHttpGetAccountLamports";
+import { rpcHttpGetAccountMetadata } from "../src/rpc/RpcHttpGetAccountMetadata";
+import { rpcHttpGetAccountWithData } from "../src/rpc/RpcHttpGetAccountWithData";
 
 it("run", async () => {
   const rpcHttp = rpcHttpFromUrl("https://api.devnet.solana.com");

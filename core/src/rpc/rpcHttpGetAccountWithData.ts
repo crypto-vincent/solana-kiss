@@ -1,4 +1,4 @@
-import { base64Decode } from "../data/base64";
+import { base64Decode } from "../data/Base64";
 import {
   jsonTypeArrayToTuple,
   jsonTypeBoolean,
@@ -7,11 +7,11 @@ import {
   jsonTypeNumber,
   jsonTypeObject,
   jsonTypeString,
-} from "../data/json";
-import { Lamports } from "../data/lamports";
-import { Pubkey, pubkeyDefault } from "../data/pubkey";
+} from "../data/Json";
+import { Lamports } from "../data/Lamports";
+import { Pubkey, pubkeyDefault } from "../data/Pubkey";
 import { Commitment } from "../types";
-import { RpcHttp } from "./rpcHttp";
+import { RpcHttp } from "./RpcHttp";
 
 export async function rpcHttpGetAccountWithData(
   rpcHttp: RpcHttp,

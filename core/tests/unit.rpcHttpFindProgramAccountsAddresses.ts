@@ -3,7 +3,7 @@ import { RpcHttp, rpcHttpFindProgramAccountsAddresses } from "../src";
 
 it("run", async () => {
   const rpcHttp: RpcHttp = async () => {
-    return require("./fixtures/rpcHttp.getProgramAccounts.json");
+    return require("./fixtures/RpcHttpGetProgramAccounts.json");
   };
   const accountsAddresses = await rpcHttpFindProgramAccountsAddresses(
     rpcHttp,

@@ -11,7 +11,7 @@ import {
   jsonExpectString,
   JsonObject,
   JsonValue,
-} from "../data/json";
+} from "../data/Json";
 import {
   IdlTypeFlat,
   IdlTypeFlatEnumVariant,

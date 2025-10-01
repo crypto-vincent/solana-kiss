@@ -1,6 +1,6 @@
 import { Signature } from "../types";
-import { base58Decode, base58Encode } from "./base58";
-import { Pubkey } from "./pubkey";
+import { base58Decode, base58Encode } from "./Base58";
+import { Pubkey } from "./Pubkey";
 
 // TODO - naming and naming casing
 export type Keypair = {
