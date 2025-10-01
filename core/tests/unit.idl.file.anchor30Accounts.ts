@@ -31,7 +31,7 @@ it("run", () => {
     pubkeyToBytes(tokenProgramAddress),
     pubkeyToBytes(collateralMintAddress),
   ]);
-  const campaignIndex = 0;
+  const campaignIndex = 42;
   const campaignAddress = pubkeyFindPdaAddress(programAddress, [
     new TextEncoder().encode("Campaign"),
     new Uint8Array([campaignIndex, 0, 0, 0, 0, 0, 0, 0]),

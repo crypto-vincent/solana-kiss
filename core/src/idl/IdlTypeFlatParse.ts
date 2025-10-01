@@ -1,3 +1,4 @@
+import { camelCaseToSnakeCase } from "../data/Casing";
 import {
   JsonArray,
   jsonAsArray,
@@ -410,7 +411,7 @@ export function idlTypeFlatFieldsParse(
         named = true;
       }
       fieldsInfos.push({
-        name: fieldName ?? fieldIndex.toString(),
+        name: camelCaseToSnakeCase(fieldName ?? fieldIndex.toString()),
         docs: fieldObject["docs"],
         content: fieldContent,
       });

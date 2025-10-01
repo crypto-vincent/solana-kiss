@@ -272,8 +272,9 @@ export function idlInstructionAddressesFindWithAccounts(
           instructionAddress,
         );
         madeProgress = true;
-      } catch {
-        // TODO - better error handling
+      } catch (error) {
+        console.log(error);
+        // TODO - better error handling and help with understanding what is missing
         // Ignore errors, we might not have enough info yet
       }
     }
