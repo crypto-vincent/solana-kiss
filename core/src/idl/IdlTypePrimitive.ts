@@ -113,45 +113,24 @@ const visitorSerialize = {
   },
   u16: (blob: Uint8Array, value: JsonValue) => {
     const num = jsonExpectInteger(value);
-    blob[0] = Number(num);
-    blob[1] = Number(num >> 8n);
+    const data = new DataView(blob.buffer);
+    data.setUint16(0, Number(num), true);
   },
   u32: (blob: Uint8Array, value: JsonValue) => {
     const num = jsonExpectInteger(value);
-    blob[0] = Number(num);
-    blob[1] = Number(num >> 8n);
-    blob[2] = Number(num >> 16n);
-    blob[3] = Number(num >> 24n);
+    const data = new DataView(blob.buffer);
+    data.setUint32(0, Number(num), true);
   },
   u64: (blob: Uint8Array, value: JsonValue) => {
     const num = jsonExpectInteger(value);
-    blob[0] = Number(num);
-    blob[1] = Number(num >> 8n);
-    blob[2] = Number(num >> 16n);
-    blob[3] = Number(num >> 24n);
-    blob[4] = Number(num >> 32n);
-    blob[5] = Number(num >> 40n);
-    blob[6] = Number(num >> 48n);
-    blob[7] = Number(num >> 56n);
+    const data = new DataView(blob.buffer);
+    data.setBigUint64(0, num, true);
   },
   u128: (blob: Uint8Array, value: JsonValue) => {
     const num = jsonExpectInteger(value);
-    blob[0] = Number(num);
-    blob[1] = Number(num >> 8n);
-    blob[2] = Number(num >> 16n);
-    blob[3] = Number(num >> 24n);
-    blob[4] = Number(num >> 32n);
-    blob[5] = Number(num >> 40n);
-    blob[6] = Number(num >> 48n);
-    blob[7] = Number(num >> 56n);
-    blob[8] = Number(num >> 64n);
-    blob[9] = Number(num >> 72n);
-    blob[10] = Number(num >> 80n);
-    blob[11] = Number(num >> 88n);
-    blob[12] = Number(num >> 96n);
-    blob[13] = Number(num >> 104n);
-    blob[14] = Number(num >> 112n);
-    blob[15] = Number(num >> 120n);
+    const data = new DataView(blob.buffer);
+    data.setBigUint64(0, num, true);
+    data.setBigUint64(8, num >> 64n, true);
   },
   i8: (blob: Uint8Array, value: JsonValue) => {
     const num = jsonExpectInteger(value);

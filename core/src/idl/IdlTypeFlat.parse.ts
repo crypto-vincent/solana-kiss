@@ -291,7 +291,7 @@ export function idlTypeFlatParseEnum(
     ) {
       const variantValue = variantsArray[variantIndex];
       let variantCode = BigInt(variantIndex);
-      let variantName = variantCode.toString();
+      let variantName = undefined;
       const variantNumber = jsonAsNumber(variantValue);
       if (variantNumber !== undefined) {
         variantCode = BigInt(variantNumber);
@@ -317,7 +317,11 @@ export function idlTypeFlatParseEnum(
         }
       }
       variants.push(
-        idlTypeFlatParseEnumVariant(variantName, variantCode, variantValue),
+        idlTypeFlatParseEnumVariant(
+          variantName ?? variantCode.toString(),
+          variantCode,
+          variantValue,
+        ),
       );
     }
   }
@@ -334,8 +338,9 @@ export function idlTypeFlatParseEnum(
         const variantCodeNumber = jsonAsNumber(variantCodeValue);
         if (variantCodeNumber !== undefined) {
           variantCode = BigInt(variantCodeNumber);
+        } else {
+          variantCode = BigInt(jsonExpectString(variantCodeValue));
         }
-        variantCode = BigInt(jsonExpectString(variantCodeValue));
       }
       variants.push(
         idlTypeFlatParseEnumVariant(variantName, variantCode, variantValue),

@@ -1,0 +1,168 @@
+import { idlProgramParse } from "../src/idl/IdlProgram";
+import { IdlTypeFlat, IdlTypeFlatFields } from "../src/idl/IdlTypeFlat";
+import { IdlTypePrefix } from "../src/idl/IdlTypePrefix";
+import { IdlTypePrimitive } from "../src/idl/IdlTypePrimitive";
+
+it("run", () => {
+  // Create IDLs using different shortened formats
+  const idlProgram1 = idlProgramParse({
+    types: {
+      MyStruct: {
+        fields: [
+          { type: "u8" },
+          { type: "u64" },
+          { type: "string" },
+          { type: ["u8"] },
+          { type: { vec: "u8" } },
+          { type: ["u32", 4] },
+          { type: { array: ["u32", 4] } },
+          { type: { fields: [] } },
+          { type: { variants: [] } },
+          { type: "Other" },
+          { type: { defined: "Other" } },
+          { type: { defined: { name: "Other" } } },
+          { type: { generic: "G" } },
+          { type: { option: "u8" } },
+          { type: { option32: "u8" } },
+          { type: { fields: [] }, docs: ["Hello"] },
+        ],
+      },
+    },
+  });
+  const idlProgram2 = idlProgramParse({
+    types: {
+      MyStruct: {
+        fields: [
+          "u8",
+          "u64",
+          "string",
+          ["u8"],
+          { vec: "u8" },
+          ["u32", 4],
+          { array: ["u32", 4] },
+          { fields: [] },
+          { variants: [] },
+          "Other",
+          { defined: "Other" },
+          { defined: { name: "Other" } },
+          { generic: "G" },
+          { option: "u8" },
+          { option32: "u8" },
+          { docs: ["Hello"], fields: [] },
+        ],
+      },
+    },
+  });
+  // Asser that the two notations are equivalent
+  expect(idlProgram1).toStrictEqual(idlProgram2);
+  // Assert that the content is correct
+  expect(idlProgram1.typedefs.get("MyStruct")).toStrictEqual({
+    name: "MyStruct",
+    docs: undefined,
+    serialization: undefined,
+    repr: undefined,
+    generics: [],
+    typeFlat: IdlTypeFlat.struct({
+      fields: IdlTypeFlatFields.unnamed([
+        {
+          docs: undefined,
+          content: IdlTypeFlat.primitive(IdlTypePrimitive.U8),
+        },
+        {
+          docs: undefined,
+          content: IdlTypeFlat.primitive(IdlTypePrimitive.U64),
+        },
+        {
+          docs: undefined,
+          content: IdlTypeFlat.string({
+            prefix: IdlTypePrefix.U32,
+          }),
+        },
+        {
+          docs: undefined,
+          content: IdlTypeFlat.vec({
+            prefix: IdlTypePrefix.U32,
+            items: IdlTypeFlat.primitive(IdlTypePrimitive.U8),
+          }),
+        },
+        {
+          docs: undefined,
+          content: IdlTypeFlat.vec({
+            prefix: IdlTypePrefix.U32,
+            items: IdlTypeFlat.primitive(IdlTypePrimitive.U8),
+          }),
+        },
+        {
+          docs: undefined,
+          content: IdlTypeFlat.array({
+            items: IdlTypeFlat.primitive(IdlTypePrimitive.U32),
+            length: IdlTypeFlat.const({ literal: 4 }),
+          }),
+        },
+        {
+          docs: undefined,
+          content: IdlTypeFlat.array({
+            items: IdlTypeFlat.primitive(IdlTypePrimitive.U32),
+            length: IdlTypeFlat.const({ literal: 4 }),
+          }),
+        },
+        {
+          docs: undefined,
+          content: IdlTypeFlat.structNothing(),
+        },
+        {
+          docs: undefined,
+          content: IdlTypeFlat.enum({
+            prefix: IdlTypePrefix.U8,
+            variants: [],
+          }),
+        },
+        {
+          docs: undefined,
+          content: IdlTypeFlat.defined({
+            name: "Other",
+            generics: [],
+          }),
+        },
+        {
+          docs: undefined,
+          content: IdlTypeFlat.defined({
+            name: "Other",
+            generics: [],
+          }),
+        },
+        {
+          docs: undefined,
+          content: IdlTypeFlat.defined({
+            name: "Other",
+            generics: [],
+          }),
+        },
+        {
+          docs: undefined,
+          content: IdlTypeFlat.generic({
+            symbol: "G",
+          }),
+        },
+        {
+          docs: undefined,
+          content: IdlTypeFlat.option({
+            prefix: IdlTypePrefix.U8,
+            content: IdlTypeFlat.primitive(IdlTypePrimitive.U8),
+          }),
+        },
+        {
+          docs: undefined,
+          content: IdlTypeFlat.option({
+            prefix: IdlTypePrefix.U32,
+            content: IdlTypeFlat.primitive(IdlTypePrimitive.U8),
+          }),
+        },
+        {
+          docs: ["Hello"],
+          content: IdlTypeFlat.structNothing(),
+        },
+      ]),
+    }),
+  });
+});

@@ -67,42 +67,21 @@ const visitorSerialize = {
     blob[0] = Number(value);
   },
   u16: (blob: Uint8Array, value: bigint) => {
-    blob[0] = Number(value);
-    blob[1] = Number(value >> 8n);
+    const data = new DataView(blob.buffer);
+    data.setUint16(0, Number(value), true);
   },
   u32: (blob: Uint8Array, value: bigint) => {
-    blob[0] = Number(value);
-    blob[1] = Number(value >> 8n);
-    blob[2] = Number(value >> 16n);
-    blob[3] = Number(value >> 24n);
+    const data = new DataView(blob.buffer);
+    data.setUint32(0, Number(value), true);
   },
   u64: (blob: Uint8Array, value: bigint) => {
-    blob[0] = Number(value);
-    blob[1] = Number(value >> 8n);
-    blob[2] = Number(value >> 16n);
-    blob[3] = Number(value >> 24n);
-    blob[4] = Number(value >> 32n);
-    blob[5] = Number(value >> 40n);
-    blob[6] = Number(value >> 48n);
-    blob[7] = Number(value >> 56n);
+    const data = new DataView(blob.buffer);
+    data.setBigUint64(0, value, true);
   },
   u128: (blob: Uint8Array, value: bigint) => {
-    blob[0] = Number(value);
-    blob[1] = Number(value >> 8n);
-    blob[2] = Number(value >> 16n);
-    blob[3] = Number(value >> 24n);
-    blob[4] = Number(value >> 32n);
-    blob[5] = Number(value >> 40n);
-    blob[6] = Number(value >> 48n);
-    blob[7] = Number(value >> 56n);
-    blob[8] = Number(value >> 64n);
-    blob[9] = Number(value >> 72n);
-    blob[10] = Number(value >> 80n);
-    blob[11] = Number(value >> 88n);
-    blob[12] = Number(value >> 96n);
-    blob[13] = Number(value >> 104n);
-    blob[14] = Number(value >> 112n);
-    blob[15] = Number(value >> 120n);
+    const data = new DataView(blob.buffer);
+    data.setBigUint64(0, value, true);
+    data.setBigUint64(8, value >> 64n, true);
   },
 };
 
