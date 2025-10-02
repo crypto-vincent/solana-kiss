@@ -3,13 +3,13 @@ import { base16Decode, base16Encode } from "../src";
 
 function referenceImplementation(data: Uint8Array): string {
   const hex = "0123456789ABCDEF";
-  let result = "";
+  const parts = [];
   for (let byteIndex = 0; byteIndex < data.length; byteIndex++) {
     const byte = data[byteIndex]!;
-    result += hex[(byte >> 4) & 0x0f];
-    result += hex[byte & 0x0f];
+    parts.push(hex[(byte >> 4) & 0x0f]);
+    parts.push(hex[byte & 0x0f]);
   }
-  return result;
+  return parts.join("");
 }
 
 it("run", async () => {
