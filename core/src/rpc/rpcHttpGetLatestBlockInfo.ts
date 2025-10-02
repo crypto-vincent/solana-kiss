@@ -1,4 +1,8 @@
-import { jsonTypeNumber, jsonTypeObject, jsonTypeString } from "../data/Json";
+import {
+  jsonDecodeNumber,
+  jsonDecoderObject,
+  jsonDecodeString,
+} from "../data/Json";
 import { Commitment, Hash, Slot } from "../data/Onchain";
 import { RpcHttp } from "./RpcHttp";
 
@@ -12,7 +16,7 @@ export async function rpcHttpGetLatestBlockInfo(
   hash: Hash;
   height: number;
 }> {
-  const result = resultJsonType.decode(
+  const result = resultDecode(
     await rpcHttp("getLatestBlockhash", [{ commitment: context?.commitment }]),
   );
   return {
@@ -22,12 +26,12 @@ export async function rpcHttpGetLatestBlockInfo(
   };
 }
 
-const resultJsonType = jsonTypeObject({
-  context: jsonTypeObject({
-    slot: jsonTypeNumber(),
+const resultDecode = jsonDecoderObject({
+  context: jsonDecoderObject({
+    slot: jsonDecodeNumber,
   }),
-  value: jsonTypeObject({
-    blockhash: jsonTypeString(),
-    lastValidBlockHeight: jsonTypeNumber(),
+  value: jsonDecoderObject({
+    blockhash: jsonDecodeString,
+    lastValidBlockHeight: jsonDecodeNumber,
   }),
 });

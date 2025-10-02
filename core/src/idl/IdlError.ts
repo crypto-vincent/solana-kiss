@@ -1,8 +1,10 @@
 import {
-  jsonAsNumber,
-  jsonAsObject,
-  jsonAsString,
-  jsonExpectNumber,
+  jsonDecodeNumber,
+  jsonDecoderByKind,
+  jsonDecoderObject,
+  jsonDecoderOptional,
+  jsonDecodeString,
+  jsonDecodeValue,
   JsonValue,
 } from "../data/Json";
 import { Immutable } from "../data/Utils";
@@ -21,27 +23,19 @@ export const idlErrorUnknown: Immutable<IdlError> = {
   msg: undefined,
 };
 
-export function idlErrorParse(
-  errorName: string,
-  errorValue: JsonValue,
-): IdlError {
-  const errorNumber = jsonAsNumber(errorValue);
-  if (errorNumber !== undefined) {
-    return {
-      name: errorName,
-      docs: undefined,
-      code: errorNumber,
-      msg: undefined,
-    };
-  }
-  const errorObject = jsonAsObject(errorValue);
-  if (errorObject !== undefined) {
-    return {
-      name: errorName,
-      docs: errorObject["docs"],
-      code: jsonExpectNumber(errorObject["code"]),
-      msg: jsonAsString(errorObject["msg"]),
-    };
-  }
-  throw new Error("Unparsable error (expected an object or number)");
-}
+export const idlErrorDecode = jsonDecoderByKind<{
+  docs: JsonValue;
+  code: number;
+  msg: string | undefined;
+}>({
+  number: (number: number) => ({
+    docs: undefined,
+    code: number,
+    msg: undefined,
+  }),
+  object: jsonDecoderObject({
+    docs: jsonDecodeValue,
+    code: jsonDecodeNumber,
+    msg: jsonDecoderOptional(jsonDecodeString),
+  }),
+});

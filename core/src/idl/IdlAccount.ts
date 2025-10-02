@@ -10,12 +10,11 @@ import {
 import { Immutable } from "../data/Utils";
 import { IdlTypedef } from "./IdlTypedef";
 import { IdlTypeFlat } from "./IdlTypeFlat";
-import { idlTypeFlatHydrate } from "./IdlTypeFlatHydrate";
 import {
   idlTypeFlatParseObject,
   idlTypeFlatParseObjectIsPossible,
-  idlTypeFlatParseString,
-} from "./IdlTypeFlatParse";
+} from "./IdlTypeFlatDecode";
+import { idlTypeFlatHydrate } from "./IdlTypeFlatHydrate";
 import { IdlTypeFull } from "./IdlTypeFull";
 import { idlTypeFullDeserialize } from "./IdlTypeFullDeserialize";
 import { idlTypeFullSerialize } from "./IdlTypeFullSerialize";
@@ -95,7 +94,7 @@ export function idlAccountParse(
   const accountObject = jsonExpectObject(accountValue);
   const contentTypeFlat = idlTypeFlatParseObjectIsPossible(accountObject)
     ? idlTypeFlatParseObject(accountObject)
-    : idlTypeFlatParseString(accountName);
+    : idlTypeFlatDefinedDecode(accountName);
   const contentTypeFull = idlTypeFlatHydrate(
     contentTypeFlat,
     new Map(),

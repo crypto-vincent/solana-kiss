@@ -1,26 +1,26 @@
 import {
+  jsonDecodeArray,
+  jsonDecodeNumber,
+  jsonDecodeObject,
+  jsonDecodeOptional,
+  jsonDecodeValue,
   jsonExpectObject,
-  jsonTypeArray,
-  jsonTypeNumber,
-  jsonTypeObject,
-  jsonTypeOptional,
-  jsonTypeValue,
   JsonValue,
 } from "../data/Json";
 import { Immutable } from "../data/Utils";
 import { IdlTypedef } from "./IdlTypedef";
 import { IdlTypeFlat } from "./IdlTypeFlat";
-import { idlTypeFlatHydrate } from "./IdlTypeFlatHydrate";
 import {
+  idlTypeFlatDefinedDecode,
   idlTypeFlatParseObject,
   idlTypeFlatParseObjectIsPossible,
-  idlTypeFlatParseString,
-} from "./IdlTypeFlatParse";
+} from "./IdlTypeFlatDecode";
+import { idlTypeFlatHydrate } from "./IdlTypeFlatHydrate";
 import { IdlTypeFull } from "./IdlTypeFull";
 import { idlTypeFullDeserialize } from "./IdlTypeFullDeserialize";
 import { idlTypeFullSerialize } from "./IdlTypeFullSerialize";
 import {
-  idlUtilsBytesJsonType,
+  idlUtilsBytesDecode,
   idlUtilsDiscriminator,
   idlUtilsExpectBlobAt,
   idlUtilsFlattenBlobs,
@@ -74,11 +74,11 @@ export function idlEventParse(
   eventValue: JsonValue,
   typedefsIdls: Map<string, IdlTypedef>,
 ): IdlEvent {
-  const eventPartial = partialJsonType.decode(eventValue);
+  const eventPartial = partialDecode.decode(eventValue);
   const eventObject = jsonExpectObject(eventValue);
   const infoTypeFlat = idlTypeFlatParseObjectIsPossible(eventObject)
     ? idlTypeFlatParseObject(eventObject)
-    : idlTypeFlatParseString(eventName);
+    : idlTypeFlatDefinedDecode(eventName);
   const infoTypeFull = idlTypeFlatHydrate(
     infoTypeFlat,
     new Map(),
@@ -94,16 +94,16 @@ export function idlEventParse(
   };
 }
 
-const partialJsonType = jsonTypeObject({
-  docs: jsonTypeValue(),
-  space: jsonTypeOptional(jsonTypeNumber()),
-  blobs: jsonTypeOptional(
-    jsonTypeArray(
-      jsonTypeObject({
-        offset: jsonTypeNumber(),
-        value: idlUtilsBytesJsonType,
+const partialDecode = jsonDecodeObject({
+  docs: jsonDecodeValue,
+  space: jsonDecodeOptional(jsonDecodeNumber),
+  blobs: jsonDecodeOptional(
+    jsonDecodeArray(
+      jsonDecodeObject({
+        offset: jsonDecodeNumber,
+        value: idlUtilsBytesDecode,
       }),
     ),
   ),
-  discriminator: jsonTypeOptional(idlUtilsBytesJsonType),
+  discriminator: jsonDecodeOptional(idlUtilsBytesDecode),
 });

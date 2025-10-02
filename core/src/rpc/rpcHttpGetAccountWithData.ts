@@ -1,12 +1,12 @@
 import { base64Decode } from "../data/Base64";
 import {
-  jsonTypeArrayToTuple,
-  jsonTypeBoolean,
-  jsonTypeConst,
-  jsonTypeNullable,
-  jsonTypeNumber,
-  jsonTypeObject,
-  jsonTypeString,
+  jsonDecodeBoolean,
+  jsonDecodeNumber,
+  jsonDecoderArrayToTuple,
+  jsonDecoderConst,
+  jsonDecoderNullable,
+  jsonDecoderObject,
+  jsonDecodeString,
 } from "../data/Json";
 import { Lamports } from "../data/Lamports";
 import { Commitment } from "../data/Onchain";
@@ -25,7 +25,7 @@ export async function rpcHttpGetAccountWithData(
   owner: Pubkey;
   data: Uint8Array;
 }> {
-  const result = resultJsonType.decode(
+  const result = resultDecode(
     await rpcHttp("getAccountInfo", [
       accountAddress,
       {
@@ -55,14 +55,17 @@ export async function rpcHttpGetAccountWithData(
   return { executable, lamports, owner, data };
 }
 
-const resultJsonType = jsonTypeObject({
-  value: jsonTypeNullable(
-    jsonTypeObject({
-      executable: jsonTypeBoolean(),
-      lamports: jsonTypeNumber(),
-      owner: jsonTypeString(),
-      data: jsonTypeArrayToTuple([jsonTypeString(), jsonTypeConst("base64")]),
-      space: jsonTypeNumber(),
+const resultDecode = jsonDecoderObject({
+  value: jsonDecoderNullable(
+    jsonDecoderObject({
+      executable: jsonDecodeBoolean,
+      lamports: jsonDecodeNumber,
+      owner: jsonDecodeString,
+      data: jsonDecoderArrayToTuple([
+        jsonDecodeString,
+        jsonDecoderConst("base64"),
+      ]),
+      space: jsonDecodeNumber,
     }),
   ),
 });

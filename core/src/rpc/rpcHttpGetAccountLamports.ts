@@ -1,4 +1,4 @@
-import { jsonTypeNumber, jsonTypeObject } from "../data/Json";
+import { jsonDecodeNumber, jsonDecoderObject } from "../data/Json";
 import { Lamports } from "../data/Lamports";
 import { Commitment } from "../data/Onchain";
 import { Pubkey } from "../data/Pubkey";
@@ -11,7 +11,7 @@ export async function rpcHttpGetAccountLamports(
     commitment?: Commitment;
   },
 ): Promise<Lamports> {
-  const result = resultJsonType.decode(
+  const result = resultDecode(
     await rpcHttp("getBalance", [
       accountAddress,
       { commitment: context?.commitment },
@@ -20,6 +20,6 @@ export async function rpcHttpGetAccountLamports(
   return BigInt(result.value);
 }
 
-const resultJsonType = jsonTypeObject({
-  value: jsonTypeNumber(),
+const resultDecode = jsonDecoderObject({
+  value: jsonDecodeNumber,
 });

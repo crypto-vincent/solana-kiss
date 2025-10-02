@@ -1,5 +1,5 @@
 import { base64Encode } from "../data/Base64";
-import { jsonTypeString } from "../data/Json";
+import { jsonDecodeString } from "../data/Json";
 import { messageCompile, messageSign } from "../data/Message";
 import { Commitment, Hash, Instruction, Slot } from "../data/Onchain";
 import { Signer } from "../data/Signer";
@@ -26,7 +26,7 @@ export async function rpcHttpSendInstructions(
     recentBlockHash: recentBlockInfo.hash,
   });
   const messageSigned = await messageSign(messageCompiled, signers);
-  const result = resultJsonType.decode(
+  const result = resultDecode(
     await rpcHttp("sendTransaction", [
       base64Encode(messageSigned),
       {
@@ -40,4 +40,4 @@ export async function rpcHttpSendInstructions(
   return result;
 }
 
-const resultJsonType = jsonTypeString();
+const resultDecode = jsonDecodeString;

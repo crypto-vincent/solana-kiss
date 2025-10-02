@@ -14,8 +14,8 @@ import {
   idlPathParse,
 } from "./IdlPath";
 import { IdlTypedef } from "./IdlTypedef";
+import { idlTypeFlatParse } from "./IdlTypeFlatDecode";
 import { idlTypeFlatHydrate } from "./IdlTypeFlatHydrate";
-import { idlTypeFlatParse } from "./IdlTypeFlatParse";
 import { IdlTypeFull, IdlTypeFullFields } from "./IdlTypeFull";
 import { idlTypeFullSerialize } from "./IdlTypeFullSerialize";
 import { idlUtilsFlattenBlobs } from "./IdlUtils";

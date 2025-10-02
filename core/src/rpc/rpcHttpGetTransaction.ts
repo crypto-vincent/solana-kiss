@@ -1,12 +1,12 @@
 import { base58Decode } from "../data/Base58";
 import {
-  jsonTypeArray,
-  jsonTypeNullable,
-  jsonTypeNumber,
-  jsonTypeObject,
-  jsonTypeObjectToRecord,
-  jsonTypeString,
-  jsonTypeValue,
+  jsonDecodeNumber,
+  jsonDecoderArray,
+  jsonDecoderNullable,
+  jsonDecoderObject,
+  jsonDecoderObjectToRecord,
+  jsonDecodeString,
+  jsonDecodeValue,
 } from "../data/Json";
 import {
   Commitment,
@@ -26,7 +26,7 @@ export async function rpcHttpGetTransaction(
     commitment?: Commitment;
   },
 ): Promise<Transaction | undefined> {
-  const result = resultJsonType.decode(
+  const result = resultDecode(
     await rpcHttp("getTransaction", [
       transactionKey,
       {
@@ -222,12 +222,12 @@ function decompileTransactionInstruction(
   };
 }
 
-const instructionJsonType = jsonTypeObject(
+const instructionDecode = jsonDecoderObject(
   {
-    stackHeight: jsonTypeNumber(),
-    programIndex: jsonTypeNumber(),
-    accountsIndexes: jsonTypeArray(jsonTypeNumber()),
-    dataBase58: jsonTypeString(),
+    stackHeight: jsonDecodeNumber,
+    programIndex: jsonDecodeNumber,
+    accountsIndexes: jsonDecoderArray(jsonDecodeNumber),
+    dataBase58: jsonDecodeString,
   },
   {
     programIndex: "programIdIndex",
@@ -236,45 +236,45 @@ const instructionJsonType = jsonTypeObject(
   },
 );
 
-const resultJsonType = jsonTypeNullable(
-  jsonTypeObject({
-    blockTime: jsonTypeNumber(),
-    meta: jsonTypeObject({
-      computeUnitsConsumed: jsonTypeNumber(),
-      err: jsonTypeNullable(jsonTypeObjectToRecord(jsonTypeValue())),
-      fee: jsonTypeNumber(),
-      innerInstructions: jsonTypeArray(
-        jsonTypeObject({
-          index: jsonTypeNumber(),
-          instructions: jsonTypeArray(instructionJsonType),
+const resultDecode = jsonDecoderNullable(
+  jsonDecoderObject({
+    blockTime: jsonDecodeNumber,
+    meta: jsonDecoderObject({
+      computeUnitsConsumed: jsonDecodeNumber,
+      err: jsonDecoderNullable(jsonDecoderObjectToRecord(jsonDecodeValue)),
+      fee: jsonDecodeNumber,
+      innerInstructions: jsonDecoderArray(
+        jsonDecoderObject({
+          index: jsonDecodeNumber,
+          instructions: jsonDecoderArray(instructionDecode),
         }),
       ),
-      loadedAddresses: jsonTypeObject({
-        writable: jsonTypeArray(jsonTypeString()),
-        readonly: jsonTypeArray(jsonTypeString()),
+      loadedAddresses: jsonDecoderObject({
+        writable: jsonDecoderArray(jsonDecodeString),
+        readonly: jsonDecoderArray(jsonDecodeString),
       }),
-      logMessages: jsonTypeArray(jsonTypeString()),
+      logMessages: jsonDecoderArray(jsonDecodeString),
     }),
-    slot: jsonTypeNumber(),
-    transaction: jsonTypeObject({
-      message: jsonTypeObject({
-        accountKeys: jsonTypeArray(jsonTypeString()),
-        addressTableLookups: jsonTypeArray(
-          jsonTypeObject({
-            accountKey: jsonTypeString(),
-            readonlyIndexes: jsonTypeArray(jsonTypeNumber()),
-            writableIndexes: jsonTypeArray(jsonTypeNumber()),
+    slot: jsonDecodeNumber,
+    transaction: jsonDecoderObject({
+      message: jsonDecoderObject({
+        accountKeys: jsonDecoderArray(jsonDecodeString),
+        addressTableLookups: jsonDecoderArray(
+          jsonDecoderObject({
+            accountKey: jsonDecodeString,
+            readonlyIndexes: jsonDecoderArray(jsonDecodeNumber),
+            writableIndexes: jsonDecoderArray(jsonDecodeNumber),
           }),
         ),
-        header: jsonTypeObject({
-          numReadonlySignedAccounts: jsonTypeNumber(),
-          numReadonlyUnsignedAccounts: jsonTypeNumber(),
-          numRequiredSignatures: jsonTypeNumber(),
+        header: jsonDecoderObject({
+          numReadonlySignedAccounts: jsonDecodeNumber,
+          numReadonlyUnsignedAccounts: jsonDecodeNumber,
+          numRequiredSignatures: jsonDecodeNumber,
         }),
-        instructions: jsonTypeArray(instructionJsonType),
-        recentBlockhash: jsonTypeString(),
+        instructions: jsonDecoderArray(instructionDecode),
+        recentBlockhash: jsonDecodeString,
       }),
-      signatures: jsonTypeArray(jsonTypeString()),
+      signatures: jsonDecoderArray(jsonDecodeString),
     }),
   }),
 );

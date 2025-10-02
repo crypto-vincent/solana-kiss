@@ -3,15 +3,6 @@ import { sha256Hash } from "./Sha256";
 
 export type Pubkey = string;
 
-export function pubkeyIsValid(address: Pubkey): boolean {
-  try {
-    const bytes = base58Decode(address);
-    return bytes.length === 32;
-  } catch (e) {
-    return false;
-  }
-}
-
 export function pubkeyDefault(): Pubkey {
   return "11111111111111111111111111111111";
 }
@@ -160,7 +151,4 @@ function inv(value: bigint) {
   return pow(value, fieldModulusP - 2n);
 }
 
-const pdaMarker = new Uint8Array([
-  80, 114, 111, 103, 114, 97, 109, 68, 101, 114, 105, 118, 101, 100, 65, 100,
-  100, 114, 101, 115, 115,
-]);
+const pdaMarker = new TextEncoder().encode("ProgramDerivedAddress");

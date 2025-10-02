@@ -1,5 +1,9 @@
 import { base58Encode } from "../data/Base58";
-import { jsonTypeArray, jsonTypeObject, jsonTypeString } from "../data/Json";
+import {
+  jsonDecoderArray,
+  jsonDecoderObject,
+  jsonDecodeString,
+} from "../data/Json";
 import { Commitment } from "../data/Onchain";
 import { Pubkey } from "../data/Pubkey";
 import { RpcHttp } from "./RpcHttp";
@@ -36,7 +40,7 @@ export async function rpcHttpFindProgramAccountsAddresses(
   if (paramFilters.length > 4) {
     throw new Error("RpcHttp: Too many filters, max is 4");
   }
-  const result = resultJsonType.decode(
+  const result = resultDecode(
     await rpcHttp("getProgramAccounts", [
       programAddress,
       {
@@ -54,6 +58,6 @@ export async function rpcHttpFindProgramAccountsAddresses(
   return accountsAddresses;
 }
 
-const resultJsonType = jsonTypeArray(
-  jsonTypeObject({ pubkey: jsonTypeString() }),
+const resultDecode = jsonDecoderArray(
+  jsonDecoderObject({ pubkey: jsonDecodeString }),
 );

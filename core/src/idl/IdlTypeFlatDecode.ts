@@ -1,15 +1,17 @@
 import { camelCaseToSnakeCase } from "../data/Casing";
 import {
   JsonArray,
-  jsonAsArray,
-  jsonAsNumber,
-  jsonAsObject,
-  jsonAsString,
-  jsonDecoderByType,
-  jsonExpectArray,
-  jsonExpectNumber,
-  jsonExpectObject,
-  jsonExpectString,
+  jsonDecodeArray,
+  jsonDecodeNumber,
+  jsonDecoderArray,
+  jsonDecoderByKind,
+  jsonDecoderMap,
+  jsonDecoderMerged,
+  jsonDecoderObject,
+  jsonDecoderObjectToMap,
+  jsonDecoderOptional,
+  jsonDecodeString,
+  jsonDecodeValue,
   JsonObject,
   jsonPreview,
   JsonValue,
@@ -17,7 +19,6 @@ import {
 import {
   IdlTypeFlat,
   IdlTypeFlatEnumVariant,
-  IdlTypeFlatFieldNamed,
   IdlTypeFlatFields,
 } from "./IdlTypeFlat";
 import { IdlTypePrefix } from "./IdlTypePrefix";
@@ -26,6 +27,7 @@ import { IdlTypePrimitive } from "./IdlTypePrimitive";
 export function idlTypeFlatParseObjectIsPossible(
   typeObject: JsonObject,
 ): boolean {
+  // TODO - this also looks like an enum honestly
   if (
     typeObject.hasOwnProperty("type") ||
     typeObject.hasOwnProperty("defined") ||
@@ -57,20 +59,18 @@ export function idlTypeFlatParseObjectIsPossible(
   return false;
 }
 
-const valueDecoder = jsonDecoderByType({
-  number: idlTypeFlatParseNumber,
+const valueDecoder = jsonDecoderByKind({
+  number: (number: number) => IdlTypeFlat.const({ literal: number }),
   string: idlTypeFlatParseString,
   array: idlTypeFlatParseArray,
   object: idlTypeFlatParseObject,
 });
+
 export function idlTypeFlatParse(typeValue: JsonValue): IdlTypeFlat {
   return valueDecoder(typeValue);
 }
 
-export function idlTypeFlatParseNumber(typeNumber: number): IdlTypeFlat {
-  return IdlTypeFlat.const({ literal: typeNumber });
-}
-
+// TODO - naming for this stuff should be JSON related ?
 export function idlTypeFlatParseString(typeString: string): IdlTypeFlat {
   if (typeString === "bytes") {
     return IdlTypeFlat.vec({
@@ -133,11 +133,11 @@ export function idlTypeFlatParseObject(typeObject: JsonObject): IdlTypeFlat {
   }
   const definedValue = typeObject["defined"];
   if (definedValue !== undefined) {
-    return idlTypeFlatParseDefined(definedValue);
+    return idlTypeFlatDefinedDecode(definedValue);
   }
   const genericValue = typeObject["generic"];
   if (genericValue !== undefined) {
-    return idlTypeFlatParseGeneric(genericValue);
+    return idlTypeFlatGenericDecode(genericValue);
   }
   const optionValue = typeObject["option"];
   if (optionValue !== undefined) {
@@ -225,32 +225,12 @@ export function idlTypeFlatParseObject(typeObject: JsonObject): IdlTypeFlat {
   }
   const constValue = typeObject["value"];
   if (constValue !== undefined) {
-    return idlTypeFlatParseConst(constValue);
+    return idlTypeFlatConstDecode(constValue);
   }
   throw new Error("Could not parse type object");
 }
 
-export function idlTypeFlatParseDefined(definedValue: JsonValue): IdlTypeFlat {
-  const definedString = jsonAsString(definedValue);
-  if (definedString !== undefined) {
-    return IdlTypeFlat.defined({
-      name: definedString,
-      generics: [],
-    });
-  }
-  const definedObject = jsonExpectObject(definedValue);
-  const name = jsonExpectString(definedObject["name"]);
-  const generics = [];
-  const definedGenericsArray = jsonAsArray(definedObject["generics"]);
-  if (definedGenericsArray !== undefined) {
-    for (const definedGenericValue of definedGenericsArray) {
-      generics.push(idlTypeFlatParse(definedGenericValue));
-    }
-  }
-  return IdlTypeFlat.defined({ name, generics });
-}
-
-export function idlTypeFlatParseGeneric(genericValue: JsonValue): IdlTypeFlat {
+export function idlTypeFlatGenericDecode(genericValue: JsonValue): IdlTypeFlat {
   const symbol = jsonExpectString(genericValue);
   return IdlTypeFlat.generic({ symbol });
 }
@@ -279,98 +259,89 @@ export function idlTypeFlatParseStruct(structFields: JsonValue): IdlTypeFlat {
   return IdlTypeFlat.struct({ fields: idlTypeFlatFieldsParse(structFields) });
 }
 
-export function idlTypeFlatParseEnum(
-  prefix: IdlTypePrefix,
-  variantsValue: JsonValue,
-): IdlTypeFlat {
-  const variants = [];
-  const variantsArray = jsonAsArray(variantsValue);
-  if (variantsArray !== undefined) {
-    for (
-      let variantIndex = 0;
-      variantIndex < variantsArray.length;
-      variantIndex++
-    ) {
-      const variantValue = variantsArray[variantIndex];
-      let variantCode = BigInt(variantIndex);
-      let variantName = undefined;
-      const variantNumber = jsonAsNumber(variantValue);
-      if (variantNumber !== undefined) {
-        variantCode = BigInt(variantNumber);
-      }
-      const variantString = jsonAsString(variantValue);
-      if (variantString !== undefined) {
-        variantName = variantString;
-      }
-      const variantObject = jsonAsObject(variantValue);
-      if (variantObject !== undefined) {
-        const variantCodeValue = variantObject["code"];
-        const variantCodeNumber = jsonAsNumber(variantCodeValue);
-        if (variantCodeNumber !== undefined) {
-          variantCode = BigInt(variantCodeNumber);
-        }
-        const variantCodeString = jsonAsString(variantCodeValue);
-        if (variantCodeString !== undefined) {
-          variantCode = BigInt(variantCodeString);
-        }
-        const variantNameValue = variantObject["name"];
-        if (variantNameValue !== undefined) {
-          variantName = jsonExpectString(variantNameValue);
-        }
-      }
-      variants.push(
-        idlTypeFlatParseEnumVariant(
-          variantName ?? variantCode.toString(),
-          variantCode,
-          variantValue,
-        ),
-      );
-    }
-  }
-  const variantsObject = jsonAsObject(variantsValue);
-  if (variantsObject !== undefined) {
-    Object.entries(variantsObject).forEach(([variantName, variantValue]) => {
-      let variantCode = BigInt(0);
-      const variantNumber = jsonAsNumber(variantValue);
-      if (variantNumber !== undefined) {
-        variantCode = BigInt(variantNumber);
-      } else {
-        const variantObject = jsonExpectObject(variantValue);
-        const variantCodeValue = variantObject["code"];
-        const variantCodeNumber = jsonAsNumber(variantCodeValue);
-        if (variantCodeNumber !== undefined) {
-          variantCode = BigInt(variantCodeNumber);
-        } else {
-          variantCode = BigInt(jsonExpectString(variantCodeValue));
-        }
-      }
-      variants.push(
-        idlTypeFlatParseEnumVariant(variantName, variantCode, variantValue),
-      );
-    });
-  }
-  return IdlTypeFlat.enum({ prefix, variants });
-}
+const bigintDecode = jsonDecoderByKind({
+  number: (number: number) => BigInt(number),
+  string: (string: string) => BigInt(string), // TODO - make this reusable
+});
 
-export function idlTypeFlatParseEnumVariant(
-  variantName: string,
-  variantCode: bigint,
-  variantValue: JsonValue,
-): IdlTypeFlatEnumVariant {
-  let docs = undefined;
-  let fields = IdlTypeFlatFields.nothing();
-  const variantObject = jsonAsObject(variantValue);
-  if (variantObject !== undefined) {
-    docs = variantObject["docs"];
-    fields = idlTypeFlatFieldsParse(variantObject["fields"]);
-  }
-  return {
-    name: variantName,
-    code: variantCode,
-    docs,
-    fields,
-  };
-}
+const idlTypeFlatEnumArrayVariantDecode = jsonDecoderByKind<{
+  name: string | undefined;
+  code: bigint | undefined;
+  docs: JsonValue;
+  fields: IdlTypeFlatFields;
+}>({
+  number: (number: number) => ({
+    name: undefined,
+    code: BigInt(number),
+    docs: undefined,
+    fields: IdlTypeFlatFields.nothing(),
+  }),
+  string: (string: string) => ({
+    name: string,
+    code: undefined,
+    docs: undefined,
+    fields: IdlTypeFlatFields.nothing(),
+  }),
+  object: jsonDecoderObject({
+    name: jsonDecoderOptional(jsonDecodeString),
+    code: jsonDecoderOptional(bigintDecode),
+    docs: jsonDecodeValue,
+    fields: idlTypeFlatFieldsDecode,
+  }),
+});
+
+const idlTypeFlatEnumObjectVariantDecode = jsonDecoderByKind<{
+  code: bigint;
+  docs: JsonValue;
+  fields: IdlTypeFlatFields;
+}>({
+  number: (number: number) => ({
+    code: BigInt(number),
+    docs: undefined,
+    fields: IdlTypeFlatFields.nothing(),
+  }),
+  string: (string: string) => ({
+    code: BigInt(string),
+    docs: undefined,
+    fields: IdlTypeFlatFields.nothing(),
+  }),
+  object: jsonDecoderObject({
+    code: bigintDecode,
+    docs: jsonDecodeValue,
+    fields: idlTypeFlatFieldsDecode,
+  }),
+});
+
+const idlTypeFlatEnumDecode = jsonDecoderByKind({
+  array: jsonDecoderMap(
+    jsonDecoderArray(idlTypeFlatEnumArrayVariantDecode),
+    (variantsArray) =>
+      variantsArray.map((variantInfo, variantIndex) => {
+        const code = variantInfo.code ?? BigInt(variantIndex);
+        return {
+          name: variantInfo.name ?? String(code),
+          code,
+          docs: variantInfo.docs,
+          fields: variantInfo.fields,
+        };
+      }),
+  ),
+  object: jsonDecoderMap(
+    jsonDecoderObjectToMap(idlTypeFlatEnumObjectVariantDecode),
+    (variantsMap) => {
+      const variants = new Array<IdlTypeFlatEnumVariant>();
+      for (const [variantName, variantInfo] of variantsMap) {
+        variants.push({
+          name: variantName,
+          code: variantInfo.code,
+          docs: variantInfo.docs,
+          fields: variantInfo.fields,
+        });
+      }
+      return variants;
+    },
+  ),
+});
 
 export function idlTypeFlatParsePadded(paddedValue: JsonValue): IdlTypeFlat {
   // TODO - could we use jsonType in those cases?
@@ -382,56 +353,96 @@ export function idlTypeFlatParsePadded(paddedValue: JsonValue): IdlTypeFlat {
     content: idlTypeFlatParseObject(paddedObject),
   });
 }
+export const idlTypeFlatPaddedDecode = jsonDecoderObject(
+  {
+    before: jsonDecodeNumber,
+    minSize: jsonDecodeNumber,
+    after: jsonDecodeNumber,
+    // content: idlTypeFlatParseObject, // TODO - type json
+  },
+  {
+    minSize: "min_size",
+  },
+);
 
-export function idlTypeFlatParseConst(constValue: JsonValue): IdlTypeFlat {
-  return IdlTypeFlat.const({
-    literal: Number(jsonExpectString(constValue)),
-  });
-}
+export const idlTypeFlatGenericDecode = jsonDecoderMap(
+  jsonDecodeString,
+  (string: string) =>
+    IdlTypeFlat.generic({
+      symbol: string,
+    }),
+);
+
+export const idlTypeFlatConstDecode = jsonDecoderMap(
+  jsonDecodeString,
+  (string: string) =>
+    IdlTypeFlat.const({
+      literal: Number(string),
+    }),
+);
+
+export const idlTypeFlatDefinedDecode = jsonDecoderMap(
+  jsonDecoderByKind({
+    string: (string: string) => ({
+      name: string,
+      generics: [],
+    }),
+    object: jsonDecoderObject({
+      name: jsonDecodeString,
+      generics: jsonDecodeArray, // TODO - generics
+      // generics: jsonDecoderOptional(jsonDecoderArray(jsonDecodeValue)),
+    }),
+  }),
+  (defined) =>
+    IdlTypeFlat.defined({
+      name: defined.name,
+      generics: [],
+      //generics: defined.generics,
+    }),
+);
+
+const idlTypeFlatFieldsFieldDecode = jsonDecoderMerged(
+  jsonDecoderByKind({
+    string: () => ({ name: undefined, docs: undefined }),
+    object: jsonDecoderObject({
+      name: jsonDecoderOptional(jsonDecodeString),
+      docs: jsonDecodeValue,
+    }),
+  }),
+  jsonDecodeValue, // TODO - use json decoder
+  (fieldMeta, fieldType) => ({
+    name: fieldMeta.name,
+    docs: fieldMeta.docs,
+    content: idlTypeFlatParse(fieldType),
+  }),
+);
+export const idlTypeFlatFieldsDecode = jsonDecoderByKind({
+  undefined: () => IdlTypeFlatFields.nothing(),
+  array: (array: JsonArray) => {
+    if (array.length === 0) {
+      return IdlTypeFlatFields.nothing();
+    }
+    let named = false;
+    const fields = array.map((fieldValue, fieldIndex) => {
+      const field = idlTypeFlatFieldsFieldDecode(fieldValue);
+      if (field.name !== undefined) {
+        named = true;
+      }
+      return {
+        name: camelCaseToSnakeCase(field.name ?? fieldIndex.toString()),
+        docs: field.docs,
+        content: field.content,
+      };
+    });
+    if (named) {
+      return IdlTypeFlatFields.named(fields);
+    }
+    return IdlTypeFlatFields.unnamed(fields);
+  },
+});
 
 export function idlTypeFlatFieldsParse(
   fieldsValue: JsonValue,
 ): IdlTypeFlatFields {
-  if (fieldsValue === undefined || fieldsValue === null) {
-    return IdlTypeFlatFields.nothing();
-  }
-  const fieldsArray = jsonExpectArray(fieldsValue);
-  if (fieldsArray.length === 0) {
-    return IdlTypeFlatFields.nothing();
-  }
-  let named = false;
-  const fieldsInfos: Array<IdlTypeFlatFieldNamed> = [];
-  for (let fieldIndex = 0; fieldIndex < fieldsArray.length; fieldIndex++) {
-    const fieldValue = fieldsArray[fieldIndex];
-    const fieldContent = idlTypeFlatParse(fieldValue);
-    const fieldObject = jsonAsObject(fieldValue);
-    if (fieldObject !== undefined) {
-      const fieldName = jsonAsString(fieldObject["name"]);
-      if (fieldName !== undefined) {
-        named = true;
-      }
-      fieldsInfos.push({
-        name: camelCaseToSnakeCase(fieldName ?? fieldIndex.toString()),
-        docs: fieldObject["docs"],
-        content: fieldContent,
-      });
-    } else {
-      fieldsInfos.push({
-        name: fieldIndex.toString(),
-        docs: undefined,
-        content: fieldContent,
-      });
-    }
-  }
-  if (named) {
-    return IdlTypeFlatFields.named(fieldsInfos);
-  }
-  return IdlTypeFlatFields.unnamed(
-    fieldsInfos.map((fieldInfo) => {
-      return {
-        docs: fieldInfo.docs,
-        content: fieldInfo.content,
-      };
-    }),
-  );
+  return idlTypeFlatFieldsDecode(fieldsValue);
 }

@@ -16,11 +16,11 @@ import {
 } from "./IdlInstructionAccount";
 import { IdlTypedef } from "./IdlTypedef";
 import { IdlTypeFlat, IdlTypeFlatFields } from "./IdlTypeFlat";
+import { idlTypeFlatFieldsDecode, idlTypeFlatParse } from "./IdlTypeFlatDecode";
 import {
   idlTypeFlatFieldsHydrate,
   idlTypeFlatHydrate,
 } from "./IdlTypeFlatHydrate";
-import { idlTypeFlatFieldsParse, idlTypeFlatParse } from "./IdlTypeFlatParse";
 import { IdlTypeFull, IdlTypeFullFields } from "./IdlTypeFull";
 import { idlTypeFullFieldsDeserialize } from "./IdlTypeFullDeserialize";
 import { idlTypeFullFieldsSerialize } from "./IdlTypeFullSerialize";
@@ -289,9 +289,9 @@ export function idlInstructionParse(
   instructionValue: JsonValue,
   typedefsIdls: Map<string, IdlTypedef>,
 ): IdlInstruction {
-  const instructionPartial = partialJsonType.decode(instructionValue);
+  const instructionPartial = partialType.decode(instructionValue);
   const instructionObject = jsonExpectObject(instructionValue);
-  const argsTypeFlatFields = idlTypeFlatFieldsParse(instructionObject["args"]);
+  const argsTypeFlatFields = idlTypeFlatFieldsDecode(instructionObject["args"]);
   const argsTypeFullFields = idlTypeFlatFieldsHydrate(
     argsTypeFlatFields,
     new Map(),
@@ -328,7 +328,7 @@ export function idlInstructionParse(
   };
 }
 
-const partialJsonType = jsonTypeObject({
+const partialType = jsonTypeObject({
   docs: jsonTypeValue(),
   discriminator: jsonTypeOptional(idlUtilsBytesJsonType),
 });

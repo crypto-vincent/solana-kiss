@@ -1,44 +1,26 @@
-import { jsonDecoderString, jsonExpectObject, JsonValue } from "../data/Json";
+import {
+  jsonDecoderObject,
+  jsonDecoderOptional,
+  jsonDecodeString,
+  jsonDecodeValue,
+  JsonValue,
+} from "../data/Json";
 import { Pubkey } from "../data/Pubkey";
 
 export type IdlMetadata = {
-  name?: string;
-  docs?: any;
-  description?: string;
-  address?: Pubkey;
-  version?: string;
-  spec?: string;
+  name: string | undefined;
+  docs: JsonValue | undefined;
+  description: string | undefined;
+  address: Pubkey | undefined;
+  version: string | undefined;
+  spec: string | undefined;
 };
 
-export function idlMetadataParse(metadataValue: JsonValue): IdlMetadata {
-  if (!metadataValue) {
-    return {};
-  }
-  const metadataIdl: IdlMetadata = {};
-  const metadataObject = jsonExpectObject(metadataValue);
-  const metadataName = metadataObject["name"];
-  if (metadataName !== undefined) {
-    metadataIdl.name = jsonDecoderString(metadataName);
-  }
-  const metadataDocs = metadataObject["docs"];
-  if (metadataDocs !== undefined) {
-    metadataIdl.docs = metadataDocs;
-  }
-  const metadataDescription = metadataObject["description"];
-  if (metadataDescription !== undefined) {
-    metadataIdl.description = jsonDecoderString(metadataDescription);
-  }
-  const metadataAddress = metadataObject["address"];
-  if (metadataAddress !== undefined) {
-    metadataIdl.address = jsonDecoderString(metadataAddress);
-  }
-  const metadataVersion = metadataObject["version"];
-  if (metadataVersion !== undefined) {
-    metadataIdl.version = jsonDecoderString(metadataVersion);
-  }
-  const metadataSpec = metadataObject["spec"];
-  if (metadataSpec !== undefined) {
-    metadataIdl.spec = jsonDecoderString(metadataSpec);
-  }
-  return metadataIdl;
-}
+export const idlMetadataDecode = jsonDecoderObject({
+  name: jsonDecoderOptional(jsonDecodeString),
+  docs: jsonDecoderOptional(jsonDecodeValue),
+  description: jsonDecoderOptional(jsonDecodeString),
+  address: jsonDecoderOptional(jsonDecodeString),
+  version: jsonDecoderOptional(jsonDecodeString),
+  spec: jsonDecoderOptional(jsonDecodeString),
+});

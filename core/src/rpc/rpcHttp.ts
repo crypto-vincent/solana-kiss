@@ -1,10 +1,10 @@
 import {
   JsonValue,
-  jsonTypeNumber,
-  jsonTypeObject,
-  jsonTypeOptional,
-  jsonTypeString,
-  jsonTypeValue,
+  jsonDecodeNumber,
+  jsonDecodeString,
+  jsonDecodeValue,
+  jsonDecoderObject,
+  jsonDecoderOptional,
 } from "../data/Json";
 import { Commitment } from "../data/Onchain";
 
@@ -48,7 +48,7 @@ export function rpcHttpFromUrl(
       }),
     });
     const responseJson = (await responseRaw.json()) as JsonValue;
-    const response = responseJsonType.decode(responseJson);
+    const response = responseDecode(responseJson);
     if (response.jsonrpc !== "2.0") {
       throw new Error(
         `RpcHttp: Expected response jsonrpc: "2.0" (found: "${response.jsonrpc}")`,
@@ -127,14 +127,14 @@ export function rpcHttpWithRetryOnError(
 
 let uniqueRequestId = 1;
 
-const responseJsonType = jsonTypeObject({
-  jsonrpc: jsonTypeString(),
-  id: jsonTypeNumber(),
-  error: jsonTypeOptional(
-    jsonTypeObject({
-      code: jsonTypeNumber(),
-      message: jsonTypeString(),
+const responseDecode = jsonDecoderObject({
+  jsonrpc: jsonDecodeString,
+  id: jsonDecodeNumber,
+  error: jsonDecoderOptional(
+    jsonDecoderObject({
+      code: jsonDecodeNumber,
+      message: jsonDecodeString,
     }),
   ),
-  result: jsonTypeOptional(jsonTypeValue()),
+  result: jsonDecoderOptional(jsonDecodeValue),
 });

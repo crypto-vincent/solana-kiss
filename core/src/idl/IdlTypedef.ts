@@ -1,16 +1,16 @@
 import {
+  jsonDecoderArray,
+  jsonDecoderObject,
+  jsonDecoderOptional,
+  jsonDecoderWithDecodeFallbacks,
+  jsonDecoderWithDefault,
+  jsonDecodeString,
+  jsonDecodeValue,
   jsonExpectString,
-  jsonTypeArray,
-  jsonTypeObject,
-  jsonTypeOptional,
-  jsonTypeString,
-  jsonTypeValue,
-  jsonTypeWithDecodeFallbacks,
-  jsonTypeWithDefault,
   JsonValue,
 } from "../data/Json";
+import { idlDecoderFlatParse } from "./IdlDecoderFlatParse";
 import { IdlTypeFlat } from "./IdlTypeFlat";
-import { idlTypeFlatParse } from "./IdlTypeFlatParse";
 
 export type IdlTypedef = {
   name: string;
@@ -25,30 +25,32 @@ export function idlTypedefParse(
   typedefName: string,
   typedefValue: JsonValue,
 ): IdlTypedef {
-  const typedefInfo = typedefJsonType.decode(typedefValue);
+  const typedefInfo = typedefDecode(typedefValue);
   return {
     name: typedefName,
     docs: typedefInfo.docs,
     serialization: typedefInfo.serialization,
     repr: typedefInfo.repr?.kind,
     generics: typedefInfo.generics.map((generic) => generic.name),
-    typeFlat: idlTypeFlatParse(typedefValue),
+    typeFlat: idlDecoderFlatParse(typedefValue),
   };
 }
 
-const typedefJsonType = jsonTypeObject({
-  docs: jsonTypeValue(),
-  serialization: jsonTypeOptional(jsonTypeString()),
-  repr: jsonTypeOptional(
-    jsonTypeWithDecodeFallbacks(jsonTypeObject({ kind: jsonTypeString() }), [
-      (value: JsonValue) => ({ kind: jsonExpectString(value) }),
-    ]),
+const typedefDecode = jsonDecoderObject({
+  docs: jsonDecodeValue,
+  serialization: jsonDecoderOptional(jsonDecodeString),
+  repr: jsonDecoderOptional(
+    jsonDecoderWithDecodeFallbacks(
+      jsonDecoderObject({ kind: jsonDecodeString }),
+      [(value: JsonValue) => ({ kind: jsonExpectString(value) })],
+    ),
   ),
-  generics: jsonTypeWithDefault(
-    jsonTypeArray(
-      jsonTypeWithDecodeFallbacks(jsonTypeObject({ name: jsonTypeString() }), [
-        (value: JsonValue) => ({ name: jsonExpectString(value) }),
-      ]),
+  generics: jsonDecoderWithDefault(
+    jsonDecoderArray(
+      jsonDecoderWithDecodeFallbacks(
+        jsonDecoderObject({ name: jsonDecodeString }),
+        [(value: JsonValue) => ({ name: jsonExpectString(value) })],
+      ),
     ),
     () => [],
   ),

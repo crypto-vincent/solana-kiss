@@ -1,4 +1,8 @@
-import { jsonTypeArray, jsonTypeObject, jsonTypeString } from "../data/Json";
+import {
+  jsonDecoderArray,
+  jsonDecoderObject,
+  jsonDecodeString,
+} from "../data/Json";
 import { Commitment, Signature } from "../data/Onchain";
 import { Pubkey } from "../data/Pubkey";
 import { RpcHttp } from "./RpcHttp";
@@ -20,7 +24,7 @@ export async function rpcHttpFindAccountTransactionsKeys(
   const rewindUntilTransactionKey = pagination?.rewindUntilTransactionKey;
   let startBeforeTransactionKey = pagination?.startBeforeTransactionKey;
   while (true) {
-    const result = resultJsonType.decode(
+    const result = resultDecode(
       await rpcHttp("getSignaturesForAddress", [
         accountAddress,
         {
@@ -50,8 +54,8 @@ export async function rpcHttpFindAccountTransactionsKeys(
   }
 }
 
-const resultJsonType = jsonTypeArray(
-  jsonTypeObject({
-    signature: jsonTypeString(),
+const resultDecode = jsonDecoderArray(
+  jsonDecoderObject({
+    signature: jsonDecodeString,
   }),
 );

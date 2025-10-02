@@ -1,9 +1,9 @@
 import {
-  jsonTypeBoolean,
-  jsonTypeNullable,
-  jsonTypeNumber,
-  jsonTypeObject,
-  jsonTypeString,
+  jsonDecodeBoolean,
+  jsonDecodeNumber,
+  jsonDecoderNullable,
+  jsonDecoderObject,
+  jsonDecodeString,
 } from "../data/Json";
 import { Lamports } from "../data/Lamports";
 import { Commitment } from "../data/Onchain";
@@ -22,7 +22,7 @@ export async function rpcHttpGetAccountMetadata(
   owner: Pubkey;
   space: number;
 }> {
-  const result = resultJsonType.decode(
+  const result = resultDecode(
     await rpcHttp("getAccountInfo", [
       accountAddress,
       {
@@ -48,13 +48,13 @@ export async function rpcHttpGetAccountMetadata(
   return { executable, lamports, owner, space };
 }
 
-const resultJsonType = jsonTypeObject({
-  value: jsonTypeNullable(
-    jsonTypeObject({
-      executable: jsonTypeBoolean(),
-      lamports: jsonTypeNumber(),
-      owner: jsonTypeString(),
-      space: jsonTypeNumber(),
+const resultDecode = jsonDecoderObject({
+  value: jsonDecoderNullable(
+    jsonDecoderObject({
+      executable: jsonDecodeBoolean,
+      lamports: jsonDecodeNumber,
+      owner: jsonDecodeString,
+      space: jsonDecodeNumber,
     }),
   ),
 });
