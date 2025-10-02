@@ -1,8 +1,7 @@
 import {
-  jsonDecodeArray,
-  jsonDecodeNumber,
   jsonDecodeObject,
   jsonDecodeOptional,
+  jsonDecoderMerged,
   jsonDecodeValue,
   jsonExpectObject,
   JsonValue,
@@ -11,6 +10,7 @@ import { Immutable } from "../data/Utils";
 import { IdlTypedef } from "./IdlTypedef";
 import { IdlTypeFlat } from "./IdlTypeFlat";
 import {
+  idlTypeFlatDecode,
   idlTypeFlatDefinedDecode,
   idlTypeFlatParseObject,
   idlTypeFlatParseObjectIsPossible,
@@ -94,16 +94,11 @@ export function idlEventParse(
   };
 }
 
-const partialDecode = jsonDecodeObject({
-  docs: jsonDecodeValue,
-  space: jsonDecodeOptional(jsonDecodeNumber),
-  blobs: jsonDecodeOptional(
-    jsonDecodeArray(
-      jsonDecodeObject({
-        offset: jsonDecodeNumber,
-        value: idlUtilsBytesDecode,
-      }),
-    ),
-  ),
-  discriminator: jsonDecodeOptional(idlUtilsBytesDecode),
-});
+export const idlEventParse = jsonDecoderMerged(
+  jsonDecodeObject({
+    docs: jsonDecodeValue,
+    discriminator: jsonDecodeOptional(idlUtilsBytesDecode),
+  }),
+  jsonDecoderOptional(idlTypeFlatDecode),
+  (eventInfo, eventType) => {},
+);

@@ -32,9 +32,9 @@ export type IdlTypeFlatEnum = {
   variants: Array<IdlTypeFlatEnumVariant>;
 };
 export type IdlTypeFlatPadded = {
-  before: number;
-  minSize: number;
-  after: number;
+  before: number | undefined;
+  minSize: number | undefined;
+  after: number | undefined;
   content: IdlTypeFlat;
 };
 export type IdlTypeFlatConst = {

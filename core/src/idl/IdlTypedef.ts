@@ -1,16 +1,15 @@
 import {
   jsonDecoderArray,
+  jsonDecoderByKind,
+  jsonDecoderMap,
   jsonDecoderObject,
   jsonDecoderOptional,
-  jsonDecoderWithDecodeFallbacks,
-  jsonDecoderWithDefault,
   jsonDecodeString,
   jsonDecodeValue,
-  jsonExpectString,
   JsonValue,
 } from "../data/Json";
-import { idlDecoderFlatParse } from "./IdlDecoderFlatParse";
 import { IdlTypeFlat } from "./IdlTypeFlat";
+import { idlTypeFlatDecode } from "./IdlTypeFlatDecode";
 
 export type IdlTypedef = {
   name: string;
@@ -21,37 +20,29 @@ export type IdlTypedef = {
   typeFlat: IdlTypeFlat;
 };
 
-export function idlTypedefParse(
-  typedefName: string,
-  typedefValue: JsonValue,
-): IdlTypedef {
-  const typedefInfo = typedefDecode(typedefValue);
-  return {
-    name: typedefName,
-    docs: typedefInfo.docs,
-    serialization: typedefInfo.serialization,
-    repr: typedefInfo.repr?.kind,
-    generics: typedefInfo.generics.map((generic) => generic.name),
-    typeFlat: idlDecoderFlatParse(typedefValue),
-  };
-}
-
-const typedefDecode = jsonDecoderObject({
+export const idlTypedefDecode = jsonDecoderObject({
   docs: jsonDecodeValue,
   serialization: jsonDecoderOptional(jsonDecodeString),
   repr: jsonDecoderOptional(
-    jsonDecoderWithDecodeFallbacks(
-      jsonDecoderObject({ kind: jsonDecodeString }),
-      [(value: JsonValue) => ({ kind: jsonExpectString(value) })],
-    ),
-  ),
-  generics: jsonDecoderWithDefault(
-    jsonDecoderArray(
-      jsonDecoderWithDecodeFallbacks(
-        jsonDecoderObject({ name: jsonDecodeString }),
-        [(value: JsonValue) => ({ name: jsonExpectString(value) })],
+    jsonDecoderByKind({
+      string: (string: string) => string,
+      object: jsonDecoderMap(
+        jsonDecoderObject({ kind: jsonDecoderOptional(jsonDecodeString) }),
+        (repr) => repr?.kind,
       ),
-    ),
-    () => [],
+    }),
   ),
+  generics: jsonDecoderMap(
+    jsonDecoderArray(
+      jsonDecoderByKind({
+        string: (string: string) => string,
+        object: jsonDecoderMap(
+          jsonDecoderObject({ name: jsonDecodeString }),
+          (repr) => repr.name,
+        ),
+      }),
+    ),
+    (array) => array ?? [],
+  ),
+  typeFlat: idlTypeFlatDecode,
 });

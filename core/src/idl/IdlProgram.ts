@@ -1,8 +1,8 @@
 import { camelCaseToSnakeCase } from "../data/Casing";
 import {
-  Decode,
   jsonAsArray,
   jsonAsObject,
+  JsonDecode,
   jsonDecoderArray,
   jsonDecoderByKind,
   jsonDecoderMap,
@@ -11,7 +11,6 @@ import {
   jsonDecoderObjectToMap,
   jsonDecodeString,
   jsonExpectObject,
-  jsonExpectString,
   JsonObject,
   JsonValue,
 } from "../data/Json";
@@ -26,7 +25,7 @@ import {
   idlInstructionParse,
 } from "./IdlInstruction";
 import { IdlMetadata, idlMetadataDecode } from "./IdlMetadata";
-import { IdlTypedef, idlTypedefParse } from "./IdlTypedef";
+import { IdlTypedef, idlTypedefDecode } from "./IdlTypedef";
 
 export type IdlProgram = {
   metadata: IdlMetadata;
@@ -38,7 +37,14 @@ export type IdlProgram = {
 };
 
 export const idlProgramUnknown: Immutable<IdlProgram> = {
-  metadata: {},
+  metadata: {
+    name: undefined,
+    docs: undefined,
+    description: undefined,
+    version: undefined,
+    address: undefined,
+    spec: undefined,
+  },
   typedefs: new Map(),
   accounts: new Map(),
   instructions: new Map(),
@@ -104,13 +110,7 @@ export function idlProgramParse(programValue: JsonValue): IdlProgram {
     ...idlMetadataDecode(programObject),
     ...idlMetadataDecode(programObject["metadata"]),
   };
-  const typedefs = parseScopedNamedValues(
-    programObject,
-    "types",
-    false,
-    undefined,
-    idlTypedefParse,
-  );
+  const typedefs = typedefsDecode(programObject["types"]);
   const accounts = parseScopedNamedValues(
     programObject,
     "accounts",
@@ -145,12 +145,13 @@ export function idlProgramParse(programValue: JsonValue): IdlProgram {
   return { metadata, typedefs, accounts, instructions, events, errors };
 }
 
+const typedefsDecode = scopedNamedValuesDecoder(idlTypedefDecode, false);
 const errorsDecode = scopedNamedValuesDecoder(idlErrorDecode, false);
 
 function scopedNamedValuesDecoder<Content>(
-  contentDecode: Decode<Content>,
+  contentDecode: JsonDecode<Content>,
   convertNameToSnakeCase: boolean,
-): Decode<Map<string, Content & { name: string }>> {
+): JsonDecode<Map<string, Content & { name: string }>> {
   return jsonDecoderMap(
     jsonDecoderByKind({
       undefined: () => new Map(),

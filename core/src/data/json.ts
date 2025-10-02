@@ -733,23 +733,6 @@ export function jsonTypeObjectToVariant<Variant>(
   });
 }
 
-export function jsonTypeWithDefault<Content>(
-  contentType: JsonType<Content>,
-  defaultConstructor: () => Content,
-): JsonType<Content> {
-  return {
-    decode(encoded: JsonValue): Content {
-      if (encoded === undefined) {
-        return defaultConstructor();
-      }
-      return contentType.decode(encoded);
-    },
-    encode(decoded: Immutable<Content>): JsonValue {
-      return contentType.encode(decoded);
-    },
-  };
-}
-
 export function jsonTypeWithDecodeFallbacks<Content>(
   currentType: JsonType<Content>,
   decodeFallbacks: Array<(value: JsonValue) => Content>,
@@ -856,6 +839,38 @@ export function jsonDecoderByKind<Content>(decoders: {
     }
     throw new Error(
       `JSON: Expected ${Object.keys(decoders).join("/")} (found: ${jsonPreview(encoded)})`,
+    );
+  };
+}
+
+export function jsonDecoderRecursive<Content>(
+  getter: () => JsonDecode<Content>,
+): JsonDecode<Content> {
+  return (encoded: JsonValue): Content => getter()(encoded);
+}
+
+export function jsonDecoderEnum<
+  Shape extends { [key: string]: JsonDecode<Content> },
+  Content,
+>(shape: Shape): JsonDecode<Content> {
+  return (encoded: JsonValue): Content => {
+    const object = jsonExpectObject(encoded);
+    const keys = Object.keys(object);
+    if (keys.length !== 1) {
+      throw new Error(
+        `JSON: Expected an object with a single key (found: ${keys.join("/")})`,
+      );
+    }
+    // TODO - better error message
+    const key = keys[0]!;
+    const decoder = shape[key as keyof Shape];
+    if (decoder === undefined) {
+      throw new Error(
+        `JSON: Unexpected key "${key}" (found: ${jsonPreview(encoded)})`,
+      );
+    }
+    return withContext(`JSON: Decode Object["${key}"] =>`, () =>
+      decoder(object[key]!),
     );
   };
 }

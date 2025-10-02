@@ -10,7 +10,7 @@ import {
   jsonPreview,
 } from "../data/Json";
 import { sha256Hash } from "../data/Sha256";
-import { idlTypeFlatParse } from "./IdlTypeFlatDecode";
+import { idlTypeFlatDecode } from "./IdlTypeFlatDecode";
 import { idlTypeFlatHydrate } from "./IdlTypeFlatHydrate";
 import { idlTypeFullSerialize } from "./IdlTypeFullSerialize";
 
@@ -41,7 +41,7 @@ export const idlUtilsBytesDecode = jsonDecoderByKind({
     }
     const type = object["type"];
     if (type !== undefined) {
-      const typeFlat = idlTypeFlatParse(type);
+      const typeFlat = idlTypeFlatDecode(type);
       const typeFull = idlTypeFlatHydrate(typeFlat, new Map(), new Map());
       const blobs = new Array<Uint8Array>();
       idlTypeFullSerialize(

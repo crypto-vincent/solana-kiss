@@ -188,15 +188,15 @@ const visitorDeserialize = {
     data: DataView,
     dataOffset: number,
   ): [number, JsonValue] => {
-    let dataSize = self.before;
+    let dataSize = self.before ?? 0;
     const dataContentOffset = dataOffset + dataSize;
     const [dataContentSize, dataContent] = idlTypeFullDeserialize(
       self.content,
       data,
       dataContentOffset,
     );
-    dataSize += Math.max(dataContentSize, self.minSize);
-    dataSize += self.after;
+    dataSize += Math.max(dataContentSize, self.minSize ?? 0);
+    dataSize += self.after ?? 0;
     return [dataSize, dataContent];
   },
   primitive: (

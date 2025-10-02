@@ -1,4 +1,5 @@
 export class IdlTypePrefix {
+  // TODO - naming lowercase?
   public static readonly U8 = new IdlTypePrefix("u8", 1);
   public static readonly U16 = new IdlTypePrefix("u16", 2);
   public static readonly U32 = new IdlTypePrefix("u32", 4);

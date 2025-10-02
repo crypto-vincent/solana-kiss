@@ -29,9 +29,9 @@ export type IdlTypeFullEnum = {
   variants: Array<IdlTypeFullEnumVariant>;
 };
 export type IdlTypeFullPadded = {
-  before: number;
-  minSize: number;
-  after: number;
+  before: number | undefined;
+  minSize: number | undefined;
+  after: number | undefined;
   content: IdlTypeFull;
 };
 

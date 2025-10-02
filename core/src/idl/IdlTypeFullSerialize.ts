@@ -2,9 +2,9 @@ import {
   jsonAsNumber,
   jsonAsObject,
   jsonAsString,
+  jsonDecodeString,
   jsonExpectArray,
   jsonExpectObject,
-  jsonExpectString,
   JsonValue,
 } from "../data/Json";
 import { withContext } from "../data/Utils";
@@ -28,7 +28,7 @@ import {
   IdlTypePrimitive,
   idlTypePrimitiveSerialize,
 } from "./IdlTypePrimitive";
-import { idlUtilsBytesJsonType } from "./IdlUtils";
+import { idlUtilsBytesDecode } from "./IdlUtils";
 
 export function idlTypeFullSerialize(
   typeFull: IdlTypeFull,
@@ -79,7 +79,7 @@ const visitorSerialize = {
     prefixed: boolean,
   ) => {
     if (self.items.isPrimitive(IdlTypePrimitive.U8)) {
-      const blob = idlUtilsBytesJsonType.decode(value);
+      const blob = idlUtilsBytesDecode(value);
       if (prefixed) {
         idlTypePrefixSerialize(self.prefix, BigInt(blob.length), blobs);
       }
@@ -101,7 +101,7 @@ const visitorSerialize = {
     prefixed: boolean,
   ) => {
     if (self.items.isPrimitive(IdlTypePrimitive.U8)) {
-      const blob = idlUtilsBytesJsonType.decode(value);
+      const blob = idlUtilsBytesDecode(value);
       if (blob.length != self.length) {
         throw new Error(
           `Expected an array of size: ${self.length}, found: ${blob.length}`,
@@ -126,7 +126,7 @@ const visitorSerialize = {
     blobs: Array<Uint8Array>,
     prefixed: boolean,
   ) => {
-    const string = jsonExpectString(value);
+    const string = jsonDecodeString(value);
     const bytes = new TextEncoder().encode(string);
     if (prefixed) {
       idlTypePrefixSerialize(self.prefix, BigInt(bytes.length), blobs);
@@ -209,7 +209,7 @@ const visitorSerialize = {
     const contentSize = contentBlobs.reduce((size, contentBlob) => {
       return size + contentBlob.length;
     }, 0);
-    if (self.minSize > contentSize) {
+    if (self.minSize && self.minSize > contentSize) {
       blobs.push(new Uint8Array(self.minSize - contentSize));
     }
     if (self.after) {
