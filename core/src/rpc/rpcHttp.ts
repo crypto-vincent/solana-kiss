@@ -6,7 +6,7 @@ import {
   jsonTypeString,
   jsonTypeValue,
 } from "../data/Json";
-import { Commitment } from "../types";
+import { Commitment } from "../data/Onchain";
 
 export type RpcHttp = (
   method: string,
@@ -48,7 +48,6 @@ export function rpcHttpFromUrl(
       }),
     });
     const responseJson = (await responseRaw.json()) as JsonValue;
-    console.log("responseJson", responseJson);
     const response = responseJsonType.decode(responseJson);
     if (response.jsonrpc !== "2.0") {
       throw new Error(

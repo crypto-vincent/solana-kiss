@@ -1,8 +1,8 @@
 import { base64Encode } from "../data/Base64";
 import { jsonTypeString } from "../data/Json";
 import { messageCompile, messageSign } from "../data/Message";
+import { Commitment, Hash, Instruction, Slot } from "../data/Onchain";
 import { Signer } from "../data/Signer";
-import { Commitment, Hash, Instruction, Slot } from "../types";
 import { RpcHttp } from "./RpcHttp";
 
 export async function rpcHttpSendInstructions(

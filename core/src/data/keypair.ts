@@ -1,5 +1,5 @@
-import { Signature } from "../types";
 import { base58Decode, base58Encode } from "./Base58";
+import { Signature } from "./Onchain";
 import { Pubkey } from "./Pubkey";
 
 // TODO - naming and naming casing

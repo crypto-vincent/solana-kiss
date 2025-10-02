@@ -1,5 +1,5 @@
 import { JsonObject, JsonValue } from "../data/Json";
-import { withContext } from "../utils";
+import { withContext } from "../data/Utils";
 import {
   IdlTypeFull,
   IdlTypeFullArray,

@@ -1,5 +1,5 @@
-import { Hash, Instruction } from "../types";
 import { base58Decode, base58Encode } from "./Base58";
+import { Hash, Instruction } from "./Onchain";
 import { Pubkey } from "./Pubkey";
 import { Signer } from "./Signer";
 

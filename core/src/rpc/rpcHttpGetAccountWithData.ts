@@ -9,8 +9,8 @@ import {
   jsonTypeString,
 } from "../data/Json";
 import { Lamports } from "../data/Lamports";
+import { Commitment } from "../data/Onchain";
 import { Pubkey, pubkeyDefault } from "../data/Pubkey";
-import { Commitment } from "../types";
 import { RpcHttp } from "./RpcHttp";
 
 export async function rpcHttpGetAccountWithData(

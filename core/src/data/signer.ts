@@ -1,5 +1,5 @@
-import { Signature } from "../types";
 import { keypairFromSecret, keypairGenerate } from "./Keypair";
+import { Signature } from "./Onchain";
 import { Pubkey } from "./Pubkey";
 
 export type Signer = {

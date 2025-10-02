@@ -1,4 +1,4 @@
-import { withContext } from "../utils";
+import { withContext } from "../data/Utils";
 import {
   IdlTypeFull,
   IdlTypeFullArray,

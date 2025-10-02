@@ -1,4 +1,4 @@
-import { Immutable, withContext } from "../utils";
+import { Immutable, withContext } from "./Utils";
 
 export type JsonValue =
   | undefined
@@ -86,44 +86,60 @@ export function jsonAsObject(value: JsonValue): JsonObject | undefined {
   return undefined;
 }
 
-export function jsonExpectValueShallowEquals(
-  found: JsonValue,
-  expected: JsonValue,
+export function jsonIsDeepEqual(
+  foundValue: JsonValue,
+  expectedValue: JsonValue,
 ) {
-  if (found !== expected) {
-    const foundPreview = jsonPreview(found);
-    const expectedPreview = jsonPreview(expected);
-    throw new Error(
-      `JSON: Expected: ${expectedPreview} (found: ${foundPreview})`,
-    );
-  }
-}
-
-export function jsonExpectValueIsSubset(
-  subset: JsonValue,
-  superset: JsonValue,
-) {
-  if (subset === undefined) {
+  if (expectedValue === foundValue) {
     return true;
   }
-  if (subset === null) {
-    return superset === null;
+  const expectedArray = jsonAsArray(expectedValue);
+  if (expectedArray !== undefined) {
+    const foundArray = jsonAsArray(foundValue);
+    if (
+      foundArray === undefined ||
+      foundArray.length !== expectedArray.length
+    ) {
+      return false;
+    }
+    for (let index = 0; index < foundArray.length; index++) {
+      if (!jsonIsDeepEqual(foundArray[index], expectedArray[index])) {
+        return false;
+      }
+    }
+    return true;
   }
-  const boolean = jsonAsBoolean(subset);
-  if (boolean !== undefined) {
-    return jsonAsBoolean(superset) === boolean;
+  const expectedObject = jsonAsObject(expectedValue);
+  if (expectedObject !== undefined) {
+    const foundObject = jsonAsObject(foundValue);
+    if (foundObject === undefined) {
+      return false;
+    }
+    const expectedKeys = new Set<string>();
+    for (const expectedKey in expectedObject) {
+      expectedKeys.add(expectedKey);
+    }
+    for (const foundKey in foundObject) {
+      if (!jsonIsDeepEqual(foundObject[foundKey], expectedObject[foundKey])) {
+        return false;
+      }
+      expectedKeys.delete(foundKey);
+    }
+    return expectedKeys.size === 0;
   }
-  const number = jsonAsNumber(subset);
-  if (number !== undefined) {
-    return jsonAsNumber(superset) === number;
+  return false;
+}
+
+export function jsonIsSubset(subsetValue: JsonValue, supersetValue: JsonValue) {
+  if (subsetValue === undefined) {
+    return true;
   }
-  const string = jsonAsString(subset);
-  if (string !== undefined) {
-    return jsonAsString(superset) === string;
+  if (subsetValue === supersetValue) {
+    return true;
   }
-  const subsetArray = jsonAsArray(subset);
+  const subsetArray = jsonAsArray(subsetValue);
   if (subsetArray !== undefined) {
-    const supersetArray = jsonAsArray(superset);
+    const supersetArray = jsonAsArray(supersetValue);
     if (
       supersetArray === undefined ||
       subsetArray.length > supersetArray.length
@@ -131,28 +147,26 @@ export function jsonExpectValueIsSubset(
       return false;
     }
     for (let index = 0; index < subsetArray.length; index++) {
-      if (
-        !jsonExpectValueIsSubset(subsetArray[index]!, supersetArray[index]!)
-      ) {
+      if (!jsonIsSubset(subsetArray[index]!, supersetArray[index]!)) {
         return false;
       }
     }
     return true;
   }
-  const subsetObject = jsonAsObject(subset);
+  const subsetObject = jsonAsObject(subsetValue);
   if (subsetObject !== undefined) {
-    const supersetObject = jsonAsObject(superset);
+    const supersetObject = jsonAsObject(supersetValue);
     if (supersetObject === undefined) {
       return false;
     }
     for (const key of Object.keys(subsetObject)) {
-      if (!jsonExpectValueIsSubset(subsetObject[key]!, supersetObject[key])) {
+      if (!jsonIsSubset(subsetObject[key]!, supersetObject[key])) {
         return false;
       }
     }
     return true;
   }
-  throw new Error(`JSON: Unknown value: ${subset?.toString()}`);
+  return false;
 }
 
 export function jsonExpectUndefined(value: JsonValue): undefined {
@@ -195,6 +209,7 @@ export function jsonExpectArray(value: JsonValue): JsonArray {
   }
   return result;
 }
+// TODO - all of this could be inserted in a nice decoder system and never be manually used?
 export function jsonExpectObject(value: JsonValue): JsonObject {
   const result = jsonAsObject(value);
   if (result === undefined) {
@@ -203,122 +218,162 @@ export function jsonExpectObject(value: JsonValue): JsonObject {
   return result;
 }
 
+export type JsonDecoderContent<S> = S extends JsonDecoder<infer T> ? T : never;
+export type JsonDecoder<Content> = (encoded: JsonValue) => Content;
+
+export type JsonEncoderContent<S> = S extends JsonEncoder<infer T> ? T : never;
+export type JsonEncoder<Content> = (decoded: Immutable<Content>) => JsonValue;
+
 export type JsonTypeContent<S> = S extends JsonType<infer T> ? T : never;
 export type JsonType<Content> = {
-  decode(encoded: JsonValue): Content;
-  encode(decoded: Immutable<Content>): JsonValue;
+  decode: JsonDecoder<Content>;
+  encode: JsonEncoder<Content>;
 };
 
+export function jsonDecoderConst<Const extends number | string | boolean>(
+  expected: Const,
+): JsonDecoder<Const> {
+  return (encoded: JsonValue): Const => {
+    if (encoded !== expected) {
+      throw new Error(
+        `JSON: Expected const: ${expected} (found: ${jsonPreview(encoded)})`,
+      );
+    }
+    return expected;
+  };
+}
+export function jsonEncoderConst<Const extends number | string | boolean>(
+  expected: Const,
+): JsonEncoder<Const> {
+  return (_: Immutable<JsonValue>): Const => expected;
+}
 export function jsonTypeConst<Const extends number | string | boolean>(
   expected: Const,
 ): JsonType<Const> {
   return {
-    decode(encoded: JsonValue): Const {
-      if (encoded !== expected) {
-        throw new Error(
-          `JSON: Expected const: ${expected} (found: ${encoded})`,
-        );
-      }
-      return expected;
-    },
-    encode(): JsonValue {
-      return expected;
-    },
+    decode: jsonDecoderConst(expected),
+    encode: jsonEncoderConst(expected),
   };
 }
 
-const jsonTypeValueCached = {
-  decode(encoded: JsonValue): JsonValue {
-    if (encoded === undefined) {
-      return undefined;
-    }
-    return JSON.parse(JSON.stringify(encoded));
-  },
-  encode(decoded: JsonValue): JsonValue {
-    if (decoded === undefined) {
-      return undefined;
-    }
-    return JSON.parse(JSON.stringify(decoded));
-  },
+export const jsonDecoderValue: JsonDecoder<JsonValue> = (
+  encoded: JsonValue,
+): JsonValue => {
+  if (encoded === undefined) {
+    return undefined;
+  }
+  return JSON.parse(JSON.stringify(encoded));
 };
-export function jsonTypeValue(): JsonType<JsonValue> {
-  return jsonTypeValueCached;
-}
-
-const jsonTypeNullCached = {
-  decode(encoded: JsonValue): null {
-    return jsonExpectNull(encoded);
-  },
-  encode(decoded: Immutable<null>): JsonValue {
-    return decoded;
-  },
+export const jsonEncoderValue: JsonEncoder<JsonValue> = (
+  decoded: Immutable<JsonValue>,
+): JsonValue => {
+  if (decoded === undefined) {
+    return undefined;
+  }
+  return JSON.parse(JSON.stringify(decoded));
 };
-export function jsonTypeNull(): JsonType<null> {
-  return jsonTypeNullCached;
-}
-
-const jsonTypeBooleanCached = {
-  decode(encoded: JsonValue): boolean {
-    return jsonExpectBoolean(encoded);
-  },
-  encode(decoded: Immutable<boolean>): JsonValue {
-    return decoded;
-  },
+export const jsonTypeValue: JsonType<JsonValue> = {
+  decode: jsonDecoderValue,
+  encode: jsonEncoderValue,
 };
-export function jsonTypeBoolean(): JsonType<boolean> {
-  return jsonTypeBooleanCached;
-}
 
-const jsonTypeNumberCached = {
-  decode(encoded: JsonValue): number {
-    return jsonExpectNumber(encoded);
-  },
-  encode(decoded: Immutable<number>): JsonValue {
-    return decoded;
-  },
+export const jsonDecoderNull: JsonDecoder<null> = (
+  encoded: JsonValue,
+): null => {
+  return jsonExpectNull(encoded);
 };
-export function jsonTypeNumber(): JsonType<number> {
-  return jsonTypeNumberCached;
-}
-
-const jsonTypeStringCached = {
-  decode(encoded: JsonValue): string {
-    return jsonExpectString(encoded);
-  },
-  encode(decoded: Immutable<string>): JsonValue {
-    return decoded;
-  },
+export const jsonEncoderNull: JsonEncoder<null> = (
+  decoded: Immutable<null>,
+): JsonValue => {
+  return decoded;
 };
-export function jsonTypeString(): JsonType<string> {
-  return jsonTypeStringCached;
-}
-
-const jsonTypeStringToBigintCached = {
-  decode(encoded: JsonValue): bigint {
-    return BigInt(jsonExpectString(encoded));
-  },
-  encode(decoded: Immutable<bigint>): JsonValue {
-    return String(decoded);
-  },
+export const jsonTypeNull: JsonType<null> = {
+  decode: jsonDecoderNull,
+  encode: jsonEncoderNull,
 };
-export function jsonTypeStringToBigint(): JsonType<bigint> {
-  return jsonTypeStringToBigintCached;
-}
 
+export const jsonDecoderBoolean: JsonDecoder<boolean> = (
+  encoded: JsonValue,
+): boolean => {
+  return jsonExpectBoolean(encoded);
+};
+export const jsonEncoderBoolean: JsonEncoder<boolean> = (
+  decoded: Immutable<boolean>,
+): JsonValue => {
+  return decoded;
+};
+export const jsonTypeBoolean: JsonType<boolean> = {
+  decode: jsonDecoderBoolean,
+  encode: jsonEncoderBoolean,
+};
+
+export const jsonDecoderNumber: JsonDecoder<number> = (
+  encoded: JsonValue,
+): number => {
+  return jsonExpectNumber(encoded);
+};
+export const jsonEncoderNumber: JsonEncoder<number> = (
+  decoded: Immutable<number>,
+): JsonValue => {
+  return decoded;
+};
+export const jsonTypeNumber: JsonType<number> = {
+  decode: jsonDecoderNumber,
+  encode: jsonEncoderNumber,
+};
+
+export const jsonDecoderString: JsonDecoder<string> = (
+  encoded: JsonValue,
+): string => {
+  return jsonExpectString(encoded);
+};
+export const jsonEncoderString: JsonEncoder<string> = (
+  decoded: Immutable<string>,
+): JsonValue => {
+  return decoded;
+};
+export const jsonTypeString: JsonType<string> = {
+  decode: jsonDecoderString,
+  encode: jsonEncoderString,
+};
+
+export const jsonDecoderStringToBigInt: JsonDecoder<bigint> = (
+  encoded: JsonValue,
+): bigint => {
+  return BigInt(jsonExpectString(encoded));
+};
+export const jsonEncoderStringToBigInt: JsonEncoder<bigint> = (
+  decoded: Immutable<bigint>,
+): JsonValue => {
+  return String(decoded);
+};
+export const jsonTypeStringToBigInt: JsonType<bigint> = {
+  decode: jsonDecoderStringToBigInt,
+  encode: jsonEncoderStringToBigInt,
+};
+
+export function jsonDecoderArray<Item>(
+  itemDecoder: JsonDecoder<Item>,
+): JsonDecoder<Array<Item>> {
+  return (encoded: JsonValue): Array<Item> => {
+    return jsonExpectArray(encoded).map((item, index) =>
+      withContext(`JSON: Decode Array[${index}] =>`, () => itemDecoder(item)),
+    );
+  };
+}
+export function jsonEncoderArray<Item>(
+  itemEncoder: JsonEncoder<Item>,
+): JsonEncoder<Array<Item>> {
+  return (decoded: Immutable<Array<Item>>): JsonValue => {
+    return decoded.map((item) => itemEncoder(item));
+  };
+}
 export function jsonTypeArray<Item>(
   itemType: JsonType<Item>,
 ): JsonType<Array<Item>> {
   return {
-    decode(encoded: JsonValue): Array<Item> {
-      return jsonExpectArray(encoded).map((item, index) =>
-        withContext(`JSON: Decode Array[${index}] =>`, () =>
-          itemType.decode(item),
-        ),
-      );
-    },
-    encode(decoded: Immutable<Array<Item>>): JsonValue {
-      return decoded.map((item) => itemType.encode(item));
-    },
+    decode: jsonDecoderArray(itemType.decode),
+    encode: jsonEncoderArray(itemType.encode),
   };
 }
 

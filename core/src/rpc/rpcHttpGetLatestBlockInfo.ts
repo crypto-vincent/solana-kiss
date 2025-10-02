@@ -1,5 +1,5 @@
 import { jsonTypeNumber, jsonTypeObject, jsonTypeString } from "../data/Json";
-import { Commitment, Hash, Slot } from "../types";
+import { Commitment, Hash, Slot } from "../data/Onchain";
 import { RpcHttp } from "./RpcHttp";
 
 export async function rpcHttpGetLatestBlockInfo(

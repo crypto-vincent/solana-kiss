@@ -7,8 +7,8 @@ import {
   JsonObject,
   JsonValue,
 } from "../data/Json";
-import { Input } from "../types";
-import { Immutable } from "../utils";
+import { Input } from "../data/Onchain";
+import { Immutable } from "../data/Utils";
 import { IdlAccount, idlAccountCheck, idlAccountParse } from "./IdlAccount";
 import { IdlError, idlErrorParse } from "./IdlError";
 import { IdlEvent, idlEventCheck, idlEventParse } from "./IdlEvent";

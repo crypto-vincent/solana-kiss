@@ -1,7 +1,7 @@
-import { JsonValue } from "./data/Json";
-import { Lamports } from "./data/Lamports";
-import { Message } from "./data/Message";
-import { Pubkey } from "./data/Pubkey";
+import { JsonValue } from "./Json";
+import { Lamports } from "./Lamports";
+import { Message } from "./Message";
+import { Pubkey } from "./Pubkey";
 
 export type Commitment = "confirmed" | "finalized";
 
@@ -11,8 +11,8 @@ export type Signature = string;
 
 export type Input = {
   address: Pubkey;
-  writable: boolean;
   signing: boolean;
+  writable: boolean;
 };
 
 export type Instruction = {

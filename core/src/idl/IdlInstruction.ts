@@ -6,9 +6,9 @@ import {
   jsonTypeValue,
   JsonValue,
 } from "../data/Json";
+import { Input, Instruction } from "../data/Onchain";
 import { Pubkey } from "../data/Pubkey";
-import { Input, Instruction } from "../types";
-import { Immutable } from "../utils";
+import { Immutable } from "../data/Utils";
 import {
   IdlInstructionAccount,
   idlInstructionAccountFind,
@@ -272,8 +272,7 @@ export function idlInstructionAddressesFindWithAccounts(
           instructionAddress,
         );
         madeProgress = true;
-      } catch (error) {
-        console.log(error);
+      } catch (_) {
         // TODO - better error handling and help with understanding what is missing
         // Ignore errors, we might not have enough info yet
       }

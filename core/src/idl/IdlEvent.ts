@@ -7,7 +7,7 @@ import {
   jsonTypeValue,
   JsonValue,
 } from "../data/Json";
-import { Immutable } from "../utils";
+import { Immutable } from "../data/Utils";
 import { IdlTypedef } from "./IdlTypedef";
 import { IdlTypeFlat } from "./IdlTypeFlat";
 import { idlTypeFlatHydrate } from "./IdlTypeFlatHydrate";

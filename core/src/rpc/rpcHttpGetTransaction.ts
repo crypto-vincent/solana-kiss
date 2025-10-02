@@ -8,7 +8,6 @@ import {
   jsonTypeString,
   jsonTypeValue,
 } from "../data/Json";
-import { Pubkey } from "../data/Pubkey";
 import {
   Commitment,
   Input,
@@ -16,8 +15,8 @@ import {
   Invokation,
   Signature,
   Transaction,
-} from "../types";
-import { expectItemInArray } from "../utils";
+} from "../data/Onchain";
+import { Pubkey } from "../data/Pubkey";
 import { RpcHttp } from "./RpcHttp";
 
 export async function rpcHttpGetTransaction(
@@ -67,8 +66,8 @@ export async function rpcHttpGetTransaction(
       instructions: transactionInstructions,
       recentBlockHash: message.recentBlockhash,
     },
-    error: meta.err,
-    logs: meta.logMessages,
+    error: meta.err, // TODO - parse error to find
+    logs: meta.logMessages, // TODO - parse logs for invokations and event data
     chargedFees: BigInt(meta.fee),
     consumedComputeUnits: meta.computeUnitsConsumed,
     invokations: decompileTransactionInvokations(
@@ -279,3 +278,12 @@ const resultJsonType = jsonTypeNullable(
     }),
   }),
 );
+
+export function expectItemInArray<T>(array: Array<T>, index: number): T {
+  if (index < 0 || index >= array.length) {
+    throw new Error(
+      `Array index ${index} out of bounds (length: ${array.length})`,
+    );
+  }
+  return array[index]!;
+}

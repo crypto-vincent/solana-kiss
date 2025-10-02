@@ -5,7 +5,7 @@ import {
   jsonExpectNumber,
   JsonValue,
 } from "../data/Json";
-import { Immutable } from "../utils";
+import { Immutable } from "../data/Utils";
 
 export type IdlError = {
   name: string;

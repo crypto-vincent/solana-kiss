@@ -1,7 +1,7 @@
 import { base58Encode } from "../data/Base58";
 import { jsonTypeArray, jsonTypeObject, jsonTypeString } from "../data/Json";
+import { Commitment } from "../data/Onchain";
 import { Pubkey } from "../data/Pubkey";
-import { Commitment } from "../types";
 import { RpcHttp } from "./RpcHttp";
 
 // TODO - naming: find Owned accounts ?
