@@ -169,39 +169,6 @@ export function jsonIsSubset(subsetValue: JsonValue, supersetValue: JsonValue) {
   return false;
 }
 
-export function jsonExpectUndefined(value: JsonValue): undefined {
-  if (value !== undefined) {
-    throw new Error(`JSON: Expected undefined (found: ${jsonPreview(value)})`);
-  }
-  return undefined;
-}
-export function jsonExpectNull(value: JsonValue): null {
-  if (value !== null) {
-    throw new Error(`JSON: Expected null (found: ${jsonPreview(value)})`);
-  }
-  return null;
-}
-export function jsonExpectBoolean(value: JsonValue): boolean {
-  const result = jsonAsBoolean(value);
-  if (result === undefined) {
-    throw new Error(`JSON: Expected a boolean (found: ${jsonPreview(value)})`);
-  }
-  return result;
-}
-export function jsonExpectNumber(value: JsonValue): number {
-  const result = jsonAsNumber(value);
-  if (result === undefined) {
-    throw new Error(`JSON: Expected a number (found: ${jsonPreview(value)})`);
-  }
-  return result;
-}
-export function jsonExpectString(value: JsonValue): string {
-  const result = jsonAsString(value);
-  if (result === undefined) {
-    throw new Error(`JSON: Expected a string (found: ${jsonPreview(value)})`);
-  }
-  return result;
-}
 export function jsonExpectArray(value: JsonValue): JsonArray {
   const result = jsonAsArray(value);
   if (result === undefined) {
@@ -219,128 +186,173 @@ export function jsonExpectObject(value: JsonValue): JsonObject {
 }
 
 export type JsonDecoderContent<S> = S extends JsonDecoder<infer T> ? T : never;
-export type JsonDecoder<Content> = (encoded: JsonValue) => Content;
+export type JsonDecoder<Content> = { decode: (encoded: JsonValue) => Content };
 
 export type JsonEncoderContent<S> = S extends JsonEncoder<infer T> ? T : never;
-export type JsonEncoder<Content> = (decoded: Immutable<Content>) => JsonValue;
+export type JsonEncoder<Content> = {
+  encode: (decoded: Immutable<Content>) => JsonValue;
+};
 
 export type JsonTypeContent<S> = S extends JsonType<infer T> ? T : never;
-export type JsonType<Content> = {
-  decode: JsonDecoder<Content>;
-  encode: JsonEncoder<Content>;
-};
+export type JsonType<Content> = JsonDecoder<Content> & JsonEncoder<Content>;
 
-export function jsonDecoderConst<Const extends number | string | boolean>(
+export function jsonType<Content>(
+  decoder: JsonDecoder<Content>,
+  encoder: JsonEncoder<Content>,
+): JsonType<Content> {
+  return { ...decoder, ...encoder };
+}
+
+export type JsonPrimitive = undefined | null | boolean | number | string;
+export function jsonDecoderConst<Const extends JsonPrimitive>(
   expected: Const,
 ): JsonDecoder<Const> {
-  return (encoded: JsonValue): Const => {
-    if (encoded !== expected) {
-      throw new Error(
-        `JSON: Expected const: ${expected} (found: ${jsonPreview(encoded)})`,
-      );
-    }
-    return expected;
+  return {
+    decode(encoded: JsonValue): Const {
+      if (encoded !== expected) {
+        throw new Error(
+          `JSON: Expected const: ${expected} (found: ${jsonPreview(encoded)})`,
+        );
+      }
+      return expected;
+    },
   };
 }
-export function jsonEncoderConst<Const extends number | string | boolean>(
+export function jsonEncoderConst<Const extends JsonPrimitive>(
   expected: Const,
 ): JsonEncoder<Const> {
-  return (_: Immutable<JsonValue>): Const => expected;
-}
-export function jsonTypeConst<Const extends number | string | boolean>(
-  expected: Const,
-): JsonType<Const> {
   return {
-    decode: jsonDecoderConst(expected),
-    encode: jsonEncoderConst(expected),
+    encode(_: Immutable<JsonValue>): Const {
+      return expected;
+    },
   };
 }
+export function jsonTypeConst<Const extends JsonPrimitive>(
+  expected: Const,
+): JsonType<Const> {
+  return jsonType(jsonDecoderConst(expected), jsonEncoderConst(expected));
+}
 
-export const jsonDecoderValue: JsonDecoder<JsonValue> = (
-  encoded: JsonValue,
-): JsonValue => {
-  if (encoded === undefined) {
-    return undefined;
-  }
-  return JSON.parse(JSON.stringify(encoded));
+export const jsonDecoderValue: JsonDecoder<JsonValue> = {
+  decode(encoded: JsonValue): JsonValue {
+    if (encoded === undefined) {
+      return undefined;
+    }
+    return JSON.parse(JSON.stringify(encoded));
+  },
 };
-export const jsonEncoderValue: JsonEncoder<JsonValue> = (
-  decoded: Immutable<JsonValue>,
-): JsonValue => {
-  if (decoded === undefined) {
-    return undefined;
-  }
-  return JSON.parse(JSON.stringify(decoded));
+export const jsonEncoderValue: JsonEncoder<JsonValue> = {
+  encode(decoded: Immutable<JsonValue>): JsonValue {
+    if (decoded === undefined) {
+      return undefined;
+    }
+    return JSON.parse(JSON.stringify(decoded));
+  },
 };
-export const jsonTypeValue: JsonType<JsonValue> = {
-  decode: jsonDecoderValue,
-  encode: jsonEncoderValue,
-};
+export const jsonTypeValue: JsonType<JsonValue> = jsonType(
+  jsonDecoderValue,
+  jsonEncoderValue,
+);
 
-export const jsonDecoderNull: JsonDecoder<null> = (
-  encoded: JsonValue,
-): null => {
-  return jsonExpectNull(encoded);
+export const jsonDecoderBoolean: JsonDecoder<boolean> = {
+  decode(encoded: JsonValue): boolean {
+    const decoded = jsonAsBoolean(encoded);
+    if (decoded === undefined) {
+      throw new Error(
+        `JSON: Expected a boolean (found: ${jsonPreview(encoded)})`,
+      );
+    }
+    return decoded;
+  },
 };
-export const jsonEncoderNull: JsonEncoder<null> = (
-  decoded: Immutable<null>,
-): JsonValue => {
-  return decoded;
+export const jsonEncoderBoolean: JsonEncoder<boolean> = {
+  encode(decoded: Immutable<boolean>): JsonValue {
+    return decoded;
+  },
 };
-export const jsonTypeNull: JsonType<null> = {
-  decode: jsonDecoderNull,
-  encode: jsonEncoderNull,
-};
+export const jsonTypeBoolean: JsonType<boolean> = jsonType(
+  jsonDecoderBoolean,
+  jsonEncoderBoolean,
+);
 
-export const jsonDecoderBoolean: JsonDecoder<boolean> = (
-  encoded: JsonValue,
-): boolean => {
-  return jsonExpectBoolean(encoded);
+export const jsonDecoderNumber: JsonDecoder<number> = {
+  decode(encoded: JsonValue): number {
+    const decoded = jsonAsNumber(encoded);
+    if (decoded === undefined) {
+      throw new Error(
+        `JSON: Expected a number (found: ${jsonPreview(encoded)})`,
+      );
+    }
+    return decoded;
+  },
 };
-export const jsonEncoderBoolean: JsonEncoder<boolean> = (
-  decoded: Immutable<boolean>,
-): JsonValue => {
-  return decoded;
+export const jsonEncoderNumber: JsonEncoder<number> = {
+  encode(decoded: Immutable<number>): JsonValue {
+    return decoded;
+  },
 };
-export const jsonTypeBoolean: JsonType<boolean> = {
-  decode: jsonDecoderBoolean,
-  encode: jsonEncoderBoolean,
-};
+export const jsonTypeNumber: JsonType<number> = jsonType(
+  jsonDecoderNumber,
+  jsonEncoderNumber,
+);
 
-export const jsonDecoderNumber: JsonDecoder<number> = (
-  encoded: JsonValue,
-): number => {
-  return jsonExpectNumber(encoded);
+export const jsonDecoderString: JsonDecoder<string> = {
+  decode(encoded: JsonValue): string {
+    const decoded = jsonAsString(encoded);
+    if (decoded === undefined) {
+      throw new Error(
+        `JSON: Expected a string (found: ${jsonPreview(encoded)})`,
+      );
+    }
+    return decoded;
+  },
 };
-export const jsonEncoderNumber: JsonEncoder<number> = (
-  decoded: Immutable<number>,
-): JsonValue => {
-  return decoded;
+export const jsonEncoderString: JsonEncoder<string> = {
+  encode(decoded: Immutable<string>): JsonValue {
+    return decoded;
+  },
 };
-export const jsonTypeNumber: JsonType<number> = {
-  decode: jsonDecoderNumber,
-  encode: jsonEncoderNumber,
-};
+export const jsonTypeString: JsonType<string> = jsonType(
+  jsonDecoderString,
+  jsonEncoderString,
+);
 
-export const jsonDecoderString: JsonDecoder<string> = (
-  encoded: JsonValue,
-): string => {
-  return jsonExpectString(encoded);
-};
-export const jsonEncoderString: JsonEncoder<string> = (
-  decoded: Immutable<string>,
-): JsonValue => {
-  return decoded;
-};
-export const jsonTypeString: JsonType<string> = {
-  decode: jsonDecoderString,
-  encode: jsonEncoderString,
-};
+export function jsonDecoderMapped<Mapped, Unmapped>(
+  unmappedDecoder: JsonDecoder<Unmapped>,
+  map: (unmapped: Unmapped) => Mapped,
+): JsonDecoder<Mapped> {
+  return {
+    decode(encoded: JsonValue): Mapped {
+      return map(unmappedDecoder.decode(encoded));
+    },
+  };
+}
+export function jsonEncoderMapped<Mapped, Unmapped>(
+  unmappedEncoder: JsonEncoder<Unmapped>,
+  unmap: (mapped: Immutable<Mapped>) => Immutable<Unmapped>,
+): JsonEncoder<Mapped> {
+  return {
+    encode(decoded: Immutable<Mapped>): JsonValue {
+      return unmappedEncoder.encode(unmap(decoded));
+    },
+  };
+}
+export function jsonTypeMapped<Mapped, Unmapped>(
+  unmappedType: JsonType<Unmapped>,
+  map: (unmapped: Unmapped) => Mapped,
+  unmap: (mapped: Immutable<Mapped>) => Immutable<Unmapped>,
+): JsonType<Mapped> {
+  return jsonType(
+    jsonDecoderMapped(unmappedType, map),
+    jsonEncoderMapped(unmappedType, unmap),
+  );
+}
 
-export const jsonDecoderStringToBigInt: JsonDecoder<bigint> = (
+/*
+export const jsonDecoderStringToBigInt: JsonDecoder<bigint> = { encode(
   encoded: JsonValue,
-): bigint => {
-  return BigInt(jsonExpectString(encoded));
+): bigint {
+  return BigInt(jsonDecoderString.decode(encoded));
 };
 export const jsonEncoderStringToBigInt: JsonEncoder<bigint> = (
   decoded: Immutable<bigint>,
@@ -351,74 +363,109 @@ export const jsonTypeStringToBigInt: JsonType<bigint> = {
   decode: jsonDecoderStringToBigInt,
   encode: jsonEncoderStringToBigInt,
 };
+*/
 
 export function jsonDecoderArray<Item>(
   itemDecoder: JsonDecoder<Item>,
 ): JsonDecoder<Array<Item>> {
-  return (encoded: JsonValue): Array<Item> => {
-    return jsonExpectArray(encoded).map((item, index) =>
-      withContext(`JSON: Decode Array[${index}] =>`, () => itemDecoder(item)),
-    );
+  return {
+    decode(encoded: JsonValue): Array<Item> {
+      const array = jsonAsArray(encoded);
+      if (array === undefined) {
+        throw new Error(
+          `JSON: Expected an array (found: ${jsonPreview(encoded)})`,
+        );
+      }
+      return array.map((item, index) =>
+        withContext(`JSON: Decode Array[${index}] =>`, () =>
+          itemDecoder.decode(item),
+        ),
+      );
+    },
   };
 }
 export function jsonEncoderArray<Item>(
   itemEncoder: JsonEncoder<Item>,
 ): JsonEncoder<Array<Item>> {
-  return (decoded: Immutable<Array<Item>>): JsonValue => {
-    return decoded.map((item) => itemEncoder(item));
+  return {
+    encode(decoded: Immutable<Array<Item>>): JsonValue {
+      return decoded.map((item) => itemEncoder.encode(item));
+    },
   };
 }
 export function jsonTypeArray<Item>(
   itemType: JsonType<Item>,
 ): JsonType<Array<Item>> {
-  return {
-    decode: jsonDecoderArray(itemType.decode),
-    encode: jsonEncoderArray(itemType.encode),
-  };
+  return jsonType(jsonDecoderArray(itemType), jsonEncoderArray(itemType));
 }
 
-export function jsonTypeArrayToTuple<
-  Items extends [JsonType<any>, ...Array<JsonType<any>>],
+export function jsonDecoderArrayToTuple<
+  Items extends [JsonDecoder<any>, ...Array<JsonDecoder<any>>],
 >(
-  itemsTypes: Items,
-): JsonType<{ [K in keyof Items]: JsonTypeContent<Items[K]> }> {
+  itemsDecoders: Items,
+): JsonDecoder<{ [K in keyof Items]: JsonDecoderContent<Items[K]> }> {
   return {
     decode(encoded: JsonValue): {
-      [K in keyof Items]: JsonTypeContent<Items[K]>;
+      [K in keyof Items]: JsonDecoderContent<Items[K]>;
     } {
       const array = jsonExpectArray(encoded);
-      const decoded = {} as { [K in keyof Items]: JsonTypeContent<Items[K]> };
-      for (let index = 0; index < itemsTypes.length; index++) {
+      const decoded = {} as {
+        [K in keyof Items]: JsonDecoderContent<Items[K]>;
+      };
+      for (let index = 0; index < itemsDecoders.length; index++) {
         decoded[index as keyof typeof decoded] = withContext(
           `JSON: Decode Array[${index}] =>`,
-          () => itemsTypes[index]!.decode(array[index]),
+          () => itemsDecoders[index]!.decode(array[index]),
         );
       }
       return decoded;
     },
+  };
+}
+export function jsonEncoderArrayToTuple<
+  Items extends [JsonEncoder<any>, ...Array<JsonEncoder<any>>],
+>(
+  itemsEncoders: Items,
+): JsonEncoder<{ [K in keyof Items]: JsonEncoderContent<Items[K]> }> {
+  return {
     encode(
-      decoded: Immutable<{ [K in keyof Items]: JsonTypeContent<Items[K]> }>,
+      decoded: Immutable<{ [K in keyof Items]: JsonEncoderContent<Items[K]> }>,
     ): JsonValue {
       const array = new Array<JsonValue>();
-      for (let index = 0; index < itemsTypes.length; index++) {
+      for (let index = 0; index < itemsEncoders.length; index++) {
         array.push(
-          itemsTypes[index]!.encode(decoded[index as keyof typeof decoded]),
+          itemsEncoders[index]!.encode(decoded[index as keyof typeof decoded]),
         );
       }
       return array;
     },
   };
 }
+export function jsonTypeArrayToTuple<
+  Items extends [JsonType<any>, ...Array<JsonType<any>>],
+>(
+  itemsTypes: Items,
+): JsonType<{ [K in keyof Items]: JsonTypeContent<Items[K]> }> {
+  return jsonType(jsonDecoderArrayToTuple(itemsTypes), jsonEncoderArrayToTuple(itemsTypes));
+  return {
+    ...,
+    ...,
+  } as JsonType<{ [K in keyof Items]: JsonTypeContent<Items[K]> }>;
+}
 
-export function jsonTypeArrayToObject<
-  Shape extends { [key: string]: JsonType<any> },
->(shape: Shape): JsonType<{ [K in keyof Shape]: JsonTypeContent<Shape[K]> }> {
+export function jsonDecoderArrayToObject<
+  Shape extends { [key: string]: JsonDecoder<any> },
+>(
+  shape: Shape,
+): JsonDecoder<{ [K in keyof Shape]: JsonDecoderContent<Shape[K]> }> {
   return {
     decode(encoded: JsonValue): {
-      [K in keyof Shape]: JsonTypeContent<Shape[K]>;
+      [K in keyof Shape]: JsonDecoderContent<Shape[K]>;
     } {
       const array = jsonExpectArray(encoded);
-      const decoded = {} as { [K in keyof Shape]: JsonTypeContent<Shape[K]> };
+      const decoded = {} as {
+        [K in keyof Shape]: JsonDecoderContent<Shape[K]>;
+      };
       let index = 0;
       for (const key in shape) {
         decoded[key] = withContext(`JSON: Decode Array[${index}] =>`, () =>
@@ -427,8 +474,16 @@ export function jsonTypeArrayToObject<
       }
       return decoded;
     },
+  };
+}
+export function jsonEncoderArrayToObject<
+  Shape extends { [key: string]: JsonEncoder<any> },
+>(
+  shape: Shape,
+): JsonEncoder<{ [K in keyof Shape]: JsonEncoderContent<Shape[K]> }> {
+  return {
     encode(
-      decoded: Immutable<{ [K in keyof Shape]: JsonTypeContent<Shape[K]> }>,
+      decoded: Immutable<{ [K in keyof Shape]: JsonEncoderContent<Shape[K]> }>,
     ): JsonValue {
       const encoded = new Array<JsonValue>();
       let index = 0;
@@ -441,17 +496,29 @@ export function jsonTypeArrayToObject<
     },
   };
 }
+export function jsonTypeArrayToObject<
+  Shape extends { [key: string]: JsonType<any> },
+>(shape: Shape): JsonType<{ [K in keyof Shape]: JsonTypeContent<Shape[K]> }> {
+  return {
+    ...jsonDecoderArrayToObject(shape),
+    ...jsonEncoderArrayToObject(shape),
+  } as JsonType<{ [K in keyof Shape]: JsonTypeContent<Shape[K]> }>;
+}
 
-export function jsonTypeObject<Shape extends { [key: string]: JsonType<any> }>(
+export function jsonDecoderObject<
+  Shape extends { [key: string]: JsonDecoder<any> },
+>(
   shape: Shape,
   keysEncoding?: { [K in keyof Shape]?: string },
-): JsonType<{ [K in keyof Shape]: JsonTypeContent<Shape[K]> }> {
+): JsonDecoder<{ [K in keyof Shape]: JsonDecoderContent<Shape[K]> }> {
   return {
     decode(encoded: JsonValue): {
-      [K in keyof Shape]: JsonTypeContent<Shape[K]>;
+      [K in keyof Shape]: JsonDecoderContent<Shape[K]>;
     } {
       const object = jsonExpectObject(encoded);
-      const decoded = {} as { [K in keyof Shape]: JsonTypeContent<Shape[K]> };
+      const decoded = {} as {
+        [K in keyof Shape]: JsonDecoderContent<Shape[K]>;
+      };
       for (const keyDecoded in shape) {
         const keyEncoded = keysEncoding?.[keyDecoded] ?? keyDecoded;
         decoded[keyDecoded] = withContext(
@@ -461,9 +528,18 @@ export function jsonTypeObject<Shape extends { [key: string]: JsonType<any> }>(
       }
       return decoded;
     },
+  };
+}
+export function jsonEncoderObject<
+  Shape extends { [key: string]: JsonEncoder<any> },
+>(
+  shape: Shape,
+  keysEncoding?: { [K in keyof Shape]?: string },
+): JsonEncoder<{ [K in keyof Shape]: JsonEncoderContent<Shape[K]> }> {
+  return {
     encode(
       decoded: Immutable<{
-        [K in keyof Shape]: JsonTypeContent<Shape[K]>;
+        [K in keyof Shape]: JsonEncoderContent<Shape[K]>;
       }>,
     ): JsonValue {
       const encoded = {} as JsonObject;
@@ -476,6 +552,16 @@ export function jsonTypeObject<Shape extends { [key: string]: JsonType<any> }>(
       return encoded;
     },
   };
+}
+
+export function jsonTypeObject<Shape extends { [key: string]: JsonType<any> }>(
+  shape: Shape,
+  keysEncoding?: { [K in keyof Shape]?: string },
+): JsonType<{ [K in keyof Shape]: JsonTypeContent<Shape[K]> }> {
+  return {
+    ...jsonDecoderObject(shape, keysEncoding),
+    ...jsonEncoderObject(shape, keysEncoding),
+  } as JsonType<{ [K in keyof Shape]: JsonTypeContent<Shape[K]> }>;
 }
 
 export function jsonTypeObjectWithKeyEncoder<
@@ -613,23 +699,6 @@ export function jsonTypeOptional<Content>(
   };
 }
 
-export function jsonTypeMapped<Mapped, Unmapped>(
-  unmappedType: JsonType<Unmapped>,
-  processors: {
-    map: (unmapped: Unmapped) => Mapped;
-    unmap: (mapped: Immutable<Mapped>) => Immutable<Unmapped>;
-  },
-): JsonType<Mapped> {
-  return {
-    decode(encoded: JsonValue): Mapped {
-      return processors.map(unmappedType.decode(encoded));
-    },
-    encode(decoded: Immutable<Mapped>): JsonValue {
-      return unmappedType.encode(processors.unmap(decoded));
-    },
-  };
-}
-
 export function jsonTypeArrayToVariant<Variant>(
   variantKey: string,
   variantType: JsonType<Variant>,
@@ -706,37 +775,39 @@ export function jsonDecoderByType<Content>(decoders: {
   string?: (string: string) => Content;
   array?: (array: JsonArray) => Content;
   object?: (object: JsonObject) => Content;
-}) {
-  return (encoded: JsonValue) => {
-    if (encoded === undefined && decoders.undefined) {
-      return decoders.undefined();
-    }
-    if (encoded === null && decoders.null) {
-      return decoders.null();
-    }
-    const boolean = jsonAsBoolean(encoded);
-    if (boolean !== undefined && decoders.boolean) {
-      return decoders.boolean(boolean);
-    }
-    const number = jsonAsNumber(encoded);
-    if (number !== undefined && decoders.number) {
-      return decoders.number(number);
-    }
-    const string = jsonAsString(encoded);
-    if (string !== undefined && decoders.string) {
-      return decoders.string(string);
-    }
-    const array = jsonAsArray(encoded);
-    if (array !== undefined && decoders.array) {
-      return decoders.array(array);
-    }
-    const object = jsonAsObject(encoded);
-    if (object !== undefined && decoders.object) {
-      return decoders.object(object);
-    }
-    throw new Error(
-      `JSON: Expected ${Object.keys(decoders).join("/")} (found: ${jsonPreview(encoded)})`,
-    );
+}): JsonDecoder<Content> {
+  return {
+    decode(encoded: JsonValue) {
+      if (encoded === undefined && decoders.undefined) {
+        return decoders.undefined();
+      }
+      if (encoded === null && decoders.null) {
+        return decoders.null();
+      }
+      const boolean = jsonAsBoolean(encoded);
+      if (boolean !== undefined && decoders.boolean) {
+        return decoders.boolean(boolean);
+      }
+      const number = jsonAsNumber(encoded);
+      if (number !== undefined && decoders.number) {
+        return decoders.number(number);
+      }
+      const string = jsonAsString(encoded);
+      if (string !== undefined && decoders.string) {
+        return decoders.string(string);
+      }
+      const array = jsonAsArray(encoded);
+      if (array !== undefined && decoders.array) {
+        return decoders.array(array);
+      }
+      const object = jsonAsObject(encoded);
+      if (object !== undefined && decoders.object) {
+        return decoders.object(object);
+      }
+      throw new Error(
+        `JSON: Expected ${Object.keys(decoders).join("/")} (found: ${jsonPreview(encoded)})`,
+      );
+    },
   };
 }
 

@@ -4,8 +4,8 @@ import {
   jsonAsBoolean,
   jsonAsObject,
   jsonAsString,
+  jsonDecoderString,
   jsonExpectObject,
-  jsonExpectString,
   JsonValue,
 } from "../data/Json";
 import { Pubkey, pubkeyFindPdaAddress, pubkeyFromBytes } from "../data/Pubkey";
@@ -84,7 +84,7 @@ export function idlInstructionAccountParse(
 ): IdlInstructionAccount {
   const instructionAccountObject = jsonExpectObject(instructionAccountValue);
   const instructionAccountName = camelCaseToSnakeCase(
-    jsonExpectString(instructionAccountObject["name"]),
+    jsonDecoderString(instructionAccountObject["name"]),
   );
   const docs = instructionAccountObject["docs"];
   const writable =

@@ -2,7 +2,7 @@ import {
   jsonAsArray,
   jsonAsObject,
   jsonAsString,
-  jsonExpectString,
+  jsonDecoderString,
   JsonValue,
 } from "../data/Json";
 import { Pubkey, pubkeyToBytes } from "../data/Pubkey";
@@ -96,7 +96,7 @@ export function idlInstructionBlobParse(
         );
       }
     }
-    const instructionBlobPath = jsonExpectString(
+    const instructionBlobPath = jsonDecoderString(
       instructionBlobObject["path"], // TODO - better error handling using JsonType
     );
     if (instructionBlobObject["kind"] === "arg") {

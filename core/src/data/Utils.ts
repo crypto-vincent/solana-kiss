@@ -8,17 +8,16 @@ export function withContext<T>(message: string, fn: () => T): T {
   }
 }
 
-export type Immutable<T> = T extends
-  | string
-  | number
-  | boolean
-  | bigint
-  | symbol
-  | null
+export type Primitive =
   | undefined
-  | Date
-  | RegExp
-  | Error
+  | null
+  | boolean
+  | number
+  | string
+  | bigint
+  | symbol;
+
+export type Immutable<T> = T extends Primitive | Date | RegExp | Error
   ? T
   : T extends (...args: any[]) => any
     ? T

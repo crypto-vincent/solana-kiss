@@ -1,7 +1,7 @@
 import {
   jsonAsNumber,
   jsonAsString,
-  jsonExpectBoolean,
+  jsonDecoderBoolean,
   jsonExpectString,
   jsonPreview,
   JsonValue,
@@ -171,7 +171,8 @@ const visitorSerialize = {
     data.setFloat64(0, num, true);
   },
   bool: (blob: Uint8Array, value: JsonValue) => {
-    if (jsonExpectBoolean(value)) {
+    // TODO - naming for this
+    if (jsonDecoderBoolean(value)) {
       blob[0] = 1;
     } else {
       blob[0] = 0;

@@ -1,4 +1,4 @@
-import { jsonExpectObject, jsonExpectString, JsonValue } from "../data/Json";
+import { jsonDecoderString, jsonExpectObject, JsonValue } from "../data/Json";
 import { Pubkey } from "../data/Pubkey";
 
 export type IdlMetadata = {
@@ -18,7 +18,7 @@ export function idlMetadataParse(metadataValue: JsonValue): IdlMetadata {
   const metadataObject = jsonExpectObject(metadataValue);
   const metadataName = metadataObject["name"];
   if (metadataName !== undefined) {
-    metadataIdl.name = jsonExpectString(metadataName);
+    metadataIdl.name = jsonDecoderString(metadataName);
   }
   const metadataDocs = metadataObject["docs"];
   if (metadataDocs !== undefined) {
@@ -26,19 +26,19 @@ export function idlMetadataParse(metadataValue: JsonValue): IdlMetadata {
   }
   const metadataDescription = metadataObject["description"];
   if (metadataDescription !== undefined) {
-    metadataIdl.description = jsonExpectString(metadataDescription);
+    metadataIdl.description = jsonDecoderString(metadataDescription);
   }
   const metadataAddress = metadataObject["address"];
   if (metadataAddress !== undefined) {
-    metadataIdl.address = jsonExpectString(metadataAddress);
+    metadataIdl.address = jsonDecoderString(metadataAddress);
   }
   const metadataVersion = metadataObject["version"];
   if (metadataVersion !== undefined) {
-    metadataIdl.version = jsonExpectString(metadataVersion);
+    metadataIdl.version = jsonDecoderString(metadataVersion);
   }
   const metadataSpec = metadataObject["spec"];
   if (metadataSpec !== undefined) {
-    metadataIdl.spec = jsonExpectString(metadataSpec);
+    metadataIdl.spec = jsonDecoderString(metadataSpec);
   }
   return metadataIdl;
 }
