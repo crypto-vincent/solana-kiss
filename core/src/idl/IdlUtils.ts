@@ -3,9 +3,9 @@ import { base58Decode } from "../data/Base58";
 import { base64Decode } from "../data/Base64";
 import {
   JsonArray,
+  jsonDecodeNumber,
   jsonDecoderByKind,
-  jsonExpectNumber,
-  jsonExpectString,
+  jsonDecodeString,
   JsonObject,
   jsonPreview,
 } from "../data/Json";
@@ -29,25 +29,25 @@ export const idlUtilsBytesJsonDecode = jsonDecoderByKind({
     return new TextEncoder().encode(string);
   },
   array: (array: JsonArray) => {
-    return new Uint8Array(array.map((item) => jsonExpectNumber(item)));
+    return new Uint8Array(array.map((item) => jsonDecodeNumber(item)));
   },
   object: (object: JsonObject) => {
     // TODO - this looks like an enum - could we use jsonTypeEnum here?
     const base16 = object["base16"];
     if (base16 !== undefined) {
-      return base16Decode(jsonExpectString(base16));
+      return base16Decode(jsonDecodeString(base16));
     }
     const base58 = object["base58"];
     if (base58 !== undefined) {
-      return base58Decode(jsonExpectString(base58));
+      return base58Decode(jsonDecodeString(base58));
     }
     const base64 = object["base64"];
     if (base64 !== undefined) {
-      return base64Decode(jsonExpectString(base64));
+      return base64Decode(jsonDecodeString(base64));
     }
     const utf8 = object["utf8"];
     if (utf8 !== undefined) {
-      return new TextEncoder().encode(jsonExpectString(utf8));
+      return new TextEncoder().encode(jsonDecodeString(utf8));
     }
     const type = object["type"];
     if (type !== undefined) {

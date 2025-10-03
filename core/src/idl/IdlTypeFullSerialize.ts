@@ -2,9 +2,9 @@ import {
   jsonAsNumber,
   jsonAsObject,
   jsonAsString,
-  jsonExpectArray,
-  jsonExpectObject,
-  jsonExpectString,
+  jsonDecodeArray,
+  jsonDecodeObject,
+  jsonDecodeString,
   JsonValue,
 } from "../data/Json";
 import { withContext } from "../data/Utils";
@@ -78,7 +78,7 @@ const visitorSerialize = {
     blobs: Array<Uint8Array>,
     prefixed: boolean,
   ) => {
-    if (self.items.isPrimitive(IdlTypePrimitive.U8)) {
+    if (self.items.isPrimitive(IdlTypePrimitive.u8)) {
       const blob = idlUtilsBytesJsonDecode(value);
       if (prefixed) {
         idlTypePrefixSerialize(self.prefix, BigInt(blob.length), blobs);
@@ -86,7 +86,7 @@ const visitorSerialize = {
       blobs.push(blob);
       return;
     }
-    const array = jsonExpectArray(value);
+    const array = jsonDecodeArray(value);
     if (prefixed) {
       idlTypePrefixSerialize(self.prefix, BigInt(array.length), blobs);
     }
@@ -100,7 +100,7 @@ const visitorSerialize = {
     blobs: Array<Uint8Array>,
     prefixed: boolean,
   ) => {
-    if (self.items.isPrimitive(IdlTypePrimitive.U8)) {
+    if (self.items.isPrimitive(IdlTypePrimitive.u8)) {
       const blob = idlUtilsBytesJsonDecode(value);
       if (blob.length != self.length) {
         throw new Error(
@@ -110,7 +110,7 @@ const visitorSerialize = {
       blobs.push(blob);
       return;
     }
-    const array = jsonExpectArray(value);
+    const array = jsonDecodeArray(value);
     if (array.length != self.length) {
       throw new Error(
         `Expected an array of size: ${self.length}, found: ${array.length}`,
@@ -126,7 +126,7 @@ const visitorSerialize = {
     blobs: Array<Uint8Array>,
     prefixed: boolean,
   ) => {
-    const string = jsonExpectString(value);
+    const string = jsonDecodeString(value);
     const bytes = new TextEncoder().encode(string);
     if (prefixed) {
       idlTypePrefixSerialize(self.prefix, BigInt(bytes.length), blobs);
@@ -243,7 +243,7 @@ const visitorFieldsSerialize = {
     if (self.length <= 0) {
       return;
     }
-    const object = jsonExpectObject(value);
+    const object = jsonDecodeObject(value);
     for (const field of self) {
       withContext(`Serialize: Field: ${field.name}`, () => {
         idlTypeFullSerialize(
@@ -264,7 +264,7 @@ const visitorFieldsSerialize = {
     if (self.length <= 0) {
       return;
     }
-    const array = jsonExpectArray(value);
+    const array = jsonDecodeArray(value);
     for (const field of self) {
       withContext(`Serialize: Field: ${field.position}`, () => {
         idlTypeFullSerialize(

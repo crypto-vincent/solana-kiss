@@ -66,43 +66,43 @@ it("run", () => {
       fields: IdlTypeFlatFields.unnamed([
         {
           docs: undefined,
-          content: IdlTypeFlat.primitive(IdlTypePrimitive.U8),
+          content: IdlTypeFlat.primitive(IdlTypePrimitive.u8),
         },
         {
           docs: undefined,
-          content: IdlTypeFlat.primitive(IdlTypePrimitive.U64),
+          content: IdlTypeFlat.primitive(IdlTypePrimitive.u64),
         },
         {
           docs: undefined,
           content: IdlTypeFlat.string({
-            prefix: IdlTypePrefix.U32,
+            prefix: IdlTypePrefix.u32,
           }),
         },
         {
           docs: undefined,
           content: IdlTypeFlat.vec({
-            prefix: IdlTypePrefix.U32,
-            items: IdlTypeFlat.primitive(IdlTypePrimitive.U8),
+            prefix: IdlTypePrefix.u32,
+            items: IdlTypeFlat.primitive(IdlTypePrimitive.u8),
           }),
         },
         {
           docs: undefined,
           content: IdlTypeFlat.vec({
-            prefix: IdlTypePrefix.U32,
-            items: IdlTypeFlat.primitive(IdlTypePrimitive.U8),
+            prefix: IdlTypePrefix.u32,
+            items: IdlTypeFlat.primitive(IdlTypePrimitive.u8),
           }),
         },
         {
           docs: undefined,
           content: IdlTypeFlat.array({
-            items: IdlTypeFlat.primitive(IdlTypePrimitive.U32),
+            items: IdlTypeFlat.primitive(IdlTypePrimitive.u32),
             length: IdlTypeFlat.const({ literal: 4 }),
           }),
         },
         {
           docs: undefined,
           content: IdlTypeFlat.array({
-            items: IdlTypeFlat.primitive(IdlTypePrimitive.U32),
+            items: IdlTypeFlat.primitive(IdlTypePrimitive.u32),
             length: IdlTypeFlat.const({ literal: 4 }),
           }),
         },
@@ -113,7 +113,7 @@ it("run", () => {
         {
           docs: undefined,
           content: IdlTypeFlat.enum({
-            prefix: IdlTypePrefix.U8,
+            prefix: IdlTypePrefix.u8,
             variants: [],
           }),
         },
@@ -147,15 +147,15 @@ it("run", () => {
         {
           docs: undefined,
           content: IdlTypeFlat.option({
-            prefix: IdlTypePrefix.U8,
-            content: IdlTypeFlat.primitive(IdlTypePrimitive.U8),
+            prefix: IdlTypePrefix.u8,
+            content: IdlTypeFlat.primitive(IdlTypePrimitive.u8),
           }),
         },
         {
           docs: undefined,
           content: IdlTypeFlat.option({
-            prefix: IdlTypePrefix.U32,
-            content: IdlTypeFlat.primitive(IdlTypePrimitive.U8),
+            prefix: IdlTypePrefix.u32,
+            content: IdlTypeFlat.primitive(IdlTypePrimitive.u8),
           }),
         },
         {

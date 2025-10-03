@@ -28,10 +28,10 @@ export type Transaction = {
   logs: Array<string>;
   chargedFees: Lamports;
   consumedComputeUnits: number;
-  invokations: Array<Invokation>;
+  invocations: Array<Invocation>;
 };
 
-export type Invokation = {
+export type Invocation = {
   instruction: Instruction;
-  invokations: Array<Invokation>;
+  invocations: Array<Invocation>;
 };

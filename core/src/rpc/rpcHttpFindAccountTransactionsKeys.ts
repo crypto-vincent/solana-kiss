@@ -1,7 +1,7 @@
 import {
   jsonDecoderArray,
   jsonDecoderObject,
-  jsonExpectString,
+  jsonDecodeString,
 } from "../data/Json";
 import { Commitment, Signature } from "../data/Onchain";
 import { Pubkey } from "../data/Pubkey";
@@ -56,6 +56,6 @@ export async function rpcHttpFindAccountTransactionsKeys(
 
 const resultDecode = jsonDecoderArray(
   jsonDecoderObject({
-    signature: jsonExpectString,
+    signature: jsonDecodeString,
   }),
 );

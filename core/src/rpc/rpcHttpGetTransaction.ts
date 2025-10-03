@@ -1,18 +1,18 @@
 import { base58Decode } from "../data/Base58";
 import {
+  jsonDecodeNumber,
   jsonDecoderArray,
   jsonDecoderNullable,
   jsonDecoderObject,
   jsonDecoderObjectToRecord,
+  jsonDecodeString,
   jsonDecodeValue,
-  jsonExpectNumber,
-  jsonExpectString,
 } from "../data/Json";
 import {
   Commitment,
   Input,
   Instruction,
-  Invokation,
+  Invocation,
   Signature,
   Transaction,
 } from "../data/Onchain";
@@ -67,10 +67,10 @@ export async function rpcHttpGetTransaction(
       recentBlockHash: message.recentBlockhash,
     },
     error: meta.err, // TODO - parse error to find
-    logs: meta.logMessages, // TODO - parse logs for invokations and event data
+    logs: meta.logMessages, // TODO - parse logs for invocations and event data
     chargedFees: BigInt(meta.fee),
     consumedComputeUnits: meta.computeUnitsConsumed,
-    invokations: decompileTransactionInvokations(
+    invocations: decompileTransactionInvocations(
       transactionInputs,
       transactionInstructions,
       meta.innerInstructions,
@@ -146,54 +146,54 @@ function decompileTransactionInstructions(
   return instructions;
 }
 
-function decompileTransactionInvokations(
+function decompileTransactionInvocations(
   transactionInputs: Array<Input>,
   transactionInstructions: Array<Instruction>,
   compiledInnerInstructions: Array<{
     index: number;
     instructions: Array<CompiledInstruction>;
   }>,
-): Array<Invokation> {
-  const rootInvokations = new Array<Invokation>();
+): Array<Invocation> {
+  const rootInvocations = new Array<Invocation>();
   for (let index = 0; index < transactionInstructions.length; index++) {
-    rootInvokations.push({
+    rootInvocations.push({
       instruction: transactionInstructions[index]!,
-      invokations: [],
+      invocations: [],
     });
   }
   for (const compiledInnerInstructionBlock of compiledInnerInstructions) {
-    const rootInvokation = expectItemInArray(
-      rootInvokations,
+    const rootInvocation = expectItemInArray(
+      rootInvocations,
       compiledInnerInstructionBlock.index,
     );
-    const invokationStack = new Array<Invokation>();
-    invokationStack.push(rootInvokation);
+    const invocationStack = new Array<Invocation>();
+    invocationStack.push(rootInvocation);
     for (const compiledInnerInstruction of compiledInnerInstructionBlock.instructions) {
-      const innerInvokation = {
+      const innerInvocation = {
         instruction: decompileTransactionInstruction(
           transactionInputs,
           compiledInnerInstruction,
         ),
-        invokations: [],
+        invocations: [],
       };
       const stackIndex = compiledInnerInstruction.stackHeight - 1;
-      if (stackIndex < 1 || stackIndex > invokationStack.length) {
+      if (stackIndex < 1 || stackIndex > invocationStack.length) {
         throw new Error(
-          `RpcHttp: Expected inner instruction stack index to be betweem 1 and ${invokationStack.length} (found: ${stackIndex})`,
+          `RpcHttp: Expected inner instruction stack index to be betweem 1 and ${invocationStack.length} (found: ${stackIndex})`,
         );
       }
-      if (stackIndex === invokationStack.length) {
-        invokationStack[stackIndex - 1]!.invokations.push(innerInvokation);
-        invokationStack.push(innerInvokation);
+      if (stackIndex === invocationStack.length) {
+        invocationStack[stackIndex - 1]!.invocations.push(innerInvocation);
+        invocationStack.push(innerInvocation);
       } else {
-        while (stackIndex < invokationStack.length) {
-          invokationStack.pop();
+        while (stackIndex < invocationStack.length) {
+          invocationStack.pop();
         }
-        invokationStack[stackIndex - 1]!.invokations.push(innerInvokation);
+        invocationStack[stackIndex - 1]!.invocations.push(innerInvocation);
       }
     }
   }
-  return rootInvokations;
+  return rootInvocations;
 }
 
 type CompiledInstruction = {
@@ -224,10 +224,10 @@ function decompileTransactionInstruction(
 
 const instructionDecode = jsonDecoderObject(
   {
-    stackHeight: jsonExpectNumber,
-    programIndex: jsonExpectNumber,
-    accountsIndexes: jsonDecoderArray(jsonExpectNumber),
-    dataBase58: jsonExpectString,
+    stackHeight: jsonDecodeNumber,
+    programIndex: jsonDecodeNumber,
+    accountsIndexes: jsonDecoderArray(jsonDecodeNumber),
+    dataBase58: jsonDecodeString,
   },
   {
     programIndex: "programIdIndex",
@@ -238,43 +238,43 @@ const instructionDecode = jsonDecoderObject(
 
 const resultDecode = jsonDecoderNullable(
   jsonDecoderObject({
-    blockTime: jsonExpectNumber,
+    blockTime: jsonDecodeNumber,
     meta: jsonDecoderObject({
-      computeUnitsConsumed: jsonExpectNumber,
+      computeUnitsConsumed: jsonDecodeNumber,
       err: jsonDecoderNullable(jsonDecoderObjectToRecord(jsonDecodeValue)),
-      fee: jsonExpectNumber,
+      fee: jsonDecodeNumber,
       innerInstructions: jsonDecoderArray(
         jsonDecoderObject({
-          index: jsonExpectNumber,
+          index: jsonDecodeNumber,
           instructions: jsonDecoderArray(instructionDecode),
         }),
       ),
       loadedAddresses: jsonDecoderObject({
-        writable: jsonDecoderArray(jsonExpectString),
-        readonly: jsonDecoderArray(jsonExpectString),
+        writable: jsonDecoderArray(jsonDecodeString),
+        readonly: jsonDecoderArray(jsonDecodeString),
       }),
-      logMessages: jsonDecoderArray(jsonExpectString),
+      logMessages: jsonDecoderArray(jsonDecodeString),
     }),
-    slot: jsonExpectNumber,
+    slot: jsonDecodeNumber,
     transaction: jsonDecoderObject({
       message: jsonDecoderObject({
-        accountKeys: jsonDecoderArray(jsonExpectString),
+        accountKeys: jsonDecoderArray(jsonDecodeString),
         addressTableLookups: jsonDecoderArray(
           jsonDecoderObject({
-            accountKey: jsonExpectString,
-            readonlyIndexes: jsonDecoderArray(jsonExpectNumber),
-            writableIndexes: jsonDecoderArray(jsonExpectNumber),
+            accountKey: jsonDecodeString,
+            readonlyIndexes: jsonDecoderArray(jsonDecodeNumber),
+            writableIndexes: jsonDecoderArray(jsonDecodeNumber),
           }),
         ),
         header: jsonDecoderObject({
-          numReadonlySignedAccounts: jsonExpectNumber,
-          numReadonlyUnsignedAccounts: jsonExpectNumber,
-          numRequiredSignatures: jsonExpectNumber,
+          numReadonlySignedAccounts: jsonDecodeNumber,
+          numReadonlyUnsignedAccounts: jsonDecodeNumber,
+          numRequiredSignatures: jsonDecodeNumber,
         }),
         instructions: jsonDecoderArray(instructionDecode),
-        recentBlockhash: jsonExpectString,
+        recentBlockhash: jsonDecodeString,
       }),
-      signatures: jsonDecoderArray(jsonExpectString),
+      signatures: jsonDecoderArray(jsonDecodeString),
     }),
   }),
 );

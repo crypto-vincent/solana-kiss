@@ -113,22 +113,22 @@ it("run", () => {
       {
         name: "index",
         docs: undefined,
-        content: IdlTypeFlat.primitive(IdlTypePrimitive.U32),
+        content: IdlTypeFlat.primitive(IdlTypePrimitive.u32),
       },
       {
         name: "id",
         docs: undefined,
-        content: IdlTypeFlat.primitive(IdlTypePrimitive.I64),
+        content: IdlTypeFlat.primitive(IdlTypePrimitive.i64),
       },
     ]),
     argsTypeFullFields: IdlTypeFullFields.named([
       {
         name: "index",
-        content: IdlTypeFull.primitive(IdlTypePrimitive.U32),
+        content: IdlTypeFull.primitive(IdlTypePrimitive.u32),
       },
       {
         name: "id",
-        content: IdlTypeFull.primitive(IdlTypePrimitive.I64),
+        content: IdlTypeFull.primitive(IdlTypePrimitive.i64),
       },
     ]),
     returnTypeFlat: IdlTypeFlat.structNothing(),
@@ -146,12 +146,12 @@ it("run", () => {
         {
           name: "field1",
           docs: undefined,
-          content: IdlTypeFlat.primitive(IdlTypePrimitive.U64),
+          content: IdlTypeFlat.primitive(IdlTypePrimitive.u64),
         },
         {
           name: "field2",
           docs: undefined,
-          content: IdlTypeFlat.primitive(IdlTypePrimitive.U32),
+          content: IdlTypeFlat.primitive(IdlTypePrimitive.u32),
         },
       ]),
     }),
@@ -159,11 +159,11 @@ it("run", () => {
       fields: IdlTypeFullFields.named([
         {
           name: "field1",
-          content: IdlTypeFull.primitive(IdlTypePrimitive.U64),
+          content: IdlTypeFull.primitive(IdlTypePrimitive.u64),
         },
         {
           name: "field2",
-          content: IdlTypeFull.primitive(IdlTypePrimitive.U32),
+          content: IdlTypeFull.primitive(IdlTypePrimitive.u32),
         },
       ]),
     }),

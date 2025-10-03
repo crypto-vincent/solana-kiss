@@ -1,11 +1,11 @@
 import { camelCaseToSnakeCase } from "../data/Casing";
 import {
+  jsonDecodeBoolean,
   jsonDecoderArray,
   jsonDecoderObject,
   jsonDecoderOptional,
+  jsonDecodeString,
   jsonDecodeValue,
-  jsonExpectBoolean,
-  jsonExpectString,
   JsonValue,
 } from "../data/Json";
 import { Pubkey, pubkeyFindPdaAddress, pubkeyFromBytes } from "../data/Pubkey";
@@ -117,15 +117,15 @@ export function idlInstructionAccountParse(
 }
 
 const infoJsonDecode = jsonDecoderObject({
-  name: jsonExpectString,
+  name: jsonDecodeString,
   docs: jsonDecodeValue,
-  isSigner: jsonDecoderOptional(jsonExpectBoolean),
-  isMut: jsonDecoderOptional(jsonExpectBoolean),
-  isOptional: jsonDecoderOptional(jsonExpectBoolean),
-  signer: jsonDecoderOptional(jsonExpectBoolean),
-  writable: jsonDecoderOptional(jsonExpectBoolean),
-  optional: jsonDecoderOptional(jsonExpectBoolean),
-  address: jsonDecoderOptional(jsonExpectString),
+  isSigner: jsonDecoderOptional(jsonDecodeBoolean),
+  isMut: jsonDecoderOptional(jsonDecodeBoolean),
+  isOptional: jsonDecoderOptional(jsonDecodeBoolean),
+  signer: jsonDecoderOptional(jsonDecodeBoolean),
+  writable: jsonDecoderOptional(jsonDecodeBoolean),
+  optional: jsonDecoderOptional(jsonDecodeBoolean),
+  address: jsonDecoderOptional(jsonDecodeString),
   pda: jsonDecoderOptional(
     jsonDecoderObject({
       seeds: jsonDecoderOptional(jsonDecoderArray(jsonDecodeValue)),

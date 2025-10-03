@@ -2,8 +2,8 @@ import { camelCaseToSnakeCase } from "../data/Casing";
 import {
   jsonAsArray,
   jsonAsObject,
-  jsonExpectObject,
-  jsonExpectString,
+  jsonDecodeObject,
+  jsonDecodeString,
   JsonObject,
   JsonValue,
 } from "../data/Json";
@@ -91,7 +91,7 @@ export function idlProgramGuessError(
 }
 
 export function idlProgramParse(programValue: JsonValue): IdlProgram {
-  const programObject = jsonExpectObject(programValue);
+  const programObject = jsonDecodeObject(programValue);
   const metadata = {
     ...idlMetadataParse(programObject),
     ...idlMetadataParse(programObject["metadata"]),
@@ -146,8 +146,8 @@ function parseScopedNamedValues<T, P>(
   const collectionArray = jsonAsArray(collectionValue);
   if (collectionArray !== undefined) {
     for (const itemValue of collectionArray) {
-      const itemObject = jsonExpectObject(itemValue);
-      let itemName = jsonExpectString(itemObject["name"]);
+      const itemObject = jsonDecodeObject(itemValue);
+      let itemName = jsonDecodeString(itemObject["name"]);
       if (convertNameToSnakeCase) {
         itemName = camelCaseToSnakeCase(itemName);
       }

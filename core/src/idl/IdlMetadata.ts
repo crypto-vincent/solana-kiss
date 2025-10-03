@@ -1,8 +1,8 @@
 import {
   jsonDecoderObject,
   jsonDecoderOptional,
+  jsonDecodeString,
   jsonDecodeValue,
-  jsonExpectString,
   JsonValue,
 } from "../data/Json";
 import { Pubkey } from "../data/Pubkey";
@@ -31,11 +31,11 @@ export function idlMetadataParse(value: JsonValue): IdlMetadata {
 
 const infoJsonDecode = jsonDecoderOptional(
   jsonDecoderObject({
-    name: jsonDecoderOptional(jsonExpectString),
+    name: jsonDecoderOptional(jsonDecodeString),
     docs: jsonDecoderOptional(jsonDecodeValue),
-    description: jsonDecoderOptional(jsonExpectString),
-    address: jsonDecoderOptional(jsonExpectString),
-    version: jsonDecoderOptional(jsonExpectString),
-    spec: jsonDecoderOptional(jsonExpectString),
+    description: jsonDecoderOptional(jsonDecodeString),
+    address: jsonDecoderOptional(jsonDecodeString),
+    version: jsonDecoderOptional(jsonDecodeString),
+    spec: jsonDecoderOptional(jsonDecodeString),
   }),
 );

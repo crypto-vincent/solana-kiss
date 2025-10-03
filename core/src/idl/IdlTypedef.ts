@@ -3,8 +3,8 @@ import {
   jsonDecoderByKind,
   jsonDecoderObject,
   jsonDecoderOptional,
+  jsonDecodeString,
   jsonDecodeValue,
-  jsonExpectString,
   JsonValue,
 } from "../data/Json";
 import { IdlTypeFlat } from "./IdlTypeFlat";
@@ -36,18 +36,18 @@ export function idlTypedefParse(
 
 const infoJsonDecode = jsonDecoderObject({
   docs: jsonDecodeValue,
-  serialization: jsonDecoderOptional(jsonExpectString),
+  serialization: jsonDecoderOptional(jsonDecodeString),
   repr: jsonDecoderOptional(
     jsonDecoderByKind({
       string: (string: string) => ({ kind: string }),
-      object: jsonDecoderObject({ kind: jsonExpectString }),
+      object: jsonDecoderObject({ kind: jsonDecodeString }),
     }),
   ),
   generics: jsonDecoderOptional(
     jsonDecoderArray(
       jsonDecoderByKind({
         string: (string: string) => ({ name: string }),
-        object: jsonDecoderObject({ name: jsonExpectString }),
+        object: jsonDecoderObject({ name: jsonDecodeString }),
       }),
     ),
   ),

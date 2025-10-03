@@ -172,46 +172,6 @@ export function jsonIsDeepSubset(
   return false;
 }
 
-export const jsonExpectBoolean = (encoded: JsonValue): boolean => {
-  const decoded = jsonAsBoolean(encoded);
-  if (decoded === undefined) {
-    throw new Error(
-      `JSON: Expected a boolean (found: ${jsonPreview(encoded)})`,
-    );
-  }
-  return decoded;
-};
-export const jsonExpectNumber = (encoded: JsonValue): number => {
-  const decoded = jsonAsNumber(encoded);
-  if (decoded === undefined) {
-    throw new Error(`JSON: Expected a number (found: ${jsonPreview(encoded)})`);
-  }
-  return decoded;
-};
-export const jsonExpectString = (encoded: JsonValue): string => {
-  const decoded = jsonAsString(encoded);
-  if (decoded === undefined) {
-    throw new Error(`JSON: Expected a string (found: ${jsonPreview(encoded)})`);
-  }
-  return decoded;
-};
-export const jsonExpectArray = (encoded: JsonValue): JsonArray => {
-  const decoded = jsonAsArray(encoded);
-  if (decoded === undefined) {
-    throw new Error(`JSON: Expected an array (found: ${jsonPreview(encoded)})`);
-  }
-  return decoded;
-};
-export const jsonExpectObject = (encoded: JsonValue): JsonObject => {
-  const decoded = jsonAsObject(encoded);
-  if (decoded === undefined) {
-    throw new Error(
-      `JSON: Expected an object (found: ${jsonPreview(encoded)})`,
-    );
-  }
-  return decoded;
-};
-
 export type JsonDecodeContent<S> = S extends JsonDecode<infer T> ? T : never;
 export type JsonDecode<Content> = (encoded: JsonValue) => Content;
 
@@ -237,38 +197,77 @@ export const jsonEncodeValue = (decoded: Immutable<JsonValue>): JsonValue => {
   return JSON.parse(JSON.stringify(decoded));
 };
 export const jsonTypeValue: JsonType<JsonValue> = {
-  encode: jsonEncodeValue,
   decode: jsonDecodeValue,
+  encode: jsonEncodeValue,
 };
 
+export const jsonDecodeBoolean = (encoded: JsonValue): boolean => {
+  const decoded = jsonAsBoolean(encoded);
+  if (decoded === undefined) {
+    throw new Error(
+      `JSON: Expected a boolean (found: ${jsonPreview(encoded)})`,
+    );
+  }
+  return decoded;
+};
 export const jsonEncodeBoolean = (decoded: Immutable<boolean>): JsonValue => {
   return decoded;
 };
 export const jsonTypeBoolean: JsonType<boolean> = {
+  decode: jsonDecodeBoolean,
   encode: jsonEncodeBoolean,
-  decode: jsonExpectBoolean,
 };
 
+export const jsonDecodeNumber = (encoded: JsonValue): number => {
+  const decoded = jsonAsNumber(encoded);
+  if (decoded === undefined) {
+    throw new Error(`JSON: Expected a number (found: ${jsonPreview(encoded)})`);
+  }
+  return decoded;
+};
 export const jsonEncodeNumber = (decoded: Immutable<number>): JsonValue => {
   return decoded;
 };
 export const jsonTypeNumber: JsonType<number> = {
+  decode: jsonDecodeNumber,
   encode: jsonEncodeNumber,
-  decode: jsonExpectNumber,
 };
 
+export const jsonDecodeString = (encoded: JsonValue): string => {
+  const decoded = jsonAsString(encoded);
+  if (decoded === undefined) {
+    throw new Error(`JSON: Expected a string (found: ${jsonPreview(encoded)})`);
+  }
+  return decoded;
+};
 export const jsonEncodeString = (decoded: Immutable<string>): JsonValue => {
   return decoded;
 };
 export const jsonTypeString: JsonType<string> = {
+  decode: jsonDecodeString,
   encode: jsonEncodeString,
-  decode: jsonExpectString,
 };
 
+export const jsonDecodeArray = (encoded: JsonValue): JsonArray => {
+  const decoded = jsonAsArray(encoded);
+  if (decoded === undefined) {
+    throw new Error(`JSON: Expected an array (found: ${jsonPreview(encoded)})`);
+  }
+  return decoded;
+};
 export const jsonEncodeArray = (decoded: Immutable<JsonArray>): JsonValue => {
   return [...decoded] as JsonArray;
 };
 
+export const jsonDecodeObject = (encoded: JsonValue): JsonObject => {
+  const decoded = jsonAsObject(encoded);
+  if (decoded === undefined) {
+    throw new Error(
+      `JSON: Expected an object (found: ${jsonPreview(encoded)})`,
+    );
+  }
+  return decoded;
+};
 export const jsonEncodeObject = (decoded: Immutable<JsonObject>): JsonValue => {
   return { ...decoded } as JsonObject;
 };
@@ -342,7 +341,7 @@ export function jsonDecoderArrayToTuple<
     const decoded = [] as {
       [K in keyof Items]: JsonDecodeContent<Items[K]>;
     };
-    const array = jsonExpectArray(encoded);
+    const array = jsonDecodeArray(encoded);
     for (let index = 0; index < itemsDecodes.length; index++) {
       decoded[index as keyof typeof decoded] = withContext(
         `JSON: Decode Array[${index}] =>`,
@@ -403,7 +402,7 @@ export function jsonDecoderArrayToObject<
     const decoded = {} as {
       [K in keyof Shape]: JsonDecodeContent<Shape[K]>;
     };
-    const array = jsonExpectArray(encoded);
+    const array = jsonDecodeArray(encoded);
     let index = 0;
     for (const key in shape) {
       decoded[key] = withContext(`JSON: Decode Array[${index}] =>`, () =>
@@ -458,7 +457,7 @@ export function jsonDecoderObject<
     const decoded = {} as {
       [K in keyof Shape]: JsonDecodeContent<Shape[K]>;
     };
-    const object = jsonExpectObject(encoded);
+    const object = jsonDecodeObject(encoded);
     for (const keyDecoded in shape) {
       const keyEncoded = keysEncoding?.[keyDecoded] ?? keyDecoded;
       decoded[keyDecoded] = withContext(
@@ -523,7 +522,7 @@ export function jsonDecoderObjectToRecord<Value>(
 ): JsonDecode<Record<string, Value>> {
   return (encoded: JsonValue): Record<string, Value> => {
     const decoded: Record<string, Value> = {};
-    const object = jsonExpectObject(encoded);
+    const object = jsonDecodeObject(encoded);
     for (const key of Object.keys(object)) {
       decoded[key] = withContext(`JSON: Decode Object["${key}"] =>`, () =>
         valueDecode(object[key]!),
@@ -557,7 +556,7 @@ export function jsonDecoderObjectToMap<Value>(
 ): JsonDecode<Map<string, Value>> {
   return (encoded: JsonValue): Map<string, Value> => {
     const decoded = new Map<string, Value>();
-    const object = jsonExpectObject(encoded);
+    const object = jsonDecodeObject(encoded);
     for (const key of Object.keys(object)) {
       decoded.set(
         key,
@@ -594,10 +593,10 @@ export function jsonDecoderArrayToMap<Key, Value>(
   valueDecode: JsonDecode<Value>,
 ): JsonDecode<Map<Key, Value>> {
   return (encoded: JsonValue): Map<Key, Value> => {
-    const array = jsonExpectArray(encoded);
+    const array = jsonDecodeArray(encoded);
     const decoded = new Map<Key, Value>();
     for (let index = 0; index < array.length; index++) {
-      const keyValue = jsonExpectArray(array[index]!);
+      const keyValue = jsonDecodeArray(array[index]!);
       if (keyValue.length !== 2) {
         throw new Error(`JSON: Expected key-value array of length 2`);
       }
@@ -774,13 +773,22 @@ export function jsonDecoderEnum<
   Content,
 >(shape: Shape): JsonDecode<Content> {
   return (encoded: JsonValue): Content => {
-    const object = jsonExpectObject(encoded);
+    const object = jsonDecodeObject(encoded);
+    let foundKey: string | undefined = undefined;
     for (const key in shape) {
       if (object.hasOwnProperty(key)) {
-        return withContext(`JSON: Decode Object["${key}"] =>`, () =>
-          shape[key]!(object[key]!),
-        );
+        if (foundKey !== undefined) {
+          throw new Error(
+            `JSON: Expected key ${foundKey} to be unique in enum (also found: ${key})`,
+          );
+        }
+        foundKey = key;
       }
+    }
+    if (foundKey !== undefined) {
+      return withContext(`JSON: Decode Enum["${foundKey}"] =>`, () =>
+        shape[foundKey]!(object[foundKey]!),
+      );
     }
     const expectedKeys = Object.keys(shape).join("/");
     const foundKeys = Object.keys(object).join("/");

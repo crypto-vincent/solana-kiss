@@ -1,9 +1,9 @@
 import {
+  jsonDecodeBoolean,
+  jsonDecodeNumber,
   jsonDecoderNullable,
   jsonDecoderObject,
-  jsonExpectBoolean,
-  jsonExpectNumber,
-  jsonExpectString,
+  jsonDecodeString,
 } from "../data/Json";
 import { Lamports } from "../data/Lamports";
 import { Commitment } from "../data/Onchain";
@@ -51,10 +51,10 @@ export async function rpcHttpGetAccountMetadata(
 const resultDecode = jsonDecoderObject({
   value: jsonDecoderNullable(
     jsonDecoderObject({
-      executable: jsonExpectBoolean,
-      lamports: jsonExpectNumber,
-      owner: jsonExpectString,
-      space: jsonExpectNumber,
+      executable: jsonDecodeBoolean,
+      lamports: jsonDecodeNumber,
+      owner: jsonDecodeString,
+      space: jsonDecodeNumber,
     }),
   ),
 });

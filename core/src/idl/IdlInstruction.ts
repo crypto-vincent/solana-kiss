@@ -1,8 +1,8 @@
 import {
+  jsonDecodeArray,
   jsonDecoderObject,
   jsonDecoderOptional,
   jsonDecodeValue,
-  jsonExpectArray,
   JsonValue,
 } from "../data/Json";
 import { Input, Instruction } from "../data/Onchain";
@@ -326,5 +326,5 @@ const infoJsonDecode = jsonDecoderObject({
   discriminator: jsonDecoderOptional(idlUtilsBytesJsonDecode),
   args: jsonDecoderOptional(idlTypeFlatFieldsParse),
   returns: jsonDecoderOptional(idlTypeFlatParse),
-  accounts: jsonDecoderOptional(jsonExpectArray),
+  accounts: jsonDecoderOptional(jsonDecodeArray),
 });

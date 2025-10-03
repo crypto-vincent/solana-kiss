@@ -1,5 +1,5 @@
 import { base64Encode } from "../data/Base64";
-import { jsonExpectString } from "../data/Json";
+import { jsonDecodeString } from "../data/Json";
 import { messageCompile, messageSign } from "../data/Message";
 import { Commitment, Hash, Instruction, Slot } from "../data/Onchain";
 import { Signer } from "../data/Signer";
@@ -40,4 +40,4 @@ export async function rpcHttpSendInstructions(
   return result;
 }
 
-const resultDecode = jsonExpectString;
+const resultDecode = jsonDecodeString;

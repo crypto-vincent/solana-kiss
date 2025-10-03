@@ -58,7 +58,7 @@ it("run", () => {
     repr: undefined,
     generics: ["A", "B"],
     typeFlat: IdlTypeFlat.enum({
-      prefix: IdlTypePrefix.U8,
+      prefix: IdlTypePrefix.u8,
       variants: [],
     }),
   });

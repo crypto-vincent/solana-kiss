@@ -4,8 +4,8 @@ import {
   jsonDecoderByKind,
   jsonDecoderObject,
   jsonDecoderOptional,
+  jsonDecodeString,
   jsonDecodeValue,
-  jsonExpectString,
   JsonValue,
 } from "../data/Json";
 import { Pubkey, pubkeyToBytes } from "../data/Pubkey";
@@ -110,8 +110,8 @@ const infoJsonDecode = jsonDecoderByKind<{
   type: IdlTypeFlat | undefined;
 }>({
   object: jsonDecoderObject({
-    kind: jsonDecoderOptional(jsonExpectString),
-    path: jsonDecoderOptional(jsonExpectString),
+    kind: jsonDecoderOptional(jsonDecodeString),
+    path: jsonDecoderOptional(jsonDecodeString),
     type: jsonDecoderOptional(idlTypeFlatParse),
     value: jsonDecodeValue,
   }),

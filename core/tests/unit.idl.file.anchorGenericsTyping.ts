@@ -129,7 +129,7 @@ function makeTypeFullGenericEnum(
     name: "GenericEnum",
     repr: undefined,
     content: IdlTypeFull.enum({
-      prefix: IdlTypePrefix.U8,
+      prefix: IdlTypePrefix.u8,
       variants: [
         {
           name: "Unnamed",
@@ -244,13 +244,13 @@ function makeTypeFullArray(items: IdlTypeFull, length: number): IdlTypeFull {
 }
 
 function makeTypeFullU8(): IdlTypeFull {
-  return IdlTypeFull.primitive(IdlTypePrimitive.U8);
+  return IdlTypeFull.primitive(IdlTypePrimitive.u8);
 }
 
 function makeTypeFullU32(): IdlTypeFull {
-  return IdlTypeFull.primitive(IdlTypePrimitive.U32);
+  return IdlTypeFull.primitive(IdlTypePrimitive.u32);
 }
 
 function makeTypeFullU64(): IdlTypeFull {
-  return IdlTypeFull.primitive(IdlTypePrimitive.U64);
+  return IdlTypeFull.primitive(IdlTypePrimitive.u64);
 }

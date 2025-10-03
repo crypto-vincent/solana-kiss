@@ -1,4 +1,4 @@
-import { jsonExpectBoolean, jsonExpectString, JsonValue } from "../data/Json";
+import { jsonDecodeBoolean, jsonDecodeString, JsonValue } from "../data/Json";
 import { pubkeyFromBytes, pubkeyToBytes } from "../data/Pubkey";
 import {
   idlUtilsFloatingJsonDecode,
@@ -6,40 +6,40 @@ import {
 } from "./IdlUtils";
 
 export class IdlTypePrimitive {
-  public static readonly U8 = new IdlTypePrimitive("u8", 1, 1);
-  public static readonly U16 = new IdlTypePrimitive("u16", 2, 2);
-  public static readonly U32 = new IdlTypePrimitive("u32", 4, 4);
-  public static readonly U64 = new IdlTypePrimitive("u64", 8, 8);
-  public static readonly U128 = new IdlTypePrimitive("u128", 16, 16);
-  public static readonly I8 = new IdlTypePrimitive("i8", 1, 1);
-  public static readonly I16 = new IdlTypePrimitive("i16", 2, 2);
-  public static readonly I32 = new IdlTypePrimitive("i32", 4, 4);
-  public static readonly I64 = new IdlTypePrimitive("i64", 8, 8);
-  public static readonly I128 = new IdlTypePrimitive("i128", 16, 16);
-  public static readonly F32 = new IdlTypePrimitive("f32", 4, 4);
-  public static readonly F64 = new IdlTypePrimitive("f64", 8, 8);
-  public static readonly Bool = new IdlTypePrimitive("bool", 1, 1);
-  public static readonly Pubkey = new IdlTypePrimitive("pubkey", 32, 1);
+  public static readonly u8 = new IdlTypePrimitive("u8", 1, 1);
+  public static readonly u16 = new IdlTypePrimitive("u16", 2, 2);
+  public static readonly u32 = new IdlTypePrimitive("u32", 4, 4);
+  public static readonly u64 = new IdlTypePrimitive("u64", 8, 8);
+  public static readonly u128 = new IdlTypePrimitive("u128", 16, 16);
+  public static readonly i8 = new IdlTypePrimitive("i8", 1, 1);
+  public static readonly i16 = new IdlTypePrimitive("i16", 2, 2);
+  public static readonly i32 = new IdlTypePrimitive("i32", 4, 4);
+  public static readonly i64 = new IdlTypePrimitive("i64", 8, 8);
+  public static readonly i128 = new IdlTypePrimitive("i128", 16, 16);
+  public static readonly f32 = new IdlTypePrimitive("f32", 4, 4);
+  public static readonly f64 = new IdlTypePrimitive("f64", 8, 8);
+  public static readonly bool = new IdlTypePrimitive("bool", 1, 1);
+  public static readonly pubkey = new IdlTypePrimitive("pubkey", 32, 1);
 
   public static readonly primitivesByName: ReadonlyMap<
     string,
     IdlTypePrimitive
   > = (() => {
     const primitives = [
-      IdlTypePrimitive.U8,
-      IdlTypePrimitive.U16,
-      IdlTypePrimitive.U32,
-      IdlTypePrimitive.U64,
-      IdlTypePrimitive.U128,
-      IdlTypePrimitive.I8,
-      IdlTypePrimitive.I16,
-      IdlTypePrimitive.I32,
-      IdlTypePrimitive.I64,
-      IdlTypePrimitive.I128,
-      IdlTypePrimitive.F32,
-      IdlTypePrimitive.F64,
-      IdlTypePrimitive.Bool,
-      IdlTypePrimitive.Pubkey,
+      IdlTypePrimitive.u8,
+      IdlTypePrimitive.u16,
+      IdlTypePrimitive.u32,
+      IdlTypePrimitive.u64,
+      IdlTypePrimitive.u128,
+      IdlTypePrimitive.i8,
+      IdlTypePrimitive.i16,
+      IdlTypePrimitive.i32,
+      IdlTypePrimitive.i64,
+      IdlTypePrimitive.i128,
+      IdlTypePrimitive.f32,
+      IdlTypePrimitive.f64,
+      IdlTypePrimitive.bool,
+      IdlTypePrimitive.pubkey,
     ];
     const primitivesByName = new Map<string, IdlTypePrimitive>();
     for (const primitive of primitives) {
@@ -168,14 +168,14 @@ const visitorSerialize = {
     data.setFloat64(0, num, true);
   },
   bool: (blob: Uint8Array, value: JsonValue) => {
-    if (jsonExpectBoolean(value)) {
+    if (jsonDecodeBoolean(value)) {
       blob[0] = 1;
     } else {
       blob[0] = 0;
     }
   },
   pubkey: (blob: Uint8Array, value: JsonValue) => {
-    blob.set(pubkeyToBytes(jsonExpectString(value)));
+    blob.set(pubkeyToBytes(jsonDecodeString(value)));
   },
 };
 

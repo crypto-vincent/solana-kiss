@@ -1,10 +1,10 @@
 import {
+  jsonDecodeNumber,
   jsonDecoderByKind,
   jsonDecoderObject,
   jsonDecoderOptional,
+  jsonDecodeString,
   jsonDecodeValue,
-  jsonExpectNumber,
-  jsonExpectString,
   JsonValue,
 } from "../data/Json";
 import { Immutable } from "../data/Utils";
@@ -48,7 +48,7 @@ export const infoJsonDecode = jsonDecoderByKind<{
   }),
   object: jsonDecoderObject({
     docs: jsonDecodeValue,
-    code: jsonExpectNumber,
-    msg: jsonDecoderOptional(jsonExpectString),
+    code: jsonDecodeNumber,
+    msg: jsonDecoderOptional(jsonDecodeString),
   }),
 });

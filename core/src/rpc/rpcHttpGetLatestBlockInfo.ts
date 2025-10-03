@@ -1,7 +1,7 @@
 import {
+  jsonDecodeNumber,
   jsonDecoderObject,
-  jsonExpectNumber,
-  jsonExpectString,
+  jsonDecodeString,
 } from "../data/Json";
 import { Commitment, Hash, Slot } from "../data/Onchain";
 import { RpcHttp } from "./RpcHttp";
@@ -28,10 +28,10 @@ export async function rpcHttpGetLatestBlockInfo(
 
 const resultDecode = jsonDecoderObject({
   context: jsonDecoderObject({
-    slot: jsonExpectNumber,
+    slot: jsonDecodeNumber,
   }),
   value: jsonDecoderObject({
-    blockhash: jsonExpectString,
-    lastValidBlockHeight: jsonExpectNumber,
+    blockhash: jsonDecodeString,
+    lastValidBlockHeight: jsonDecodeNumber,
   }),
 });

@@ -1,12 +1,12 @@
 import { base64Decode } from "../data/Base64";
 import {
+  jsonDecodeBoolean,
+  jsonDecodeNumber,
   jsonDecoderArrayToTuple,
   jsonDecoderConst,
   jsonDecoderNullable,
   jsonDecoderObject,
-  jsonExpectBoolean,
-  jsonExpectNumber,
-  jsonExpectString,
+  jsonDecodeString,
 } from "../data/Json";
 import { Lamports } from "../data/Lamports";
 import { Commitment } from "../data/Onchain";
@@ -58,14 +58,14 @@ export async function rpcHttpGetAccountWithData(
 const resultDecode = jsonDecoderObject({
   value: jsonDecoderNullable(
     jsonDecoderObject({
-      executable: jsonExpectBoolean,
-      lamports: jsonExpectNumber,
-      owner: jsonExpectString,
+      executable: jsonDecodeBoolean,
+      lamports: jsonDecodeNumber,
+      owner: jsonDecodeString,
       data: jsonDecoderArrayToTuple([
-        jsonExpectString,
+        jsonDecodeString,
         jsonDecoderConst("base64"),
       ]),
-      space: jsonExpectNumber,
+      space: jsonDecodeNumber,
     }),
   ),
 });

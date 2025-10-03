@@ -64,7 +64,7 @@ it("run", () => {
     repr: undefined,
     generics: [],
     typeFlat: IdlTypeFlat.enum({
-      prefix: IdlTypePrefix.U8,
+      prefix: IdlTypePrefix.u8,
       variants: [
         {
           name: "Named",
@@ -83,8 +83,8 @@ it("run", () => {
               docs: undefined,
               name: "f2",
               content: IdlTypeFlat.vec({
-                prefix: IdlTypePrefix.U32,
-                items: IdlTypeFlat.primitive(IdlTypePrimitive.U8),
+                prefix: IdlTypePrefix.u32,
+                items: IdlTypeFlat.primitive(IdlTypePrimitive.u8),
               }),
             },
             {
@@ -103,20 +103,20 @@ it("run", () => {
           fields: IdlTypeFlatFields.unnamed([
             {
               docs: undefined,
-              content: IdlTypeFlat.primitive(IdlTypePrimitive.U64),
+              content: IdlTypeFlat.primitive(IdlTypePrimitive.u64),
             },
             {
               docs: undefined,
               content: IdlTypeFlat.vec({
-                prefix: IdlTypePrefix.U32,
-                items: IdlTypeFlat.primitive(IdlTypePrimitive.U8),
+                prefix: IdlTypePrefix.u32,
+                items: IdlTypeFlat.primitive(IdlTypePrimitive.u8),
               }),
             },
             {
               docs: undefined,
               content: IdlTypeFlat.vec({
-                prefix: IdlTypePrefix.U32,
-                items: IdlTypeFlat.primitive(IdlTypePrimitive.U8),
+                prefix: IdlTypePrefix.u32,
+                items: IdlTypeFlat.primitive(IdlTypePrimitive.u8),
               }),
             },
           ]),

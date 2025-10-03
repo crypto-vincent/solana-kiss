@@ -122,8 +122,8 @@ it("run", () => {
         name: "arg",
         docs: undefined,
         content: IdlTypeFlat.vec({
-          prefix: IdlTypePrefix.U32,
-          items: IdlTypeFlat.primitive(IdlTypePrimitive.U8),
+          prefix: IdlTypePrefix.u32,
+          items: IdlTypeFlat.primitive(IdlTypePrimitive.u8),
         }),
       },
     ]),
@@ -131,12 +131,12 @@ it("run", () => {
       {
         name: "arg",
         content: IdlTypeFull.vec({
-          prefix: IdlTypePrefix.U32,
-          items: IdlTypeFull.primitive(IdlTypePrimitive.U8),
+          prefix: IdlTypePrefix.u32,
+          items: IdlTypeFull.primitive(IdlTypePrimitive.u8),
         }),
       },
     ]),
-    returnTypeFlat: IdlTypeFlat.primitive(IdlTypePrimitive.I8),
-    returnTypeFull: IdlTypeFull.primitive(IdlTypePrimitive.I8),
+    returnTypeFlat: IdlTypeFlat.primitive(IdlTypePrimitive.i8),
+    returnTypeFull: IdlTypeFull.primitive(IdlTypePrimitive.i8),
   });
 });

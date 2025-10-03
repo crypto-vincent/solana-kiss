@@ -29,25 +29,25 @@ it("run", async () => {
   expect(transaction.message.recentBlockHash).toStrictEqual(
     "4nTobZxuiA9xZDuSMfSQE6WJSswAkoVoF7ycve42iiy2",
   );
-  // Check the invokations content
-  expect(transaction.invokations.length).toStrictEqual(4); // TODO - invokation or invocation ?
-  expect(transaction.invokations[0]!.instruction).toStrictEqual(
+  // Check the invocations content
+  expect(transaction.invocations.length).toStrictEqual(4);
+  expect(transaction.invocations[0]!.instruction).toStrictEqual(
     transaction.message.instructions[0]!,
   );
-  expect(transaction.invokations[0]!.invokations.length).toStrictEqual(0);
-  // Check the nested invokations content
-  expect(transaction.invokations[3]!.invokations.length).toStrictEqual(2);
+  expect(transaction.invocations[0]!.invocations.length).toStrictEqual(0);
+  // Check the nested invocations content
+  expect(transaction.invocations[3]!.invocations.length).toStrictEqual(2);
   expect(
-    transaction.invokations[3]!.invokations[0]!.instruction.programAddress,
+    transaction.invocations[3]!.invocations[0]!.instruction.programAddress,
   ).toStrictEqual("PsyMP8fXEEMo2C6C84s8eXuRUrvzQnZyquyjipDRohf");
   expect(
-    transaction.invokations[3]!.invokations[0]!.invokations.length,
+    transaction.invocations[3]!.invocations[0]!.invocations.length,
   ).toStrictEqual(1);
   expect(
-    transaction.invokations[3]!.invokations[0]!.invokations[0]!.invokations
+    transaction.invocations[3]!.invocations[0]!.invocations[0]!.invocations
       .length,
   ).toStrictEqual(1);
   expect(
-    transaction.invokations[3]!.invokations[1]!.invokations.length,
+    transaction.invocations[3]!.invocations[1]!.invocations.length,
   ).toStrictEqual(0);
 });

@@ -1,19 +1,18 @@
 export class IdlTypePrefix {
-  // TODO - naming lowercase?
-  public static readonly U8 = new IdlTypePrefix("u8", 1);
-  public static readonly U16 = new IdlTypePrefix("u16", 2);
-  public static readonly U32 = new IdlTypePrefix("u32", 4);
-  public static readonly U64 = new IdlTypePrefix("u64", 8);
-  public static readonly U128 = new IdlTypePrefix("u128", 16);
+  public static readonly u8 = new IdlTypePrefix("u8", 1);
+  public static readonly u16 = new IdlTypePrefix("u16", 2);
+  public static readonly u32 = new IdlTypePrefix("u32", 4);
+  public static readonly u64 = new IdlTypePrefix("u64", 8);
+  public static readonly u128 = new IdlTypePrefix("u128", 16);
 
   public static readonly prefixesBySize: ReadonlyMap<number, IdlTypePrefix> =
     (() => {
       const prefixes = [
-        IdlTypePrefix.U8,
-        IdlTypePrefix.U16,
-        IdlTypePrefix.U32,
-        IdlTypePrefix.U64,
-        IdlTypePrefix.U128,
+        IdlTypePrefix.u8,
+        IdlTypePrefix.u16,
+        IdlTypePrefix.u32,
+        IdlTypePrefix.u64,
+        IdlTypePrefix.u128,
       ];
       const prefixesBySize = new Map<number, IdlTypePrefix>();
       for (const prefix of prefixes) {

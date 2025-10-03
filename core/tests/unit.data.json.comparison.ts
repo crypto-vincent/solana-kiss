@@ -8,6 +8,32 @@ it("run", async () => {
       },
       superset: {
         key: "Hello World",
+        another: 42,
+      },
+      result: true,
+    },
+    {
+      subset: {
+        key: "Hello World",
+        another: 42,
+      },
+      superset: {
+        key: "Hello World",
+      },
+      result: false,
+    },
+    {
+      subset: {
+        inner: {
+          subkey: "Sub Hello",
+        },
+      },
+      superset: {
+        another: 42,
+        inner: {
+          subkey: "Sub Hello",
+          anotherSub: true,
+        },
       },
       result: true,
     },

@@ -1,9 +1,9 @@
 import {
+  jsonDecodeNumber,
   jsonDecoderArray,
   jsonDecoderObject,
   jsonDecoderOptional,
   jsonDecodeValue,
-  jsonExpectNumber,
   JsonValue,
 } from "../data/Json";
 import { Immutable } from "../data/Utils";
@@ -112,11 +112,11 @@ export function idlAccountParse(
 
 const infoJsonDecode = jsonDecoderObject({
   docs: jsonDecodeValue,
-  space: jsonDecoderOptional(jsonExpectNumber),
+  space: jsonDecoderOptional(jsonDecodeNumber),
   blobs: jsonDecoderOptional(
     jsonDecoderArray(
       jsonDecoderObject({
-        offset: jsonExpectNumber,
+        offset: jsonDecodeNumber,
         value: idlUtilsBytesJsonDecode,
       }),
     ),

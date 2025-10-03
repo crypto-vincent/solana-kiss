@@ -84,7 +84,7 @@ it("run", () => {
           docs: undefined,
           content: IdlTypeFlat.defined({
             name: "MyDefinedEnum",
-            generics: [IdlTypeFlat.primitive(IdlTypePrimitive.U8)],
+            generics: [IdlTypeFlat.primitive(IdlTypePrimitive.u8)],
           }),
         },
         {
@@ -92,8 +92,8 @@ it("run", () => {
           content: IdlTypeFlat.defined({
             name: "MyDefinedStruct",
             generics: [
-              IdlTypeFlat.primitive(IdlTypePrimitive.F32),
-              IdlTypeFlat.primitive(IdlTypePrimitive.F64),
+              IdlTypeFlat.primitive(IdlTypePrimitive.f32),
+              IdlTypeFlat.primitive(IdlTypePrimitive.f64),
             ],
           }),
         },
@@ -102,7 +102,7 @@ it("run", () => {
           content: IdlTypeFlat.defined({
             name: "MyArray",
             generics: [
-              IdlTypeFlat.primitive(IdlTypePrimitive.I8),
+              IdlTypeFlat.primitive(IdlTypePrimitive.i8),
               IdlTypeFlat.const({ literal: 4 }),
             ],
           }),
@@ -120,7 +120,7 @@ it("run", () => {
               name: "MyEnum",
               repr: undefined,
               content: IdlTypeFull.enum({
-                prefix: IdlTypePrefix.U8,
+                prefix: IdlTypePrefix.u8,
                 variants: [
                   {
                     name: "CaseA",
@@ -129,8 +129,8 @@ it("run", () => {
                       {
                         position: 0,
                         content: IdlTypeFull.vec({
-                          prefix: IdlTypePrefix.U32,
-                          items: IdlTypeFull.primitive(IdlTypePrimitive.U8),
+                          prefix: IdlTypePrefix.u32,
+                          items: IdlTypeFull.primitive(IdlTypePrimitive.u8),
                         }),
                       },
                     ]),
@@ -141,7 +141,7 @@ it("run", () => {
                     fields: IdlTypeFullFields.unnamed([
                       {
                         position: 0,
-                        content: IdlTypeFull.primitive(IdlTypePrimitive.U8),
+                        content: IdlTypeFull.primitive(IdlTypePrimitive.u8),
                       },
                     ]),
                   },
@@ -163,15 +163,15 @@ it("run", () => {
                   {
                     name: "field_a",
                     content: IdlTypeFull.option({
-                      prefix: IdlTypePrefix.U8,
-                      content: IdlTypeFull.primitive(IdlTypePrimitive.F64),
+                      prefix: IdlTypePrefix.u8,
+                      content: IdlTypeFull.primitive(IdlTypePrimitive.f64),
                     }),
                   },
                   {
                     name: "field_b",
                     content: IdlTypeFull.vec({
-                      prefix: IdlTypePrefix.U32,
-                      items: IdlTypeFull.primitive(IdlTypePrimitive.F32),
+                      prefix: IdlTypePrefix.u32,
+                      items: IdlTypeFull.primitive(IdlTypePrimitive.f32),
                     }),
                   },
                 ]),
@@ -185,7 +185,7 @@ it("run", () => {
             name: "MyArray",
             repr: undefined,
             content: IdlTypeFull.array({
-              items: IdlTypeFull.primitive(IdlTypePrimitive.I8),
+              items: IdlTypeFull.primitive(IdlTypePrimitive.i8),
               length: 4,
             }),
           }),
