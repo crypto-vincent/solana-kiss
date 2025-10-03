@@ -1,28 +1,30 @@
-import { JsonValue, Pubkey, pubkeyFindPdaAddress } from "solana-kiss-data";
+import {
+  JsonValue,
+  Pubkey,
+  pubkeyCreateFromSeed,
+  pubkeyFindPdaAddress,
+} from "solana-kiss-data";
 import { IdlProgram, idlProgramParse } from "solana-kiss-idl";
 import { RpcHttp, rpcHttpGetAccountWithData } from "solana-kiss-rpc";
 import { inflate } from "uzip";
-import { resolveAnchorIdlAddress } from "./ResolveAnchor";
 
 export function resolveProgramAnchorIdlAddress(programAddress: Pubkey): Pubkey {
   const programBaseAddress = pubkeyFindPdaAddress(programAddress, []);
   return pubkeyCreateFromSeed(programAddress, programBaseAddress, "anchor:idl");
 }
 
-export async function resolveProgramIdl(
+export async function resolveProgramAnchorIdl(
   rpcHttp: RpcHttp,
   programAddress: Pubkey,
 ): Promise<IdlProgram | undefined> {
-  const anchorIdlAddress = resolveAnchorIdlAddress(programAddress);
-  const programRecord = await rpcHttpGetAccountWithData(
-    rpcHttp,
-    anchorIdlAddress,
-  );
+  const idlAddress = resolveProgramAnchorIdlAddress(programAddress);
+  const programRecord = await rpcHttpGetAccountWithData(rpcHttp, idlAddress);
   const programView = new DataView(programRecord.data.buffer);
-  const length = programView.getUint32(40, true);
-  const deflated = programRecord.data.slice(44, 44 + length);
+  const idlLength = programView.getUint32(40, true);
+  const idlDeflated = programRecord.data.slice(44, 44 + idlLength);
   // TODO -better error handling and checks and could use IDL parsing
-  const encoded = inflate(deflated);
-  const decoded = new TextDecoder().decode(encoded);
-  return idlProgramParse(JSON.parse(decoded) as JsonValue);
+  const idlBytes = inflate(idlDeflated);
+  const idlString = new TextDecoder().decode(idlBytes);
+  const idlJson = JSON.parse(idlString) as JsonValue;
+  return idlProgramParse(idlJson);
 }

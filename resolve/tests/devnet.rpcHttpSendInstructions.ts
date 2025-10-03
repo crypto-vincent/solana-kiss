@@ -20,7 +20,6 @@ it("run", async () => {
   const rpcHttp = rpcHttpFromUrl("https://api.devnet.solana.com", {
     commitment: "confirmed",
   });
-  console.log("crypto", globalThis.crypto);
   const programAddress = pubkeyDefault();
   const payerSigner = await signerFromSecret(secret);
   const ownedSigner = await signerGenerate();
@@ -42,7 +41,6 @@ it("run", async () => {
       owner: ownerAddress,
     },
   );
-  console.log("Instruction:", instruction);
   const signature = await rpcHttpSendInstructions(
     rpcHttp,
     payerSigner,

@@ -1,12 +1,12 @@
+import { expect, it } from "@jest/globals";
 import { rpcHttpFromUrl } from "solana-kiss-rpc";
-import { resolveProgram } from "../src";
+import { resolveProgramAnchorIdl } from "../src";
 
 it("run", async () => {
   const rpcHttp = rpcHttpFromUrl("https://api.devnet.solana.com");
-
-  const programAddress = "UCNcQRtrbGmvuLKA3Jv719Cc6DS4r661ZRpyZduxu2j";
-
-  const dudu = await resolveProgram(rpcHttp, programAddress);
-
-  console.log("dudu", dudu);
+  const programAnchorIdl = await resolveProgramAnchorIdl(
+    rpcHttp,
+    "UCNcQRtrbGmvuLKA3Jv719Cc6DS4r661ZRpyZduxu2j",
+  );
+  expect(programAnchorIdl?.metadata.name).toStrictEqual("psyche_crowd_funding");
 });
