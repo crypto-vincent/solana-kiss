@@ -1,26 +1,22 @@
 import {
-  jsonDecodeObject,
-  jsonDecodeOptional,
-  jsonDecoderMerged,
+  jsonDecoderObject,
+  jsonDecoderOptional,
   jsonDecodeValue,
-  jsonExpectObject,
   JsonValue,
 } from "../data/Json";
 import { Immutable } from "../data/Utils";
 import { IdlTypedef } from "./IdlTypedef";
 import { IdlTypeFlat } from "./IdlTypeFlat";
-import {
-  idlTypeFlatDecode,
-  idlTypeFlatDefinedDecode,
-  idlTypeFlatParseObject,
-  idlTypeFlatParseObjectIsPossible,
-} from "./IdlTypeFlatDecode";
 import { idlTypeFlatHydrate } from "./IdlTypeFlatHydrate";
+import {
+  idlTypeFlatParse,
+  idlTypeFlatParseIsPossible,
+} from "./IdlTypeFlatParse";
 import { IdlTypeFull } from "./IdlTypeFull";
 import { idlTypeFullDeserialize } from "./IdlTypeFullDeserialize";
 import { idlTypeFullSerialize } from "./IdlTypeFullSerialize";
 import {
-  idlUtilsBytesDecode,
+  idlUtilsBytesJsonDecode,
   idlUtilsDiscriminator,
   idlUtilsExpectBlobAt,
   idlUtilsFlattenBlobs,
@@ -74,11 +70,10 @@ export function idlEventParse(
   eventValue: JsonValue,
   typedefsIdls: Map<string, IdlTypedef>,
 ): IdlEvent {
-  const eventPartial = partialDecode.decode(eventValue);
-  const eventObject = jsonExpectObject(eventValue);
-  const infoTypeFlat = idlTypeFlatParseObjectIsPossible(eventObject)
-    ? idlTypeFlatParseObject(eventObject)
-    : idlTypeFlatDefinedDecode(eventName);
+  const info = infoJsonDecode(eventValue);
+  const infoTypeFlat = idlTypeFlatParseIsPossible(eventValue)
+    ? idlTypeFlatParse(eventValue)
+    : idlTypeFlatParse(eventName);
   const infoTypeFull = idlTypeFlatHydrate(
     infoTypeFlat,
     new Map(),
@@ -86,19 +81,15 @@ export function idlEventParse(
   );
   return {
     name: eventName,
-    docs: eventPartial.docs,
+    docs: info.docs,
     discriminator:
-      eventPartial.discriminator ?? idlUtilsDiscriminator(`event:${eventName}`),
+      info.discriminator ?? idlUtilsDiscriminator(`event:${eventName}`),
     infoTypeFlat,
     infoTypeFull,
   };
 }
 
-export const idlEventParse = jsonDecoderMerged(
-  jsonDecodeObject({
-    docs: jsonDecodeValue,
-    discriminator: jsonDecodeOptional(idlUtilsBytesDecode),
-  }),
-  jsonDecoderOptional(idlTypeFlatDecode),
-  (eventInfo, eventType) => {},
-);
+const infoJsonDecode = jsonDecoderObject({
+  docs: jsonDecodeValue,
+  discriminator: jsonDecoderOptional(idlUtilsBytesJsonDecode),
+});

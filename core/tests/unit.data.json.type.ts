@@ -17,23 +17,23 @@ it("run", async () => {
         key: "Hello World",
       },
       type: jsonTypeObject({
-        key: jsonTypeString(),
+        key: jsonTypeString,
       }),
     },
     {
       data: [42, 43],
-      type: jsonTypeArray(jsonTypeNumber()),
+      type: jsonTypeArray(jsonTypeNumber),
     },
     {
       data: [null, "Hello"],
-      type: jsonTypeArray(jsonTypeNullable(jsonTypeString())),
+      type: jsonTypeArray(jsonTypeNullable(jsonTypeString)),
     },
     {
       data: {
         encoded_key: 42,
       },
       type: jsonTypeObject(
-        { decodedKey: jsonTypeNumber() },
+        { decodedKey: jsonTypeNumber },
         { decodedKey: "encoded_key" },
       ),
     },
@@ -44,7 +44,7 @@ it("run", async () => {
       },
       type: jsonTypeObject({
         const: jsonTypeConst(42),
-        nullables: jsonTypeArray(jsonTypeNullable(jsonTypeBoolean())),
+        nullables: jsonTypeArray(jsonTypeNullable(jsonTypeBoolean)),
       }),
     },
   ];

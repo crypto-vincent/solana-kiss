@@ -1,8 +1,8 @@
 import {
   jsonDecoderObject,
   jsonDecoderOptional,
-  jsonDecodeString,
   jsonDecodeValue,
+  jsonExpectString,
   JsonValue,
 } from "../data/Json";
 import { Pubkey } from "../data/Pubkey";
@@ -16,11 +16,26 @@ export type IdlMetadata = {
   spec: string | undefined;
 };
 
-export const idlMetadataDecode = jsonDecoderObject({
-  name: jsonDecoderOptional(jsonDecodeString),
-  docs: jsonDecoderOptional(jsonDecodeValue),
-  description: jsonDecoderOptional(jsonDecodeString),
-  address: jsonDecoderOptional(jsonDecodeString),
-  version: jsonDecoderOptional(jsonDecodeString),
-  spec: jsonDecoderOptional(jsonDecodeString),
-});
+export function idlMetadataParse(value: JsonValue): IdlMetadata {
+  return (
+    infoJsonDecode(value) ?? {
+      name: undefined,
+      docs: undefined,
+      description: undefined,
+      address: undefined,
+      version: undefined,
+      spec: undefined,
+    }
+  );
+}
+
+const infoJsonDecode = jsonDecoderOptional(
+  jsonDecoderObject({
+    name: jsonDecoderOptional(jsonExpectString),
+    docs: jsonDecoderOptional(jsonDecodeValue),
+    description: jsonDecoderOptional(jsonExpectString),
+    address: jsonDecoderOptional(jsonExpectString),
+    version: jsonDecoderOptional(jsonExpectString),
+    spec: jsonDecoderOptional(jsonExpectString),
+  }),
+);

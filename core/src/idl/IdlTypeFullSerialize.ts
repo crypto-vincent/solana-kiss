@@ -2,9 +2,9 @@ import {
   jsonAsNumber,
   jsonAsObject,
   jsonAsString,
-  jsonDecodeString,
   jsonExpectArray,
   jsonExpectObject,
+  jsonExpectString,
   JsonValue,
 } from "../data/Json";
 import { withContext } from "../data/Utils";
@@ -28,7 +28,7 @@ import {
   IdlTypePrimitive,
   idlTypePrimitiveSerialize,
 } from "./IdlTypePrimitive";
-import { idlUtilsBytesDecode } from "./IdlUtils";
+import { idlUtilsBytesJsonDecode } from "./IdlUtils";
 
 export function idlTypeFullSerialize(
   typeFull: IdlTypeFull,
@@ -79,7 +79,7 @@ const visitorSerialize = {
     prefixed: boolean,
   ) => {
     if (self.items.isPrimitive(IdlTypePrimitive.U8)) {
-      const blob = idlUtilsBytesDecode(value);
+      const blob = idlUtilsBytesJsonDecode(value);
       if (prefixed) {
         idlTypePrefixSerialize(self.prefix, BigInt(blob.length), blobs);
       }
@@ -101,7 +101,7 @@ const visitorSerialize = {
     prefixed: boolean,
   ) => {
     if (self.items.isPrimitive(IdlTypePrimitive.U8)) {
-      const blob = idlUtilsBytesDecode(value);
+      const blob = idlUtilsBytesJsonDecode(value);
       if (blob.length != self.length) {
         throw new Error(
           `Expected an array of size: ${self.length}, found: ${blob.length}`,
@@ -126,7 +126,7 @@ const visitorSerialize = {
     blobs: Array<Uint8Array>,
     prefixed: boolean,
   ) => {
-    const string = jsonDecodeString(value);
+    const string = jsonExpectString(value);
     const bytes = new TextEncoder().encode(string);
     if (prefixed) {
       idlTypePrefixSerialize(self.prefix, BigInt(bytes.length), blobs);
@@ -201,14 +201,13 @@ const visitorSerialize = {
     if (self.before) {
       blobs.push(new Uint8Array(self.before));
     }
+    let contentSize = 0;
     const contentBlobs = new Array<Uint8Array>();
     idlTypeFullSerialize(self.content, value, contentBlobs, prefixed);
     for (const contentBlob of contentBlobs) {
       blobs.push(contentBlob);
+      contentSize += contentBlob.length;
     }
-    const contentSize = contentBlobs.reduce((size, contentBlob) => {
-      return size + contentBlob.length;
-    }, 0);
     if (self.minSize && self.minSize > contentSize) {
       blobs.push(new Uint8Array(self.minSize - contentSize));
     }

@@ -2,30 +2,23 @@ import { camelCaseToSnakeCase } from "../data/Casing";
 import {
   jsonAsArray,
   jsonAsObject,
-  JsonDecode,
-  jsonDecoderArray,
-  jsonDecoderByKind,
-  jsonDecoderMap,
-  jsonDecoderMerged,
-  jsonDecoderObject,
-  jsonDecoderObjectToMap,
-  jsonDecodeString,
   jsonExpectObject,
+  jsonExpectString,
   JsonObject,
   JsonValue,
 } from "../data/Json";
 import { Input } from "../data/Onchain";
-import { Immutable } from "../data/Utils";
+import { Immutable, withContext } from "../data/Utils";
 import { IdlAccount, idlAccountCheck, idlAccountParse } from "./IdlAccount";
-import { IdlError, idlErrorDecode } from "./IdlError";
+import { IdlError, idlErrorParse } from "./IdlError";
 import { IdlEvent, idlEventCheck, idlEventParse } from "./IdlEvent";
 import {
   IdlInstruction,
   idlInstructionCheck,
   idlInstructionParse,
 } from "./IdlInstruction";
-import { IdlMetadata, idlMetadataDecode } from "./IdlMetadata";
-import { IdlTypedef, idlTypedefDecode } from "./IdlTypedef";
+import { IdlMetadata, idlMetadataParse } from "./IdlMetadata";
+import { IdlTypedef, idlTypedefParse } from "./IdlTypedef";
 
 export type IdlProgram = {
   metadata: IdlMetadata;
@@ -37,14 +30,7 @@ export type IdlProgram = {
 };
 
 export const idlProgramUnknown: Immutable<IdlProgram> = {
-  metadata: {
-    name: undefined,
-    docs: undefined,
-    description: undefined,
-    version: undefined,
-    address: undefined,
-    spec: undefined,
-  },
+  metadata: idlMetadataParse(undefined),
   typedefs: new Map(),
   accounts: new Map(),
   instructions: new Map(),
@@ -107,10 +93,16 @@ export function idlProgramGuessError(
 export function idlProgramParse(programValue: JsonValue): IdlProgram {
   const programObject = jsonExpectObject(programValue);
   const metadata = {
-    ...idlMetadataDecode(programObject),
-    ...idlMetadataDecode(programObject["metadata"]),
+    ...idlMetadataParse(programObject),
+    ...idlMetadataParse(programObject["metadata"]),
   };
-  const typedefs = typedefsDecode(programObject["types"]);
+  const typedefs = parseScopedNamedValues(
+    programObject,
+    "types",
+    false,
+    undefined,
+    idlTypedefParse,
+  );
   const accounts = parseScopedNamedValues(
     programObject,
     "accounts",
@@ -132,73 +124,25 @@ export function idlProgramParse(programValue: JsonValue): IdlProgram {
     typedefs,
     idlEventParse,
   );
-  /*
   const errors = parseScopedNamedValues(
     programObject,
     "errors",
     false,
-    typedefs,
+    undefined,
     idlErrorParse,
   );
-  */
-  const errors = errorsDecode(programObject["errors"]);
   return { metadata, typedefs, accounts, instructions, events, errors };
-}
-
-const typedefsDecode = scopedNamedValuesDecoder(idlTypedefDecode, false);
-const errorsDecode = scopedNamedValuesDecoder(idlErrorDecode, false);
-
-function scopedNamedValuesDecoder<Content>(
-  contentDecode: JsonDecode<Content>,
-  convertNameToSnakeCase: boolean,
-): JsonDecode<Map<string, Content & { name: string }>> {
-  return jsonDecoderMap(
-    jsonDecoderByKind({
-      undefined: () => new Map(),
-      object: jsonDecoderObjectToMap(contentDecode),
-      array: jsonDecoderMap(
-        jsonDecoderArray(
-          jsonDecoderMerged(
-            jsonDecoderObject({ name: jsonDecodeString }),
-            contentDecode,
-            (part1, part2) => ({ name: part1.name, content: part2 }),
-          ),
-        ),
-        (items) => {
-          const map = new Map<string, Content>();
-          for (const item of items) {
-            map.set(item.name, item.content);
-          }
-          return map;
-        },
-      ),
-    }),
-    (collection) => {
-      const converted = new Map<string, Content & { name: string }>();
-      for (const [key, value] of collection) {
-        let name = key;
-        if (convertNameToSnakeCase) {
-          name = camelCaseToSnakeCase(key);
-        }
-        converted.set(name, {
-          name: key,
-          ...value,
-        });
-      }
-      return converted;
-    },
-  );
 }
 
 function parseScopedNamedValues<T, P>(
   programObject: JsonObject,
-  collectionKey: string,
+  collectionName: string,
   convertNameToSnakeCase: boolean,
   param: P,
   parsingFunction: (name: string, value: JsonValue, param: P) => T,
 ): Map<string, T> {
   const values = new Map<string, T>();
-  const collectionValue = programObject[collectionKey];
+  const collectionValue = programObject[collectionName];
   const collectionArray = jsonAsArray(collectionValue);
   if (collectionArray !== undefined) {
     for (const itemValue of collectionArray) {
@@ -207,7 +151,12 @@ function parseScopedNamedValues<T, P>(
       if (convertNameToSnakeCase) {
         itemName = camelCaseToSnakeCase(itemName);
       }
-      values.set(itemName, parsingFunction(itemName, itemValue, param));
+      values.set(
+        itemName,
+        withContext(`Idl: Parse: ${collectionName}: ${itemName}`, () =>
+          parsingFunction(itemName, itemValue, param),
+        ),
+      );
     }
   }
   const collectionObject = jsonAsObject(collectionValue);
@@ -216,7 +165,12 @@ function parseScopedNamedValues<T, P>(
       if (convertNameToSnakeCase) {
         key = camelCaseToSnakeCase(key);
       }
-      values.set(key, parsingFunction(key, value, param));
+      values.set(
+        key,
+        withContext(`Idl: Parse: ${collectionName}: ${key}`, () =>
+          parsingFunction(key, value, param),
+        ),
+      );
     });
   }
   return values;

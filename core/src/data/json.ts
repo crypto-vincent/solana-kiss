@@ -15,22 +15,22 @@ export interface JsonObject {
 
 export function jsonPreview(value: JsonValue): string {
   if (value === undefined) {
-    return "Undefined";
+    return "undefined";
   }
   if (value === null) {
-    return "Null";
+    return "null";
   }
   const boolean = jsonAsBoolean(value);
   if (boolean !== undefined) {
-    return `Boolean: ${boolean}`;
+    return `${boolean}`;
   }
   const number = jsonAsNumber(value);
   if (number !== undefined) {
-    return `Number: ${number}`;
+    return `${number}`;
   }
   const string = jsonAsString(value);
   if (string !== undefined) {
-    return `String: "${string}"`;
+    return `"${string}"`;
   }
   const maxColumns = 40;
   const array = jsonAsArray(value);
@@ -39,7 +39,7 @@ export function jsonPreview(value: JsonValue): string {
     if (previews.length > maxColumns) {
       previews = previews.slice(0, maxColumns - 3) + "...";
     }
-    return `Array(x${array.length}): [${previews}]`;
+    return `${array.length}x[${previews}]`;
   }
   const object = jsonAsObject(value);
   if (object !== undefined) {
@@ -50,7 +50,7 @@ export function jsonPreview(value: JsonValue): string {
     if (previews.length > maxColumns) {
       previews = previews.slice(0, maxColumns - 3) + "...";
     }
-    return `Object(x${entries.length}): {${previews}}`;
+    return `${entries.length}x{${previews}}`;
   }
   throw new Error(`JSON: Unknown value: ${value?.toString()}`);
 }
@@ -172,21 +172,45 @@ export function jsonIsDeepSubset(
   return false;
 }
 
-export function jsonExpectArray(value: JsonValue): JsonArray {
-  const result = jsonAsArray(value);
-  if (result === undefined) {
-    throw new Error(`JSON: Expected an array (found: ${jsonPreview(value)})`);
+export const jsonExpectBoolean = (encoded: JsonValue): boolean => {
+  const decoded = jsonAsBoolean(encoded);
+  if (decoded === undefined) {
+    throw new Error(
+      `JSON: Expected a boolean (found: ${jsonPreview(encoded)})`,
+    );
   }
-  return result;
-}
-// TODO - all of this could be inserted in a nice decoder system and never be manually used?
-export function jsonExpectObject(value: JsonValue): JsonObject {
-  const result = jsonAsObject(value);
-  if (result === undefined) {
-    throw new Error(`JSON: Expected an object (found: ${jsonPreview(value)})`);
+  return decoded;
+};
+export const jsonExpectNumber = (encoded: JsonValue): number => {
+  const decoded = jsonAsNumber(encoded);
+  if (decoded === undefined) {
+    throw new Error(`JSON: Expected a number (found: ${jsonPreview(encoded)})`);
   }
-  return result;
-}
+  return decoded;
+};
+export const jsonExpectString = (encoded: JsonValue): string => {
+  const decoded = jsonAsString(encoded);
+  if (decoded === undefined) {
+    throw new Error(`JSON: Expected a string (found: ${jsonPreview(encoded)})`);
+  }
+  return decoded;
+};
+export const jsonExpectArray = (encoded: JsonValue): JsonArray => {
+  const decoded = jsonAsArray(encoded);
+  if (decoded === undefined) {
+    throw new Error(`JSON: Expected an array (found: ${jsonPreview(encoded)})`);
+  }
+  return decoded;
+};
+export const jsonExpectObject = (encoded: JsonValue): JsonObject => {
+  const decoded = jsonAsObject(encoded);
+  if (decoded === undefined) {
+    throw new Error(
+      `JSON: Expected an object (found: ${jsonPreview(encoded)})`,
+    );
+  }
+  return decoded;
+};
 
 export type JsonDecodeContent<S> = S extends JsonDecode<infer T> ? T : never;
 export type JsonDecode<Content> = (encoded: JsonValue) => Content;
@@ -217,73 +241,34 @@ export const jsonTypeValue: JsonType<JsonValue> = {
   decode: jsonDecodeValue,
 };
 
-export const jsonDecodeBoolean = (encoded: JsonValue): boolean => {
-  const decoded = jsonAsBoolean(encoded);
-  if (decoded === undefined) {
-    throw new Error(
-      `JSON: Expected a boolean (found: ${jsonPreview(encoded)})`,
-    );
-  }
-  return decoded;
-};
 export const jsonEncodeBoolean = (decoded: Immutable<boolean>): JsonValue => {
   return decoded;
 };
 export const jsonTypeBoolean: JsonType<boolean> = {
   encode: jsonEncodeBoolean,
-  decode: jsonDecodeBoolean,
+  decode: jsonExpectBoolean,
 };
 
-export const jsonDecodeNumber = (encoded: JsonValue): number => {
-  const decoded = jsonAsNumber(encoded);
-  if (decoded === undefined) {
-    throw new Error(`JSON: Expected a number (found: ${jsonPreview(encoded)})`);
-  }
-  return decoded;
-};
 export const jsonEncodeNumber = (decoded: Immutable<number>): JsonValue => {
   return decoded;
 };
 export const jsonTypeNumber: JsonType<number> = {
   encode: jsonEncodeNumber,
-  decode: jsonDecodeNumber,
+  decode: jsonExpectNumber,
 };
 
-export const jsonDecodeString = (encoded: JsonValue): string => {
-  const decoded = jsonAsString(encoded);
-  if (decoded === undefined) {
-    throw new Error(`JSON: Expected a string (found: ${jsonPreview(encoded)})`);
-  }
-  return decoded;
-};
 export const jsonEncodeString = (decoded: Immutable<string>): JsonValue => {
   return decoded;
 };
 export const jsonTypeString: JsonType<string> = {
   encode: jsonEncodeString,
-  decode: jsonDecodeString,
+  decode: jsonExpectString,
 };
 
-export const jsonDecodeArray = (encoded: JsonValue): JsonArray => {
-  const decoded = jsonAsArray(encoded);
-  if (decoded === undefined) {
-    throw new Error(`JSON: Expected an array (found: ${jsonPreview(encoded)})`);
-  }
-  return decoded;
-};
 export const jsonEncodeArray = (decoded: Immutable<JsonArray>): JsonValue => {
   return [...decoded] as JsonArray;
 };
 
-export const jsonDecodeObject = (encoded: JsonValue): JsonObject => {
-  const decoded = jsonAsObject(encoded);
-  if (decoded === undefined) {
-    throw new Error(
-      `JSON: Expected an object (found: ${jsonPreview(encoded)})`,
-    );
-  }
-  return decoded;
-};
 export const jsonEncodeObject = (decoded: Immutable<JsonObject>): JsonValue => {
   return { ...decoded } as JsonObject;
 };
@@ -709,59 +694,6 @@ export function jsonTypeOptional<Content>(
   };
 }
 
-/*
-export function jsonTypeArrayToVariant<Variant>(
-  variantKey: string,
-  variantType: JsonType<Variant>,
-): JsonType<Variant> {
-  return jsonTypeMapped(
-    jsonTypeArrayToTuple([jsonTypeConst(variantKey), variantType]),
-    {
-      map: (unmapped) => unmapped[1]!,
-      unmap: (mapped) => [variantKey, mapped] as [string, Immutable<Variant>],
-    },
-  );
-}
-
-export function jsonTypeObjectToVariant<Variant>(
-  variantKey: string,
-  variantType: JsonType<Variant>,
-): JsonType<Variant> {
-  return jsonTypeMapped(jsonTypeObject({ [variantKey]: variantType }), {
-    map: (unmapped) => unmapped[variantKey]!,
-    unmap: (mapped) => ({ [variantKey]: mapped }),
-  });
-}
-
-export function jsonTypeWithDecodeFallbacks<Content>(
-  currentType: JsonType<Content>,
-  decodeFallbacks: Array<(value: JsonValue) => Content>,
-): JsonType<Content> {
-  return {
-    decode(encoded: JsonValue): Content {
-      const errors = new Array();
-      try {
-        return currentType.decode(encoded);
-      } catch (error) {
-        errors.push(error);
-      }
-      for (const decodeFallback of decodeFallbacks) {
-        try {
-          return decodeFallback(encoded);
-        } catch (error) {
-          errors.push(error);
-        }
-      }
-      const separator = "\n---\n >> JSON: Decode error: ";
-      throw new Error(
-        `JSON: Decode with fallbacks failed: ${separator}${errors.join(separator)})`,
-      );
-    },
-    encode: currentType.encode,
-  };
-}
-  */
-
 export function jsonDecoderMap<Mapped, Unmapped>(
   unmappedDecode: JsonDecode<Unmapped>,
   map: (unmapped: Unmapped) => Mapped,
@@ -789,18 +721,12 @@ export function jsonTypeMap<Mapped, Unmapped>(
   };
 }
 
-// TODO - this should take a shape as type parameter instead for keyed parts
-export function jsonDecoderMerged<Content, Part1, Part2>(
-  decoder1: JsonDecode<Part1>,
-  decoder2: JsonDecode<Part2>,
-  merge: (part1: Part1, part2: Part2) => Content,
+export function jsonDecoderRecursive<Content>(
+  getter: () => JsonDecode<Content>,
 ): JsonDecode<Content> {
-  return (encoded: JsonValue): Content => {
-    const part1 = decoder1(encoded);
-    const part2 = decoder2(encoded);
-    return merge(part1, part2);
-  };
+  return (encoded: JsonValue): Content => getter()(encoded);
 }
+
 export function jsonDecoderByKind<Content>(decoders: {
   undefined?: () => Content;
   null?: () => Content;
@@ -843,34 +769,42 @@ export function jsonDecoderByKind<Content>(decoders: {
   };
 }
 
-export function jsonDecoderRecursive<Content>(
-  getter: () => JsonDecode<Content>,
-): JsonDecode<Content> {
-  return (encoded: JsonValue): Content => getter()(encoded);
-}
-
 export function jsonDecoderEnum<
   Shape extends { [key: string]: JsonDecode<Content> },
   Content,
 >(shape: Shape): JsonDecode<Content> {
   return (encoded: JsonValue): Content => {
     const object = jsonExpectObject(encoded);
-    const keys = Object.keys(object);
-    if (keys.length !== 1) {
-      throw new Error(
-        `JSON: Expected an object with a single key (found: ${keys.join("/")})`,
-      );
+    for (const key in shape) {
+      if (object.hasOwnProperty(key)) {
+        return withContext(`JSON: Decode Object["${key}"] =>`, () =>
+          shape[key]!(object[key]!),
+        );
+      }
     }
-    // TODO - better error message
-    const key = keys[0]!;
-    const decoder = shape[key as keyof Shape];
-    if (decoder === undefined) {
-      throw new Error(
-        `JSON: Unexpected key "${key}" (found: ${jsonPreview(encoded)})`,
-      );
+    const expectedKeys = Object.keys(shape).join("/");
+    const foundKeys = Object.keys(object).join("/");
+    throw new Error(
+      `JSON: Expected object with one of the keys: ${expectedKeys} (found: ${foundKeys})`,
+    );
+  };
+}
+
+export function jsonDecoderFallbacks<Content>(
+  decoders: Array<(value: JsonValue) => Content>,
+): JsonDecode<Content> {
+  return (encoded: JsonValue): Content => {
+    const errors = new Array();
+    for (const decoder of decoders) {
+      try {
+        return decoder(encoded);
+      } catch (error) {
+        errors.push(error);
+      }
     }
-    return withContext(`JSON: Decode Object["${key}"] =>`, () =>
-      decoder(object[key]!),
+    const separator = "\n---\n >> JSON: Decode error: ";
+    throw new Error(
+      `JSON: Decode with fallbacks failed: ${separator}${errors.join(separator)})`,
     );
   };
 }

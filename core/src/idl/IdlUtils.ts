@@ -3,45 +3,55 @@ import { base58Decode } from "../data/Base58";
 import { base64Decode } from "../data/Base64";
 import {
   JsonArray,
-  jsonDecodeNumber,
   jsonDecoderByKind,
-  jsonDecodeString,
+  jsonExpectNumber,
+  jsonExpectString,
   JsonObject,
   jsonPreview,
 } from "../data/Json";
 import { sha256Hash } from "../data/Sha256";
-import { idlTypeFlatDecode } from "./IdlTypeFlatDecode";
 import { idlTypeFlatHydrate } from "./IdlTypeFlatHydrate";
+import { idlTypeFlatParse } from "./IdlTypeFlatParse";
 import { idlTypeFullSerialize } from "./IdlTypeFullSerialize";
 
-export const idlUtilsBytesDecode = jsonDecoderByKind({
+export const idlUtilsIntegerJsonDecode = jsonDecoderByKind({
+  number: (number: number) => BigInt(number),
+  string: (string: string) => BigInt(string),
+});
+
+export const idlUtilsFloatingJsonDecode = jsonDecoderByKind({
+  number: (number: number) => number,
+  string: (string: string) => Number(string),
+});
+
+export const idlUtilsBytesJsonDecode = jsonDecoderByKind({
   string: (string: string) => {
     return new TextEncoder().encode(string);
   },
   array: (array: JsonArray) => {
-    return new Uint8Array(array.map((item) => jsonDecodeNumber(item)));
+    return new Uint8Array(array.map((item) => jsonExpectNumber(item)));
   },
   object: (object: JsonObject) => {
     // TODO - this looks like an enum - could we use jsonTypeEnum here?
     const base16 = object["base16"];
     if (base16 !== undefined) {
-      return base16Decode(jsonDecodeString(base16));
+      return base16Decode(jsonExpectString(base16));
     }
     const base58 = object["base58"];
     if (base58 !== undefined) {
-      return base58Decode(jsonDecodeString(base58));
+      return base58Decode(jsonExpectString(base58));
     }
     const base64 = object["base64"];
     if (base64 !== undefined) {
-      return base64Decode(jsonDecodeString(base64));
+      return base64Decode(jsonExpectString(base64));
     }
     const utf8 = object["utf8"];
     if (utf8 !== undefined) {
-      return new TextEncoder().encode(jsonDecodeString(utf8));
+      return new TextEncoder().encode(jsonExpectString(utf8));
     }
     const type = object["type"];
     if (type !== undefined) {
-      const typeFlat = idlTypeFlatDecode(type);
+      const typeFlat = idlTypeFlatParse(type);
       const typeFull = idlTypeFlatHydrate(typeFlat, new Map(), new Map());
       const blobs = new Array<Uint8Array>();
       idlTypeFullSerialize(

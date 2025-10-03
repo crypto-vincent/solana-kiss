@@ -1,10 +1,10 @@
 import {
   JsonValue,
-  jsonDecodeNumber,
-  jsonDecodeString,
   jsonDecodeValue,
   jsonDecoderObject,
   jsonDecoderOptional,
+  jsonExpectNumber,
+  jsonExpectString,
 } from "../data/Json";
 import { Commitment } from "../data/Onchain";
 
@@ -128,12 +128,12 @@ export function rpcHttpWithRetryOnError(
 let uniqueRequestId = 1;
 
 const responseDecode = jsonDecoderObject({
-  jsonrpc: jsonDecodeString,
-  id: jsonDecodeNumber,
+  jsonrpc: jsonExpectString,
+  id: jsonExpectNumber,
   error: jsonDecoderOptional(
     jsonDecoderObject({
-      code: jsonDecodeNumber,
-      message: jsonDecodeString,
+      code: jsonExpectNumber,
+      message: jsonExpectString,
     }),
   ),
   result: jsonDecoderOptional(jsonDecodeValue),

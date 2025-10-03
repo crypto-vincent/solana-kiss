@@ -1,10 +1,10 @@
 import {
-  jsonDecodeNumber,
   jsonDecoderByKind,
   jsonDecoderObject,
   jsonDecoderOptional,
-  jsonDecodeString,
   jsonDecodeValue,
+  jsonExpectNumber,
+  jsonExpectString,
   JsonValue,
 } from "../data/Json";
 import { Immutable } from "../data/Utils";
@@ -23,7 +23,20 @@ export const idlErrorUnknown: Immutable<IdlError> = {
   msg: undefined,
 };
 
-export const idlErrorDecode = jsonDecoderByKind<{
+export function idlErrorParse(
+  errorName: string,
+  errorValue: JsonValue,
+): IdlError {
+  const info = infoJsonDecode(errorValue);
+  return {
+    name: errorName,
+    docs: info.docs,
+    code: info.code,
+    msg: info.msg,
+  };
+}
+
+export const infoJsonDecode = jsonDecoderByKind<{
   docs: JsonValue;
   code: number;
   msg: string | undefined;
@@ -35,7 +48,7 @@ export const idlErrorDecode = jsonDecoderByKind<{
   }),
   object: jsonDecoderObject({
     docs: jsonDecodeValue,
-    code: jsonDecodeNumber,
-    msg: jsonDecoderOptional(jsonDecodeString),
+    code: jsonExpectNumber,
+    msg: jsonDecoderOptional(jsonExpectString),
   }),
 });

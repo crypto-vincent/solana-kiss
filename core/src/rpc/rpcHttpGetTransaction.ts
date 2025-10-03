@@ -1,12 +1,12 @@
 import { base58Decode } from "../data/Base58";
 import {
-  jsonDecodeNumber,
   jsonDecoderArray,
   jsonDecoderNullable,
   jsonDecoderObject,
   jsonDecoderObjectToRecord,
-  jsonDecodeString,
   jsonDecodeValue,
+  jsonExpectNumber,
+  jsonExpectString,
 } from "../data/Json";
 import {
   Commitment,
@@ -224,10 +224,10 @@ function decompileTransactionInstruction(
 
 const instructionDecode = jsonDecoderObject(
   {
-    stackHeight: jsonDecodeNumber,
-    programIndex: jsonDecodeNumber,
-    accountsIndexes: jsonDecoderArray(jsonDecodeNumber),
-    dataBase58: jsonDecodeString,
+    stackHeight: jsonExpectNumber,
+    programIndex: jsonExpectNumber,
+    accountsIndexes: jsonDecoderArray(jsonExpectNumber),
+    dataBase58: jsonExpectString,
   },
   {
     programIndex: "programIdIndex",
@@ -238,43 +238,43 @@ const instructionDecode = jsonDecoderObject(
 
 const resultDecode = jsonDecoderNullable(
   jsonDecoderObject({
-    blockTime: jsonDecodeNumber,
+    blockTime: jsonExpectNumber,
     meta: jsonDecoderObject({
-      computeUnitsConsumed: jsonDecodeNumber,
+      computeUnitsConsumed: jsonExpectNumber,
       err: jsonDecoderNullable(jsonDecoderObjectToRecord(jsonDecodeValue)),
-      fee: jsonDecodeNumber,
+      fee: jsonExpectNumber,
       innerInstructions: jsonDecoderArray(
         jsonDecoderObject({
-          index: jsonDecodeNumber,
+          index: jsonExpectNumber,
           instructions: jsonDecoderArray(instructionDecode),
         }),
       ),
       loadedAddresses: jsonDecoderObject({
-        writable: jsonDecoderArray(jsonDecodeString),
-        readonly: jsonDecoderArray(jsonDecodeString),
+        writable: jsonDecoderArray(jsonExpectString),
+        readonly: jsonDecoderArray(jsonExpectString),
       }),
-      logMessages: jsonDecoderArray(jsonDecodeString),
+      logMessages: jsonDecoderArray(jsonExpectString),
     }),
-    slot: jsonDecodeNumber,
+    slot: jsonExpectNumber,
     transaction: jsonDecoderObject({
       message: jsonDecoderObject({
-        accountKeys: jsonDecoderArray(jsonDecodeString),
+        accountKeys: jsonDecoderArray(jsonExpectString),
         addressTableLookups: jsonDecoderArray(
           jsonDecoderObject({
-            accountKey: jsonDecodeString,
-            readonlyIndexes: jsonDecoderArray(jsonDecodeNumber),
-            writableIndexes: jsonDecoderArray(jsonDecodeNumber),
+            accountKey: jsonExpectString,
+            readonlyIndexes: jsonDecoderArray(jsonExpectNumber),
+            writableIndexes: jsonDecoderArray(jsonExpectNumber),
           }),
         ),
         header: jsonDecoderObject({
-          numReadonlySignedAccounts: jsonDecodeNumber,
-          numReadonlyUnsignedAccounts: jsonDecodeNumber,
-          numRequiredSignatures: jsonDecodeNumber,
+          numReadonlySignedAccounts: jsonExpectNumber,
+          numReadonlyUnsignedAccounts: jsonExpectNumber,
+          numRequiredSignatures: jsonExpectNumber,
         }),
         instructions: jsonDecoderArray(instructionDecode),
-        recentBlockhash: jsonDecodeString,
+        recentBlockhash: jsonExpectString,
       }),
-      signatures: jsonDecoderArray(jsonDecodeString),
+      signatures: jsonDecoderArray(jsonExpectString),
     }),
   }),
 );

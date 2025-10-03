@@ -1,9 +1,8 @@
 import {
+  jsonDecoderObject,
+  jsonDecoderOptional,
+  jsonDecodeValue,
   jsonExpectArray,
-  jsonExpectObject,
-  jsonTypeObject,
-  jsonTypeOptional,
-  jsonTypeValue,
   JsonValue,
 } from "../data/Json";
 import { Input, Instruction } from "../data/Onchain";
@@ -16,16 +15,16 @@ import {
 } from "./IdlInstructionAccount";
 import { IdlTypedef } from "./IdlTypedef";
 import { IdlTypeFlat, IdlTypeFlatFields } from "./IdlTypeFlat";
-import { idlTypeFlatFieldsDecode, idlTypeFlatParse } from "./IdlTypeFlatDecode";
 import {
   idlTypeFlatFieldsHydrate,
   idlTypeFlatHydrate,
 } from "./IdlTypeFlatHydrate";
+import { idlTypeFlatFieldsParse, idlTypeFlatParse } from "./IdlTypeFlatParse";
 import { IdlTypeFull, IdlTypeFullFields } from "./IdlTypeFull";
 import { idlTypeFullFieldsDeserialize } from "./IdlTypeFullDeserialize";
 import { idlTypeFullFieldsSerialize } from "./IdlTypeFullSerialize";
 import {
-  idlUtilsBytesJsonType,
+  idlUtilsBytesJsonDecode,
   idlUtilsDiscriminator,
   idlUtilsExpectBlobAt,
   idlUtilsFlattenBlobs,
@@ -289,37 +288,31 @@ export function idlInstructionParse(
   instructionValue: JsonValue,
   typedefsIdls: Map<string, IdlTypedef>,
 ): IdlInstruction {
-  const instructionPartial = partialType.decode(instructionValue);
-  const instructionObject = jsonExpectObject(instructionValue);
-  const argsTypeFlatFields = idlTypeFlatFieldsDecode(instructionObject["args"]);
+  const info = infoJsonDecode(instructionValue);
+  const argsTypeFlatFields = info.args ?? IdlTypeFlatFields.nothing();
   const argsTypeFullFields = idlTypeFlatFieldsHydrate(
     argsTypeFlatFields,
     new Map(),
     typedefsIdls,
   );
-  const returnTypeFlat = idlTypeFlatParse(
-    instructionObject["returns"] ?? { fields: [] },
-  );
+  const returnTypeFlat = info.returns ?? IdlTypeFlat.structNothing();
   const returnTypeFull = idlTypeFlatHydrate(
     returnTypeFlat,
     new Map(),
     typedefsIdls,
   );
-  const accounts = jsonExpectArray(instructionObject["accounts"] ?? []).map(
-    (instructionAccount) => {
-      return idlInstructionAccountParse(
-        instructionAccount,
-        argsTypeFullFields,
-        typedefsIdls,
-      );
-    },
-  );
+  const accounts = (info.accounts ?? []).map((instructionAccount) => {
+    return idlInstructionAccountParse(
+      instructionAccount,
+      argsTypeFullFields,
+      typedefsIdls,
+    );
+  });
   return {
     name: instructionName,
-    docs: instructionPartial.docs,
+    docs: info.docs,
     discriminator:
-      instructionPartial.discriminator ??
-      idlUtilsDiscriminator(`global:${instructionName}`),
+      info.discriminator ?? idlUtilsDiscriminator(`global:${instructionName}`),
     accounts,
     argsTypeFlatFields,
     argsTypeFullFields,
@@ -328,7 +321,10 @@ export function idlInstructionParse(
   };
 }
 
-const partialType = jsonTypeObject({
-  docs: jsonTypeValue(),
-  discriminator: jsonTypeOptional(idlUtilsBytesJsonType),
+const infoJsonDecode = jsonDecoderObject({
+  docs: jsonDecodeValue,
+  discriminator: jsonDecoderOptional(idlUtilsBytesJsonDecode),
+  args: jsonDecoderOptional(idlTypeFlatFieldsParse),
+  returns: jsonDecoderOptional(idlTypeFlatParse),
+  accounts: jsonDecoderOptional(jsonExpectArray),
 });

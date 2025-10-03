@@ -22,8 +22,8 @@ export * from "./idl/IdlPath"; // TODO - generic json path utils later ?
 export * from "./idl/IdlProgram";
 export * from "./idl/IdlTypedef";
 export * from "./idl/IdlTypeFlat";
-export * from "./idl/IdlTypeFlatDecode";
 export * from "./idl/IdlTypeFlatHydrate";
+export * from "./idl/IdlTypeFlatParse";
 export * from "./idl/IdlTypeFull";
 export * from "./idl/IdlTypeFullBytemuck";
 export * from "./idl/IdlTypeFullDeserialize";

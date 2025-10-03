@@ -1,25 +1,24 @@
 import {
-  jsonExpectObject,
-  jsonTypeArray,
-  jsonTypeNumber,
-  jsonTypeObject,
-  jsonTypeOptional,
-  jsonTypeValue,
+  jsonDecoderArray,
+  jsonDecoderObject,
+  jsonDecoderOptional,
+  jsonDecodeValue,
+  jsonExpectNumber,
   JsonValue,
 } from "../data/Json";
 import { Immutable } from "../data/Utils";
 import { IdlTypedef } from "./IdlTypedef";
 import { IdlTypeFlat } from "./IdlTypeFlat";
-import {
-  idlTypeFlatParseObject,
-  idlTypeFlatParseObjectIsPossible,
-} from "./IdlTypeFlatDecode";
 import { idlTypeFlatHydrate } from "./IdlTypeFlatHydrate";
+import {
+  idlTypeFlatParse,
+  idlTypeFlatParseIsPossible,
+} from "./IdlTypeFlatParse";
 import { IdlTypeFull } from "./IdlTypeFull";
 import { idlTypeFullDeserialize } from "./IdlTypeFullDeserialize";
 import { idlTypeFullSerialize } from "./IdlTypeFullSerialize";
 import {
-  idlUtilsBytesJsonType,
+  idlUtilsBytesJsonDecode,
   idlUtilsDiscriminator,
   idlUtilsExpectBlobAt,
   idlUtilsFlattenBlobs,
@@ -90,11 +89,10 @@ export function idlAccountParse(
   accountValue: JsonValue,
   typedefsIdls: Map<string, IdlTypedef>,
 ): IdlAccount {
-  const accountPartial = partialJsonType.decode(accountValue);
-  const accountObject = jsonExpectObject(accountValue);
-  const contentTypeFlat = idlTypeFlatParseObjectIsPossible(accountObject)
-    ? idlTypeFlatParseObject(accountObject)
-    : idlTypeFlatDefinedDecode(accountName);
+  const info = infoJsonDecode(accountValue);
+  const contentTypeFlat = idlTypeFlatParseIsPossible(accountValue)
+    ? idlTypeFlatParse(accountValue)
+    : idlTypeFlatParse(accountName);
   const contentTypeFull = idlTypeFlatHydrate(
     contentTypeFlat,
     new Map(),
@@ -102,27 +100,26 @@ export function idlAccountParse(
   );
   return {
     name: accountName,
-    docs: accountPartial.docs,
-    space: accountPartial.space,
-    blobs: accountPartial.blobs ?? [],
+    docs: info.docs,
+    space: info.space,
+    blobs: info.blobs ?? [],
     discriminator:
-      accountPartial.discriminator ??
-      idlUtilsDiscriminator(`account:${accountName}`),
+      info.discriminator ?? idlUtilsDiscriminator(`account:${accountName}`),
     contentTypeFlat,
     contentTypeFull,
   };
 }
 
-const partialJsonType = jsonTypeObject({
-  docs: jsonTypeValue(),
-  space: jsonTypeOptional(jsonTypeNumber()),
-  blobs: jsonTypeOptional(
-    jsonTypeArray(
-      jsonTypeObject({
-        offset: jsonTypeNumber(),
-        value: idlUtilsBytesJsonType,
+const infoJsonDecode = jsonDecoderObject({
+  docs: jsonDecodeValue,
+  space: jsonDecoderOptional(jsonExpectNumber),
+  blobs: jsonDecoderOptional(
+    jsonDecoderArray(
+      jsonDecoderObject({
+        offset: jsonExpectNumber,
+        value: idlUtilsBytesJsonDecode,
       }),
     ),
   ),
-  discriminator: jsonTypeOptional(idlUtilsBytesJsonType),
+  discriminator: jsonDecoderOptional(idlUtilsBytesJsonDecode),
 });

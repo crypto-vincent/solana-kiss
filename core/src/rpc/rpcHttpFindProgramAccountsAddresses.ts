@@ -2,7 +2,7 @@ import { base58Encode } from "../data/Base58";
 import {
   jsonDecoderArray,
   jsonDecoderObject,
-  jsonDecodeString,
+  jsonExpectString,
 } from "../data/Json";
 import { Commitment } from "../data/Onchain";
 import { Pubkey } from "../data/Pubkey";
@@ -59,5 +59,5 @@ export async function rpcHttpFindProgramAccountsAddresses(
 }
 
 const resultDecode = jsonDecoderArray(
-  jsonDecoderObject({ pubkey: jsonDecodeString }),
+  jsonDecoderObject({ pubkey: jsonExpectString }),
 );

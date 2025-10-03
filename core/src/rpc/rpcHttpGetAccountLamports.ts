@@ -1,4 +1,4 @@
-import { jsonDecodeNumber, jsonDecoderObject } from "../data/Json";
+import { jsonDecoderObject, jsonExpectNumber } from "../data/Json";
 import { Lamports } from "../data/Lamports";
 import { Commitment } from "../data/Onchain";
 import { Pubkey } from "../data/Pubkey";
@@ -21,5 +21,5 @@ export async function rpcHttpGetAccountLamports(
 }
 
 const resultDecode = jsonDecoderObject({
-  value: jsonDecodeNumber,
+  value: jsonExpectNumber,
 });

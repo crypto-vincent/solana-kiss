@@ -1,4 +1,4 @@
-import { jsonIsSubset } from "../src";
+import { jsonIsDeepSubset } from "../src";
 
 it("run", async () => {
   const testsContains = [
@@ -14,7 +14,7 @@ it("run", async () => {
   ];
   for (const testContain of testsContains) {
     expect(testContain.result).toStrictEqual(
-      jsonIsSubset(testContain.subset, testContain.superset),
+      jsonIsDeepSubset(testContain.subset, testContain.superset),
     );
   }
 });

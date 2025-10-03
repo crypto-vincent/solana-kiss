@@ -1,15 +1,14 @@
 import {
   jsonDecoderArray,
   jsonDecoderByKind,
-  jsonDecoderMap,
   jsonDecoderObject,
   jsonDecoderOptional,
-  jsonDecodeString,
   jsonDecodeValue,
+  jsonExpectString,
   JsonValue,
 } from "../data/Json";
 import { IdlTypeFlat } from "./IdlTypeFlat";
-import { idlTypeFlatDecode } from "./IdlTypeFlatDecode";
+import { idlTypeFlatParse } from "./IdlTypeFlatParse";
 
 export type IdlTypedef = {
   name: string;
@@ -20,29 +19,36 @@ export type IdlTypedef = {
   typeFlat: IdlTypeFlat;
 };
 
-export const idlTypedefDecode = jsonDecoderObject({
+export function idlTypedefParse(
+  typedefName: string,
+  typedefValue: JsonValue,
+): IdlTypedef {
+  const info = infoJsonDecode(typedefValue);
+  return {
+    name: typedefName,
+    docs: info.docs,
+    serialization: info.serialization,
+    repr: info.repr?.kind,
+    generics: (info.generics ?? []).map((generic) => generic.name),
+    typeFlat: idlTypeFlatParse(typedefValue),
+  };
+}
+
+const infoJsonDecode = jsonDecoderObject({
   docs: jsonDecodeValue,
-  serialization: jsonDecoderOptional(jsonDecodeString),
+  serialization: jsonDecoderOptional(jsonExpectString),
   repr: jsonDecoderOptional(
     jsonDecoderByKind({
-      string: (string: string) => string,
-      object: jsonDecoderMap(
-        jsonDecoderObject({ kind: jsonDecoderOptional(jsonDecodeString) }),
-        (repr) => repr?.kind,
-      ),
+      string: (string: string) => ({ kind: string }),
+      object: jsonDecoderObject({ kind: jsonExpectString }),
     }),
   ),
-  generics: jsonDecoderMap(
+  generics: jsonDecoderOptional(
     jsonDecoderArray(
       jsonDecoderByKind({
-        string: (string: string) => string,
-        object: jsonDecoderMap(
-          jsonDecoderObject({ name: jsonDecodeString }),
-          (repr) => repr.name,
-        ),
+        string: (string: string) => ({ name: string }),
+        object: jsonDecoderObject({ name: jsonExpectString }),
       }),
     ),
-    (array) => array ?? [],
   ),
-  typeFlat: idlTypeFlatDecode,
 });

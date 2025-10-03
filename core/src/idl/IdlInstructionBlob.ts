@@ -1,8 +1,11 @@
 import {
   jsonAsArray,
-  jsonAsObject,
   jsonAsString,
-  jsonDecoderString,
+  jsonDecoderByKind,
+  jsonDecoderObject,
+  jsonDecoderOptional,
+  jsonDecodeValue,
+  jsonExpectString,
   JsonValue,
 } from "../data/Json";
 import { Pubkey, pubkeyToBytes } from "../data/Pubkey";
@@ -14,8 +17,9 @@ import {
   idlPathParse,
 } from "./IdlPath";
 import { IdlTypedef } from "./IdlTypedef";
-import { idlTypeFlatParse } from "./IdlTypeFlatDecode";
+import { IdlTypeFlat } from "./IdlTypeFlat";
 import { idlTypeFlatHydrate } from "./IdlTypeFlatHydrate";
+import { idlTypeFlatParse } from "./IdlTypeFlatParse";
 import { IdlTypeFull, IdlTypeFullFields } from "./IdlTypeFull";
 import { idlTypeFullSerialize } from "./IdlTypeFullSerialize";
 import { idlUtilsFlattenBlobs } from "./IdlUtils";
@@ -74,78 +78,76 @@ export class IdlInstructionBlob {
 }
 
 export function idlInstructionBlobParse(
-  instructionBlob: JsonValue,
+  instructionBlobValue: JsonValue,
   instructionArgsTypeFullFields: IdlTypeFullFields,
   typedefsIdls: Map<string, IdlTypedef>,
 ): IdlInstructionBlob {
-  const instructionBlobObject = jsonAsObject(instructionBlob);
-  if (instructionBlobObject !== undefined) {
-    const instructionBlobValue = instructionBlobObject["value"];
-    const instructionBlobType = instructionBlobObject["type"];
-    if (instructionBlobValue !== undefined) {
-      if (instructionBlobType !== undefined) {
-        return idlInstructionBlobParseConstTyped(
-          instructionBlobValue,
-          instructionBlobType,
-          typedefsIdls,
-        );
-      } else {
-        return idlInstructionBlobParseConstUntyped(
-          instructionBlobValue,
-          typedefsIdls,
-        );
-      }
-    }
-    const instructionBlobPath = jsonDecoderString(
-      instructionBlobObject["path"], // TODO - better error handling using JsonType
-    );
-    if (instructionBlobObject["kind"] === "arg") {
-      return idlInstructionBlobParseArg(
-        instructionBlobPath,
-        instructionBlobType,
-        instructionArgsTypeFullFields,
-        typedefsIdls,
-      );
-    }
-    return idlInstructionBlobParseAccount(
-      instructionBlobPath,
-      instructionBlobType,
+  const info = infoJsonDecode(instructionBlobValue);
+  if (info.value !== undefined || info.kind === "const") {
+    return idlInstructionBlobParseConst(info.value, info.type, typedefsIdls);
+  }
+  if (info.path === undefined) {
+    throw new Error(`Idl: Missing path for instruction blob`);
+  }
+  if (info.kind === "arg") {
+    return idlInstructionBlobParseArg(
+      info.path,
+      info.type,
+      instructionArgsTypeFullFields,
       typedefsIdls,
     );
   }
-  return idlInstructionBlobParseConstUntyped(instructionBlob, typedefsIdls);
+  if (info.kind === undefined || info.kind === "account") {
+    return idlInstructionBlobParseAccount(info.path, info.type, typedefsIdls);
+  }
+  throw new Error(`Idl: Invalid instruction blob kind: ${info.kind}`);
 }
 
-export function idlInstructionBlobParseConstUntyped(
-  instructionBlobValue: JsonValue,
-  typedefsIdls: Map<string, IdlTypedef>,
-): IdlInstructionBlob {
-  const instructionBlobString = jsonAsString(instructionBlobValue);
-  if (instructionBlobString !== undefined) {
-    return idlInstructionBlobParseConstTyped(
-      instructionBlobString,
-      "string",
-      typedefsIdls,
-    );
-  }
-  const instructionBlobArray = jsonAsArray(instructionBlobValue);
-  if (instructionBlobArray !== undefined) {
-    return idlInstructionBlobParseConstTyped(
-      instructionBlobArray,
-      "bytes",
-      typedefsIdls,
-    );
-  }
-  throw new Error("Could not parse IDL instruction account PDA blob");
-}
+const infoJsonDecode = jsonDecoderByKind<{
+  kind: string | undefined;
+  path: string | undefined;
+  value: JsonValue;
+  type: IdlTypeFlat | undefined;
+}>({
+  object: jsonDecoderObject({
+    kind: jsonDecoderOptional(jsonExpectString),
+    path: jsonDecoderOptional(jsonExpectString),
+    type: jsonDecoderOptional(idlTypeFlatParse),
+    value: jsonDecodeValue,
+  }),
+  string: (string: string) => ({
+    kind: undefined,
+    path: undefined,
+    type: undefined,
+    value: string,
+  }),
+  array: (array: JsonValue[]) => ({
+    kind: undefined,
+    path: undefined,
+    type: undefined,
+    value: array,
+  }),
+});
 
-export function idlInstructionBlobParseConstTyped(
+export function idlInstructionBlobParseConst(
   instructionBlobValue: JsonValue,
-  instructionBlobType: JsonValue,
+  instructionBlobType: IdlTypeFlat | undefined,
   typedefsIdls: Map<string, IdlTypedef>,
 ): IdlInstructionBlob {
-  const typeFlat = idlTypeFlatParse(instructionBlobType);
-  const typeFull = idlTypeFlatHydrate(typeFlat, new Map(), typedefsIdls);
+  if (instructionBlobType === undefined) {
+    if (jsonAsString(instructionBlobValue) !== undefined) {
+      instructionBlobType = idlTypeFlatParse("string");
+    } else if (jsonAsArray(instructionBlobValue) !== undefined) {
+      instructionBlobType = idlTypeFlatParse("bytes");
+    } else {
+      throw new Error(`Idl: Missing type for instruction blob const`);
+    }
+  }
+  const typeFull = idlTypeFlatHydrate(
+    instructionBlobType,
+    new Map(),
+    typedefsIdls,
+  );
   const blobs = new Array<Uint8Array>();
   idlTypeFullSerialize(typeFull, instructionBlobValue, blobs, false);
   return IdlInstructionBlob.const({
@@ -155,7 +157,7 @@ export function idlInstructionBlobParseConstTyped(
 
 export function idlInstructionBlobParseArg(
   instructionBlobPath: string,
-  instructionBlobType: JsonValue,
+  instructionBlobType: IdlTypeFlat | undefined,
   instructionArgsTypeFullFields: IdlTypeFullFields,
   typedefsIdls: Map<string, IdlTypedef>,
 ): IdlInstructionBlob {
@@ -167,22 +169,28 @@ export function idlInstructionBlobParseArg(
     );
     return IdlInstructionBlob.arg({ path, typeFull });
   }
-  const typeFlat = idlTypeFlatParse(instructionBlobType);
-  const typeFull = idlTypeFlatHydrate(typeFlat, new Map(), typedefsIdls);
+  const typeFull = idlTypeFlatHydrate(
+    instructionBlobType,
+    new Map(),
+    typedefsIdls,
+  );
   return IdlInstructionBlob.arg({ path, typeFull });
 }
 
 export function idlInstructionBlobParseAccount(
   instructionBlobPath: string,
-  instructionBlobType: JsonValue,
+  instructionBlobType: IdlTypeFlat | undefined,
   typedefsIdls: Map<string, IdlTypedef>,
 ): IdlInstructionBlob {
   const path = idlPathParse(instructionBlobPath);
   if (instructionBlobType === undefined) {
     return IdlInstructionBlob.account({ path, typeFull: undefined });
   }
-  const typeFlat = idlTypeFlatParse(instructionBlobType);
-  const typeFull = idlTypeFlatHydrate(typeFlat, new Map(), typedefsIdls);
+  const typeFull = idlTypeFlatHydrate(
+    instructionBlobType,
+    new Map(),
+    typedefsIdls,
+  );
   return IdlInstructionBlob.account({ path, typeFull });
 }
 

@@ -1,14 +1,15 @@
 import { camelCaseToSnakeCase } from "../data/Casing";
 import {
-  jsonAsArray,
-  jsonAsBoolean,
-  jsonAsObject,
-  jsonAsString,
-  jsonDecoderString,
-  jsonExpectObject,
+  jsonDecoderArray,
+  jsonDecoderObject,
+  jsonDecoderOptional,
+  jsonDecodeValue,
+  jsonExpectBoolean,
+  jsonExpectString,
   JsonValue,
 } from "../data/Json";
 import { Pubkey, pubkeyFindPdaAddress, pubkeyFromBytes } from "../data/Pubkey";
+import { withContext } from "../data/Utils";
 import {
   IdlInstructionBlob,
   idlInstructionBlobCompute,
@@ -82,28 +83,12 @@ export function idlInstructionAccountParse(
   instructionArgsTypeFullFields: IdlTypeFullFields,
   typedefsIdls: Map<string, IdlTypedef>,
 ): IdlInstructionAccount {
-  const instructionAccountObject = jsonExpectObject(instructionAccountValue);
-  const instructionAccountName = camelCaseToSnakeCase(
-    jsonDecoderString(instructionAccountObject["name"]),
-  );
-  const docs = instructionAccountObject["docs"];
-  const writable =
-    jsonAsBoolean(instructionAccountObject["writable"]) ??
-    jsonAsBoolean(instructionAccountObject["isMut"]) ??
-    false;
-  const signer =
-    jsonAsBoolean(instructionAccountObject["signer"]) ??
-    jsonAsBoolean(instructionAccountObject["isSigner"]) ??
-    false;
-  const optional =
-    jsonAsBoolean(instructionAccountObject["optional"]) ??
-    jsonAsBoolean(instructionAccountObject["isOptional"]) ??
-    false;
-  const address = jsonAsString(instructionAccountObject["address"]);
-  let pda: IdlInstructionAccountPda | undefined = undefined;
-  const pdaObject = jsonAsObject(instructionAccountObject["pda"]);
-  if (pdaObject != undefined) {
-    const seeds = (jsonAsArray(pdaObject["seeds"]) ?? []).map((seedValue) =>
+  const info = infoJsonDecode(instructionAccountValue);
+  const pda = withContext(`Idl: Instruction Account: Pda: ${info.name}`, () => {
+    if (info.pda === undefined) {
+      return undefined;
+    }
+    const seeds = (info.pda.seeds ?? []).map((seedValue) =>
       idlInstructionBlobParse(
         seedValue,
         instructionArgsTypeFullFields,
@@ -111,23 +96,40 @@ export function idlInstructionAccountParse(
       ),
     );
     let program: IdlInstructionBlob | undefined = undefined;
-    const pdaProgramValue = pdaObject["program"];
-    if (pdaProgramValue !== undefined) {
+    if (info.pda.program !== undefined) {
       program = idlInstructionBlobParse(
-        pdaProgramValue,
+        info.pda.program,
         instructionArgsTypeFullFields,
         typedefsIdls,
       );
     }
-    pda = { seeds, program };
-  }
+    return { seeds, program };
+  });
   return {
-    name: instructionAccountName,
-    docs,
-    writable,
-    signer,
-    optional,
-    address,
+    name: camelCaseToSnakeCase(info.name),
+    docs: info.docs,
+    writable: info.writable ?? info.isMut ?? false,
+    signer: info.signer ?? info.isSigner ?? false,
+    optional: info.optional ?? info.isOptional ?? false,
+    address: info.address,
     pda,
   };
 }
+
+const infoJsonDecode = jsonDecoderObject({
+  name: jsonExpectString,
+  docs: jsonDecodeValue,
+  isSigner: jsonDecoderOptional(jsonExpectBoolean),
+  isMut: jsonDecoderOptional(jsonExpectBoolean),
+  isOptional: jsonDecoderOptional(jsonExpectBoolean),
+  signer: jsonDecoderOptional(jsonExpectBoolean),
+  writable: jsonDecoderOptional(jsonExpectBoolean),
+  optional: jsonDecoderOptional(jsonExpectBoolean),
+  address: jsonDecoderOptional(jsonExpectString),
+  pda: jsonDecoderOptional(
+    jsonDecoderObject({
+      seeds: jsonDecoderOptional(jsonDecoderArray(jsonDecodeValue)),
+      program: jsonDecoderOptional(jsonDecodeValue),
+    }),
+  ),
+});
