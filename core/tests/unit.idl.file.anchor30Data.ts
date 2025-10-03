@@ -1,3 +1,4 @@
+import { expect, it } from "@jest/globals";
 import {
   idlAccountDecode,
   idlAccountEncode,
@@ -13,7 +14,7 @@ it("run", () => {
   // Instruction used
   const instructionIdl = programIdl.instructions.get("campaign_create")!;
   // Prepare instruction payload
-  const instructionPayloadMetadataBytes = [];
+  const instructionPayloadMetadataBytes = new Array<number>();
   for (let index = 0; index < 512; index++) {
     instructionPayloadMetadataBytes.push(index % 100);
   }
@@ -39,7 +40,7 @@ it("run", () => {
   // IDL Account used
   const campaignAccountIdl = programIdl.accounts.get("Campaign")!;
   // Prepare account state
-  const campaignAccountStateMetadataBytes = [];
+  const campaignAccountStateMetadataBytes = new Array<number>();
   for (let index = 0; index < 512; index++) {
     campaignAccountStateMetadataBytes.push(index % 100);
   }

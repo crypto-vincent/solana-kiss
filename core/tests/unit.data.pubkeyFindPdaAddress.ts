@@ -1,3 +1,4 @@
+import { expect, it } from "@jest/globals";
 import { PublicKey } from "@solana/web3.js";
 import {
   base58Decode,

@@ -1,3 +1,4 @@
+import { expect, it } from "@jest/globals";
 import { idlProgramParse, IdlTypeFull } from "../src";
 
 it("run", () => {

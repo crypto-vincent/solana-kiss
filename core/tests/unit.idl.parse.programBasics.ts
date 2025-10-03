@@ -1,3 +1,4 @@
+import { expect, it } from "@jest/globals";
 import { idlProgramParse } from "../src/idl/IdlProgram";
 import { IdlTypeFlat, IdlTypeFlatFields } from "../src/idl/IdlTypeFlat";
 import { IdlTypeFull, IdlTypeFullFields } from "../src/idl/IdlTypeFull";

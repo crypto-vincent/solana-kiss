@@ -1,4 +1,4 @@
-import { it } from "@jest/globals";
+import { expect, it } from "@jest/globals";
 import { RpcHttp, rpcHttpGetLatestBlockInfo } from "../src";
 
 it("run", async () => {

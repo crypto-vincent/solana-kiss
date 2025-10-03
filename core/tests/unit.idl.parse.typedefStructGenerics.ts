@@ -1,8 +1,9 @@
+import { expect, it } from "@jest/globals";
 import { idlProgramParse, IdlTypeFlat } from "../src";
 
 it("run", () => {
   // Create IDLs using different shortened formats
-  let programIdl1 = idlProgramParse({
+  const programIdl1 = idlProgramParse({
     types: [
       {
         name: "MyStruct",
@@ -11,7 +12,7 @@ it("run", () => {
       },
     ],
   });
-  let programIdl2 = idlProgramParse({
+  const programIdl2 = idlProgramParse({
     types: [
       {
         name: "MyStruct",
@@ -20,7 +21,7 @@ it("run", () => {
       },
     ],
   });
-  let programIdl3 = idlProgramParse({
+  const programIdl3 = idlProgramParse({
     types: [
       {
         name: "MyStruct",
@@ -29,7 +30,7 @@ it("run", () => {
       },
     ],
   });
-  let programIdl4 = idlProgramParse({
+  const programIdl4 = idlProgramParse({
     types: {
       MyStruct: {
         generics: [{ kind: "type", name: "A" }, { name: "B" }],
@@ -37,7 +38,7 @@ it("run", () => {
       },
     },
   });
-  let programIdl5 = idlProgramParse({
+  const programIdl5 = idlProgramParse({
     types: {
       MyStruct: {
         generics: ["A", "B"],

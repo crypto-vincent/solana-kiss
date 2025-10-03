@@ -1,3 +1,4 @@
+import { expect, it } from "@jest/globals";
 import {
   idlInstructionAddressesFind,
   idlInstructionEncode,
@@ -27,7 +28,7 @@ it("run", () => {
     new Uint8Array([11, 0, 0, 0, 0, 0, 0, 0]),
   ]);
   // Prepare instruction payload
-  const instructionPayloadMetadataBytes = [];
+  const instructionPayloadMetadataBytes = new Array<number>();
   for (let index = 0; index < 512; index++) {
     instructionPayloadMetadataBytes.push(index % 100);
   }

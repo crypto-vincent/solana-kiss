@@ -1,3 +1,4 @@
+import { expect, it } from "@jest/globals";
 import { pubkeyFromBytes } from "../src";
 import { idlAccountDecode, idlAccountEncode } from "../src/idl/IdlAccount";
 import { idlProgramParse } from "../src/idl/IdlProgram";

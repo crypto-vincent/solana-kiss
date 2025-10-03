@@ -1,4 +1,4 @@
-import { it } from "@jest/globals";
+import { expect, it } from "@jest/globals";
 import { camelCaseToSnakeCase } from "../src/data/Casing";
 
 it("run", async () => {

@@ -210,7 +210,7 @@ const visitorDeserialize = {
     return data.getBigInt64(dataOffset, true).toString();
   },
   i128: (data: DataView, dataOffset: number): JsonValue => {
-    const low = data.getBigUint64(dataOffset, true); // TODO - is this correct?
+    const low = data.getBigUint64(dataOffset, true);
     const high = data.getBigInt64(dataOffset + 8, true);
     return (low | (high << 64n)).toString();
   },

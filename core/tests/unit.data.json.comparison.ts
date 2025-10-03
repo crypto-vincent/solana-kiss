@@ -1,3 +1,4 @@
+import { expect, it } from "@jest/globals";
 import { jsonIsDeepSubset } from "../src";
 
 it("run", async () => {

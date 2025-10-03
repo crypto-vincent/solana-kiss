@@ -1,4 +1,4 @@
-import { it } from "@jest/globals";
+import { expect, it } from "@jest/globals";
 import { Keypair } from "@solana/web3.js";
 import { keypairFromSecret } from "../src/data/Keypair";
 

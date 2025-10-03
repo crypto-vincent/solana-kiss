@@ -1,17 +1,12 @@
 {
-  "name": "solana-kiss-rpc",
+  "name": "solana-kiss",
   "version": "0.0.1",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "devDependencies": {
     "@solana/web3.js": "^1.98.4",
     "@types/jest": "^29.5.14",
-    "@typescript-eslint/eslint-plugin": "^8.32.1",
-    "@typescript-eslint/parser": "^8.32.1",
     "bs58": "^6.0.0",
-    "eslint": "^9.27.0",
-    "eslint-config-prettier": "^10.1.5",
-    "eslint-plugin-prettier": "^5.4.0",
     "jest": "^29.7.0",
     "prettier": "^3.5.3",
     "prettier-plugin-organize-imports": "^4.3.0",
