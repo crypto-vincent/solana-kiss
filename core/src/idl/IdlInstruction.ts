@@ -7,7 +7,7 @@ import {
 } from "../data/Json";
 import { Input, Instruction } from "../data/Onchain";
 import { Pubkey } from "../data/Pubkey";
-import { Immutable } from "../data/Utils";
+import { Immutable, withContext } from "../data/Utils";
 import {
   IdlInstructionAccount,
   idlInstructionAccountFind,
@@ -258,19 +258,24 @@ export function idlInstructionAddressesFindWithAccounts(
         continue;
       }
       try {
-        let instructionAddress = idlInstructionAccountFind(
-          instructionAccountIdl,
-          instructionProgramAddress,
-          instructionAddresses,
-          instructionPayload,
-          instructionAccountsStates,
-          instructionAccountsContentsTypeFull,
+        withContext(
+          `Idl: Finding address for instruction account ${instructionAccountIdl.name}`,
+          () => {
+            let instructionAddress = idlInstructionAccountFind(
+              instructionAccountIdl,
+              instructionProgramAddress,
+              instructionAddresses,
+              instructionPayload,
+              instructionAccountsStates,
+              instructionAccountsContentsTypeFull,
+            );
+            instructionAddresses.set(
+              instructionAccountIdl.name,
+              instructionAddress,
+            );
+            madeProgress = true;
+          },
         );
-        instructionAddresses.set(
-          instructionAccountIdl.name,
-          instructionAddress,
-        );
-        madeProgress = true;
       } catch (_) {
         // TODO - better error handling and help with understanding what is missing
         // Ignore errors, we might not have enough info yet

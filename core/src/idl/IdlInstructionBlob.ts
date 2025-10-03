@@ -104,28 +104,28 @@ export function idlInstructionBlobParse(
 }
 
 const infoJsonDecode = jsonDecoderByKind<{
-  kind: string | undefined;
-  path: string | undefined;
   value: JsonValue;
   type: IdlTypeFlat | undefined;
+  kind: string | undefined;
+  path: string | undefined;
 }>({
   object: jsonDecoderObject({
+    value: jsonDecodeValue,
+    type: jsonDecoderOptional(idlTypeFlatParse),
     kind: jsonDecoderOptional(jsonDecodeString),
     path: jsonDecoderOptional(jsonDecodeString),
-    type: jsonDecoderOptional(idlTypeFlatParse),
-    value: jsonDecodeValue,
   }),
   string: (string: string) => ({
+    value: string,
+    type: undefined,
     kind: undefined,
     path: undefined,
-    type: undefined,
-    value: string,
   }),
   array: (array: JsonValue[]) => ({
+    value: array,
+    type: undefined,
     kind: undefined,
     path: undefined,
-    type: undefined,
-    value: array,
   }),
 });
 
