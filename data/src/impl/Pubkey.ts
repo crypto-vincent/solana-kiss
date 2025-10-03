@@ -92,6 +92,23 @@ export function pubkeyCreatePdaAddress(
   return pdaAddress;
 }
 
+export function pubkeyCreateFromSeed(
+  programAddress: Pubkey,
+  derivedAddress: Pubkey,
+  seed: string,
+): Pubkey {
+  if (seed.length > 32) {
+    throw new Error(`Pubkey: Create: Seed length must not exceed 32 bytes`);
+  }
+  return pubkeyFromBytes(
+    sha256Hash([
+      pubkeyToBytes(derivedAddress),
+      new TextEncoder().encode(seed),
+      pubkeyToBytes(programAddress),
+    ]),
+  );
+}
+
 export function pubkeyIsOnCurve(address: Pubkey): boolean {
   const bytes = pubkeyToBytes(address);
   const sign = (bytes[31]! >> 7) & 1;
