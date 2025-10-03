@@ -7,6 +7,7 @@ import {
 import {
   IdlTypeFull,
   IdlTypeFullArray,
+  IdlTypeFullBlob,
   IdlTypeFullEnum,
   IdlTypeFullFieldNamed,
   IdlTypeFullFields,
@@ -293,6 +294,14 @@ const visitorTypeFull = {
     _next: IdlPath,
   ) => {
     return idlPathGetTypeFull(path, self.content);
+  },
+  blob: (
+    _self: IdlTypeFullBlob,
+    path: IdlPath,
+    _current: IdlPathPart,
+    _next: IdlPath,
+  ) => {
+    throw new Error(`Type blob does not contain path: '${path.value()}'`);
   },
   primitive: (
     self: IdlTypePrimitive,

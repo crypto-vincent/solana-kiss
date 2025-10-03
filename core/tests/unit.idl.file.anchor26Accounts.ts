@@ -1,7 +1,6 @@
 import { expect, it } from "@jest/globals";
 import {
   idlInstructionAddressesFind,
-  idlInstructionAddressesFindWithAccounts,
   idlProgramParse,
   pubkeyFindPdaAddress,
   pubkeyNewDummy,
@@ -59,19 +58,23 @@ it("run", () => {
   // Generate all missing IX accounts with just the minimum information
   const initializeMarketAddresses = idlInstructionAddressesFind(
     programIdl.instructions.get("initialize_market")!,
-    programAddress,
-    new Map([
-      ["owner", ownerAddress],
-      ["liquidity_pool_token_account", liquidityPoolTokenAccountAddress],
-      ["treasury", treasuryAddress],
-      ["treasury_pool_token_account", treasuryPoolTokenAccountAddress],
-      ["base_token_mint", baseTokenMintAddress],
-      ["associated_token_program", placeholderAddress],
-      ["rent", placeholderAddress],
-      ["token_program", placeholderAddress],
-      ["system_program", placeholderAddress],
-    ]),
-    { global_market_seed: globalMarketSeed },
+    {
+      instructionProgramAddress: programAddress,
+      instructionAddresses: new Map([
+        ["owner", ownerAddress],
+        ["liquidity_pool_token_account", liquidityPoolTokenAccountAddress],
+        ["treasury", treasuryAddress],
+        ["treasury_pool_token_account", treasuryPoolTokenAccountAddress],
+        ["base_token_mint", baseTokenMintAddress],
+        ["associated_token_program", placeholderAddress],
+        ["rent", placeholderAddress],
+        ["token_program", placeholderAddress],
+        ["system_program", placeholderAddress],
+      ]),
+      instructionPayload: {
+        global_market_seed: globalMarketSeed,
+      },
+    },
   );
   // Check the outcomes
   expect(initializeMarketAddresses.get("global_market_state")!).toStrictEqual(
@@ -90,16 +93,19 @@ it("run", () => {
     lpTokenMintAddress,
   );
   // Generate all missing IX accounts with just the minimum information
-  const openDealAddresses = idlInstructionAddressesFindWithAccounts(
+  const openDealAddresses = idlInstructionAddressesFind(
     programIdl.instructions.get("open_deal")!,
-    programAddress,
-    new Map([
-      ["owner", ownerAddress],
-      ["global_market_state", globalMarketStateAddress],
-    ]),
-    { global_market_seed: globalMarketSeed },
-    new Map([["deal", { deal_number: dealNumber, borrower: borrowerAddress }]]),
-    new Map(),
+    {
+      instructionProgramAddress: programAddress,
+      instructionAddresses: new Map([
+        ["owner", ownerAddress],
+        ["global_market_state", globalMarketStateAddress],
+      ]),
+      instructionPayload: { global_market_seed: globalMarketSeed },
+      instructionAccountsStates: new Map([
+        ["deal", { deal_number: dealNumber, borrower: borrowerAddress }],
+      ]),
+    },
   );
   // Check the outcomes
   expect(openDealAddresses.get("market_admins")).toStrictEqual(

@@ -1,6 +1,4 @@
 import {
-  jsonAsArray,
-  jsonAsString,
   jsonDecoderByKind,
   jsonDecoderObject,
   jsonDecoderOptional,
@@ -22,7 +20,15 @@ import { idlTypeFlatHydrate } from "./IdlTypeFlatHydrate";
 import { idlTypeFlatParse } from "./IdlTypeFlatParse";
 import { IdlTypeFull, IdlTypeFullFields } from "./IdlTypeFull";
 import { idlTypeFullSerialize } from "./IdlTypeFullSerialize";
-import { idlUtilsFlattenBlobs } from "./IdlUtils";
+import { idlUtilsFlattenBlobs, idlUtilsInferValueTypeFlat } from "./IdlUtils";
+
+export type IdlInstructionBlobContext = {
+  instructionProgramAddress: Pubkey;
+  instructionAddresses: Map<string, Pubkey>;
+  instructionPayload: JsonValue;
+  instructionAccountsStates?: Map<string, JsonValue>;
+  instructionAccountsContentsTypeFull?: Map<string, IdlTypeFull>;
+};
 
 export type IdlInstructionBlobConst = {
   bytes: Uint8Array;
@@ -103,48 +109,13 @@ export function idlInstructionBlobParse(
   throw new Error(`Idl: Invalid instruction blob kind: ${info.kind}`);
 }
 
-const infoJsonDecode = jsonDecoderByKind<{
-  value: JsonValue;
-  type: IdlTypeFlat | undefined;
-  kind: string | undefined;
-  path: string | undefined;
-}>({
-  object: jsonDecoderObject({
-    value: jsonDecodeValue,
-    type: jsonDecoderOptional(idlTypeFlatParse),
-    kind: jsonDecoderOptional(jsonDecodeString),
-    path: jsonDecoderOptional(jsonDecodeString),
-  }),
-  string: (string: string) => ({
-    value: string,
-    type: undefined,
-    kind: undefined,
-    path: undefined,
-  }),
-  array: (array: JsonValue[]) => ({
-    value: array,
-    type: undefined,
-    kind: undefined,
-    path: undefined,
-  }),
-});
-
 export function idlInstructionBlobParseConst(
   instructionBlobValue: JsonValue,
   instructionBlobType: IdlTypeFlat | undefined,
   typedefsIdls: Map<string, IdlTypedef>,
 ): IdlInstructionBlob {
-  if (instructionBlobType === undefined) {
-    if (jsonAsString(instructionBlobValue) !== undefined) {
-      instructionBlobType = idlTypeFlatParse("string");
-    } else if (jsonAsArray(instructionBlobValue) !== undefined) {
-      instructionBlobType = idlTypeFlatParse("bytes");
-    } else {
-      throw new Error(`Idl: Missing type for instruction blob const`);
-    }
-  }
   const typeFull = idlTypeFlatHydrate(
-    instructionBlobType,
+    instructionBlobType ?? idlUtilsInferValueTypeFlat(instructionBlobValue),
     new Map(),
     typedefsIdls,
   );
@@ -194,32 +165,51 @@ export function idlInstructionBlobParseAccount(
   return IdlInstructionBlob.account({ path, typeFull });
 }
 
-export type IdlInstructionBlobComputeContext = {
-  instructionProgramAddress: Pubkey;
-  instructionPayload: JsonValue;
-  instructionAddresses: Map<string, Pubkey>;
-  instructionAccountsStates: Map<string, JsonValue>;
-  instructionAccountsContentsTypeFull: Map<string, IdlTypeFull>;
-};
+const infoJsonDecode = jsonDecoderByKind<{
+  value: JsonValue;
+  type: IdlTypeFlat | undefined;
+  kind: string | undefined;
+  path: string | undefined;
+}>({
+  object: jsonDecoderObject({
+    value: jsonDecodeValue,
+    type: jsonDecoderOptional(idlTypeFlatParse),
+    kind: jsonDecoderOptional(jsonDecodeString),
+    path: jsonDecoderOptional(jsonDecodeString),
+  }),
+  string: (string: string) => ({
+    value: string,
+    type: undefined,
+    kind: undefined,
+    path: undefined,
+  }),
+  array: (array: JsonValue[]) => ({
+    value: array,
+    type: undefined,
+    kind: undefined,
+    path: undefined,
+  }),
+});
 
 export function idlInstructionBlobCompute(
-  instructionBlob: IdlInstructionBlob,
-  context: IdlInstructionBlobComputeContext,
+  instructionBlobIdl: IdlInstructionBlob,
+  instructionBlobContext: IdlInstructionBlobContext,
 ): Uint8Array {
-  return instructionBlob.traverse(computeVisitor, context, undefined);
+  return instructionBlobIdl.traverse(
+    computeVisitor,
+    instructionBlobContext,
+    undefined,
+  );
 }
 
 const computeVisitor = {
   const: (
     self: IdlInstructionBlobConst,
-    _context: IdlInstructionBlobComputeContext,
+    _context: IdlInstructionBlobContext,
   ) => {
     return self.bytes;
   },
-  arg: (
-    self: IdlInstructionBlobArg,
-    context: IdlInstructionBlobComputeContext,
-  ) => {
+  arg: (self: IdlInstructionBlobArg, context: IdlInstructionBlobContext) => {
     const value = idlPathGetJsonValue(self.path, context.instructionPayload);
     const blobs = new Array<Uint8Array>();
     idlTypeFullSerialize(self.typeFull, value, blobs, false);
@@ -227,7 +217,7 @@ const computeVisitor = {
   },
   account: (
     self: IdlInstructionBlobAccount,
-    context: IdlInstructionBlobComputeContext,
+    context: IdlInstructionBlobContext,
   ) => {
     if (self.path.isEmpty()) {
       throw new Error(
@@ -244,8 +234,8 @@ const computeVisitor = {
         "PDA Blob account path first part should be an account name",
       );
     }
-    const instructionAccountContentPath = split.rest;
-    if (instructionAccountContentPath.isEmpty()) {
+    const contentPath = split.rest;
+    if (contentPath.isEmpty()) {
       const instructionAddress = context.instructionAddresses.get(
         instructionAccountName,
       )!;
@@ -256,31 +246,29 @@ const computeVisitor = {
       }
       return pubkeyToBytes(instructionAddress);
     }
-    const instructionAccountContentState =
-      context.instructionAccountsStates.get(instructionAccountName);
-    if (instructionAccountContentState === undefined) {
+    const instructionAccountState = context.instructionAccountsStates?.get(
+      instructionAccountName,
+    );
+    if (instructionAccountState === undefined) {
       throw new Error(
         `Could not find state for account: ${instructionAccountName}`,
       );
     }
-    const value = idlPathGetJsonValue(
-      instructionAccountContentPath,
-      instructionAccountContentState,
-    );
+    const value = idlPathGetJsonValue(contentPath, instructionAccountState);
     const blobs = new Array<Uint8Array>();
     if (self.typeFull !== undefined) {
       idlTypeFullSerialize(self.typeFull, value, blobs, false);
       return idlUtilsFlattenBlobs(blobs);
     }
     const instructionAccountContentTypeFull =
-      context.instructionAccountsContentsTypeFull.get(instructionAccountName);
+      context.instructionAccountsContentsTypeFull?.get(instructionAccountName);
     if (instructionAccountContentTypeFull === undefined) {
       throw new Error(
         `Could not find content type for account: ${instructionAccountName}`,
       );
     }
     const typeFull = idlPathGetTypeFull(
-      instructionAccountContentPath,
+      contentPath,
       instructionAccountContentTypeFull,
     );
     idlTypeFullSerialize(typeFull, value, blobs, false);

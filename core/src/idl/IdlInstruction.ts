@@ -1,3 +1,4 @@
+import { Input, Instruction } from "../data/Execution";
 import {
   jsonDecodeArray,
   jsonDecoderObject,
@@ -5,7 +6,6 @@ import {
   jsonDecodeValue,
   JsonValue,
 } from "../data/Json";
-import { Input, Instruction } from "../data/Onchain";
 import { Pubkey } from "../data/Pubkey";
 import { Immutable, withContext } from "../data/Utils";
 import {
@@ -13,6 +13,7 @@ import {
   idlInstructionAccountFind,
   idlInstructionAccountParse,
 } from "./IdlInstructionAccount";
+import { IdlInstructionBlobContext } from "./IdlInstructionBlob";
 import { IdlTypedef } from "./IdlTypedef";
 import { IdlTypeFlat, IdlTypeFlatFields } from "./IdlTypeFlat";
 import {
@@ -227,30 +228,15 @@ export function idlInstructionArgsCheck(
 
 export function idlInstructionAddressesFind(
   instructionIdl: IdlInstruction,
-  instructionProgramAddress: Pubkey,
-  instructionAddresses: Map<string, Pubkey>,
-  instructionPayload: JsonValue,
+  instructionBlobContext: IdlInstructionBlobContext,
 ): Map<string, Pubkey> {
-  return idlInstructionAddressesFindWithAccounts(
-    instructionIdl,
-    instructionProgramAddress,
-    instructionAddresses,
-    instructionPayload,
-    new Map(),
-    new Map(),
+  const instructionAddresses = new Map<string, Pubkey>(
+    instructionBlobContext.instructionAddresses,
   );
-}
-
-// TODO - pass directly the compute context ?
-export function idlInstructionAddressesFindWithAccounts(
-  instructionIdl: IdlInstruction,
-  instructionProgramAddress: Pubkey,
-  instructionAddresses: Map<string, Pubkey>,
-  instructionPayload: JsonValue,
-  instructionAccountsStates: Map<string, JsonValue>,
-  instructionAccountsContentsTypeFull: Map<string, IdlTypeFull>,
-): Map<string, Pubkey> {
-  instructionAddresses = new Map<string, Pubkey>(instructionAddresses);
+  instructionBlobContext = {
+    ...instructionBlobContext,
+    instructionAddresses,
+  };
   while (true) {
     let madeProgress = false;
     for (let instructionAccountIdl of instructionIdl.accounts) {
@@ -263,11 +249,7 @@ export function idlInstructionAddressesFindWithAccounts(
           () => {
             let instructionAddress = idlInstructionAccountFind(
               instructionAccountIdl,
-              instructionProgramAddress,
-              instructionAddresses,
-              instructionPayload,
-              instructionAccountsStates,
-              instructionAccountsContentsTypeFull,
+              instructionBlobContext,
             );
             instructionAddresses.set(
               instructionAccountIdl.name,

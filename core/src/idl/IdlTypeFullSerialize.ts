@@ -11,6 +11,7 @@ import { withContext } from "../data/Utils";
 import {
   IdlTypeFull,
   IdlTypeFullArray,
+  IdlTypeFullBlob,
   IdlTypeFullEnum,
   IdlTypeFullEnumVariant,
   IdlTypeFullFieldNamed,
@@ -65,7 +66,7 @@ const visitorSerialize = {
     blobs: Array<Uint8Array>,
     prefixed: boolean,
   ) => {
-    if (value === null) {
+    if (value === null || value === undefined) {
       idlTypePrefixSerialize(self.prefix, 0n, blobs);
       return;
     }
@@ -79,11 +80,11 @@ const visitorSerialize = {
     prefixed: boolean,
   ) => {
     if (self.items.isPrimitive(IdlTypePrimitive.u8)) {
-      const blob = idlUtilsBytesJsonDecode(value);
+      const bytes = idlUtilsBytesJsonDecode(value);
       if (prefixed) {
-        idlTypePrefixSerialize(self.prefix, BigInt(blob.length), blobs);
+        idlTypePrefixSerialize(self.prefix, BigInt(bytes.length), blobs);
       }
-      blobs.push(blob);
+      blobs.push(bytes);
       return;
     }
     const array = jsonDecodeArray(value);
@@ -101,13 +102,13 @@ const visitorSerialize = {
     prefixed: boolean,
   ) => {
     if (self.items.isPrimitive(IdlTypePrimitive.u8)) {
-      const blob = idlUtilsBytesJsonDecode(value);
-      if (blob.length != self.length) {
+      const bytes = idlUtilsBytesJsonDecode(value);
+      if (bytes.length != self.length) {
         throw new Error(
-          `Expected an array of size: ${self.length}, found: ${blob.length}`,
+          `Expected an array of size: ${self.length}, found: ${bytes.length}`,
         );
       }
-      blobs.push(blob);
+      blobs.push(bytes);
       return;
     }
     const array = jsonDecodeArray(value);
@@ -148,7 +149,7 @@ const visitorSerialize = {
     prefixed: boolean,
   ) => {
     if (self.variants.length === 0) {
-      if (value !== null) {
+      if (value !== null && value !== undefined) {
         throw new Error("Expected value to be null for empty enum");
       }
       return;
@@ -215,6 +216,17 @@ const visitorSerialize = {
       blobs.push(new Uint8Array(self.after));
     }
   },
+  blob: (
+    self: IdlTypeFullBlob,
+    value: JsonValue,
+    blobs: Array<Uint8Array>,
+    _prefixed: boolean,
+  ) => {
+    if (value !== null && value !== undefined) {
+      throw new Error("Expected value to be null for blob type");
+    }
+    blobs.push(self.bytes);
+  },
   primitive: (
     self: IdlTypePrimitive,
     value: JsonValue,
@@ -228,10 +240,13 @@ const visitorSerialize = {
 const visitorFieldsSerialize = {
   nothing: (
     _self: null,
-    _value: JsonValue,
+    value: JsonValue,
     _blobs: Array<Uint8Array>,
     _prefixed: boolean,
   ) => {
+    if (value !== null && value !== undefined) {
+      throw new Error("Expected value to be null for empty fields");
+    }
     return;
   },
   named: (
@@ -240,9 +255,6 @@ const visitorFieldsSerialize = {
     blobs: Array<Uint8Array>,
     prefixed: boolean,
   ) => {
-    if (self.length <= 0) {
-      return;
-    }
     const object = jsonDecodeObject(value);
     for (const field of self) {
       withContext(`Serialize: Field: ${field.name}`, () => {
@@ -261,9 +273,6 @@ const visitorFieldsSerialize = {
     blobs: Array<Uint8Array>,
     prefixed: boolean,
   ) => {
-    if (self.length <= 0) {
-      return;
-    }
     const array = jsonDecodeArray(value);
     for (const field of self) {
       withContext(`Serialize: Field: ${field.position}`, () => {

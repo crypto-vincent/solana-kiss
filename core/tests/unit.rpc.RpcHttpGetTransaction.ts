@@ -26,7 +26,7 @@ it("run", async () => {
   expect(transaction.message.instructions[0]!.data).toStrictEqual(
     new Uint8Array([2, 32, 161, 7, 0]),
   );
-  expect(transaction.message.recentBlockHash).toStrictEqual(
+  expect(transaction.message.recentBlockhash).toStrictEqual(
     "4nTobZxuiA9xZDuSMfSQE6WJSswAkoVoF7ycve42iiy2",
   );
   // Check the invocations content

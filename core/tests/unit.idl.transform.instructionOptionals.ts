@@ -36,12 +36,14 @@ it("run", () => {
   const acc_6_3 = pubkeyNewDummy();
   const acc_7_3 = pubkeyNewDummy();
   // Check that we we can encode the instruction with none of the optional accounts
-  const caseEmptyAddresses = new Map([
-    ["acc_0_0", acc_0_0],
-    ["acc_1_1", acc_1_1],
-    ["acc_4_2", acc_4_2],
-    ["acc_5_3", acc_5_3],
-  ]);
+  const caseEmptyAddresses = new Map(
+    Object.entries({
+      acc_0_0,
+      acc_1_1,
+      acc_4_2,
+      acc_5_3,
+    }),
+  );
   const caseEmptyInputs = [
     { address: acc_0_0, signing: false, writable: false },
     { address: acc_1_1, signing: false, writable: false },
@@ -55,16 +57,18 @@ it("run", () => {
     idlInstructionAccountsDecode(instructionIdl, caseEmptyInputs),
   ).toStrictEqual(caseEmptyAddresses);
   // Check that we we can encode the instruction with all of the optional accounts
-  const caseFullAddresses = new Map([
-    ["acc_0_0", acc_0_0],
-    ["acc_1_1", acc_1_1],
-    ["acc_2_1", acc_2_1],
-    ["acc_3_1", acc_3_1],
-    ["acc_4_2", acc_4_2],
-    ["acc_5_3", acc_5_3],
-    ["acc_6_3", acc_6_3],
-    ["acc_7_3", acc_7_3],
-  ]);
+  const caseFullAddresses = new Map(
+    Object.entries({
+      acc_0_0,
+      acc_1_1,
+      acc_2_1,
+      acc_3_1,
+      acc_4_2,
+      acc_5_3,
+      acc_6_3,
+      acc_7_3,
+    }),
+  );
   const caseFullInputs = [
     { address: acc_0_0, signing: false, writable: false },
     { address: acc_1_1, signing: false, writable: false },
@@ -82,13 +86,15 @@ it("run", () => {
     idlInstructionAccountsDecode(instructionIdl, caseFullInputs),
   ).toStrictEqual(caseFullAddresses);
   // Check that we we can encode the instruction with all of the optional accounts
-  const casePartial1Addresses = new Map([
-    ["acc_0_0", acc_0_0],
-    ["acc_1_1", acc_1_1],
-    ["acc_2_1", acc_2_1],
-    ["acc_4_2", acc_4_2],
-    ["acc_5_3", acc_5_3],
-  ]);
+  const casePartial1Addresses = new Map(
+    Object.entries({
+      acc_0_0,
+      acc_1_1,
+      acc_2_1,
+      acc_4_2,
+      acc_5_3,
+    }),
+  );
   const casePartial1Inputs = [
     { address: acc_0_0, signing: false, writable: false },
     { address: acc_1_1, signing: false, writable: false },
@@ -103,15 +109,17 @@ it("run", () => {
     idlInstructionAccountsDecode(instructionIdl, casePartial1Inputs),
   ).toStrictEqual(casePartial1Addresses);
   // Check that we we can encode the instruction with all of the optional accounts
-  const casePartial3Addresses = new Map([
-    ["acc_0_0", acc_0_0],
-    ["acc_1_1", acc_1_1],
-    ["acc_2_1", acc_2_1],
-    ["acc_3_1", acc_3_1],
-    ["acc_4_2", acc_4_2],
-    ["acc_5_3", acc_5_3],
-    ["acc_6_3", acc_6_3],
-  ]);
+  const casePartial3Addresses = new Map(
+    Object.entries({
+      acc_0_0,
+      acc_1_1,
+      acc_2_1,
+      acc_3_1,
+      acc_4_2,
+      acc_5_3,
+      acc_6_3,
+    }),
+  );
   const casePartial3Inputs = [
     { address: acc_0_0, signing: false, writable: false },
     { address: acc_1_1, signing: false, writable: false },

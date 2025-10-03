@@ -1,15 +1,17 @@
 import { base64Encode } from "../data/Base64";
+import { Blockhash, Instruction, Signature } from "../data/Execution";
 import { jsonDecodeString } from "../data/Json";
 import { messageCompile, messageSign } from "../data/Message";
-import { Commitment, Hash, Instruction, Slot } from "../data/Onchain";
 import { Signer } from "../data/Signer";
 import { RpcHttp } from "./RpcHttp";
+import { Commitment } from "./RpcTypes";
 
+// TODO - provide a higher level function that handle blockhash and wait for confirmation
 export async function rpcHttpSendInstructions(
   rpcHttp: RpcHttp,
-  payer: Signer,
+  payerSigner: Signer,
   instructions: Array<Instruction>,
-  recentBlockInfo: { slot: Slot; hash: Hash },
+  recentBlockhash: Blockhash,
   options?: {
     extraSigners?: Array<Signer>;
     skipPreflight?: boolean;
@@ -17,27 +19,23 @@ export async function rpcHttpSendInstructions(
   context?: {
     commitment?: Commitment;
   },
-) {
-  // TODO - figure out how to handle recentBlockInfo that is too new/old/cached
-  const signers = [payer, ...(options?.extraSigners ?? [])];
+): Promise<Signature> {
+  const signers = [payerSigner, ...(options?.extraSigners ?? [])];
   const messageCompiled = messageCompile({
-    payerAddress: payer.address,
+    payerAddress: payerSigner.address,
     instructions,
-    recentBlockHash: recentBlockInfo.hash,
+    recentBlockhash,
   });
   const messageSigned = await messageSign(messageCompiled, signers);
-  const result = resultDecode(
+  return jsonDecodeString(
     await rpcHttp("sendTransaction", [
       base64Encode(messageSigned),
       {
         skipPreflight: options?.skipPreflight,
         preflightCommitment: context?.commitment,
-        minContextSlot: recentBlockInfo.slot,
+        commitment: context?.commitment,
         encoding: "base64",
       },
     ]),
   );
-  return result;
 }
-
-const resultDecode = jsonDecodeString;

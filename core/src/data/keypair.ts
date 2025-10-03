@@ -1,5 +1,5 @@
 import { base58Decode, base58Encode } from "./Base58";
-import { Signature } from "./Onchain";
+import { Signature } from "./Execution";
 import { Pubkey } from "./Pubkey";
 
 export type Keypair = {

@@ -3,6 +3,7 @@ import { withContext } from "../data/Utils";
 import {
   IdlTypeFull,
   IdlTypeFullArray,
+  IdlTypeFullBlob,
   IdlTypeFullEnum,
   IdlTypeFullFieldNamed,
   IdlTypeFullFields,
@@ -198,6 +199,22 @@ const visitorDeserialize = {
     dataSize += Math.max(dataContentSize, self.minSize ?? 0);
     dataSize += self.after ?? 0;
     return [dataSize, dataContent];
+  },
+  blob: (
+    self: IdlTypeFullBlob,
+    data: DataView,
+    dataOffset: number,
+  ): [number, JsonValue] => {
+    for (let index = 0; index < self.bytes.length; index++) {
+      const expected = self.bytes[index];
+      const found = data.getUint8(dataOffset + index);
+      if (found !== expected) {
+        throw new Error(
+          `Deserialize: Expected blob byte ${expected} at index ${index} (found: ${found})`,
+        );
+      }
+    }
+    return [self.bytes.length, null];
   },
   primitive: (
     self: IdlTypePrimitive,

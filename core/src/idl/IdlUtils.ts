@@ -3,13 +3,21 @@ import { base58Decode } from "../data/Base58";
 import { base64Decode } from "../data/Base64";
 import {
   JsonArray,
+  jsonAsArray,
+  jsonAsString,
+  jsonDecodeBoolean,
   jsonDecodeNumber,
   jsonDecoderByKind,
+  jsonDecoderMap,
+  jsonDecoderObject,
+  jsonDecoderOptional,
   jsonDecodeString,
-  JsonObject,
+  jsonDecodeValue,
   jsonPreview,
+  JsonValue,
 } from "../data/Json";
 import { sha256Hash } from "../data/Sha256";
+import { IdlTypeFlat } from "./IdlTypeFlat";
 import { idlTypeFlatHydrate } from "./IdlTypeFlatHydrate";
 import { idlTypeFlatParse } from "./IdlTypeFlatParse";
 import { idlTypeFullSerialize } from "./IdlTypeFullSerialize";
@@ -31,56 +39,63 @@ export const idlUtilsBytesJsonDecode = jsonDecoderByKind({
   array: (array: JsonArray) => {
     return new Uint8Array(array.map((item) => jsonDecodeNumber(item)));
   },
-  object: (object: JsonObject) => {
-    // TODO - this looks like an enum - could we use jsonTypeEnum here?
-    const base16 = object["base16"];
-    if (base16 !== undefined) {
-      return base16Decode(jsonDecodeString(base16));
-    }
-    const base58 = object["base58"];
-    if (base58 !== undefined) {
-      return base58Decode(jsonDecodeString(base58));
-    }
-    const base64 = object["base64"];
-    if (base64 !== undefined) {
-      return base64Decode(jsonDecodeString(base64));
-    }
-    const utf8 = object["utf8"];
-    if (utf8 !== undefined) {
-      return new TextEncoder().encode(jsonDecodeString(utf8));
-    }
-    const type = object["type"];
-    if (type !== undefined) {
-      const typeFlat = idlTypeFlatParse(type);
+  object: jsonDecoderMap(
+    jsonDecoderObject({
+      base16: jsonDecoderOptional(jsonDecodeString),
+      base58: jsonDecoderOptional(jsonDecodeString),
+      base64: jsonDecoderOptional(jsonDecodeString),
+      value: jsonDecodeValue,
+      type: jsonDecoderOptional(idlTypeFlatParse),
+      prefixed: jsonDecoderOptional(jsonDecodeBoolean),
+    }),
+    (info) => {
+      if (info.base16 !== undefined) {
+        return base16Decode(info.base16);
+      }
+      if (info.base58 !== undefined) {
+        return base58Decode(info.base58);
+      }
+      if (info.base64 !== undefined) {
+        return base64Decode(info.base64);
+      }
+      const typeFlat = info.type ?? idlUtilsInferValueTypeFlat(info.value);
       const typeFull = idlTypeFlatHydrate(typeFlat, new Map(), new Map());
       const blobs = new Array<Uint8Array>();
-      idlTypeFullSerialize(
-        typeFull,
-        object["value"],
-        blobs,
-        object["prefixed"] === true,
-      );
+      idlTypeFullSerialize(typeFull, info.value, blobs, info.prefixed === true);
       return idlUtilsFlattenBlobs(blobs);
-    }
-    throw new Error(`Idl: Unknown bytes object: ${jsonPreview(object)}`);
-  },
+    },
+  ),
 });
 
-export function idlUtilsExpectBlobAt(
-  offset: number,
-  blobNeedle: Uint8Array,
-  blobHaystack: Uint8Array,
-): void {
-  const start = offset;
-  const end = start + blobNeedle.length;
-  if (end > blobHaystack.length) {
+export function idlUtilsInferValueTypeFlat(value: JsonValue): IdlTypeFlat {
+  if (value === null || value === undefined) {
+    return idlTypeFlatParse(null);
+  } else if (jsonAsString(value)) {
+    return idlTypeFlatParse("string");
+  } else if (jsonAsArray(value)) {
+    return idlTypeFlatParse("bytes");
+  } else {
     throw new Error(
-      `Idl: Expected bytes length of at least ${end} (found: ${blobHaystack.length})`,
+      `Idl: Unable to infer type of bytes value: ${jsonPreview(value)}`,
     );
   }
-  for (let index = 0; index < blobNeedle.length; index++) {
-    const byteNeedle = blobNeedle[index]!;
-    const byteHaystack = blobHaystack[start + index]!;
+}
+
+export function idlUtilsExpectBlobAt(
+  blobOffset: number,
+  blobBytes: Uint8Array,
+  data: Uint8Array,
+): void {
+  const start = blobOffset;
+  const end = start + blobBytes.length;
+  if (end > data.length) {
+    throw new Error(
+      `Idl: Expected bytes length of at least ${end} (found: ${data.length})`,
+    );
+  }
+  for (let index = 0; index < blobBytes.length; index++) {
+    const byteNeedle = blobBytes[index]!;
+    const byteHaystack = data[start + index]!;
     if (byteNeedle !== byteHaystack) {
       throw new Error(
         `Idl: Expected byte at index ${index} to be: ${byteNeedle} (found: ${byteHaystack})`,

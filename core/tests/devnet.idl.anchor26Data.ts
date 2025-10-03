@@ -62,9 +62,11 @@ it("run", async () => {
   // Check that we could indeed find the right accounts programatically
   const instructionAddresses = idlInstructionAddressesFind(
     programIdl.instructions.get("initialize_market")!,
-    programAddress,
-    new Map(),
-    { global_market_seed: "credix-marketplace" },
+    {
+      instructionProgramAddress: programAddress,
+      instructionAddresses: new Map(),
+      instructionPayload: { global_market_seed: "credix-marketplace" },
+    },
   );
   expect(instructionAddresses.get("global_market_state")).toStrictEqual(
     globalMarketStateAddress,

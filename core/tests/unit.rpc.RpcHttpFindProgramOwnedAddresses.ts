@@ -1,11 +1,11 @@
 import { expect, it } from "@jest/globals";
-import { RpcHttp, rpcHttpFindProgramAccountsAddresses } from "../src";
+import { RpcHttp, rpcHttpFindProgramOwnedAddresses } from "../src";
 
 it("run", async () => {
   const rpcHttp: RpcHttp = async () => {
     return require("./fixtures/RpcHttpGetProgramAccounts.json");
   };
-  const accountsAddresses = await rpcHttpFindProgramAccountsAddresses(
+  const accountsAddresses = await rpcHttpFindProgramOwnedAddresses(
     rpcHttp,
     "!",
   );

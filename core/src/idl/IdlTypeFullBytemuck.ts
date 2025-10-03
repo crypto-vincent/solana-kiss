@@ -2,6 +2,7 @@ import { withContext } from "../data/Utils";
 import {
   IdlTypeFull,
   IdlTypeFullArray,
+  IdlTypeFullBlob,
   IdlTypeFullEnum,
   IdlTypeFullFieldNamed,
   IdlTypeFullFields,
@@ -176,6 +177,9 @@ const visitorBytemuckC = {
   padded: (_self: IdlTypeFullPadded): IdlTypeFullPod => {
     throw new Error("Bytemuck: Repr(C): Padded is not supported");
   },
+  blob: (_self: IdlTypeFullBlob): IdlTypeFullPod => {
+    throw new Error("Bytemuck: Repr(C): Blob is not supported");
+  },
   primitive: (self: IdlTypePrimitive): IdlTypeFullPod => {
     return {
       alignment: self.alignment,
@@ -277,6 +281,9 @@ const visitorBytemuckRust = {
   },
   padded: (_self: IdlTypeFullPadded): IdlTypeFullPod => {
     throw new Error("Bytemuck: Repr(Rust): Padded is not supported");
+  },
+  blob: (_self: IdlTypeFullBlob): IdlTypeFullPod => {
+    throw new Error("Bytemuck: Repr(Rust): Blob is not supported");
   },
   primitive: (self: IdlTypePrimitive): IdlTypeFullPod => {
     return {

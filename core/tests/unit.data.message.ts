@@ -48,7 +48,7 @@ it("run", async () => {
       generatedInstruction1.current,
       generatedInstruction2.current,
     ],
-    recentBlockHash: blockHash,
+    recentBlockhash: blockHash,
   });
   expect(currentCompiledBytes).toStrictEqual(referenceCompiledBytes);
   const referenceSignedBytes = referenceSignedMessage.serialize();

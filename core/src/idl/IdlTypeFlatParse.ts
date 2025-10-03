@@ -23,7 +23,7 @@ import {
 } from "./IdlTypeFlat";
 import { IdlTypePrefix } from "./IdlTypePrefix";
 import { IdlTypePrimitive } from "./IdlTypePrimitive";
-import { idlUtilsIntegerJsonDecode } from "./IdlUtils";
+import { idlUtilsBytesJsonDecode, idlUtilsIntegerJsonDecode } from "./IdlUtils";
 
 export function idlTypeFlatParseIsPossible(value: JsonValue): boolean {
   const object = jsonAsObject(value);
@@ -106,6 +106,7 @@ function fieldsItemJsonDecode(value: JsonValue) {
 }
 const fieldsJsonDecode = jsonDecoderByKind({
   undefined: () => IdlTypeFlatFields.nothing(),
+  null: () => IdlTypeFlatFields.nothing(),
   array: jsonDecoderMap(
     jsonDecoderArray(fieldsItemJsonDecode),
     (fieldsInfos) => {
@@ -274,6 +275,14 @@ function objectPaddedJsonDecode(value: JsonValue): IdlTypeFlat {
   });
 }
 
+const objectBlobInfoJsonDecode = jsonDecoderObject({
+  bytes: idlUtilsBytesJsonDecode,
+});
+function objectBlobJsonDecode(value: JsonValue): IdlTypeFlat {
+  const info = objectBlobInfoJsonDecode(value);
+  return IdlTypeFlat.blob({ bytes: info.bytes });
+}
+
 const objectJsonDecode: JsonDecode<IdlTypeFlat> = jsonDecoderEnum({
   type: jsonDecoderRecursive(() => valueJsonDecode),
   defined: objectDefinedJsonDecode,
@@ -303,6 +312,7 @@ const objectJsonDecode: JsonDecode<IdlTypeFlat> = jsonDecoderEnum({
   variants64: objectVariantsJsonDecoder(IdlTypePrefix.u64),
   variants128: objectVariantsJsonDecoder(IdlTypePrefix.u128),
   padded: objectPaddedJsonDecode,
+  blob: objectBlobJsonDecode,
   value: jsonDecoderMap(jsonDecodeString, (string: string) =>
     IdlTypeFlat.const({ literal: Number(string) }),
   ),
@@ -326,6 +336,9 @@ const stringToPreset = new Map<string, IdlTypeFlat>([
 ]);
 
 const valueJsonDecode: JsonDecode<IdlTypeFlat> = jsonDecoderByKind({
+  null: () => {
+    return IdlTypeFlat.structNothing();
+  },
   number: (number: number) => {
     return IdlTypeFlat.const({ literal: number });
   },

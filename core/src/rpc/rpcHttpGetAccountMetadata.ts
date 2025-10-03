@@ -6,9 +6,9 @@ import {
   jsonDecodeString,
 } from "../data/Json";
 import { Lamports } from "../data/Lamports";
-import { Commitment } from "../data/Onchain";
 import { Pubkey, pubkeyDefault } from "../data/Pubkey";
 import { RpcHttp } from "./RpcHttp";
+import { Commitment } from "./RpcTypes";
 
 export async function rpcHttpGetAccountMetadata(
   rpcHttp: RpcHttp,

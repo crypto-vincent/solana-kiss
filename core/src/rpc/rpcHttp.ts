@@ -6,7 +6,7 @@ import {
   jsonDecoderObject,
   jsonDecoderOptional,
 } from "../data/Json";
-import { Commitment } from "../data/Onchain";
+import { Commitment } from "./RpcTypes";
 
 export type RpcHttp = (
   method: string,
@@ -17,7 +17,6 @@ export function rpcHttpFromUrl(
   url: string,
   defaultContext?: {
     commitment?: Commitment; // TODO - should this stay an object?
-    // TODO - how to handle commitment/minContext slot properly?
   },
   // TODO - support custom fetch implementations (for environments that don't have fetch natively)
 ): RpcHttp {
@@ -32,6 +31,7 @@ export function rpcHttpFromUrl(
         params = params.slice();
         params[paramsLastIndex] = {
           ...params[paramsLastIndex],
+          preflightCommitment: defaultCommitment,
           commitment: defaultCommitment,
         };
       }

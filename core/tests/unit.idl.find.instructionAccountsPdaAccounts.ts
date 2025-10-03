@@ -1,6 +1,6 @@
 import { expect, it } from "@jest/globals";
 import {
-  idlInstructionAddressesFindWithAccounts,
+  idlInstructionAddressesFind,
   idlProgramParse,
   pubkeyFindPdaAddress,
   pubkeyNewDummy,
@@ -79,15 +79,13 @@ it("run", () => {
   // Assert that the accounts can be properly resolved
   const accountIdl = programIdl.accounts.get("MyAccount")!;
   const instructionIdl = programIdl.instructions.get("my_ix")!;
-  const instructionAddresses = idlInstructionAddressesFindWithAccounts(
-    instructionIdl,
-    programAddress,
-    new Map([["first", firstAddress]]),
-    {},
-    new Map([
-      [
-        "first",
-        {
+  const instructionAddresses = idlInstructionAddressesFind(instructionIdl, {
+    instructionProgramAddress: programAddress,
+    instructionAddresses: new Map([["first", firstAddress]]),
+    instructionPayload: {},
+    instructionAccountsStates: new Map(
+      Object.entries({
+        first: {
           u8: 77,
           u16: 78,
           u32: 79,
@@ -100,9 +98,13 @@ it("run", () => {
             u16: 222,
           },
         },
-      ],
-    ]),
-    new Map([["first", accountIdl.contentTypeFull]]),
-  );
+      }),
+    ),
+    instructionAccountsContentsTypeFull: new Map(
+      Object.entries({
+        first: accountIdl.contentTypeFull,
+      }),
+    ),
+  });
   expect(instructionAddresses.get("pda")).toStrictEqual(pdaAddress);
 });

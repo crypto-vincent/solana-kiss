@@ -25,9 +25,11 @@ it("run", () => {
   // Assert that the accounts can be properly resolved
   const instructionAddresses = idlInstructionAddressesFind(
     programIdl.instructions.get("my_ix")!,
-    pubkeyNewDummy(),
-    new Map(),
-    null,
+    {
+      instructionProgramAddress: pubkeyNewDummy(),
+      instructionAddresses: new Map(),
+      instructionPayload: {},
+    },
   );
   expect(instructionAddresses.get("const_address")).toStrictEqual(dummyAddress);
 });

@@ -1,12 +1,12 @@
 import { base58Decode, base58Encode } from "./Base58";
-import { Hash, Instruction } from "./Onchain";
+import { Blockhash, Instruction } from "./Execution";
 import { Pubkey } from "./Pubkey";
 import { Signer } from "./Signer";
 
 export type Message = {
   payerAddress: Pubkey;
   instructions: Array<Instruction>;
-  recentBlockHash: Hash;
+  recentBlockhash: Blockhash;
 };
 
 export function messageCompile(message: Message): Uint8Array {
@@ -81,7 +81,7 @@ export function messageCompile(message: Message): Uint8Array {
     frame.set(base58Decode(staticAccountKey), index);
     index += 32;
   }
-  frame.set(base58Decode(message.recentBlockHash), index);
+  frame.set(base58Decode(message.recentBlockhash), index);
   index += 32;
   frame[index++] = message.instructions.length;
   for (const instruction of message.instructions) {

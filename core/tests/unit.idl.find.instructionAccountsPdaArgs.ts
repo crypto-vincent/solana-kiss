@@ -70,19 +70,21 @@ it("run", () => {
   // Assert that the accounts can be properly resolved
   const instructionAddresses = idlInstructionAddressesFind(
     programIdl.instructions.get("my_ix")!,
-    programAddress,
-    new Map(),
     {
-      u8: 77,
-      u16: 78,
-      u32: 79,
-      u64: 80,
-      array_u8_2: [11, 12],
-      vec_u8_3: [21, 22, 23],
-      string: "hello",
-      inner: {
-        u8: 111,
-        u16: 222,
+      instructionProgramAddress: programAddress,
+      instructionAddresses: new Map(),
+      instructionPayload: {
+        u8: 77,
+        u16: 78,
+        u32: 79,
+        u64: 80,
+        array_u8_2: [11, 12],
+        vec_u8_3: [21, 22, 23],
+        string: "hello",
+        inner: {
+          u8: 111,
+          u16: 222,
+        },
       },
     },
   );

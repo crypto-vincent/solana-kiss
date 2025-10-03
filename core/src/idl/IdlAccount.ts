@@ -28,7 +28,7 @@ export type IdlAccount = {
   name: string;
   docs: JsonValue;
   space: number | undefined;
-  blobs: Array<{ offset: number; value: Uint8Array }>;
+  blobs: Array<{ offset: number; bytes: Uint8Array }>;
   discriminator: Uint8Array;
   contentTypeFlat: IdlTypeFlat;
   contentTypeFull: IdlTypeFull;
@@ -79,7 +79,7 @@ export function idlAccountCheck(
     }
   }
   for (const blob of accountIdl.blobs) {
-    idlUtilsExpectBlobAt(blob.offset, blob.value, accountData);
+    idlUtilsExpectBlobAt(blob.offset, blob.bytes, accountData);
   }
   idlUtilsExpectBlobAt(0, accountIdl.discriminator, accountData);
 }
@@ -117,7 +117,7 @@ const infoJsonDecode = jsonDecoderObject({
     jsonDecoderArray(
       jsonDecoderObject({
         offset: jsonDecodeNumber,
-        value: idlUtilsBytesJsonDecode,
+        bytes: idlUtilsBytesJsonDecode,
       }),
     ),
   ),

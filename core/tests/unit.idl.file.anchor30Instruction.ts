@@ -55,9 +55,11 @@ it("run", () => {
   // Resolve missing instruction accounts
   const instructionAddressesAfter = idlInstructionAddressesFind(
     instructionIdl,
-    programAddress,
-    instructionAddressesBefore,
-    instructionPayload,
+    {
+      instructionProgramAddress: programAddress,
+      instructionAddresses: instructionAddressesBefore,
+      instructionPayload,
+    },
   );
   // Actually generate the instruction
   const instruction = idlInstructionEncode(

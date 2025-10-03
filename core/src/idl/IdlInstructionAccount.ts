@@ -13,10 +13,11 @@ import { withContext } from "../data/Utils";
 import {
   IdlInstructionBlob,
   idlInstructionBlobCompute,
+  IdlInstructionBlobContext,
   idlInstructionBlobParse,
 } from "./IdlInstructionBlob";
 import { IdlTypedef } from "./IdlTypedef";
-import { IdlTypeFull, IdlTypeFullFields } from "./IdlTypeFull";
+import { IdlTypeFullFields } from "./IdlTypeFull";
 
 export type IdlInstructionAccount = {
   name: string;
@@ -35,13 +36,11 @@ export type IdlInstructionAccountPda = {
 
 export function idlInstructionAccountFind(
   instructionAccountIdl: IdlInstructionAccount,
-  instructionProgramAddress: Pubkey,
-  instructionAddresses: Map<string, Pubkey>,
-  instructionPayload: JsonValue,
-  instructionAccountsStates: Map<string, JsonValue>,
-  instructionAccountsContentsTypeFull: Map<string, IdlTypeFull>,
+  instructionBlobContext: IdlInstructionBlobContext,
 ): Pubkey {
-  const address = instructionAddresses.get(instructionAccountIdl.name);
+  const address = instructionBlobContext.instructionAddresses.get(
+    instructionAccountIdl.name,
+  );
   if (address !== undefined) {
     return address;
   }
@@ -49,25 +48,18 @@ export function idlInstructionAccountFind(
     return instructionAccountIdl.address;
   }
   if (instructionAccountIdl.pda !== undefined) {
-    const computeContext = {
-      instructionProgramAddress,
-      instructionPayload,
-      instructionAddresses,
-      instructionAccountsStates,
-      instructionAccountsContentsTypeFull,
-    };
     const seedsBytes = new Array<Uint8Array>();
     for (const instructionBlobIdl of instructionAccountIdl.pda.seeds) {
       seedsBytes.push(
-        idlInstructionBlobCompute(instructionBlobIdl, computeContext),
+        idlInstructionBlobCompute(instructionBlobIdl, instructionBlobContext),
       );
     }
-    let pdaProgramAddress = instructionProgramAddress;
+    let pdaProgramAddress = instructionBlobContext.instructionProgramAddress;
     if (instructionAccountIdl.pda.program !== undefined) {
       pdaProgramAddress = pubkeyFromBytes(
         idlInstructionBlobCompute(
           instructionAccountIdl.pda.program,
-          computeContext,
+          instructionBlobContext,
         ),
       );
     }
@@ -109,7 +101,7 @@ export function idlInstructionAccountParse(
     name: camelCaseToSnakeCase(info.name),
     docs: info.docs,
     writable: info.writable ?? info.isMut ?? false,
-    signer: info.signer ?? info.isSigner ?? false,
+    signer: info.signer ?? info.isSigner ?? info.signing ?? false,
     optional: info.optional ?? info.isOptional ?? false,
     address: info.address,
     pda,
@@ -119,12 +111,13 @@ export function idlInstructionAccountParse(
 const infoJsonDecode = jsonDecoderObject({
   name: jsonDecodeString,
   docs: jsonDecodeValue,
-  isSigner: jsonDecoderOptional(jsonDecodeBoolean),
-  isMut: jsonDecoderOptional(jsonDecodeBoolean),
-  isOptional: jsonDecoderOptional(jsonDecodeBoolean),
   signer: jsonDecoderOptional(jsonDecodeBoolean),
+  isSigner: jsonDecoderOptional(jsonDecodeBoolean),
+  signing: jsonDecoderOptional(jsonDecodeBoolean),
   writable: jsonDecoderOptional(jsonDecodeBoolean),
+  isMut: jsonDecoderOptional(jsonDecodeBoolean),
   optional: jsonDecoderOptional(jsonDecodeBoolean),
+  isOptional: jsonDecoderOptional(jsonDecodeBoolean),
   address: jsonDecoderOptional(jsonDecodeString),
   pda: jsonDecoderOptional(
     jsonDecoderObject({

@@ -1,6 +1,6 @@
 import { expect, it } from "@jest/globals";
 import {
-  idlInstructionAddressesFindWithAccounts,
+  idlInstructionAddressesFind,
   idlInstructionDecode,
   idlInstructionEncode,
   idlProgramParse,
@@ -33,13 +33,16 @@ it("run", () => {
     ["system_program", pubkeyNewDummy()],
   ]);
   // Find missing instruction accounts
-  const instructionAddressesAfter = idlInstructionAddressesFindWithAccounts(
+  const instructionAddressesAfter = idlInstructionAddressesFind(
     instructionIdl,
-    programAddress,
-    instructionAddressesBefore,
-    instructionPayload,
-    new Map([["borrower_info", { num_of_deals: 42 }]]),
-    new Map(),
+    {
+      instructionProgramAddress: programAddress,
+      instructionAddresses: instructionAddressesBefore,
+      instructionPayload,
+      instructionAccountsStates: new Map([
+        ["borrower_info", { num_of_deals: 42 }],
+      ]),
+    },
   );
   // Check that we can encode it and then decode it
   const instruction = idlInstructionEncode(

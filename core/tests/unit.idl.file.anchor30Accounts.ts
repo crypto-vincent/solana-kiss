@@ -1,7 +1,6 @@
 import { expect, it } from "@jest/globals";
 import {
   idlInstructionAddressesFind,
-  idlInstructionAddressesFindWithAccounts,
   idlProgramParse,
   pubkeyFindPdaAddress,
   pubkeyNewDummy,
@@ -50,14 +49,18 @@ it("run", () => {
   // Generate all missing IX accounts with just the minimum information
   const campaignCreateAddresses = idlInstructionAddressesFind(
     programIdl.instructions.get("campaign_create")!,
-    programAddress,
-    new Map([
-      ["payer", payerAddress],
-      ["authority", authorityAddress],
-      ["collateral_mint", collateralMintAddress],
-      ["redeemable_mint", redeemableMintAddress],
-    ]),
-    { params: { index: campaignIndex } },
+    {
+      instructionProgramAddress: programAddress,
+      instructionAddresses: new Map([
+        ["payer", payerAddress],
+        ["authority", authorityAddress],
+        ["collateral_mint", collateralMintAddress],
+        ["redeemable_mint", redeemableMintAddress],
+      ]),
+      instructionPayload: {
+        params: { index: campaignIndex },
+      },
+    },
   );
   // Check outcome
   expect(campaignAddress).toStrictEqual(
@@ -67,20 +70,24 @@ it("run", () => {
     campaignCreateAddresses.get("campaign_collateral"),
   );
   // Generate all missing IX accounts with just the minimum information
-  const campaignExtractAddresses = idlInstructionAddressesFindWithAccounts(
+  const campaignExtractAddresses = idlInstructionAddressesFind(
     programIdl.instructions.get("campaign_extract")!,
-    programAddress,
-    new Map([
-      ["payer", payerAddress],
-      ["authority", authorityAddress],
-      ["authority_collateral", authorityCollateralAddress],
-      ["campaign", campaignAddress],
-    ]),
-    { params: { index: campaignIndex } },
-    new Map([["campaign", { collateral_mint: collateralMintAddress }]]),
-    new Map([
-      ["campaign", programIdl.accounts.get("Campaign")!.contentTypeFull],
-    ]),
+    {
+      instructionProgramAddress: programAddress,
+      instructionAddresses: new Map([
+        ["payer", payerAddress],
+        ["authority", authorityAddress],
+        ["authority_collateral", authorityCollateralAddress],
+        ["campaign", campaignAddress],
+      ]),
+      instructionPayload: { params: { index: campaignIndex } },
+      instructionAccountsStates: new Map([
+        ["campaign", { collateral_mint: collateralMintAddress }],
+      ]),
+      instructionAccountsContentsTypeFull: new Map([
+        ["campaign", programIdl.accounts.get("Campaign")!.contentTypeFull],
+      ]),
+    },
   );
   // Check outcome
   expect(campaignCollateralAddress).toStrictEqual(
@@ -89,31 +96,37 @@ it("run", () => {
   // Generate all missing IX accounts with just the minimum information
   const pledgeCreateAddresses = idlInstructionAddressesFind(
     programIdl.instructions.get("pledge_create")!,
-    programAddress,
-    new Map([
-      ["payer", payerAddress],
-      ["user", userAddress],
-      ["campaign", campaignAddress],
-    ]),
-    {},
+    {
+      instructionProgramAddress: programAddress,
+      instructionAddresses: new Map([
+        ["payer", payerAddress],
+        ["user", userAddress],
+        ["campaign", campaignAddress],
+      ]),
+      instructionPayload: {},
+    },
   );
   // Check outcome
   expect(pledgeAddress).toStrictEqual(pledgeCreateAddresses.get("pledge"));
   // Generate all missing IX accounts with just the minimum information
-  const pledgeDepositAddresses = idlInstructionAddressesFindWithAccounts(
+  const pledgeDepositAddresses = idlInstructionAddressesFind(
     programIdl.instructions.get("pledge_deposit")!,
-    programAddress,
-    new Map([
-      ["payer", payerAddress],
-      ["user", userAddress],
-      ["user_collateral", userCollateralAddress],
-      ["campaign", campaignAddress],
-    ]),
-    {},
-    new Map([["campaign", { collateral_mint: collateralMintAddress }]]),
-    new Map([
-      ["campaign", programIdl.accounts.get("Campaign")!.contentTypeFull],
-    ]),
+    {
+      instructionProgramAddress: programAddress,
+      instructionAddresses: new Map([
+        ["payer", payerAddress],
+        ["user", userAddress],
+        ["user_collateral", userCollateralAddress],
+        ["campaign", campaignAddress],
+      ]),
+      instructionPayload: {},
+      instructionAccountsStates: new Map([
+        ["campaign", { collateral_mint: collateralMintAddress }],
+      ]),
+      instructionAccountsContentsTypeFull: new Map([
+        ["campaign", programIdl.accounts.get("Campaign")!.contentTypeFull],
+      ]),
+    },
   );
   // Check outcome
   expect(campaignCollateralAddress).toStrictEqual(

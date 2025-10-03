@@ -1,34 +1,29 @@
 import { base58Decode } from "../data/Base58";
+import { Input, Instruction, Signature } from "../data/Execution";
 import {
   jsonDecodeNumber,
   jsonDecoderArray,
   jsonDecoderNullable,
   jsonDecoderObject,
   jsonDecoderObjectToRecord,
+  jsonDecoderOptional,
   jsonDecodeString,
   jsonDecodeValue,
 } from "../data/Json";
-import {
-  Commitment,
-  Input,
-  Instruction,
-  Invocation,
-  Signature,
-  Transaction,
-} from "../data/Onchain";
 import { Pubkey } from "../data/Pubkey";
 import { RpcHttp } from "./RpcHttp";
+import { Commitment, Invocation, Transaction } from "./RpcTypes";
 
 export async function rpcHttpGetTransaction(
   rpcHttp: RpcHttp,
-  transactionKey: Signature,
+  transactionSignature: Signature,
   context?: {
     commitment?: Commitment;
   },
 ): Promise<Transaction | undefined> {
   const result = resultDecode(
     await rpcHttp("getTransaction", [
-      transactionKey,
+      transactionSignature,
       {
         commitment: context?.commitment,
         encoding: "json",
@@ -64,7 +59,7 @@ export async function rpcHttpGetTransaction(
     message: {
       payerAddress: accountKeys[0]!,
       instructions: transactionInstructions,
-      recentBlockHash: message.recentBlockhash,
+      recentBlockhash: message.recentBlockhash,
     },
     error: meta.err, // TODO - parse error to find
     logs: meta.logMessages, // TODO - parse logs for invocations and event data
@@ -259,12 +254,14 @@ const resultDecode = jsonDecoderNullable(
     transaction: jsonDecoderObject({
       message: jsonDecoderObject({
         accountKeys: jsonDecoderArray(jsonDecodeString),
-        addressTableLookups: jsonDecoderArray(
-          jsonDecoderObject({
-            accountKey: jsonDecodeString,
-            readonlyIndexes: jsonDecoderArray(jsonDecodeNumber),
-            writableIndexes: jsonDecoderArray(jsonDecodeNumber),
-          }),
+        addressTableLookups: jsonDecoderOptional(
+          jsonDecoderArray(
+            jsonDecoderObject({
+              accountKey: jsonDecodeString,
+              readonlyIndexes: jsonDecoderArray(jsonDecodeNumber),
+              writableIndexes: jsonDecoderArray(jsonDecodeNumber),
+            }),
+          ),
         ),
         header: jsonDecoderObject({
           numReadonlySignedAccounts: jsonDecodeNumber,

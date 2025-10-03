@@ -1,4 +1,5 @@
 import { camelCaseToSnakeCase } from "../data/Casing";
+import { Input } from "../data/Execution";
 import {
   jsonAsArray,
   jsonAsObject,
@@ -7,7 +8,6 @@ import {
   JsonObject,
   JsonValue,
 } from "../data/Json";
-import { Input } from "../data/Onchain";
 import { Immutable, withContext } from "../data/Utils";
 import { IdlAccount, idlAccountCheck, idlAccountParse } from "./IdlAccount";
 import { IdlError, idlErrorParse } from "./IdlError";

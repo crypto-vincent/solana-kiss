@@ -2,6 +2,7 @@ import { IdlTypedef } from "./IdlTypedef";
 import {
   IdlTypeFlat,
   IdlTypeFlatArray,
+  IdlTypeFlatBlob,
   IdlTypeFlatConst,
   IdlTypeFlatDefined,
   IdlTypeFlatEnum,
@@ -196,6 +197,13 @@ const visitorHydrateOrConstLiteral = {
       after: self.after,
       content: idlTypeFlatHydrate(self.content, genericsBySymbol, typedefs),
     });
+  },
+  blob: (
+    self: IdlTypeFlatBlob,
+    _genericsBySymbol: Map<string, IdlTypeFull | number>,
+    _typedefs: Map<string, IdlTypedef>,
+  ): IdlTypeFull | number => {
+    return IdlTypeFull.blob({ bytes: self.bytes });
   },
   const: (
     self: IdlTypeFlatConst,

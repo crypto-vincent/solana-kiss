@@ -137,9 +137,11 @@ it("run", () => {
   // Assert that the accounts can be properly resolved
   const instructionAddresses = idlInstructionAddressesFind(
     programIdl1.instructions.get("my_ix")!,
-    programAddress1,
-    new Map(),
-    null,
+    {
+      instructionProgramAddress: programAddress1,
+      instructionAddresses: new Map(),
+      instructionPayload: null,
+    },
   );
   expect(instructionAddresses.get("const_bytes_without_program")).toStrictEqual(
     pdaConstBytes1,

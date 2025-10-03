@@ -4,12 +4,12 @@ import {
   jsonDecoderObject,
   jsonDecodeString,
 } from "../data/Json";
-import { Commitment } from "../data/Onchain";
 import { Pubkey } from "../data/Pubkey";
 import { RpcHttp } from "./RpcHttp";
+import { Commitment } from "./RpcTypes";
 
 // TODO - naming: find Owned accounts ?
-export async function rpcHttpFindProgramAccountsAddresses(
+export async function rpcHttpFindProgramOwnedAddresses(
   rpcHttp: RpcHttp,
   programAddress: Pubkey,
   filters?: {

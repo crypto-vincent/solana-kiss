@@ -46,11 +46,20 @@ it("run", () => {
       },
     },
   });
+  const programIdl6 = idlProgramParse({
+    types: {
+      MyStruct: {
+        generics: ["A", "B"],
+        fields: null,
+      },
+    },
+  });
   // Assert that all are equivalent
   expect(programIdl1).toStrictEqual(programIdl2);
   expect(programIdl1).toStrictEqual(programIdl3);
   expect(programIdl1).toStrictEqual(programIdl4);
   expect(programIdl1).toStrictEqual(programIdl5);
+  expect(programIdl1).toStrictEqual(programIdl6);
   // Assert that the content is correct
   expect(programIdl1.typedefs.get("MyStruct")).toStrictEqual({
     name: "MyStruct",
