@@ -1,0 +1,154 @@
+import { base58Decode, base58Encode } from "./Base58";
+import { sha256Hash } from "./Sha256";
+
+export type Pubkey = string;
+
+export function pubkeyDefault(): Pubkey {
+  return "11111111111111111111111111111111";
+}
+
+export function pubkeyNewDummy(): Pubkey {
+  const bytes = new Uint8Array(32);
+  bytes[0] = 0x03;
+  bytes[1] = 0x4e;
+  bytes[2] = 0xa3;
+  bytes[3] = 0xa1;
+  bytes[4] = 0xa5;
+  for (let i = 5; i < 32; i++) {
+    bytes[i] = Math.floor(Math.random() * 256);
+  }
+  return base58Encode(bytes);
+}
+
+export function pubkeyFromBytes(bytes: Uint8Array): Pubkey {
+  const pubkey = base58Encode(bytes);
+  if (bytes.length !== 32) {
+    throw new Error(
+      `Pubkey: Expected pubkey spanning 32 bytes (found: ${bytes.length}, with ${pubkey})`,
+    );
+  }
+  return pubkey;
+}
+
+export function pubkeyToBytes(address: Pubkey): Uint8Array {
+  const bytes = base58Decode(address);
+  if (bytes.length !== 32) {
+    throw new Error(
+      `Pubkey: Expected pubkey spanning 32 bytes (found: ${bytes.length} with ${address})`,
+    );
+  }
+  return bytes;
+}
+
+export function pubkeyFindPdaAddress(
+  programAddress: Pubkey,
+  seedsBlobs: Array<Uint8Array>,
+): Pubkey {
+  return pubkeyFindPdaAddressAndBump(programAddress, seedsBlobs).address;
+}
+
+export function pubkeyFindPdaAddressAndBump(
+  programAddress: Pubkey,
+  seedsBytes: Array<Uint8Array>,
+): { address: Pubkey; bump: number } {
+  const seedBump = new Uint8Array([0]);
+  for (let bump = 255; bump >= 0; bump--) {
+    seedBump[0] = bump;
+    const pdaAddress = pubkeyCreatePdaAddress(programAddress, [
+      ...seedsBytes,
+      seedBump,
+    ]);
+    if (pdaAddress !== undefined) {
+      return { address: pdaAddress, bump };
+    }
+  }
+  throw new Error(
+    "Pubkey: Find PDA with bump: Unable to find a viable program derived address with the given seeds",
+  );
+}
+
+export function pubkeyCreatePdaAddress(
+  programAddress: Pubkey,
+  seedsBytes: Array<Uint8Array>,
+): Pubkey | undefined {
+  const programBytes = pubkeyToBytes(programAddress);
+  if (seedsBytes.length > 16) {
+    throw new Error("Pubkey: Create PDA: Too many seeds, max is 16");
+  }
+  for (let seedIndex = 0; seedIndex < seedsBytes.length; seedIndex++) {
+    let seedBytes = seedsBytes[seedIndex]!;
+    if (seedBytes.length > 32) {
+      throw new Error(
+        `Pubkey: Create PDA: Seed at index ${seedIndex} is too big, max is 32 bytes`,
+      );
+    }
+  }
+  const pdaAddress = base58Encode(
+    sha256Hash([...seedsBytes, programBytes, pdaMarker]),
+  );
+  if (pubkeyIsOnCurve(pdaAddress)) {
+    return undefined;
+  }
+  return pdaAddress;
+}
+
+export function pubkeyIsOnCurve(address: Pubkey): boolean {
+  const bytes = pubkeyToBytes(address);
+  const sign = (bytes[31]! >> 7) & 1;
+  bytes[31]! &= 0x7f;
+  let y = 0n;
+  for (let byteIndex = 0; byteIndex < 32; byteIndex++) {
+    y |= BigInt(bytes[byteIndex]!) << (8n * BigInt(byteIndex));
+  }
+  if (y >= fieldModulusP) {
+    return false;
+  }
+  const y2 = mod(y * y);
+  const u = mod(y2 - 1n);
+  const v = mod(mod(edwardsD * y2) + 1n);
+  const vinv = inv(v);
+  const x2 = mod(u * vinv);
+  const r = pow(x2, (fieldModulusP + 3n) / 8n);
+  let x = r;
+  if (mod(x * x) !== x2) {
+    x = mod(x * sqrtMinus1ModP);
+  }
+  if (mod(x * x) !== x2) {
+    return false;
+  }
+  if ((x & 1n) !== BigInt(sign)) {
+    x = mod(fieldModulusP - x);
+  }
+  const lhs = mod(mod(y2 - mod(x * x)));
+  const rhs = mod(1n + mod(mod(edwardsD * y2) * mod(x * x)));
+  return lhs === rhs;
+}
+
+const fieldModulusP = (1n << 255n) - 19n;
+const sqrtMinus1ModP =
+  19681161376707505956807079304988542015446066515923890162744021073123829784752n;
+const edwardsD =
+  37095705934669439343138083508754565189542113879843219016388785533085940283555n;
+
+function mod(value: bigint) {
+  const r = value % fieldModulusP;
+  return r >= 0n ? r : r + fieldModulusP;
+}
+function pow(value: bigint, exponent: bigint) {
+  let r = 1n;
+  let b = mod(value);
+  let n = exponent;
+  while (n > 0n) {
+    if (n & 1n) {
+      r = mod(r * b);
+    }
+    b = mod(b * b);
+    n >>= 1n;
+  }
+  return r;
+}
+function inv(value: bigint) {
+  return pow(value, fieldModulusP - 2n);
+}
+
+const pdaMarker = new TextEncoder().encode("ProgramDerivedAddress");
