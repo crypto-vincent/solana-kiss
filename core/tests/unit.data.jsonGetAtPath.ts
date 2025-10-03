@@ -1,5 +1,5 @@
 import { expect, it } from "@jest/globals";
-import { jsonGetAtPath } from "../src";
+import { jsonGetAt } from "../src";
 
 it("run", async () => {
   const tests = [
@@ -33,8 +33,20 @@ it("run", async () => {
       path: "array.0.name",
       needle: "Alice",
     },
+    {
+      haystack: {
+        inner: {},
+      },
+      path: "inner.missing",
+      needle: undefined,
+    },
+    {
+      haystack: {},
+      path: "very[2].deep.missing",
+      needle: undefined,
+    },
   ];
   for (const test of tests) {
-    expect(test.needle).toStrictEqual(jsonGetAtPath(test.haystack, test.path));
+    expect(test.needle).toStrictEqual(jsonGetAt(test.haystack, test.path));
   }
 });
