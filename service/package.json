@@ -1,5 +1,5 @@
 {
-  "name": "solana-kiss-idl",
+  "name": "solana-kiss-service",
   "version": "0.0.2",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
@@ -13,7 +13,9 @@
     "typescript": "^5.8.3"
   },
   "dependencies": {
-    "solana-kiss-data": "0.0.2"
+    "solana-kiss-data": "file:../data",
+    "solana-kiss-idl": "0.0.2",
+    "solana-kiss-rpc": "0.0.2"
   },
   "scripts": {
     "build": "tsup src/index.ts --dts --clean --minify --sourcemap --out-dir dist",

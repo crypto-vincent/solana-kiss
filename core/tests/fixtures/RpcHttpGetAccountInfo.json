@@ -1,9 +1,0 @@
-{
-  "value": {
-    "executable": true,
-    "lamports": 42000000000000,
-    "owner": "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA",
-    "data": ["KioqKioqKio=", "base64"],
-    "space": 8
-  }
-}

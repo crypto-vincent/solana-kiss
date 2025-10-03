@@ -1,4 +1,4 @@
-import { it } from "@jest/globals";
+import { expect, it } from "@jest/globals";
 import { pubkeyDefault } from "solana-kiss-data";
 import {
   rpcHttpFromUrl,

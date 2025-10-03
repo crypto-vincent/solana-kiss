@@ -1,4 +1,4 @@
-import { it } from "@jest/globals";
+import { expect, it } from "@jest/globals";
 import {
   rpcHttpFindProgramOwnedAddresses,
   rpcHttpFromUrl,

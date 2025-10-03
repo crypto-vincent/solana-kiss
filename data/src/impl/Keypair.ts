@@ -9,10 +9,12 @@ export type Keypair = {
 };
 
 export async function keypairGenerate(): Promise<Keypair> {
-  if (globalThis.crypto?.subtle !== undefined) {
-    return keypairGenerateWeb();
-  }
-  return keypairGenerateNode();
+  const { privateKey, publicKey } = await crypto.subtle.generateKey(
+    { name: "Ed25519" },
+    false,
+    ["sign", "verify"],
+  );
+  return keypairNew(privateKey, publicKey);
 }
 
 export async function keypairFromSecret(
@@ -24,30 +26,6 @@ export async function keypairFromSecret(
       `Keypair: Expected a secret of 64 bytes (found ${secret.length})`,
     );
   }
-  let keypair: Keypair;
-  if (globalThis.crypto?.subtle !== undefined) {
-    keypair = await keypairFromSecretWeb(secret);
-  }
-  keypair = await keypairFromSecretNode(secret);
-  if (!options?.skipValidation) {
-    const message = new Uint8Array();
-    if (!(await keypair.verify(message, await keypair.sign(message)))) {
-      throw new Error(`Keypair: Secret public blob and private blob mismatch`);
-    }
-  }
-  return keypair;
-}
-
-async function keypairGenerateWeb(): Promise<Keypair> {
-  const { privateKey, publicKey } = await crypto.subtle.generateKey(
-    { name: "Ed25519" },
-    false,
-    ["sign", "verify"],
-  );
-  return keypairWeb(privateKey, publicKey);
-}
-
-async function keypairFromSecretWeb(secret: Uint8Array): Promise<Keypair> {
   const privateKey = await crypto.subtle.importKey(
     "pkcs8",
     pkcs8FromEd25519(secret.slice(0, 32)) as BufferSource,
@@ -62,10 +40,17 @@ async function keypairFromSecretWeb(secret: Uint8Array): Promise<Keypair> {
     true,
     ["verify"],
   );
-  return keypairWeb(privateKey, publicKey);
+  const keypair = await keypairNew(privateKey, publicKey);
+  if (!options?.skipValidation) {
+    const message = new Uint8Array();
+    if (!(await keypair.verify(message, await keypair.sign(message)))) {
+      throw new Error(`Keypair: Secret public blob and private blob mismatch`);
+    }
+  }
+  return keypair;
 }
 
-async function keypairWeb(privateKey: any, publicKey: any): Promise<Keypair> {
+async function keypairNew(privateKey: any, publicKey: any): Promise<Keypair> {
   const spki = await crypto.subtle.exportKey("spki", publicKey);
   return {
     address: extractPubkeyFromSpki(new Uint8Array(spki)),
@@ -87,43 +72,6 @@ async function keypairWeb(privateKey: any, publicKey: any): Promise<Keypair> {
         base58Decode(signature) as BufferSource,
         message as BufferSource,
       );
-    },
-  };
-}
-
-async function keypairGenerateNode(): Promise<Keypair> {
-  const crypto = await import("crypto");
-  const { privateKey, publicKey } = crypto.generateKeyPairSync("ed25519");
-  return keypairNode(privateKey, publicKey);
-}
-
-async function keypairFromSecretNode(secret: Uint8Array): Promise<Keypair> {
-  const crypto = await import("crypto");
-  const privateKey = crypto.createPrivateKey({
-    key: Buffer.from(pkcs8FromEd25519(secret.slice(0, 32))),
-    format: "der",
-    type: "pkcs8",
-  });
-  const publicKey = crypto.createPublicKey({
-    key: Buffer.from(spkiFromEd25519(secret.slice(32, 64))),
-    format: "der",
-    type: "spki",
-  });
-  return keypairNode(privateKey, publicKey);
-}
-
-async function keypairNode(privateKey: any, publicKey: any): Promise<Keypair> {
-  const crypto = await import("crypto");
-  const spki = publicKey.export({ type: "spki", format: "der" });
-  return {
-    address: extractPubkeyFromSpki(new Uint8Array(spki)),
-    sign: async (message: Uint8Array) => {
-      return base58Encode(
-        new Uint8Array(crypto.sign(null, message, privateKey)),
-      );
-    },
-    verify: async (message: Uint8Array, signature: Signature) => {
-      return !!crypto.verify(null, message, publicKey, base58Decode(signature));
     },
   };
 }

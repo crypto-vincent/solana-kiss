@@ -1,0 +1,88 @@
+import { expect, it } from "@jest/globals";
+import {
+  lamportsFeePerSignature,
+  lamportsRentExemptionMinimumForSpace,
+  pubkeyDefault,
+  pubkeyNewDummy,
+  signerFromSecret,
+  signerGenerate,
+} from "solana-kiss-data";
+import { idlInstructionEncode, idlProgramParse } from "solana-kiss-idl";
+import {
+  rpcHttpFromUrl,
+  rpcHttpGetAccountMetadata,
+  rpcHttpGetLatestBlockhash,
+  rpcHttpSendInstructions,
+  rpcHttpWaitForTransaction,
+} from "solana-kiss-rpc";
+
+it("run", async () => {
+  const rpcHttp = rpcHttpFromUrl("https://api.devnet.solana.com", {
+    commitment: "confirmed",
+  });
+  console.log("crypto", globalThis.crypto);
+  const programAddress = pubkeyDefault();
+  const payerSigner = await signerFromSecret(secret);
+  const ownedSigner = await signerGenerate();
+  const ownerAddress = pubkeyNewDummy();
+  const recentBlockhash = await rpcHttpGetLatestBlockhash(rpcHttp);
+  const requestedSpace = 42;
+  const transferLamports = lamportsRentExemptionMinimumForSpace(requestedSpace);
+  const instructionIdl = programIdl.instructions.get("create")!;
+  const instruction = idlInstructionEncode(
+    instructionIdl,
+    programAddress,
+    new Map([
+      ["payer", payerSigner.address],
+      ["owned", ownedSigner.address],
+    ]),
+    {
+      lamports: String(transferLamports),
+      space: requestedSpace,
+      owner: ownerAddress,
+    },
+  );
+  console.log("Instruction:", instruction);
+  const signature = await rpcHttpSendInstructions(
+    rpcHttp,
+    payerSigner,
+    [instruction],
+    recentBlockhash,
+    { extraSigners: [ownedSigner] },
+  );
+  const transaction = await rpcHttpWaitForTransaction(rpcHttp, signature, 3000);
+  expect(transaction.error).toStrictEqual(null);
+  expect(transaction.chargedFees).toStrictEqual(lamportsFeePerSignature() * 2n);
+  const receiverMetadata = await rpcHttpGetAccountMetadata(
+    rpcHttp,
+    ownedSigner.address,
+  );
+  expect(receiverMetadata.executable).toBe(false);
+  expect(receiverMetadata.lamports).toBe(transferLamports);
+  expect(receiverMetadata.owner).toBe(ownerAddress);
+  expect(receiverMetadata.space).toBe(requestedSpace);
+});
+
+const secret = new Uint8Array([
+  96, 11, 209, 132, 49, 92, 144, 135, 105, 211, 34, 171, 125, 156, 217, 148, 65,
+  233, 239, 86, 149, 37, 180, 226, 120, 139, 152, 126, 199, 116, 104, 184, 10,
+  85, 215, 5, 230, 110, 192, 255, 29, 27, 96, 27, 203, 56, 119, 189, 226, 99,
+  13, 150, 68, 70, 138, 190, 182, 126, 125, 69, 25, 66, 190, 239,
+]);
+
+const programIdl = idlProgramParse({
+  instructions: {
+    create: {
+      discriminator: { value: 0, type: "u32" },
+      accounts: [
+        { name: "payer", signing: true, writable: true },
+        { name: "owned", signing: true, writable: true },
+      ],
+      args: [
+        { name: "lamports", type: "u64" },
+        { name: "space", type: "u64" },
+        { name: "owner", type: "pubkey" },
+      ],
+    },
+  },
+});

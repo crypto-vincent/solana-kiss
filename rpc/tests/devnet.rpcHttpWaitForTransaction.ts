@@ -1,4 +1,4 @@
-import { it } from "@jest/globals";
+import { expect, it } from "@jest/globals";
 import { rpcHttpFromUrl, rpcHttpWaitForTransaction } from "../src";
 
 it("run", async () => {
