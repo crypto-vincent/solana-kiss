@@ -176,7 +176,7 @@ export function jsonGetAt(
   value: JsonValue,
   path: string,
   options?: {
-    failOnMissing: boolean;
+    failOnMissing?: boolean;
   },
 ): JsonValue {
   const tokens = path.replace(/\[(\w+)\]/g, ".$1").split(".");

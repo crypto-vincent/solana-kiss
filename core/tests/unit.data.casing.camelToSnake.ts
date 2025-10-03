@@ -8,6 +8,8 @@ it("run", async () => {
     { camelCase: "withKISS", snakeCase: "with_kiss" },
     { camelCase: "withKiss", snakeCase: "with_kiss" },
     { camelCase: "eiqoWQj412nD", snakeCase: "eiqo_wqj412n_d" },
+    { camelCase: "a1Test", snakeCase: "a1_test" },
+    // TODO - is that exactly right how anchor does it ?
   ];
   for (const test of tests) {
     expect(test.snakeCase).toStrictEqual(camelCaseToSnakeCase(test.camelCase));
