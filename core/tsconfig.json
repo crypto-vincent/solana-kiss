@@ -23,5 +23,5 @@
     "erasableSyntaxOnly": true,
     "forceConsistentCasingInFileNames": true
   },
-  "include": ["core"]
+  "include": ["src", "tests"],
 }

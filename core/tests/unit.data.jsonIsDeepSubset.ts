@@ -2,7 +2,7 @@ import { expect, it } from "@jest/globals";
 import { jsonIsDeepSubset } from "../src";
 
 it("run", async () => {
-  const testsContains = [
+  const tests = [
     {
       subset: {
         key: "Hello World",
@@ -39,9 +39,9 @@ it("run", async () => {
       result: true,
     },
   ];
-  for (const testContain of testsContains) {
-    expect(testContain.result).toStrictEqual(
-      jsonIsDeepSubset(testContain.subset, testContain.superset),
+  for (const test of tests) {
+    expect(test.result).toStrictEqual(
+      jsonIsDeepSubset(test.subset, test.superset),
     );
   }
 });

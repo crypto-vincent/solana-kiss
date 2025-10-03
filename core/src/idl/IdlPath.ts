@@ -121,7 +121,7 @@ export class IdlPath {
 
 export function idlPathParse(content: string): IdlPath {
   const parts = new Array<IdlPathPart>();
-  for (const part of content.split(".")) {
+  for (const part of content.replace(/\[(\w+)\]/g, ".$1").split(".")) {
     if (part === "") {
       parts.push(IdlPathPart.empty());
     } else if (/^\d+$/.test(part)) {

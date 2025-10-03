@@ -172,6 +172,22 @@ export function jsonIsDeepSubset(
   return false;
 }
 
+export function jsonGetAtPath(value: JsonValue, path: string) {
+  const tokens = path.replace(/\[(\w+)\]/g, ".$1").split(".");
+  let current: JsonValue = value;
+  for (let i = 0; i < tokens.length; i++) {
+    const token = tokens[i]!;
+    if (typeof current !== "object" || current === null) {
+      const pathSoFar = tokens.slice(0, i).join(".");
+      throw new Error(
+        `JSON: Expected an object or array at path "${pathSoFar}" (found: ${jsonPreview(current)})`,
+      );
+    }
+    current = (current as any)[token];
+  }
+  return current;
+}
+
 export type JsonDecodeContent<S> = S extends JsonDecode<infer T> ? T : never;
 export type JsonDecode<Content> = (encoded: JsonValue) => Content;
 
