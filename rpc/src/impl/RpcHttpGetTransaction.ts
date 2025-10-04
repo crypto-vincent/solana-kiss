@@ -176,17 +176,18 @@ function decompileTransactionInvocations(
       const stackIndex = compiledInnerInstruction.stackHeight - 1;
       if (stackIndex < 1 || stackIndex > invocationStack.length) {
         throw new Error(
-          `RpcHttp: Expected inner instruction stack index to be betweem 1 and ${invocationStack.length} (found: ${stackIndex})`,
+          `RpcHttp: Expected inner instruction stack height to be between 2 and ${invocationStack.length + 1} (found: ${stackIndex + 1})`,
         );
       }
       if (stackIndex === invocationStack.length) {
         invocationStack[stackIndex - 1]!.invocations.push(innerInvocation);
         invocationStack.push(innerInvocation);
       } else {
-        while (stackIndex < invocationStack.length) {
+        while (stackIndex < invocationStack.length - 1) {
           invocationStack.pop();
         }
         invocationStack[stackIndex - 1]!.invocations.push(innerInvocation);
+        invocationStack[stackIndex] = innerInvocation;
       }
     }
   }
