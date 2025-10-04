@@ -25,7 +25,7 @@ export async function rpcHttpFindAccountPastSignatures(
   const rewindUntilSignature = pagination?.rewindUntilSignature;
   let startBeforeSignature = pagination?.startBeforeSignature;
   while (true) {
-    const result = resultDecode(
+    const result = resultJsonDecoder(
       await rpcHttp("getSignaturesForAddress", [
         accountAddress,
         {
@@ -41,7 +41,7 @@ export async function rpcHttpFindAccountPastSignatures(
       if (signatures.length >= maxLength) {
         return signatures;
       }
-      if (rewindUntilSignature && signature === rewindUntilSignature) {
+      if (signature === rewindUntilSignature) {
         return signatures;
       }
       startBeforeSignature = signature;
@@ -52,7 +52,7 @@ export async function rpcHttpFindAccountPastSignatures(
   }
 }
 
-const resultDecode = jsonDecoderArray(
+const resultJsonDecoder = jsonDecoderArray(
   jsonDecoderObject({
     signature: jsonTypeString.decoder,
   }),

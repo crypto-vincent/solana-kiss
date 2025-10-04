@@ -1,6 +1,6 @@
 import {
-  jsonDecoderNullable,
   jsonDecoderObject,
+  jsonDecoderOptional,
   jsonTypeBoolean,
   jsonTypeNumber,
   jsonTypeString,
@@ -33,7 +33,7 @@ export async function rpcHttpGetAccountMetadata(
       },
     ]),
   );
-  if (result.value === null) {
+  if (result.value === undefined) {
     return {
       executable: false,
       lamports: 0n,
@@ -50,7 +50,7 @@ export async function rpcHttpGetAccountMetadata(
 }
 
 const resultJsonDecoder = jsonDecoderObject({
-  value: jsonDecoderNullable(
+  value: jsonDecoderOptional(
     jsonDecoderObject({
       executable: jsonTypeBoolean.decoder,
       lamports: jsonTypeNumber.decoder,

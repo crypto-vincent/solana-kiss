@@ -304,6 +304,16 @@ export const jsonTypeObjectRaw: JsonType<JsonObject> = {
   },
 };
 
+export const jsonTypeInteger: JsonType<bigint> = {
+  decoder: jsonDecoderByKind({
+    number: (number: number) => BigInt(number),
+    string: (string: string) => BigInt(string),
+  }),
+  encoder: (decoded: Immutable<bigint>): JsonValue => {
+    return String(decoded);
+  },
+};
+
 export function jsonDecoderConst<Const extends boolean | number | string>(
   expected: Const,
 ) {

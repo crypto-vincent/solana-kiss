@@ -48,22 +48,24 @@ export function rpcHttpFromUrl(
       }),
     });
     const responseJson = (await responseRaw.json()) as JsonValue;
-    const response = responseDecode(responseJson);
-    if (response.jsonrpc !== "2.0") {
+    const responseInfo = responseJsonDecoder(responseJson);
+    const responseError = responseInfo.error;
+    if (responseError !== undefined) {
       throw new Error(
-        `RpcHttp: Expected response jsonrpc: "2.0" (found: "${response.jsonrpc}")`,
+        `RpcHttp: Error ${responseError.code}: ${responseError.message}`,
       );
     }
-    if (response.id !== requestId) {
+    if (responseInfo.jsonrpc !== "2.0") {
       throw new Error(
-        `RpcHttp: Expected response id: ${requestId} (found: ${response.id})`,
+        `RpcHttp: Expected response jsonrpc: "2.0" (found: "${responseInfo.jsonrpc}")`,
       );
     }
-    const error = response.error;
-    if (error !== undefined) {
-      throw new Error(`RpcHttp: Error ${error.code}: ${error.message}`);
+    if (responseInfo.id !== requestId) {
+      throw new Error(
+        `RpcHttp: Expected response id: ${requestId} (found: ${responseInfo.id})`,
+      );
     }
-    return response.result;
+    return responseInfo.result;
   };
 }
 
@@ -127,7 +129,7 @@ export function rpcHttpWithRetryOnError(
 
 let uniqueRequestId = 1;
 
-const responseDecode = jsonDecoderObject({
+const responseJsonDecoder = jsonDecoderObject({
   jsonrpc: jsonTypeString.decoder,
   id: jsonTypeNumber.decoder,
   error: jsonDecoderOptional(

@@ -33,7 +33,7 @@ export async function rpcHttpGetTransaction(
       },
     ]),
   );
-  if (result === null) {
+  if (result === undefined) {
     return undefined;
   }
   const meta = result.meta;
@@ -70,7 +70,7 @@ export async function rpcHttpGetTransaction(
     invocations: decompileTransactionInvocations(
       transactionInputs,
       transactionInstructions,
-      meta.innerInstructions,
+      meta.innerInstructions ?? [],
     ),
   };
 }
@@ -234,7 +234,7 @@ const instructionDecoder = jsonDecoderObject(
   },
 );
 
-const resultJsonDecoder = jsonDecoderNullable(
+const resultJsonDecoder = jsonDecoderOptional(
   jsonDecoderObject({
     blockTime: jsonTypeNumber.decoder,
     meta: jsonDecoderObject({
@@ -243,11 +243,13 @@ const resultJsonDecoder = jsonDecoderNullable(
         jsonDecoderObjectToRecord(jsonTypeValue.decoder),
       ),
       fee: jsonTypeNumber.decoder,
-      innerInstructions: jsonDecoderArray(
-        jsonDecoderObject({
-          index: jsonTypeNumber.decoder,
-          instructions: jsonDecoderArray(instructionDecoder),
-        }),
+      innerInstructions: jsonDecoderOptional(
+        jsonDecoderArray(
+          jsonDecoderObject({
+            index: jsonTypeNumber.decoder,
+            instructions: jsonDecoderArray(instructionDecoder),
+          }),
+        ),
       ),
       loadedAddresses: jsonDecoderObject({
         writable: jsonDecoderArray(jsonTypeString.decoder),

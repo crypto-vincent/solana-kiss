@@ -4,8 +4,8 @@ import {
   base64Decode,
   jsonDecoderArrayToTuple,
   jsonDecoderConst,
-  jsonDecoderNullable,
   jsonDecoderObject,
+  jsonDecoderOptional,
   jsonTypeBoolean,
   jsonTypeNumber,
   jsonTypeString,
@@ -35,7 +35,7 @@ export async function rpcHttpGetAccountWithData(
       },
     ]),
   );
-  if (result.value === null) {
+  if (result.value === undefined) {
     return {
       executable: false,
       lamports: 0n,
@@ -57,7 +57,7 @@ export async function rpcHttpGetAccountWithData(
 }
 
 const resultJsonDecoder = jsonDecoderObject({
-  value: jsonDecoderNullable(
+  value: jsonDecoderOptional(
     jsonDecoderObject({
       executable: jsonTypeBoolean.decoder,
       lamports: jsonTypeNumber.decoder,
