@@ -373,67 +373,6 @@ export function jsonTypeArray<Item>(
   };
 }
 
-export function jsonDecoderArrayToTuple<
-  Items extends [JsonDecoder<any>, ...Array<JsonDecoder<any>>],
->(
-  itemsDecodes: Items,
-): JsonDecoder<{ [K in keyof Items]: JsonDecoderContent<Items[K]> }> {
-  return (
-    encoded: JsonValue,
-  ): {
-    [K in keyof Items]: JsonDecoderContent<Items[K]>;
-  } => {
-    const decoded = [] as {
-      [K in keyof Items]: JsonDecoderContent<Items[K]>;
-    };
-    const array = jsonTypeArrayRaw.decoder(encoded);
-    for (let index = 0; index < itemsDecodes.length; index++) {
-      decoded[index as keyof typeof decoded] = withContext(
-        `JSON: Decode Array[${index}] =>`,
-        () => itemsDecodes[index]!(array[index]),
-      );
-    }
-    return decoded;
-  };
-}
-export function jsonEncoderArrayToTuple<
-  Items extends [JsonEncoder<any>, ...Array<JsonEncoder<any>>],
->(
-  itemsEncodes: Items,
-): JsonEncoder<{ [K in keyof Items]: JsonEncoderContent<Items[K]> }> {
-  return (
-    decoded: Immutable<{ [K in keyof Items]: JsonEncoderContent<Items[K]> }>,
-  ): JsonValue => {
-    const encoded = new Array<JsonValue>();
-    for (let index = 0; index < itemsEncodes.length; index++) {
-      encoded.push(
-        itemsEncodes[index]!(decoded[index as keyof typeof decoded]),
-      );
-    }
-    return encoded;
-  };
-}
-export function jsonTypeArrayToTuple<
-  Items extends [JsonType<any>, ...Array<JsonType<any>>],
->(
-  itemsTypes: Items,
-): JsonType<{ [K in keyof Items]: JsonTypeContent<Items[K]> }> {
-  return {
-    decoder: jsonDecoderArrayToTuple(
-      itemsTypes.map((item) => item.decoder) as [
-        JsonDecoder<any>,
-        ...Array<JsonDecoder<any>>,
-      ],
-    ),
-    encoder: jsonEncoderArrayToTuple(
-      itemsTypes.map((item) => item.encoder) as [
-        JsonEncoder<any>,
-        ...JsonEncoder<any>[],
-      ],
-    ),
-  } as JsonType<{ [K in keyof Items]: JsonTypeContent<Items[K]> }>;
-}
-
 export function jsonDecoderArrayToObject<
   Shape extends { [key: string]: JsonDecoder<any> },
 >(
@@ -747,6 +686,7 @@ export function jsonDecoderByKind<Content>(decoders: {
     );
   };
 }
+
 export function jsonDecoderAsEnum<
   Shape extends { [key: string]: JsonDecoder<Content> },
   Content,
@@ -776,7 +716,8 @@ export function jsonDecoderAsEnum<
     );
   };
 }
-export function jsonDecoderFallbacks<Content>(
+
+export function jsonDecoderCascade<Content>(
   decoders: Array<(value: JsonValue) => Content>,
 ): JsonDecoder<Content> {
   return (encoded: JsonValue): Content => {
@@ -790,7 +731,7 @@ export function jsonDecoderFallbacks<Content>(
     }
     const separator = "\n---\n >> JSON: Decode error: ";
     throw new Error(
-      `JSON: Decode with fallbacks failed: ${separator}${errors.join(separator)})`,
+      `JSON: Decode with cascades failed: ${separator}${errors.join(separator)})`,
     );
   };
 }

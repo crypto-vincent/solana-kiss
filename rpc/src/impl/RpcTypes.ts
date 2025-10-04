@@ -2,6 +2,7 @@ import { Instruction, JsonValue, Lamports, Message } from "solana-kiss-data";
 
 export type Commitment = "confirmed" | "finalized";
 
+// TODO - should integrate indexing capabilities ?
 // TODO - where should this be located ?
 export type Slot = number;
 

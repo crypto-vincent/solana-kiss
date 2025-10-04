@@ -8,7 +8,6 @@ import {
 import { RpcHttp } from "./RpcHttp";
 import { Commitment } from "./RpcTypes";
 
-// TODO - naming: find Owned accounts ?
 export async function rpcHttpFindProgramOwnedAddresses(
   rpcHttp: RpcHttp,
   programAddress: Pubkey,
@@ -27,6 +26,7 @@ export async function rpcHttpFindProgramOwnedAddresses(
   if (filters?.dataSize !== undefined) {
     paramFilters.push({ dataSize: filters.dataSize });
   }
+  // TODO - add testing for filters
   if (filters?.dataBlobs !== undefined) {
     for (const dataBlob of filters.dataBlobs) {
       paramFilters.push({
@@ -40,7 +40,7 @@ export async function rpcHttpFindProgramOwnedAddresses(
   if (paramFilters.length > 4) {
     throw new Error("RpcHttp: Too many filters, max is 4");
   }
-  const result = resultDecode(
+  const result = resultJsonDecoder(
     await rpcHttp("getProgramAccounts", [
       programAddress,
       {
@@ -58,6 +58,6 @@ export async function rpcHttpFindProgramOwnedAddresses(
   return accountsAddresses;
 }
 
-const resultDecode = jsonDecoderArray(
+const resultJsonDecoder = jsonDecoderArray(
   jsonDecoderObject({ pubkey: jsonTypeString.decoder }),
 );

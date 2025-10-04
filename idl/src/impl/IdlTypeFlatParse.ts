@@ -4,7 +4,7 @@ import {
   camelCaseToSnakeCase,
   jsonAsObject,
   jsonDecoderArray,
-  jsonDecoderArrayToTuple,
+  jsonDecoderArrayToObject,
   jsonDecoderAsEnum,
   jsonDecoderByKind,
   jsonDecoderObject,
@@ -72,20 +72,20 @@ export function idlTypeFlatFieldsParse(value: JsonValue): IdlTypeFlatFields {
 }
 
 const arrayJsonDecoder = jsonDecoderRemap(
-  jsonDecoderArrayToTuple([
-    idlTypeFlatParse,
-    jsonDecoderOptional(idlTypeFlatParse),
-  ]),
+  jsonDecoderArrayToObject({
+    items: idlTypeFlatParse,
+    length: jsonDecoderOptional(idlTypeFlatParse),
+  }),
   (array) => {
-    if (array[1] === undefined) {
+    if (array.length === undefined) {
       return IdlTypeFlat.vec({
         prefix: IdlTypePrefix.u32,
-        items: array[0],
+        items: array.items,
       });
     }
     return IdlTypeFlat.array({
-      items: array[0],
-      length: array[1],
+      items: array.items,
+      length: array.length,
     });
   },
 );

@@ -2,7 +2,7 @@ import {
   Lamports,
   Pubkey,
   base64Decode,
-  jsonDecoderArrayToTuple,
+  jsonDecoderArrayToObject,
   jsonDecoderConst,
   jsonDecoderObject,
   jsonDecoderOptional,
@@ -47,7 +47,7 @@ export async function rpcHttpGetAccountWithData(
   const executable = value.executable;
   const lamports = BigInt(value.lamports);
   const owner = value.owner;
-  const data = base64Decode(value.data[0]!);
+  const data = base64Decode(value.data.encoded);
   if (data.length != value.space) {
     throw new Error(
       `RpcHttp: Expected account data length (${data.length}) to match space (${value.space})`,
@@ -62,10 +62,10 @@ const resultJsonDecoder = jsonDecoderObject({
       executable: jsonTypeBoolean.decoder,
       lamports: jsonTypeNumber.decoder,
       owner: jsonTypeString.decoder,
-      data: jsonDecoderArrayToTuple([
-        jsonTypeString.decoder,
-        jsonDecoderConst("base64"),
-      ]),
+      data: jsonDecoderArrayToObject({
+        encoded: jsonTypeString.decoder,
+        encoding: jsonDecoderConst("base64"),
+      }),
       space: jsonTypeNumber.decoder,
     }),
   ),
