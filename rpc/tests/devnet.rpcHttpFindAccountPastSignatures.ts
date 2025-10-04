@@ -19,8 +19,9 @@ it("run", async () => {
     pastSignature,
     0,
   );
+  expect(transaction.processedTime).toStrictEqual("2025-08-21T15:26:48.000Z");
   let found = 0;
-  for (const log of transaction.logs) {
+  for (const log of transaction.logs ?? []) {
     if (log.includes("vVeH6Xd43HAScbxjVtvfwDGqBMaMvNDLsAxwM5WK1pG")) {
       found += 1;
     }

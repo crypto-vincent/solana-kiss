@@ -346,6 +346,11 @@ export const jsonTypeFloating: JsonType<number> = {
     return decoded;
   },
 };
+export const jsonTypeDateTime: JsonType<Date> = jsonTypeRemap(
+  jsonTypeString,
+  (unmapped) => new Date(unmapped),
+  (remapped) => remapped.toISOString(),
+);
 
 export function jsonDecoderConst<Const extends boolean | number | string>(
   expected: Const,

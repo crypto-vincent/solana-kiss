@@ -9,14 +9,9 @@ export function approximateLamportsForSols(sols: number): Lamports {
 }
 
 export function lamportsRentExemptionMinimumForSpace(space: number): Lamports {
-  const storageOverheadBytes = 128;
-  const lamportPerByteYear = 3480;
-  const minimumPaidYearsForExemption = 2;
-  return (
-    BigInt(storageOverheadBytes + space) *
-    BigInt(lamportPerByteYear) *
-    BigInt(minimumPaidYearsForExemption)
-  );
+  const storageBytesNeeded = 128n + BigInt(space);
+  return storageBytesNeeded * lamportsFeePerBytePerYear * 2n;
 }
 
+export const lamportsFeePerBytePerYear = 3480n;
 export const lamportsFeePerSigner = 5000n;

@@ -7,8 +7,9 @@ export type Commitment = "confirmed" | "finalized";
 export type Slot = number;
 
 export type Transaction = {
-  slot: Slot;
   message: Message;
+  slot: Slot;
+  processedTime: Date | undefined;
   error: JsonValue | undefined;
   logs: Array<string> | undefined;
   chargedFees: Lamports;

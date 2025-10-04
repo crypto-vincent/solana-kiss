@@ -57,13 +57,16 @@ export async function rpcHttpGetTransaction(
     message.instructions,
   );
   return {
-    slot: result.slot,
     message: {
       payerAddress: accountKeys[0]!,
       instructions: transactionInstructions,
       recentBlockhash: message.recentBlockhash,
     },
-    error: meta.err, // TODO - parse error to find
+    slot: result.slot,
+    processedTime: result.blockTime
+      ? new Date(result.blockTime * 1000)
+      : undefined,
+    error: meta.err, // TODO - parse error to find custom program errors ?
     logs: meta.logMessages, // TODO - parse logs for invocations and event data
     chargedFees: BigInt(meta.fee),
     consumedComputeUnits: meta.computeUnitsConsumed,

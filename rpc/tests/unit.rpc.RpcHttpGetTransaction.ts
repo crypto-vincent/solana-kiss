@@ -9,8 +9,8 @@ it("run", async () => {
   // Check basic stuff about the transaction
   expect(transaction.slot).toStrictEqual(328883613);
   expect(transaction.error).toStrictEqual(null);
-  expect(transaction.logs.length).toStrictEqual(18);
-  expect(transaction.logs[0]).toStrictEqual(
+  expect(transaction.logs?.length).toStrictEqual(18);
+  expect(transaction.logs?.[0]).toStrictEqual(
     "Program ComputeBudget111111111111111111111111111111 invoke [1]",
   );
   expect(transaction.chargedFees).toStrictEqual(32510n);

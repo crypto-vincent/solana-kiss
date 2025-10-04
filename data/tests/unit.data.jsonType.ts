@@ -6,6 +6,7 @@ import {
   jsonTypeArray,
   jsonTypeBoolean,
   jsonTypeConst,
+  jsonTypeDateTime,
   jsonTypeNullable,
   jsonTypeNumber,
   jsonTypeObject,
@@ -94,9 +95,20 @@ it("run", async () => {
       ),
       decoded: "Hello",
     },
+    {
+      encoded: {
+        now: now.toISOString(),
+      },
+      type: jsonTypeObject({
+        now: jsonTypeDateTime,
+      }),
+      decoded: { now },
+    },
   ];
   for (const test of tests) {
     expect(test.type.decoder(test.encoded)).toStrictEqual(test.decoded);
     expect(test.type.encoder(test.decoded)).toStrictEqual(test.encoded);
   }
 });
+
+const now = new Date();
