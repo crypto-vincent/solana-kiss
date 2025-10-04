@@ -23,7 +23,7 @@ export function idlTypedefParse(
   typedefName: string,
   typedefValue: JsonValue,
 ): IdlTypedef {
-  const info = infoJsonDecode(typedefValue);
+  const info = infoJsonDecoder(typedefValue);
   return {
     name: typedefName,
     docs: info.docs,
@@ -34,20 +34,20 @@ export function idlTypedefParse(
   };
 }
 
-const infoJsonDecode = jsonDecoderObject({
-  docs: jsonTypeValue.decode,
-  serialization: jsonDecoderOptional(jsonTypeString.decode),
+const infoJsonDecoder = jsonDecoderObject({
+  docs: jsonTypeValue.decoder,
+  serialization: jsonDecoderOptional(jsonTypeString.decoder),
   repr: jsonDecoderOptional(
     jsonDecoderByKind({
       string: (string: string) => ({ kind: string }),
-      object: jsonDecoderObject({ kind: jsonTypeString.decode }),
+      object: jsonDecoderObject({ kind: jsonTypeString.decoder }),
     }),
   ),
   generics: jsonDecoderOptional(
     jsonDecoderArray(
       jsonDecoderByKind({
         string: (string: string) => ({ name: string }),
-        object: jsonDecoderObject({ name: jsonTypeString.decode }),
+        object: jsonDecoderObject({ name: jsonTypeString.decoder }),
       }),
     ),
   ),

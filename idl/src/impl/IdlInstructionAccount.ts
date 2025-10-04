@@ -77,7 +77,7 @@ export function idlInstructionAccountParse(
   instructionArgsTypeFullFields: IdlTypeFullFields,
   typedefsIdls: Map<string, IdlTypedef>,
 ): IdlInstructionAccount {
-  const info = infoJsonDecode(instructionAccountValue);
+  const info = infoJsonDecoder(instructionAccountValue);
   const pda = withContext(`Idl: Instruction Account: Pda: ${info.name}`, () => {
     if (info.pda === undefined) {
       return undefined;
@@ -110,21 +110,21 @@ export function idlInstructionAccountParse(
   };
 }
 
-const infoJsonDecode = jsonDecoderObject({
-  name: jsonTypeString.decode,
-  docs: jsonTypeValue.decode,
-  signer: jsonDecoderOptional(jsonTypeBoolean.decode),
-  isSigner: jsonDecoderOptional(jsonTypeBoolean.decode),
-  signing: jsonDecoderOptional(jsonTypeBoolean.decode),
-  writable: jsonDecoderOptional(jsonTypeBoolean.decode),
-  isMut: jsonDecoderOptional(jsonTypeBoolean.decode),
-  optional: jsonDecoderOptional(jsonTypeBoolean.decode),
-  isOptional: jsonDecoderOptional(jsonTypeBoolean.decode),
-  address: jsonDecoderOptional(jsonTypeString.decode),
+const infoJsonDecoder = jsonDecoderObject({
+  name: jsonTypeString.decoder,
+  docs: jsonTypeValue.decoder,
+  signer: jsonDecoderOptional(jsonTypeBoolean.decoder),
+  isSigner: jsonDecoderOptional(jsonTypeBoolean.decoder),
+  signing: jsonDecoderOptional(jsonTypeBoolean.decoder),
+  writable: jsonDecoderOptional(jsonTypeBoolean.decoder),
+  isMut: jsonDecoderOptional(jsonTypeBoolean.decoder),
+  optional: jsonDecoderOptional(jsonTypeBoolean.decoder),
+  isOptional: jsonDecoderOptional(jsonTypeBoolean.decoder),
+  address: jsonDecoderOptional(jsonTypeString.decoder),
   pda: jsonDecoderOptional(
     jsonDecoderObject({
-      seeds: jsonDecoderOptional(jsonDecoderArray(jsonTypeValue.decode)),
-      program: jsonDecoderOptional(jsonTypeValue.decode),
+      seeds: jsonDecoderOptional(jsonDecoderArray(jsonTypeValue.decoder)),
+      program: jsonDecoderOptional(jsonTypeValue.decoder),
     }),
   ),
 });

@@ -51,7 +51,7 @@ it("run", async () => {
   ];
   for (const test of tests) {
     expect(test.data).toStrictEqual(
-      test.type.encode(test.type.decode(test.data)),
+      test.type.encoder(test.type.decoder(test.data)),
     );
   }
 });

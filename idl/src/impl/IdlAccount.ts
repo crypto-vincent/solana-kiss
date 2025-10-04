@@ -18,7 +18,7 @@ import { IdlTypeFull } from "./IdlTypeFull";
 import { idlTypeFullDeserialize } from "./IdlTypeFullDeserialize";
 import { idlTypeFullSerialize } from "./IdlTypeFullSerialize";
 import {
-  idlUtilsBytesJsonDecode,
+  idlUtilsBytesJsonDecoder,
   idlUtilsDiscriminator,
   idlUtilsExpectBlobAt,
   idlUtilsFlattenBlobs,
@@ -89,7 +89,7 @@ export function idlAccountParse(
   accountValue: JsonValue,
   typedefsIdls: Map<string, IdlTypedef>,
 ): IdlAccount {
-  const info = infoJsonDecode(accountValue);
+  const info = infoJsonDecoder(accountValue);
   const contentTypeFlat = idlTypeFlatParseIsPossible(accountValue)
     ? idlTypeFlatParse(accountValue)
     : idlTypeFlatParse(accountName);
@@ -110,16 +110,16 @@ export function idlAccountParse(
   };
 }
 
-const infoJsonDecode = jsonDecoderObject({
-  docs: jsonTypeValue.decode,
-  space: jsonDecoderOptional(jsonTypeNumber.decode),
+const infoJsonDecoder = jsonDecoderObject({
+  docs: jsonTypeValue.decoder,
+  space: jsonDecoderOptional(jsonTypeNumber.decoder),
   blobs: jsonDecoderOptional(
     jsonDecoderArray(
       jsonDecoderObject({
-        offset: jsonTypeNumber.decode,
-        bytes: idlUtilsBytesJsonDecode,
+        offset: jsonTypeNumber.decoder,
+        bytes: idlUtilsBytesJsonDecoder,
       }),
     ),
   ),
-  discriminator: jsonDecoderOptional(idlUtilsBytesJsonDecode),
+  discriminator: jsonDecoderOptional(idlUtilsBytesJsonDecoder),
 });

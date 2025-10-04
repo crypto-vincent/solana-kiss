@@ -13,18 +13,18 @@ export async function rpcHttpGetLatestBlockhash(
     commitment?: Commitment;
   },
 ): Promise<Blockhash> {
-  const result = resultDecode(
+  const result = resultJsonDecoder(
     await rpcHttp("getLatestBlockhash", [{ commitment: context?.commitment }]),
   );
   return result.value.blockhash;
 }
 
-const resultDecode = jsonDecoderObject({
+const resultJsonDecoder = jsonDecoderObject({
   context: jsonDecoderObject({
-    slot: jsonTypeNumber.decode,
+    slot: jsonTypeNumber.decoder,
   }),
   value: jsonDecoderObject({
-    blockhash: jsonTypeString.decode,
-    lastValidBlockHeight: jsonTypeNumber.decode,
+    blockhash: jsonTypeString.decoder,
+    lastValidBlockHeight: jsonTypeNumber.decoder,
   }),
 });

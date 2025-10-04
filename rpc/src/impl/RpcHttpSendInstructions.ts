@@ -32,7 +32,7 @@ export async function rpcHttpSendInstructions(
     recentBlockhash,
   });
   const messageSigned = await messageSign(messageCompiled, signers);
-  return jsonTypeString.decode(
+  return jsonTypeString.decoder(
     await rpcHttp("sendTransaction", [
       base64Encode(messageSigned),
       {

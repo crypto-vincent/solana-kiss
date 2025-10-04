@@ -27,7 +27,7 @@ import { IdlTypeFull, IdlTypeFullFields } from "./IdlTypeFull";
 import { idlTypeFullFieldsDeserialize } from "./IdlTypeFullDeserialize";
 import { idlTypeFullFieldsSerialize } from "./IdlTypeFullSerialize";
 import {
-  idlUtilsBytesJsonDecode,
+  idlUtilsBytesJsonDecoder,
   idlUtilsDiscriminator,
   idlUtilsExpectBlobAt,
   idlUtilsFlattenBlobs,
@@ -277,7 +277,7 @@ export function idlInstructionParse(
   instructionValue: JsonValue,
   typedefsIdls: Map<string, IdlTypedef>,
 ): IdlInstruction {
-  const info = infoJsonDecode(instructionValue);
+  const info = infoJsonDecoder(instructionValue);
   const argsTypeFlatFields = info.args ?? IdlTypeFlatFields.nothing();
   const argsTypeFullFields = idlTypeFlatFieldsHydrate(
     argsTypeFlatFields,
@@ -310,10 +310,10 @@ export function idlInstructionParse(
   };
 }
 
-const infoJsonDecode = jsonDecoderObject({
-  docs: jsonTypeValue.decode,
-  discriminator: jsonDecoderOptional(idlUtilsBytesJsonDecode),
+const infoJsonDecoder = jsonDecoderObject({
+  docs: jsonTypeValue.decoder,
+  discriminator: jsonDecoderOptional(idlUtilsBytesJsonDecoder),
   args: jsonDecoderOptional(idlTypeFlatFieldsParse),
   returns: jsonDecoderOptional(idlTypeFlatParse),
-  accounts: jsonDecoderOptional(jsonTypeArrayRaw.decode),
+  accounts: jsonDecoderOptional(jsonTypeArrayRaw.decoder),
 });

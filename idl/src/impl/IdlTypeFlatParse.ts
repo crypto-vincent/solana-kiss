@@ -1,5 +1,5 @@
 import {
-  JsonDecode,
+  JsonDecoder,
   JsonValue,
   camelCaseToSnakeCase,
   jsonAsObject,
@@ -22,7 +22,10 @@ import {
 } from "./IdlTypeFlat";
 import { IdlTypePrefix } from "./IdlTypePrefix";
 import { IdlTypePrimitive } from "./IdlTypePrimitive";
-import { idlUtilsBytesJsonDecode, idlUtilsIntegerJsonDecode } from "./IdlUtils";
+import {
+  idlUtilsBytesJsonDecoder,
+  idlUtilsIntegerJsonDecoder,
+} from "./IdlUtils";
 
 export function idlTypeFlatParseIsPossible(value: JsonValue): boolean {
   const object = jsonAsObject(value);
@@ -61,14 +64,14 @@ export function idlTypeFlatParseIsPossible(value: JsonValue): boolean {
 }
 
 export function idlTypeFlatParse(value: JsonValue): IdlTypeFlat {
-  return valueJsonDecode(value);
+  return valueJsonDecoder(value);
 }
 
 export function idlTypeFlatFieldsParse(value: JsonValue): IdlTypeFlatFields {
-  return fieldsJsonDecode(value);
+  return fieldsJsonDecoder(value);
 }
 
-const arrayJsonDecode = jsonDecoderRemap(
+const arrayJsonDecoder = jsonDecoderRemap(
   jsonDecoderArrayToTuple([
     idlTypeFlatParse,
     jsonDecoderOptional(idlTypeFlatParse),
@@ -87,23 +90,23 @@ const arrayJsonDecode = jsonDecoderRemap(
   },
 );
 
-const fieldsItemInfoJsonDecode = jsonDecoderByKind({
+const fieldsItemInfoJsonDecoder = jsonDecoderByKind({
   string: () => ({ name: undefined, docs: undefined }),
   array: () => ({ name: undefined, docs: undefined }),
   object: jsonDecoderObject({
-    name: jsonDecoderOptional(jsonTypeString.decode),
-    docs: jsonTypeValue.decode,
+    name: jsonDecoderOptional(jsonTypeString.decoder),
+    docs: jsonTypeValue.decoder,
   }),
 });
 function fieldsItemJsonDecode(value: JsonValue) {
-  const info = fieldsItemInfoJsonDecode(value);
+  const info = fieldsItemInfoJsonDecoder(value);
   return {
     name: info.name,
     docs: info.docs,
     content: idlTypeFlatParse(value),
   };
 }
-const fieldsJsonDecode = jsonDecoderByKind({
+const fieldsJsonDecoder: JsonDecoder<IdlTypeFlatFields> = jsonDecoderByKind({
   undefined: () => IdlTypeFlatFields.nothing(),
   null: () => IdlTypeFlatFields.nothing(),
   array: jsonDecoderRemap(
@@ -136,7 +139,7 @@ const fieldsJsonDecode = jsonDecoderByKind({
   ),
 });
 
-const variantsArrayItemJsonDecode = jsonDecoderByKind<{
+const variantsArrayItemJsonDecoder = jsonDecoderByKind<{
   name: string | undefined;
   code: bigint | undefined;
   docs: JsonValue;
@@ -155,13 +158,13 @@ const variantsArrayItemJsonDecode = jsonDecoderByKind<{
     fields: IdlTypeFlatFields.nothing(),
   }),
   object: jsonDecoderObject({
-    name: jsonDecoderOptional(jsonTypeString.decode),
-    code: jsonDecoderOptional(idlUtilsIntegerJsonDecode),
-    docs: jsonTypeValue.decode,
-    fields: fieldsJsonDecode,
+    name: jsonDecoderOptional(jsonTypeString.decoder),
+    code: jsonDecoderOptional(idlUtilsIntegerJsonDecoder),
+    docs: jsonTypeValue.decoder,
+    fields: fieldsJsonDecoder,
   }),
 });
-const variantsObjectValueJsonDecode = jsonDecoderByKind<{
+const variantsObjectValueJsonDecoder = jsonDecoderByKind<{
   code: bigint;
   docs: JsonValue;
   fields: IdlTypeFlatFields;
@@ -177,14 +180,14 @@ const variantsObjectValueJsonDecode = jsonDecoderByKind<{
     fields: IdlTypeFlatFields.nothing(),
   }),
   object: jsonDecoderObject({
-    code: idlUtilsIntegerJsonDecode,
-    docs: jsonTypeValue.decode,
-    fields: fieldsJsonDecode,
+    code: idlUtilsIntegerJsonDecoder,
+    docs: jsonTypeValue.decoder,
+    fields: fieldsJsonDecoder,
   }),
 });
-const variantsJsonDecode = jsonDecoderByKind({
+const variantsJsonDecoder = jsonDecoderByKind({
   array: jsonDecoderRemap(
-    jsonDecoderArray(variantsArrayItemJsonDecode),
+    jsonDecoderArray(variantsArrayItemJsonDecoder),
     (variantsArray) =>
       variantsArray.map((variantInfo, variantIndex) => {
         const code = variantInfo.code ?? BigInt(variantIndex);
@@ -197,7 +200,7 @@ const variantsJsonDecode = jsonDecoderByKind({
       }),
   ),
   object: jsonDecoderRemap(
-    jsonDecoderObjectToMap(variantsObjectValueJsonDecode),
+    jsonDecoderObjectToMap(variantsObjectValueJsonDecoder),
     (variantsMap) => {
       const variants = new Array<IdlTypeFlatEnumVariant>();
       for (const [variantName, variantInfo] of variantsMap) {
@@ -213,14 +216,14 @@ const variantsJsonDecode = jsonDecoderByKind({
   ),
 });
 
-const objectDefinedJsonDecode = jsonDecoderRemap(
+const objectDefinedJsonDecoder = jsonDecoderRemap(
   jsonDecoderByKind({
     string: (string: string) => ({
       name: string,
       generics: undefined,
     }),
     object: jsonDecoderObject({
-      name: jsonTypeString.decode,
+      name: jsonTypeString.decoder,
       generics: jsonDecoderOptional(jsonDecoderArray(idlTypeFlatParse)),
     }),
   }),
@@ -231,35 +234,31 @@ const objectDefinedJsonDecode = jsonDecoderRemap(
     }),
 );
 
-function objectOptionJsonDecoder(
-  prefix: IdlTypePrefix,
-): JsonDecode<IdlTypeFlat> {
+function objectOptionJsonDecoder(prefix: IdlTypePrefix) {
   return jsonDecoderRemap(idlTypeFlatParse, (content) =>
     IdlTypeFlat.option({ prefix, content }),
   );
 }
 
-function objectVecJsonDecoder(prefix: IdlTypePrefix): JsonDecode<IdlTypeFlat> {
+function objectVecJsonDecoder(prefix: IdlTypePrefix) {
   return jsonDecoderRemap(idlTypeFlatParse, (items) =>
     IdlTypeFlat.vec({ prefix, items }),
   );
 }
 
-function objectVariantsJsonDecoder(
-  prefix: IdlTypePrefix,
-): JsonDecode<IdlTypeFlat> {
-  return jsonDecoderRemap(variantsJsonDecode, (variants) =>
+function objectVariantsJsonDecoder(prefix: IdlTypePrefix) {
+  return jsonDecoderRemap(variantsJsonDecoder, (variants) =>
     IdlTypeFlat.enum({ prefix, variants }),
   );
 }
 
-const objectPaddedInfoJsonDecode = jsonDecoderObject({
-  before: jsonDecoderOptional(jsonTypeNumber.decode),
-  min_size: jsonDecoderOptional(jsonTypeNumber.decode),
-  after: jsonDecoderOptional(jsonTypeNumber.decode),
+const objectPaddedInfoJsonDecoder = jsonDecoderObject({
+  before: jsonDecoderOptional(jsonTypeNumber.decoder),
+  min_size: jsonDecoderOptional(jsonTypeNumber.decoder),
+  after: jsonDecoderOptional(jsonTypeNumber.decoder),
 });
 function objectPaddedJsonDecode(value: JsonValue): IdlTypeFlat {
-  const info = objectPaddedInfoJsonDecode(value);
+  const info = objectPaddedInfoJsonDecoder(value);
   return IdlTypeFlat.padded({
     before: info.before,
     minSize: info.min_size,
@@ -270,18 +269,18 @@ function objectPaddedJsonDecode(value: JsonValue): IdlTypeFlat {
   });
 }
 
-const objectBlobInfoJsonDecode = jsonDecoderObject({
-  bytes: idlUtilsBytesJsonDecode,
+const objectBlobInfoJsonDecoder = jsonDecoderObject({
+  bytes: idlUtilsBytesJsonDecoder,
 });
 function objectBlobJsonDecode(value: JsonValue): IdlTypeFlat {
-  const info = objectBlobInfoJsonDecode(value);
+  const info = objectBlobInfoJsonDecoder(value);
   return IdlTypeFlat.blob({ bytes: info.bytes });
 }
 
-const objectJsonDecode: JsonDecode<IdlTypeFlat> = jsonDecoderAsEnum({
+const objectJsonDecoder: JsonDecoder<IdlTypeFlat> = jsonDecoderAsEnum({
   type: idlTypeFlatParse,
-  defined: objectDefinedJsonDecode,
-  generic: jsonDecoderRemap(jsonTypeString.decode, (string: string) =>
+  defined: objectDefinedJsonDecoder,
+  generic: jsonDecoderRemap(jsonTypeString.decoder, (string: string) =>
     IdlTypeFlat.generic({ symbol: string }),
   ),
   option: objectOptionJsonDecoder(IdlTypePrefix.u8),
@@ -296,8 +295,8 @@ const objectJsonDecode: JsonDecode<IdlTypeFlat> = jsonDecoderAsEnum({
   vec32: objectVecJsonDecoder(IdlTypePrefix.u32),
   vec64: objectVecJsonDecoder(IdlTypePrefix.u64),
   vec128: objectVecJsonDecoder(IdlTypePrefix.u128),
-  array: arrayJsonDecode,
-  fields: jsonDecoderRemap(fieldsJsonDecode, (fields: IdlTypeFlatFields) =>
+  array: arrayJsonDecoder,
+  fields: jsonDecoderRemap(fieldsJsonDecoder, (fields: IdlTypeFlatFields) =>
     IdlTypeFlat.struct({ fields }),
   ),
   variants: objectVariantsJsonDecoder(IdlTypePrefix.u8),
@@ -308,19 +307,12 @@ const objectJsonDecode: JsonDecode<IdlTypeFlat> = jsonDecoderAsEnum({
   variants128: objectVariantsJsonDecoder(IdlTypePrefix.u128),
   padded: objectPaddedJsonDecode,
   blob: objectBlobJsonDecode,
-  value: jsonDecoderRemap(jsonTypeString.decode, (string: string) =>
+  value: jsonDecoderRemap(jsonTypeString.decoder, (string: string) =>
     IdlTypeFlat.const({ literal: Number(string) }),
   ),
 });
 
 const stringToPreset = new Map<string, IdlTypeFlat>([
-  [
-    "bytes",
-    IdlTypeFlat.vec({
-      prefix: IdlTypePrefix.u32,
-      items: IdlTypeFlat.primitive(IdlTypePrimitive.u8),
-    }),
-  ],
   ["publicKey", IdlTypeFlat.primitive(IdlTypePrimitive.pubkey)],
   ["string", IdlTypeFlat.string({ prefix: IdlTypePrefix.u32 })],
   ["string8", IdlTypeFlat.string({ prefix: IdlTypePrefix.u8 })],
@@ -328,9 +320,16 @@ const stringToPreset = new Map<string, IdlTypeFlat>([
   ["string32", IdlTypeFlat.string({ prefix: IdlTypePrefix.u32 })],
   ["string64", IdlTypeFlat.string({ prefix: IdlTypePrefix.u64 })],
   ["string128", IdlTypeFlat.string({ prefix: IdlTypePrefix.u128 })],
+  [
+    "bytes",
+    IdlTypeFlat.vec({
+      prefix: IdlTypePrefix.u32,
+      items: IdlTypeFlat.primitive(IdlTypePrimitive.u8),
+    }),
+  ],
 ]);
 
-const valueJsonDecode: JsonDecode<IdlTypeFlat> = jsonDecoderByKind({
+const valueJsonDecoder: JsonDecoder<IdlTypeFlat> = jsonDecoderByKind({
   null: () => {
     return IdlTypeFlat.structNothing();
   },
@@ -351,6 +350,6 @@ const valueJsonDecode: JsonDecode<IdlTypeFlat> = jsonDecoderByKind({
       generics: [],
     });
   },
-  array: arrayJsonDecode,
-  object: objectJsonDecode,
+  array: arrayJsonDecoder,
+  object: objectJsonDecoder,
 });

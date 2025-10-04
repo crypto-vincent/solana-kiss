@@ -2,7 +2,7 @@ import {
   Immutable,
   jsonDecoderObject,
   jsonDecoderOptional,
-  jsonTypeValue.decode,
+  jsonTypeValue,
   JsonValue,
 } from "solana-kiss-data";
 import { IdlTypedef } from "./IdlTypedef";
@@ -16,7 +16,7 @@ import { IdlTypeFull } from "./IdlTypeFull";
 import { idlTypeFullDeserialize } from "./IdlTypeFullDeserialize";
 import { idlTypeFullSerialize } from "./IdlTypeFullSerialize";
 import {
-  idlUtilsBytesJsonDecode,
+  idlUtilsBytesJsonDecoder,
   idlUtilsDiscriminator,
   idlUtilsExpectBlobAt,
   idlUtilsFlattenBlobs,
@@ -70,7 +70,7 @@ export function idlEventParse(
   eventValue: JsonValue,
   typedefsIdls: Map<string, IdlTypedef>,
 ): IdlEvent {
-  const info = infoJsonDecode(eventValue);
+  const info = infoJsonDecoder(eventValue);
   const infoTypeFlat = idlTypeFlatParseIsPossible(eventValue)
     ? idlTypeFlatParse(eventValue)
     : idlTypeFlatParse(eventName);
@@ -89,7 +89,7 @@ export function idlEventParse(
   };
 }
 
-const infoJsonDecode = jsonDecoderObject({
-  docs: jsonTypeValue.decode,
-  discriminator: jsonDecoderOptional(idlUtilsBytesJsonDecode),
+const infoJsonDecoder = jsonDecoderObject({
+  docs: jsonTypeValue.decoder,
+  discriminator: jsonDecoderOptional(idlUtilsBytesJsonDecoder),
 });

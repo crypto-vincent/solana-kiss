@@ -23,7 +23,7 @@ export async function rpcHttpGetAccountMetadata(
   owner: Pubkey;
   space: number;
 }> {
-  const result = resultDecode(
+  const result = resultJsonDecoder(
     await rpcHttp("getAccountInfo", [
       accountAddress,
       {
@@ -49,13 +49,13 @@ export async function rpcHttpGetAccountMetadata(
   return { executable, lamports, owner, space };
 }
 
-const resultDecode = jsonDecoderObject({
+const resultJsonDecoder = jsonDecoderObject({
   value: jsonDecoderNullable(
     jsonDecoderObject({
-      executable: jsonTypeBoolean.decode,
-      lamports: jsonTypeNumber.decode,
-      owner: jsonTypeString.decode,
-      space: jsonTypeNumber.decode,
+      executable: jsonTypeBoolean.decoder,
+      lamports: jsonTypeNumber.decoder,
+      owner: jsonTypeString.decoder,
+      space: jsonTypeNumber.decoder,
     }),
   ),
 });

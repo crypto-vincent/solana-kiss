@@ -14,7 +14,7 @@ export async function rpcHttpGetAccountLamports(
     commitment?: Commitment;
   },
 ): Promise<Lamports> {
-  const result = resultDecode(
+  const result = resultJsonDecoder(
     await rpcHttp("getBalance", [
       accountAddress,
       { commitment: context?.commitment },
@@ -23,6 +23,6 @@ export async function rpcHttpGetAccountLamports(
   return BigInt(result.value);
 }
 
-const resultDecode = jsonDecoderObject({
-  value: jsonTypeNumber.decode,
+const resultJsonDecoder = jsonDecoderObject({
+  value: jsonTypeNumber.decoder,
 });

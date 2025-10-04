@@ -95,7 +95,7 @@ async function assertAccountInfo(
   const accountIdl = idlProgramGuessAccount(programIdl, accountInfo.data)!;
   const accountState = idlAccountDecode(accountIdl, accountInfo.data);
   expect(accountIdl.name).toStrictEqual(accountName);
-  expect(jsonTypeObjectRaw.decode(accountState)[accountStateKey]).toStrictEqual(
-    accountStateValue,
-  );
+  expect(
+    jsonTypeObjectRaw.decoder(accountState)[accountStateKey],
+  ).toStrictEqual(accountStateValue);
 }

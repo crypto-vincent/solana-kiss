@@ -89,7 +89,7 @@ export function idlInstructionBlobParse(
   instructionArgsTypeFullFields: IdlTypeFullFields,
   typedefsIdls: Map<string, IdlTypedef>,
 ): IdlInstructionBlob {
-  const info = infoJsonDecode(instructionBlobValue);
+  const info = infoJsonDecoder(instructionBlobValue);
   if (info.value !== undefined || info.kind === "const") {
     return idlInstructionBlobParseConst(info.value, info.type, typedefsIdls);
   }
@@ -166,17 +166,17 @@ export function idlInstructionBlobParseAccount(
   return IdlInstructionBlob.account({ path, typeFull });
 }
 
-const infoJsonDecode = jsonDecoderByKind<{
+const infoJsonDecoder = jsonDecoderByKind<{
   value: JsonValue;
   type: IdlTypeFlat | undefined;
   kind: string | undefined;
   path: string | undefined;
 }>({
   object: jsonDecoderObject({
-    value: jsonTypeValue.decode,
+    value: jsonTypeValue.decoder,
     type: jsonDecoderOptional(idlTypeFlatParse),
-    kind: jsonDecoderOptional(jsonTypeString.decode),
-    path: jsonDecoderOptional(jsonTypeString.decode),
+    kind: jsonDecoderOptional(jsonTypeString.decoder),
+    path: jsonDecoderOptional(jsonTypeString.decoder),
   }),
   string: (string: string) => ({
     value: string,

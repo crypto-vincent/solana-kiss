@@ -18,7 +18,7 @@ export type IdlMetadata = {
 
 export function idlMetadataParse(value: JsonValue): IdlMetadata {
   return (
-    infoJsonDecode(value) ?? {
+    infoJsonDecoder(value) ?? {
       name: undefined,
       docs: undefined,
       description: undefined,
@@ -29,13 +29,13 @@ export function idlMetadataParse(value: JsonValue): IdlMetadata {
   );
 }
 
-const infoJsonDecode = jsonDecoderOptional(
+const infoJsonDecoder = jsonDecoderOptional(
   jsonDecoderObject({
-    name: jsonDecoderOptional(jsonTypeString.decode),
-    docs: jsonDecoderOptional(jsonTypeValue.decode),
-    description: jsonDecoderOptional(jsonTypeString.decode),
-    address: jsonDecoderOptional(jsonTypeString.decode),
-    version: jsonDecoderOptional(jsonTypeString.decode),
-    spec: jsonDecoderOptional(jsonTypeString.decode),
+    name: jsonDecoderOptional(jsonTypeString.decoder),
+    docs: jsonDecoderOptional(jsonTypeValue.decoder),
+    description: jsonDecoderOptional(jsonTypeString.decoder),
+    address: jsonDecoderOptional(jsonTypeString.decoder),
+    version: jsonDecoderOptional(jsonTypeString.decoder),
+    spec: jsonDecoderOptional(jsonTypeString.decoder),
   }),
 );

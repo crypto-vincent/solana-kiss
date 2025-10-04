@@ -6,7 +6,7 @@ import {
   camelCaseToSnakeCase,
   jsonAsArray,
   jsonAsObject,
-  jsonTypeObjectRaw.decode,
+  jsonTypeObjectRaw,
   jsonTypeString,
   withContext,
 } from "solana-kiss-data";
@@ -91,7 +91,7 @@ export function idlProgramGuessError(
 }
 
 export function idlProgramParse(programValue: JsonValue): IdlProgram {
-  const programObject = jsonTypeObjectRaw.decode(programValue);
+  const programObject = jsonTypeObjectRaw.decoder(programValue);
   const metadata = {
     ...idlMetadataParse(programObject),
     ...idlMetadataParse(programObject["metadata"]),
@@ -146,8 +146,8 @@ function parseScopedNamedValues<T, P>(
   const collectionArray = jsonAsArray(collectionValue);
   if (collectionArray !== undefined) {
     for (const itemValue of collectionArray) {
-      const itemObject = jsonTypeObjectRaw.decode(itemValue);
-      let itemName = jsonTypeString.decode(itemObject["name"]);
+      const itemObject = jsonTypeObjectRaw.decoder(itemValue);
+      let itemName = jsonTypeString.decoder(itemObject["name"]);
       if (convertNameToSnakeCase) {
         itemName = camelCaseToSnakeCase(itemName);
       }

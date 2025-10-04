@@ -27,7 +27,7 @@ export function idlErrorParse(
   errorName: string,
   errorValue: JsonValue,
 ): IdlError {
-  const info = infoJsonDecode(errorValue);
+  const info = infoJsonDecoder(errorValue);
   return {
     name: errorName,
     docs: info.docs,
@@ -36,7 +36,7 @@ export function idlErrorParse(
   };
 }
 
-export const infoJsonDecode = jsonDecoderByKind<{
+export const infoJsonDecoder = jsonDecoderByKind<{
   docs: JsonValue;
   code: number;
   msg: string | undefined;
@@ -47,8 +47,8 @@ export const infoJsonDecode = jsonDecoderByKind<{
     msg: undefined,
   }),
   object: jsonDecoderObject({
-    docs: jsonTypeValue.decode,
-    code: jsonTypeNumber.decode,
-    msg: jsonDecoderOptional(jsonTypeString.decode),
+    docs: jsonTypeValue.decoder,
+    code: jsonTypeNumber.decoder,
+    msg: jsonDecoderOptional(jsonTypeString.decoder),
   }),
 });

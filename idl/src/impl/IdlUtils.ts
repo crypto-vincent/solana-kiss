@@ -22,31 +22,31 @@ import { idlTypeFlatHydrate } from "./IdlTypeFlatHydrate";
 import { idlTypeFlatParse } from "./IdlTypeFlatParse";
 import { idlTypeFullSerialize } from "./IdlTypeFullSerialize";
 
-export const idlUtilsIntegerJsonDecode = jsonDecoderByKind({
+export const idlUtilsIntegerJsonDecoder = jsonDecoderByKind({
   number: (number: number) => BigInt(number),
   string: (string: string) => BigInt(string),
 });
 
-export const idlUtilsFloatingJsonDecode = jsonDecoderByKind({
+export const idlUtilsFloatingJsonDecoder = jsonDecoderByKind({
   number: (number: number) => number,
   string: (string: string) => Number(string),
 });
 
-export const idlUtilsBytesJsonDecode = jsonDecoderByKind({
+export const idlUtilsBytesJsonDecoder = jsonDecoderByKind({
   string: (string: string) => {
     return new TextEncoder().encode(string);
   },
   array: (array: JsonArray) => {
-    return new Uint8Array(array.map(jsonTypeNumber.decode));
+    return new Uint8Array(array.map(jsonTypeNumber.decoder));
   },
   object: jsonDecoderRemap(
     jsonDecoderObject({
-      base16: jsonDecoderOptional(jsonTypeString.decode),
-      base58: jsonDecoderOptional(jsonTypeString.decode),
-      base64: jsonDecoderOptional(jsonTypeString.decode),
-      value: jsonTypeValue.decode,
+      base16: jsonDecoderOptional(jsonTypeString.decoder),
+      base58: jsonDecoderOptional(jsonTypeString.decoder),
+      base64: jsonDecoderOptional(jsonTypeString.decoder),
+      value: jsonTypeValue.decoder,
       type: jsonDecoderOptional(idlTypeFlatParse),
-      prefixed: jsonDecoderOptional(jsonTypeBoolean.decode),
+      prefixed: jsonDecoderOptional(jsonTypeBoolean.decoder),
     }),
     (info) => {
       if (info.base16 !== undefined) {

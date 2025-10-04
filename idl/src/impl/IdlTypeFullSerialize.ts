@@ -29,7 +29,7 @@ import {
   IdlTypePrimitive,
   idlTypePrimitiveSerialize,
 } from "./IdlTypePrimitive";
-import { idlUtilsBytesJsonDecode } from "./IdlUtils";
+import { idlUtilsBytesJsonDecoder } from "./IdlUtils";
 
 export function idlTypeFullSerialize(
   typeFull: IdlTypeFull,
@@ -80,14 +80,14 @@ const visitorSerialize = {
     prefixed: boolean,
   ) => {
     if (self.items.isPrimitive(IdlTypePrimitive.u8)) {
-      const bytes = idlUtilsBytesJsonDecode(value);
+      const bytes = idlUtilsBytesJsonDecoder(value);
       if (prefixed) {
         idlTypePrefixSerialize(self.prefix, BigInt(bytes.length), blobs);
       }
       blobs.push(bytes);
       return;
     }
-    const array = jsonTypeArrayRaw(value);
+    const array = jsonTypeArrayRaw.decoder(value);
     if (prefixed) {
       idlTypePrefixSerialize(self.prefix, BigInt(array.length), blobs);
     }
@@ -102,7 +102,7 @@ const visitorSerialize = {
     prefixed: boolean,
   ) => {
     if (self.items.isPrimitive(IdlTypePrimitive.u8)) {
-      const bytes = idlUtilsBytesJsonDecode(value);
+      const bytes = idlUtilsBytesJsonDecoder(value);
       if (bytes.length != self.length) {
         throw new Error(
           `Expected an array of size: ${self.length}, found: ${bytes.length}`,
@@ -111,7 +111,7 @@ const visitorSerialize = {
       blobs.push(bytes);
       return;
     }
-    const array = jsonTypeArrayRaw(value);
+    const array = jsonTypeArrayRaw.decoder(value);
     if (array.length != self.length) {
       throw new Error(
         `Expected an array of size: ${self.length}, found: ${array.length}`,
@@ -127,7 +127,7 @@ const visitorSerialize = {
     blobs: Array<Uint8Array>,
     prefixed: boolean,
   ) => {
-    const string = jsonTypeString.decode(value);
+    const string = jsonTypeString.decoder(value);
     const bytes = new TextEncoder().encode(string);
     if (prefixed) {
       idlTypePrefixSerialize(self.prefix, BigInt(bytes.length), blobs);
@@ -255,7 +255,7 @@ const visitorFieldsSerialize = {
     blobs: Array<Uint8Array>,
     prefixed: boolean,
   ) => {
-    const object = jsonTypeObjectRaw(value);
+    const object = jsonTypeObjectRaw.decoder(value);
     for (const field of self) {
       withContext(`Serialize: Field: ${field.name}`, () => {
         idlTypeFullSerialize(
@@ -273,7 +273,7 @@ const visitorFieldsSerialize = {
     blobs: Array<Uint8Array>,
     prefixed: boolean,
   ) => {
-    const array = jsonTypeArrayRaw(value);
+    const array = jsonTypeArrayRaw.decoder(value);
     for (const field of self) {
       withContext(`Serialize: Field: ${field.position}`, () => {
         idlTypeFullSerialize(
