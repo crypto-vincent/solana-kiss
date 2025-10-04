@@ -1,14 +1,12 @@
 import {
   JsonValue,
   jsonTypeBoolean,
+  jsonTypeFloating,
+  jsonTypeInteger,
   jsonTypeString,
   pubkeyFromBytes,
   pubkeyToBytes,
 } from "solana-kiss-data";
-import {
-  idlUtilsFloatingJsonDecoder,
-  idlUtilsIntegerJsonDecoder,
-} from "./IdlUtils";
 
 export class IdlTypePrimitive {
   public static readonly u8 = new IdlTypePrimitive("u8", 1, 1);
@@ -110,52 +108,52 @@ export function idlTypePrimitiveDeserialize(
 
 const visitorSerialize = {
   u8: (blob: Uint8Array, value: JsonValue) => {
-    const num = idlUtilsIntegerJsonDecoder(value);
+    const num = jsonTypeInteger.decoder(value);
     blob[0] = Number(num);
   },
   u16: (blob: Uint8Array, value: JsonValue) => {
-    const num = idlUtilsIntegerJsonDecoder(value);
+    const num = jsonTypeInteger.decoder(value);
     const data = new DataView(blob.buffer);
     data.setUint16(0, Number(num), true);
   },
   u32: (blob: Uint8Array, value: JsonValue) => {
-    const num = idlUtilsIntegerJsonDecoder(value);
+    const num = jsonTypeInteger.decoder(value);
     const data = new DataView(blob.buffer);
     data.setUint32(0, Number(num), true);
   },
   u64: (blob: Uint8Array, value: JsonValue) => {
-    const num = idlUtilsIntegerJsonDecoder(value);
+    const num = jsonTypeInteger.decoder(value);
     const data = new DataView(blob.buffer);
     data.setBigUint64(0, num, true);
   },
   u128: (blob: Uint8Array, value: JsonValue) => {
-    const num = idlUtilsIntegerJsonDecoder(value);
+    const num = jsonTypeInteger.decoder(value);
     const data = new DataView(blob.buffer);
     data.setBigUint64(0, num, true);
     data.setBigUint64(8, num >> 64n, true);
   },
   i8: (blob: Uint8Array, value: JsonValue) => {
-    const num = idlUtilsIntegerJsonDecoder(value);
+    const num = jsonTypeInteger.decoder(value);
     const data = new DataView(blob.buffer);
     data.setInt8(0, Number(num));
   },
   i16: (blob: Uint8Array, value: JsonValue) => {
-    const num = idlUtilsIntegerJsonDecoder(value);
+    const num = jsonTypeInteger.decoder(value);
     const data = new DataView(blob.buffer);
     data.setInt16(0, Number(num), true);
   },
   i32: (blob: Uint8Array, value: JsonValue) => {
-    const num = idlUtilsIntegerJsonDecoder(value);
+    const num = jsonTypeInteger.decoder(value);
     const data = new DataView(blob.buffer);
     data.setInt32(0, Number(num), true);
   },
   i64: (blob: Uint8Array, value: JsonValue) => {
-    const num = idlUtilsIntegerJsonDecoder(value);
+    const num = jsonTypeInteger.decoder(value);
     const data = new DataView(blob.buffer);
     data.setBigInt64(0, num, true);
   },
   i128: (blob: Uint8Array, value: JsonValue) => {
-    const num = idlUtilsIntegerJsonDecoder(value);
+    const num = jsonTypeInteger.decoder(value);
     const low = BigInt.asIntN(64, num);
     const high = BigInt.asIntN(64, num >> 64n);
     const data = new DataView(blob.buffer);
@@ -163,12 +161,12 @@ const visitorSerialize = {
     data.setBigInt64(8, high, true);
   },
   f32: (blob: Uint8Array, value: JsonValue) => {
-    const num = idlUtilsFloatingJsonDecoder(value);
+    const num = jsonTypeFloating.decoder(value);
     const data = new DataView(blob.buffer);
     data.setFloat32(0, num, true);
   },
   f64: (blob: Uint8Array, value: JsonValue) => {
-    const num = idlUtilsFloatingJsonDecoder(value);
+    const num = jsonTypeFloating.decoder(value);
     const data = new DataView(blob.buffer);
     data.setFloat64(0, num, true);
   },

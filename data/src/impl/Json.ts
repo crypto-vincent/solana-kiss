@@ -13,6 +13,62 @@ export interface JsonObject {
   [key: string]: JsonValue;
 }
 
+export function jsonAsBoolean(value: JsonValue): boolean | undefined {
+  if (typeof value === "boolean" || value instanceof Boolean) {
+    return value as boolean;
+  }
+  return undefined;
+}
+export function jsonAsNumber(value: JsonValue): number | undefined {
+  if (typeof value === "number" || value instanceof Number) {
+    return value as number;
+  }
+  return undefined;
+}
+export function jsonAsString(value: JsonValue): string | undefined {
+  if (typeof value === "string" || value instanceof String) {
+    return value as string;
+  }
+  return undefined;
+}
+export function jsonAsArray(value: JsonValue): JsonArray | undefined {
+  if (Array.isArray(value)) {
+    return value as JsonArray;
+  }
+  return undefined;
+}
+export function jsonAsObject(value: JsonValue): JsonObject | undefined {
+  if (typeof value === "object" && !Array.isArray(value) && value !== null) {
+    return value as JsonObject;
+  }
+  return undefined;
+}
+
+export function jsonKind(value: JsonValue): string {
+  if (value === undefined) {
+    return "undefined";
+  }
+  if (value === null) {
+    return "null";
+  }
+  if (jsonAsBoolean(value) !== undefined) {
+    return "boolean";
+  }
+  if (jsonAsNumber(value) !== undefined) {
+    return "number";
+  }
+  if (jsonAsString(value) !== undefined) {
+    return "string";
+  }
+  if (jsonAsArray(value) !== undefined) {
+    return "array";
+  }
+  if (jsonAsObject(value) !== undefined) {
+    return "object";
+  }
+  throw new Error(`JSON: Unknown value: ${value?.toString()}`);
+}
+
 export function jsonPreview(value: JsonValue): string {
   if (value === undefined) {
     return "undefined";
@@ -53,37 +109,6 @@ export function jsonPreview(value: JsonValue): string {
     return `${entries.length}x{${previews}}`;
   }
   throw new Error(`JSON: Unknown value: ${value?.toString()}`);
-}
-
-export function jsonAsBoolean(value: JsonValue): boolean | undefined {
-  if (typeof value === "boolean" || value instanceof Boolean) {
-    return value as boolean;
-  }
-  return undefined;
-}
-export function jsonAsNumber(value: JsonValue): number | undefined {
-  if (typeof value === "number" || value instanceof Number) {
-    return value as number;
-  }
-  return undefined;
-}
-export function jsonAsString(value: JsonValue): string | undefined {
-  if (typeof value === "string" || value instanceof String) {
-    return value as string;
-  }
-  return undefined;
-}
-export function jsonAsArray(value: JsonValue): JsonArray | undefined {
-  if (Array.isArray(value)) {
-    return value as JsonArray;
-  }
-  return undefined;
-}
-export function jsonAsObject(value: JsonValue): JsonObject | undefined {
-  if (typeof value === "object" && !Array.isArray(value) && value !== null) {
-    return value as JsonObject;
-  }
-  return undefined;
 }
 
 export function jsonIsDeepEqual(
@@ -311,6 +336,15 @@ export const jsonTypeInteger: JsonType<bigint> = {
   }),
   encoder: (decoded: Immutable<bigint>): JsonValue => {
     return String(decoded);
+  },
+};
+export const jsonTypeFloating: JsonType<number> = {
+  decoder: jsonDecoderByKind({
+    number: (number: number) => number,
+    string: (string: string) => Number(string),
+  }),
+  encoder: (decoded: Immutable<number>): JsonValue => {
+    return decoded;
   },
 };
 
@@ -560,6 +594,34 @@ export function jsonTypeObjectToMap<Value>(
   };
 }
 
+export function jsonDecoderObjectKey<Content>(
+  contentDecoder: JsonDecoder<Content>,
+  key: string,
+): JsonDecoder<Content> {
+  return jsonDecoderRemap(
+    jsonDecoderObject({ [key]: contentDecoder }),
+    (unmapped) => unmapped[key]!,
+  );
+}
+export function jsonEncoderObjectKey<Content>(
+  contentEncode: JsonEncoder<Content>,
+  key: string,
+): JsonEncoder<Content> {
+  return jsonEncoderRemap(
+    jsonEncoderObject({ [key]: contentEncode }),
+    (remapped) => ({ [key]: remapped }),
+  );
+}
+export function jsonTypeObjectKey<Content>(
+  contentType: JsonType<Content>,
+  key: string,
+): JsonType<Content> {
+  return {
+    decoder: jsonDecoderObjectKey(contentType.decoder, key),
+    encoder: jsonEncoderObjectKey(contentType.encoder, key),
+  };
+}
+
 export function jsonDecoderNullable<Content>(
   contentDecoder: JsonDecoder<Content>,
 ): JsonDecoder<Content | null> {
@@ -645,6 +707,24 @@ export function jsonTypeRemap<Remapped, Unmapped>(
   };
 }
 
+export function jsonDecoderCascade<Content>(
+  decoders: Array<(value: JsonValue) => Content>,
+): JsonDecoder<Content> {
+  return (encoded: JsonValue): Content => {
+    const errors = new Array();
+    for (const decoder of decoders) {
+      try {
+        return decoder(encoded);
+      } catch (error) {
+        errors.push(error);
+      }
+    }
+    const separator = "\n---\n >> JSON: Decode error: ";
+    throw new Error(
+      `JSON: Decode with cascades failed: ${separator}${errors.join(separator)})`,
+    );
+  };
+}
 export function jsonDecoderByKind<Content>(decoders: {
   undefined?: () => Content;
   null?: () => Content;
@@ -686,7 +766,6 @@ export function jsonDecoderByKind<Content>(decoders: {
     );
   };
 }
-
 export function jsonDecoderAsEnum<
   Shape extends { [key: string]: JsonDecoder<Content> },
   Content,
@@ -713,25 +792,6 @@ export function jsonDecoderAsEnum<
     const foundKeys = Object.keys(object).join("/");
     throw new Error(
       `JSON: Expected object with one of the keys: ${expectedKeys} (found: ${foundKeys})`,
-    );
-  };
-}
-
-export function jsonDecoderCascade<Content>(
-  decoders: Array<(value: JsonValue) => Content>,
-): JsonDecoder<Content> {
-  return (encoded: JsonValue): Content => {
-    const errors = new Array();
-    for (const decoder of decoders) {
-      try {
-        return decoder(encoded);
-      } catch (error) {
-        errors.push(error);
-      }
-    }
-    const separator = "\n---\n >> JSON: Decode error: ";
-    throw new Error(
-      `JSON: Decode with cascades failed: ${separator}${errors.join(separator)})`,
     );
   };
 }

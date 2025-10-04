@@ -1,4 +1,11 @@
-export class Sha256Hasher {
+export function sha256Hash(blobs: Array<Uint8Array>): Uint8Array {
+  for (const blob of blobs) {
+    hasher.update(blob);
+  }
+  return hasher.digest();
+}
+
+class Hasher {
   private readonly state = new Int32Array(8);
   private readonly temp = new Int32Array(64);
   private readonly buffer = new Uint8Array(128);
@@ -32,12 +39,12 @@ export class Sha256Hasher {
         dataLen--;
       }
       if (this.bufferLen === 64) {
-        sha256HashBlock(this.temp, this.state, this.buffer, 0, 64);
+        hashBlock(this.temp, this.state, this.buffer, 0, 64);
         this.bufferLen = 0;
       }
     }
     if (dataLen >= 64) {
-      dataPos = sha256HashBlock(this.temp, this.state, blob, dataPos, dataLen);
+      dataPos = hashBlock(this.temp, this.state, blob, dataPos, dataLen);
       dataLen %= 64;
     }
     while (dataLen > 0) {
@@ -65,7 +72,7 @@ export class Sha256Hasher {
     this.buffer[padLength - 3] = (bitLenLo >>> 16) & 0xff;
     this.buffer[padLength - 2] = (bitLenLo >>> 8) & 0xff;
     this.buffer[padLength - 1] = (bitLenLo >>> 0) & 0xff;
-    sha256HashBlock(this.temp, this.state, this.buffer, 0, padLength);
+    hashBlock(this.temp, this.state, this.buffer, 0, padLength);
     for (let index = 0; index < 8; index++) {
       const state = this.state[index]!;
       hash[index * 4 + 0] = (state >>> 24) & 0xff;
@@ -78,13 +85,7 @@ export class Sha256Hasher {
   }
 }
 
-const sha256Hasher = new Sha256Hasher();
-export function sha256Hash(blobs: Array<Uint8Array>): Uint8Array {
-  for (const blob of blobs) {
-    sha256Hasher.update(blob);
-  }
-  return sha256Hasher.digest();
-}
+const hasher = new Hasher();
 
 const k = new Uint32Array([
   0x428a2f98, 0x71374491, 0xb5c0fbcf, 0xe9b5dba5, 0x3956c25b, 0x59f111f1,
@@ -100,7 +101,7 @@ const k = new Uint32Array([
   0x90befffa, 0xa4506ceb, 0xbef9a3f7, 0xc67178f2,
 ]);
 
-function sha256HashBlock(
+function hashBlock(
   temp: Int32Array,
   state: Int32Array,
   buffer: Uint8Array,

@@ -1,6 +1,6 @@
 {
   "name": "solana-kiss-resolve",
-  "version": "0.0.5",
+  "version": "0.0.6",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "devDependencies": {
@@ -13,9 +13,9 @@
     "typescript": "^5.8.3"
   },
   "dependencies": {
-    "solana-kiss-data": "0.0.5",
-    "solana-kiss-idl": "0.0.5",
-    "solana-kiss-rpc": "0.0.5",
+    "solana-kiss-data": "0.0.6",
+    "solana-kiss-idl": "0.0.6",
+    "solana-kiss-rpc": "0.0.6",
     "uzip": "^0.20201231.0"
   },
   "scripts": {

@@ -19,6 +19,4 @@ export function lamportsRentExemptionMinimumForSpace(space: number): Lamports {
   );
 }
 
-export function lamportsFeePerSignature(): Lamports {
-  return 5000n;
-}
+export const lamportsFeePerSigner = 5000n;
