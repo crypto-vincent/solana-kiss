@@ -2,7 +2,7 @@ import {
   base58Encode,
   jsonDecoderArray,
   jsonDecoderObject,
-  jsonDecodeString,
+  jsonTypeString,
   Pubkey,
 } from "solana-kiss-data";
 import { RpcHttp } from "./RpcHttp";
@@ -59,5 +59,5 @@ export async function rpcHttpFindProgramOwnedAddresses(
 }
 
 const resultDecode = jsonDecoderArray(
-  jsonDecoderObject({ pubkey: jsonDecodeString }),
+  jsonDecoderObject({ pubkey: jsonTypeString.decode }),
 );

@@ -1,9 +1,9 @@
 import {
-  jsonDecodeNumber,
   jsonDecoderObject,
   jsonDecoderOptional,
-  jsonDecodeString,
-  jsonDecodeValue,
+  jsonTypeNumber,
+  jsonTypeString,
+  jsonTypeValue,
   JsonValue,
 } from "solana-kiss-data";
 import { Commitment } from "./RpcTypes";
@@ -128,13 +128,13 @@ export function rpcHttpWithRetryOnError(
 let uniqueRequestId = 1;
 
 const responseDecode = jsonDecoderObject({
-  jsonrpc: jsonDecodeString,
-  id: jsonDecodeNumber,
+  jsonrpc: jsonTypeString.decode,
+  id: jsonTypeNumber.decode,
   error: jsonDecoderOptional(
     jsonDecoderObject({
-      code: jsonDecodeNumber,
-      message: jsonDecodeString,
+      code: jsonTypeNumber.decode,
+      message: jsonTypeString.decode,
     }),
   ),
-  result: jsonDecoderOptional(jsonDecodeValue),
+  result: jsonDecoderOptional(jsonTypeValue.decode),
 });

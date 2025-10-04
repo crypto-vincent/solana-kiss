@@ -1,13 +1,13 @@
 import {
   Immutable,
-  Input,
+  Instruction,
   JsonObject,
   JsonValue,
   camelCaseToSnakeCase,
   jsonAsArray,
   jsonAsObject,
-  jsonDecodeObject,
-  jsonDecodeString,
+  jsonTypeObjectRaw.decode,
+  jsonTypeString,
   withContext,
 } from "solana-kiss-data";
 import { IdlAccount, idlAccountCheck, idlAccountParse } from "./IdlAccount";
@@ -54,12 +54,11 @@ export function idlProgramGuessAccount(
 
 export function idlProgramGuessInstruction(
   programIdl: IdlProgram,
-  instructionInputs: Array<Input>,
-  instructionData: Uint8Array,
+  instruction: Instruction,
 ): IdlInstruction | undefined {
   for (const instructionIdl of programIdl.instructions.values()) {
     try {
-      idlInstructionCheck(instructionIdl, instructionInputs, instructionData);
+      idlInstructionCheck(instructionIdl, instruction.inputs, instruction.data);
       return instructionIdl;
     } catch {}
   }
@@ -92,7 +91,7 @@ export function idlProgramGuessError(
 }
 
 export function idlProgramParse(programValue: JsonValue): IdlProgram {
-  const programObject = jsonDecodeObject(programValue);
+  const programObject = jsonTypeObjectRaw.decode(programValue);
   const metadata = {
     ...idlMetadataParse(programObject),
     ...idlMetadataParse(programObject["metadata"]),
@@ -147,8 +146,8 @@ function parseScopedNamedValues<T, P>(
   const collectionArray = jsonAsArray(collectionValue);
   if (collectionArray !== undefined) {
     for (const itemValue of collectionArray) {
-      const itemObject = jsonDecodeObject(itemValue);
-      let itemName = jsonDecodeString(itemObject["name"]);
+      const itemObject = jsonTypeObjectRaw.decode(itemValue);
+      let itemName = jsonTypeString.decode(itemObject["name"]);
       if (convertNameToSnakeCase) {
         itemName = camelCaseToSnakeCase(itemName);
       }

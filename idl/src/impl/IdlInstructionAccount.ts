@@ -1,11 +1,11 @@
 import {
   camelCaseToSnakeCase,
-  jsonDecodeBoolean,
   jsonDecoderArray,
   jsonDecoderObject,
   jsonDecoderOptional,
-  jsonDecodeString,
-  jsonDecodeValue,
+  jsonTypeBoolean,
+  jsonTypeString,
+  jsonTypeValue,
   JsonValue,
   Pubkey,
   pubkeyFindPdaAddress,
@@ -111,20 +111,20 @@ export function idlInstructionAccountParse(
 }
 
 const infoJsonDecode = jsonDecoderObject({
-  name: jsonDecodeString,
-  docs: jsonDecodeValue,
-  signer: jsonDecoderOptional(jsonDecodeBoolean),
-  isSigner: jsonDecoderOptional(jsonDecodeBoolean),
-  signing: jsonDecoderOptional(jsonDecodeBoolean),
-  writable: jsonDecoderOptional(jsonDecodeBoolean),
-  isMut: jsonDecoderOptional(jsonDecodeBoolean),
-  optional: jsonDecoderOptional(jsonDecodeBoolean),
-  isOptional: jsonDecoderOptional(jsonDecodeBoolean),
-  address: jsonDecoderOptional(jsonDecodeString),
+  name: jsonTypeString.decode,
+  docs: jsonTypeValue.decode,
+  signer: jsonDecoderOptional(jsonTypeBoolean.decode),
+  isSigner: jsonDecoderOptional(jsonTypeBoolean.decode),
+  signing: jsonDecoderOptional(jsonTypeBoolean.decode),
+  writable: jsonDecoderOptional(jsonTypeBoolean.decode),
+  isMut: jsonDecoderOptional(jsonTypeBoolean.decode),
+  optional: jsonDecoderOptional(jsonTypeBoolean.decode),
+  isOptional: jsonDecoderOptional(jsonTypeBoolean.decode),
+  address: jsonDecoderOptional(jsonTypeString.decode),
   pda: jsonDecoderOptional(
     jsonDecoderObject({
-      seeds: jsonDecoderOptional(jsonDecoderArray(jsonDecodeValue)),
-      program: jsonDecoderOptional(jsonDecodeValue),
+      seeds: jsonDecoderOptional(jsonDecoderArray(jsonTypeValue.decode)),
+      program: jsonDecoderOptional(jsonTypeValue.decode),
     }),
   ),
 });

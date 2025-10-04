@@ -1,7 +1,7 @@
 import {
   jsonDecoderArray,
   jsonDecoderObject,
-  jsonDecodeString,
+  jsonTypeString,
   Pubkey,
   Signature,
 } from "solana-kiss-data";
@@ -54,6 +54,6 @@ export async function rpcHttpFindAccountPastSignatures(
 
 const resultDecode = jsonDecoderArray(
   jsonDecoderObject({
-    signature: jsonDecodeString,
+    signature: jsonTypeString.decode,
   }),
 );

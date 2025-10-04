@@ -1,6 +1,6 @@
 import { expect, it } from "@jest/globals";
 import {
-  jsonDecodeObject,
+  jsonTypeObjectRaw,
   JsonValue,
   Pubkey,
   pubkeyFindPdaAddress,
@@ -95,7 +95,7 @@ async function assertAccountInfo(
   const accountIdl = idlProgramGuessAccount(programIdl, accountInfo.data)!;
   const accountState = idlAccountDecode(accountIdl, accountInfo.data);
   expect(accountIdl.name).toStrictEqual(accountName);
-  expect(jsonDecodeObject(accountState)[accountStateKey]).toStrictEqual(
+  expect(jsonTypeObjectRaw.decode(accountState)[accountStateKey]).toStrictEqual(
     accountStateValue,
   );
 }

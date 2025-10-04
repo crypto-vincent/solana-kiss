@@ -2,13 +2,13 @@ import {
   Lamports,
   Pubkey,
   base64Decode,
-  jsonDecodeBoolean,
-  jsonDecodeNumber,
-  jsonDecodeString,
   jsonDecoderArrayToTuple,
   jsonDecoderConst,
   jsonDecoderNullable,
   jsonDecoderObject,
+  jsonTypeBoolean,
+  jsonTypeNumber,
+  jsonTypeString,
   pubkeyDefault,
 } from "solana-kiss-data";
 import { RpcHttp } from "./RpcHttp";
@@ -59,14 +59,14 @@ export async function rpcHttpGetAccountWithData(
 const resultDecode = jsonDecoderObject({
   value: jsonDecoderNullable(
     jsonDecoderObject({
-      executable: jsonDecodeBoolean,
-      lamports: jsonDecodeNumber,
-      owner: jsonDecodeString,
+      executable: jsonTypeBoolean.decode,
+      lamports: jsonTypeNumber.decode,
+      owner: jsonTypeString.decode,
       data: jsonDecoderArrayToTuple([
-        jsonDecodeString,
+        jsonTypeString.decode,
         jsonDecoderConst("base64"),
       ]),
-      space: jsonDecodeNumber,
+      space: jsonTypeNumber.decode,
     }),
   ),
 });

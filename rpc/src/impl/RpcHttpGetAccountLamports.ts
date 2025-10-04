@@ -1,8 +1,8 @@
 import {
   Lamports,
   Pubkey,
-  jsonDecodeNumber,
   jsonDecoderObject,
+  jsonTypeNumber,
 } from "solana-kiss-data";
 import { RpcHttp } from "./RpcHttp";
 import { Commitment } from "./RpcTypes";
@@ -24,5 +24,5 @@ export async function rpcHttpGetAccountLamports(
 }
 
 const resultDecode = jsonDecoderObject({
-  value: jsonDecodeNumber,
+  value: jsonTypeNumber.decode,
 });

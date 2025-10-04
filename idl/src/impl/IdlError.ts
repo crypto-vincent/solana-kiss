@@ -1,11 +1,11 @@
 import {
   Immutable,
-  jsonDecodeNumber,
   jsonDecoderByKind,
   jsonDecoderObject,
   jsonDecoderOptional,
-  jsonDecodeString,
-  jsonDecodeValue,
+  jsonTypeNumber,
+  jsonTypeString,
+  jsonTypeValue,
   JsonValue,
 } from "solana-kiss-data";
 
@@ -47,8 +47,8 @@ export const infoJsonDecode = jsonDecoderByKind<{
     msg: undefined,
   }),
   object: jsonDecoderObject({
-    docs: jsonDecodeValue,
-    code: jsonDecodeNumber,
-    msg: jsonDecoderOptional(jsonDecodeString),
+    docs: jsonTypeValue.decode,
+    code: jsonTypeNumber.decode,
+    msg: jsonDecoderOptional(jsonTypeString.decode),
   }),
 });

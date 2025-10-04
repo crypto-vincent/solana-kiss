@@ -2,7 +2,7 @@ import {
   Immutable,
   jsonDecoderObject,
   jsonDecoderOptional,
-  jsonDecodeValue,
+  jsonTypeValue.decode,
   JsonValue,
 } from "solana-kiss-data";
 import { IdlTypedef } from "./IdlTypedef";
@@ -90,6 +90,6 @@ export function idlEventParse(
 }
 
 const infoJsonDecode = jsonDecoderObject({
-  docs: jsonDecodeValue,
+  docs: jsonTypeValue.decode,
   discriminator: jsonDecoderOptional(idlUtilsBytesJsonDecode),
 });

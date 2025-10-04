@@ -28,3 +28,5 @@ export async function resolveProgramAnchorIdl(
   const idlJson = JSON.parse(idlString) as JsonValue;
   return idlProgramParse(idlJson);
 }
+
+// TODO - provide phantom integration

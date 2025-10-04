@@ -1,11 +1,11 @@
 import {
   JsonValue,
-  jsonDecodeString,
-  jsonDecodeValue,
   jsonDecoderArray,
   jsonDecoderByKind,
   jsonDecoderObject,
   jsonDecoderOptional,
+  jsonTypeString,
+  jsonTypeValue,
 } from "solana-kiss-data";
 import { IdlTypeFlat } from "./IdlTypeFlat";
 import { idlTypeFlatParse } from "./IdlTypeFlatParse";
@@ -35,19 +35,19 @@ export function idlTypedefParse(
 }
 
 const infoJsonDecode = jsonDecoderObject({
-  docs: jsonDecodeValue,
-  serialization: jsonDecoderOptional(jsonDecodeString),
+  docs: jsonTypeValue.decode,
+  serialization: jsonDecoderOptional(jsonTypeString.decode),
   repr: jsonDecoderOptional(
     jsonDecoderByKind({
       string: (string: string) => ({ kind: string }),
-      object: jsonDecoderObject({ kind: jsonDecodeString }),
+      object: jsonDecoderObject({ kind: jsonTypeString.decode }),
     }),
   ),
   generics: jsonDecoderOptional(
     jsonDecoderArray(
       jsonDecoderByKind({
         string: (string: string) => ({ name: string }),
-        object: jsonDecoderObject({ name: jsonDecodeString }),
+        object: jsonDecoderObject({ name: jsonTypeString.decode }),
       }),
     ),
   ),

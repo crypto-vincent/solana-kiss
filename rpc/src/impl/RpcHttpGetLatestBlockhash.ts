@@ -1,8 +1,8 @@
 import {
   Blockhash,
-  jsonDecodeNumber,
   jsonDecoderObject,
-  jsonDecodeString,
+  jsonTypeNumber,
+  jsonTypeString,
 } from "solana-kiss-data";
 import { RpcHttp } from "./RpcHttp";
 import { Commitment } from "./RpcTypes";
@@ -21,10 +21,10 @@ export async function rpcHttpGetLatestBlockhash(
 
 const resultDecode = jsonDecoderObject({
   context: jsonDecoderObject({
-    slot: jsonDecodeNumber,
+    slot: jsonTypeNumber.decode,
   }),
   value: jsonDecoderObject({
-    blockhash: jsonDecodeString,
-    lastValidBlockHeight: jsonDecodeNumber,
+    blockhash: jsonTypeString.decode,
+    lastValidBlockHeight: jsonTypeNumber.decode,
   }),
 });

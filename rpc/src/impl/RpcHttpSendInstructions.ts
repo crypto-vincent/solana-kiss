@@ -4,7 +4,7 @@ import {
   Signature,
   Signer,
   base64Encode,
-  jsonDecodeString,
+  jsonTypeString,
   messageCompile,
   messageSign,
 } from "solana-kiss-data";
@@ -32,7 +32,7 @@ export async function rpcHttpSendInstructions(
     recentBlockhash,
   });
   const messageSigned = await messageSign(messageCompiled, signers);
-  return jsonDecodeString(
+  return jsonTypeString.decode(
     await rpcHttp("sendTransaction", [
       base64Encode(messageSigned),
       {

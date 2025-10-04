@@ -1,10 +1,10 @@
 import {
   Immutable,
-  jsonDecodeNumber,
   jsonDecoderArray,
   jsonDecoderObject,
   jsonDecoderOptional,
-  jsonDecodeValue,
+  jsonTypeNumber,
+  jsonTypeValue,
   JsonValue,
 } from "solana-kiss-data";
 import { IdlTypedef } from "./IdlTypedef";
@@ -111,12 +111,12 @@ export function idlAccountParse(
 }
 
 const infoJsonDecode = jsonDecoderObject({
-  docs: jsonDecodeValue,
-  space: jsonDecoderOptional(jsonDecodeNumber),
+  docs: jsonTypeValue.decode,
+  space: jsonDecoderOptional(jsonTypeNumber.decode),
   blobs: jsonDecoderOptional(
     jsonDecoderArray(
       jsonDecoderObject({
-        offset: jsonDecodeNumber,
+        offset: jsonTypeNumber.decode,
         bytes: idlUtilsBytesJsonDecode,
       }),
     ),

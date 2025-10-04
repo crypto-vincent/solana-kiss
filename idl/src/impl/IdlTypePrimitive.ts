@@ -1,7 +1,7 @@
 import {
   JsonValue,
-  jsonDecodeBoolean,
-  jsonDecodeString,
+  jsonTypeBoolean,
+  jsonTypeString,
   pubkeyFromBytes,
   pubkeyToBytes,
 } from "solana-kiss-data";
@@ -173,14 +173,14 @@ const visitorSerialize = {
     data.setFloat64(0, num, true);
   },
   bool: (blob: Uint8Array, value: JsonValue) => {
-    if (jsonDecodeBoolean(value)) {
+    if (jsonTypeBoolean.decode(value)) {
       blob[0] = 1;
     } else {
       blob[0] = 0;
     }
   },
   pubkey: (blob: Uint8Array, value: JsonValue) => {
-    blob.set(pubkeyToBytes(jsonDecodeString(value)));
+    blob.set(pubkeyToBytes(jsonTypeString.decode(value)));
   },
 };
 

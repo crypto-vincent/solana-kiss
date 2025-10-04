@@ -2,9 +2,9 @@ import {
   jsonAsNumber,
   jsonAsObject,
   jsonAsString,
-  jsonDecodeArray,
-  jsonDecodeObject,
-  jsonDecodeString,
+  jsonTypeArrayRaw,
+  jsonTypeObjectRaw,
+  jsonTypeString,
   JsonValue,
   withContext,
 } from "solana-kiss-data";
@@ -87,7 +87,7 @@ const visitorSerialize = {
       blobs.push(bytes);
       return;
     }
-    const array = jsonDecodeArray(value);
+    const array = jsonTypeArrayRaw(value);
     if (prefixed) {
       idlTypePrefixSerialize(self.prefix, BigInt(array.length), blobs);
     }
@@ -111,7 +111,7 @@ const visitorSerialize = {
       blobs.push(bytes);
       return;
     }
-    const array = jsonDecodeArray(value);
+    const array = jsonTypeArrayRaw(value);
     if (array.length != self.length) {
       throw new Error(
         `Expected an array of size: ${self.length}, found: ${array.length}`,
@@ -127,7 +127,7 @@ const visitorSerialize = {
     blobs: Array<Uint8Array>,
     prefixed: boolean,
   ) => {
-    const string = jsonDecodeString(value);
+    const string = jsonTypeString.decode(value);
     const bytes = new TextEncoder().encode(string);
     if (prefixed) {
       idlTypePrefixSerialize(self.prefix, BigInt(bytes.length), blobs);
@@ -255,7 +255,7 @@ const visitorFieldsSerialize = {
     blobs: Array<Uint8Array>,
     prefixed: boolean,
   ) => {
-    const object = jsonDecodeObject(value);
+    const object = jsonTypeObjectRaw(value);
     for (const field of self) {
       withContext(`Serialize: Field: ${field.name}`, () => {
         idlTypeFullSerialize(
@@ -273,7 +273,7 @@ const visitorFieldsSerialize = {
     blobs: Array<Uint8Array>,
     prefixed: boolean,
   ) => {
-    const array = jsonDecodeArray(value);
+    const array = jsonTypeArrayRaw(value);
     for (const field of self) {
       withContext(`Serialize: Field: ${field.position}`, () => {
         idlTypeFullSerialize(

@@ -1,9 +1,9 @@
 import {
-  jsonDecodeBoolean,
-  jsonDecodeNumber,
   jsonDecoderNullable,
   jsonDecoderObject,
-  jsonDecodeString,
+  jsonTypeBoolean,
+  jsonTypeNumber,
+  jsonTypeString,
   Lamports,
   Pubkey,
   pubkeyDefault,
@@ -52,10 +52,10 @@ export async function rpcHttpGetAccountMetadata(
 const resultDecode = jsonDecoderObject({
   value: jsonDecoderNullable(
     jsonDecoderObject({
-      executable: jsonDecodeBoolean,
-      lamports: jsonDecodeNumber,
-      owner: jsonDecodeString,
-      space: jsonDecodeNumber,
+      executable: jsonTypeBoolean.decode,
+      lamports: jsonTypeNumber.decode,
+      owner: jsonTypeString.decode,
+      space: jsonTypeNumber.decode,
     }),
   ),
 });

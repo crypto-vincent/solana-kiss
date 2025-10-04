@@ -5,15 +5,15 @@ import {
   JsonArray,
   jsonAsArray,
   jsonAsString,
-  jsonDecodeBoolean,
-  jsonDecodeNumber,
   jsonDecoderByKind,
-  jsonDecoderMap,
   jsonDecoderObject,
   jsonDecoderOptional,
-  jsonDecodeString,
-  jsonDecodeValue,
+  jsonDecoderRemap,
   jsonPreview,
+  jsonTypeBoolean,
+  jsonTypeNumber,
+  jsonTypeString,
+  jsonTypeValue,
   JsonValue,
   sha256Hash,
 } from "solana-kiss-data";
@@ -37,16 +37,16 @@ export const idlUtilsBytesJsonDecode = jsonDecoderByKind({
     return new TextEncoder().encode(string);
   },
   array: (array: JsonArray) => {
-    return new Uint8Array(array.map((item) => jsonDecodeNumber(item)));
+    return new Uint8Array(array.map(jsonTypeNumber.decode));
   },
-  object: jsonDecoderMap(
+  object: jsonDecoderRemap(
     jsonDecoderObject({
-      base16: jsonDecoderOptional(jsonDecodeString),
-      base58: jsonDecoderOptional(jsonDecodeString),
-      base64: jsonDecoderOptional(jsonDecodeString),
-      value: jsonDecodeValue,
+      base16: jsonDecoderOptional(jsonTypeString.decode),
+      base58: jsonDecoderOptional(jsonTypeString.decode),
+      base64: jsonDecoderOptional(jsonTypeString.decode),
+      value: jsonTypeValue.decode,
       type: jsonDecoderOptional(idlTypeFlatParse),
-      prefixed: jsonDecoderOptional(jsonDecodeBoolean),
+      prefixed: jsonDecoderOptional(jsonTypeBoolean.decode),
     }),
     (info) => {
       if (info.base16 !== undefined) {

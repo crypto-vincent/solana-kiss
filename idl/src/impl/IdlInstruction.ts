@@ -2,10 +2,10 @@ import {
   Immutable,
   Input,
   Instruction,
-  jsonDecodeArray,
   jsonDecoderObject,
   jsonDecoderOptional,
-  jsonDecodeValue,
+  jsonTypeArrayRaw,
+  jsonTypeValue,
   JsonValue,
   Pubkey,
   withContext,
@@ -311,9 +311,9 @@ export function idlInstructionParse(
 }
 
 const infoJsonDecode = jsonDecoderObject({
-  docs: jsonDecodeValue,
+  docs: jsonTypeValue.decode,
   discriminator: jsonDecoderOptional(idlUtilsBytesJsonDecode),
   args: jsonDecoderOptional(idlTypeFlatFieldsParse),
   returns: jsonDecoderOptional(idlTypeFlatParse),
-  accounts: jsonDecoderOptional(jsonDecodeArray),
+  accounts: jsonDecoderOptional(jsonTypeArrayRaw.decode),
 });

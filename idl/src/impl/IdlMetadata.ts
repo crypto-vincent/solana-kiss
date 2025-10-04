@@ -1,8 +1,8 @@
 import {
   jsonDecoderObject,
   jsonDecoderOptional,
-  jsonDecodeString,
-  jsonDecodeValue,
+  jsonTypeString,
+  jsonTypeValue,
   JsonValue,
   Pubkey,
 } from "solana-kiss-data";
@@ -31,11 +31,11 @@ export function idlMetadataParse(value: JsonValue): IdlMetadata {
 
 const infoJsonDecode = jsonDecoderOptional(
   jsonDecoderObject({
-    name: jsonDecoderOptional(jsonDecodeString),
-    docs: jsonDecoderOptional(jsonDecodeValue),
-    description: jsonDecoderOptional(jsonDecodeString),
-    address: jsonDecoderOptional(jsonDecodeString),
-    version: jsonDecoderOptional(jsonDecodeString),
-    spec: jsonDecoderOptional(jsonDecodeString),
+    name: jsonDecoderOptional(jsonTypeString.decode),
+    docs: jsonDecoderOptional(jsonTypeValue.decode),
+    description: jsonDecoderOptional(jsonTypeString.decode),
+    address: jsonDecoderOptional(jsonTypeString.decode),
+    version: jsonDecoderOptional(jsonTypeString.decode),
+    spec: jsonDecoderOptional(jsonTypeString.decode),
   }),
 );
