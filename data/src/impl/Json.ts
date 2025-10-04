@@ -68,7 +68,6 @@ export function jsonKind(value: JsonValue): string {
   }
   throw new Error(`JSON: Unknown value: ${value?.toString()}`);
 }
-
 export function jsonPreview(value: JsonValue): string {
   if (value === undefined) {
     return "undefined";
@@ -595,8 +594,8 @@ export function jsonTypeObjectToMap<Value>(
 }
 
 export function jsonDecoderObjectKey<Content>(
-  contentDecoder: JsonDecoder<Content>,
   key: string,
+  contentDecoder: JsonDecoder<Content>,
 ): JsonDecoder<Content> {
   return jsonDecoderRemap(
     jsonDecoderObject({ [key]: contentDecoder }),
@@ -604,8 +603,8 @@ export function jsonDecoderObjectKey<Content>(
   );
 }
 export function jsonEncoderObjectKey<Content>(
-  contentEncode: JsonEncoder<Content>,
   key: string,
+  contentEncode: JsonEncoder<Content>,
 ): JsonEncoder<Content> {
   return jsonEncoderRemap(
     jsonEncoderObject({ [key]: contentEncode }),
@@ -613,12 +612,12 @@ export function jsonEncoderObjectKey<Content>(
   );
 }
 export function jsonTypeObjectKey<Content>(
-  contentType: JsonType<Content>,
   key: string,
+  contentType: JsonType<Content>,
 ): JsonType<Content> {
   return {
-    decoder: jsonDecoderObjectKey(contentType.decoder, key),
-    encoder: jsonEncoderObjectKey(contentType.encoder, key),
+    decoder: jsonDecoderObjectKey(key, contentType.decoder),
+    encoder: jsonEncoderObjectKey(key, contentType.encoder),
   };
 }
 

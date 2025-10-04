@@ -1,5 +1,7 @@
 import { expect, it } from "@jest/globals";
 import {
+  casingKeyedCamelToSnake,
+  casingKeyedSnakeToCamel,
   JsonType,
   jsonTypeArray,
   jsonTypeBoolean,
@@ -7,51 +9,94 @@ import {
   jsonTypeNullable,
   jsonTypeNumber,
   jsonTypeObject,
+  jsonTypeObjectKey,
+  jsonTypeOptional,
+  jsonTypeRemap,
   jsonTypeString,
   JsonValue,
 } from "../src";
 
 it("run", async () => {
-  const tests: Array<{ data: JsonValue; type: JsonType<any> }> = [
+  const tests: Array<{
+    encoded: JsonValue;
+    type: JsonType<any>;
+    decoded: any;
+  }> = [
     {
-      data: {
+      encoded: {
         key: "Hello World",
       },
       type: jsonTypeObject({
         key: jsonTypeString,
       }),
+      decoded: {
+        key: "Hello World",
+      },
     },
     {
-      data: [42, 43],
+      encoded: [42, 43],
       type: jsonTypeArray(jsonTypeNumber),
+      decoded: [42, 43],
     },
     {
-      data: [null, "Hello"],
-      type: jsonTypeArray(jsonTypeNullable(jsonTypeString)),
+      encoded: [undefined, "Hello", undefined],
+      type: jsonTypeArray(jsonTypeOptional(jsonTypeString)),
+      decoded: [undefined, "Hello", undefined],
     },
     {
-      data: {
+      encoded: {
         encoded_key: 42,
       },
       type: jsonTypeObject(
         { decodedKey: jsonTypeNumber },
         { decodedKey: "encoded_key" },
       ),
+      decoded: {
+        decodedKey: 42,
+      },
     },
     {
-      data: {
+      encoded: {
+        my_value_v1: 42,
+      },
+      type: jsonTypeRemap(
+        jsonTypeObject({ my_value_v1: jsonTypeNumber }),
+        casingKeyedSnakeToCamel,
+        casingKeyedCamelToSnake,
+      ),
+      decoded: {
+        myValueV1: 42,
+      },
+    },
+    {
+      encoded: {
         const: 42,
-        nullables: [null, true, false],
+        nullables: [null, true, false, null],
       },
       type: jsonTypeObject({
         const: jsonTypeConst(42),
         nullables: jsonTypeArray(jsonTypeNullable(jsonTypeBoolean)),
       }),
+      decoded: {
+        const: 42,
+        nullables: [null, true, false, null],
+      },
+    },
+    {
+      encoded: {
+        keyed: {
+          value: "Hello",
+        },
+      },
+      type: jsonTypeObjectKey(
+        "keyed",
+        jsonTypeObjectKey("value", jsonTypeString),
+      ),
+      decoded: "Hello",
     },
   ];
   for (const test of tests) {
-    expect(test.data).toStrictEqual(
-      test.type.encoder(test.type.decoder(test.data)),
-    );
+    expect(test.type.decoder(test.encoded)).toStrictEqual(test.decoded);
+    expect(test.type.encoder(test.decoded)).toStrictEqual(test.encoded);
   }
 });

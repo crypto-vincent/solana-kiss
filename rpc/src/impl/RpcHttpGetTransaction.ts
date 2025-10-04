@@ -255,7 +255,9 @@ const resultJsonDecoder = jsonDecoderOptional(
         writable: jsonDecoderArray(jsonTypeString.decoder),
         readonly: jsonDecoderArray(jsonTypeString.decoder),
       }),
-      logMessages: jsonDecoderArray(jsonTypeString.decoder),
+      logMessages: jsonDecoderOptional(
+        jsonDecoderArray(jsonTypeString.decoder),
+      ),
     }),
     slot: jsonTypeNumber.decoder,
     transaction: jsonDecoderObject({

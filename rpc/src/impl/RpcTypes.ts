@@ -10,7 +10,7 @@ export type Transaction = {
   slot: Slot;
   message: Message;
   error: JsonValue | undefined;
-  logs: Array<string>;
+  logs: Array<string> | undefined;
   chargedFees: Lamports;
   consumedComputeUnits: number;
   invocations: Array<Invocation>;

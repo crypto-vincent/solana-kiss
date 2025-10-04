@@ -22,16 +22,6 @@ import { idlTypeFlatHydrate } from "./IdlTypeFlatHydrate";
 import { idlTypeFlatParse } from "./IdlTypeFlatParse";
 import { idlTypeFullSerialize } from "./IdlTypeFullSerialize";
 
-export const idlUtilsIntegerJsonDecoder = jsonDecoderByKind({
-  number: (number: number) => BigInt(number),
-  string: (string: string) => BigInt(string),
-});
-
-export const idlUtilsFloatingJsonDecoder = jsonDecoderByKind({
-  number: (number: number) => number,
-  string: (string: string) => Number(string),
-});
-
 export const idlUtilsBytesJsonDecoder = jsonDecoderByKind({
   string: (string: string) => {
     return new TextEncoder().encode(string);

@@ -18,7 +18,14 @@ export function rpcHttpFromUrl(
   defaultContext?: {
     commitment?: Commitment; // TODO - should this stay an object?
   },
-  // TODO - support custom fetch implementations (for environments that don't have fetch natively)
+  customFetch?: (
+    url: string,
+    request: {
+      headers: { [key: string]: string };
+      method: string;
+      body: string;
+    },
+  ) => Promise<{ json: () => Promise<JsonValue> }>,
 ): RpcHttp {
   return async function (method, params) {
     if (params.length <= 0) {
@@ -37,17 +44,12 @@ export function rpcHttpFromUrl(
       }
     }
     const requestId = uniqueRequestId++;
-    const responseRaw = await fetch(url, {
-      method: "POST",
+    const responseRaw = await (customFetch ?? fetch)(url, {
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        jsonrpc: "2.0",
-        id: requestId,
-        method,
-        params,
-      }),
+      method: "POST",
+      body: JSON.stringify({ jsonrpc: "2.0", id: requestId, method, params }),
     });
-    const responseJson = (await responseRaw.json()) as JsonValue;
+    const responseJson = await responseRaw.json();
     const responseInfo = responseJsonDecoder(responseJson);
     const responseError = responseInfo.error;
     if (responseError !== undefined) {
@@ -111,7 +113,7 @@ export function rpcHttpWithMaxConcurrentRequests(
 
 export function rpcHttpWithRetryOnError(
   rpcHttp: RpcHttp,
-  nextRetryDelayMs: (retryCount: number, error: any) => number,
+  nextRetryDelayMs: (retryCount: number, error: any) => number | null,
 ): RpcHttp {
   return async function (method, params) {
     let retryCount = 0;
@@ -120,6 +122,9 @@ export function rpcHttpWithRetryOnError(
         return await rpcHttp(method, params);
       } catch (error) {
         const delay = nextRetryDelayMs(retryCount, error);
+        if (delay === null) {
+          throw error;
+        }
         await new Promise((resolve) => setTimeout(resolve, delay));
         retryCount++;
       }
