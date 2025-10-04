@@ -49,8 +49,8 @@ export async function rpcHttpGetTransaction(
     header.numReadonlySignedAccounts,
     header.numReadonlyUnsignedAccounts,
     accountKeys,
-    loadedAddresses.writable,
-    loadedAddresses.readonly,
+    loadedAddresses?.writable ?? [],
+    loadedAddresses?.readonly ?? [],
   );
   const transactionInstructions = decompileTransactionInstructions(
     transactionInputs,
@@ -236,7 +236,7 @@ const instructionDecoder = jsonDecoderObject(
 
 const resultJsonDecoder = jsonDecoderOptional(
   jsonDecoderObject({
-    blockTime: jsonTypeNumber.decoder,
+    blockTime: jsonDecoderOptional(jsonTypeNumber.decoder),
     meta: jsonDecoderObject({
       computeUnitsConsumed: jsonTypeNumber.decoder,
       err: jsonDecoderNullable(
@@ -251,10 +251,12 @@ const resultJsonDecoder = jsonDecoderOptional(
           }),
         ),
       ),
-      loadedAddresses: jsonDecoderObject({
-        writable: jsonDecoderArray(jsonTypeString.decoder),
-        readonly: jsonDecoderArray(jsonTypeString.decoder),
-      }),
+      loadedAddresses: jsonDecoderOptional(
+        jsonDecoderObject({
+          writable: jsonDecoderArray(jsonTypeString.decoder),
+          readonly: jsonDecoderArray(jsonTypeString.decoder),
+        }),
+      ),
       logMessages: jsonDecoderOptional(
         jsonDecoderArray(jsonTypeString.decoder),
       ),
