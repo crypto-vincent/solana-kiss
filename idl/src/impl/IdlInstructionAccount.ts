@@ -1,5 +1,5 @@
 import {
-  camelCaseToSnakeCase,
+  casingCamelToSnake,
   jsonDecoderArray,
   jsonDecoderObject,
   jsonDecoderOptional,
@@ -100,7 +100,7 @@ export function idlInstructionAccountParse(
     return { seeds, program };
   });
   return {
-    name: camelCaseToSnakeCase(info.name),
+    name: casingCamelToSnake(info.name),
     docs: info.docs,
     writable: info.writable ?? info.isMut ?? false,
     signer: info.signer ?? info.isSigner ?? info.signing ?? false,

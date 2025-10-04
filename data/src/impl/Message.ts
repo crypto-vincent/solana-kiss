@@ -10,75 +10,75 @@ export type Message = {
 };
 
 export function messageCompile(message: Message): Uint8Array {
-  const metaByAddress = new Map<
+  const propsByAddress = new Map<
     Pubkey,
     { invoked: boolean; signing: boolean; writable: boolean }
   >();
-  metaByAddress.set(message.payerAddress, {
+  propsByAddress.set(message.payerAddress, {
     invoked: false,
     signing: true,
     writable: true,
   });
   for (const instruction of message.instructions) {
-    const programMeta = metaByAddress.get(instruction.programAddress) ?? {
+    const programMeta = propsByAddress.get(instruction.programAddress) ?? {
       invoked: false,
       signing: false,
       writable: false,
     };
     programMeta.invoked = true;
-    metaByAddress.set(instruction.programAddress, programMeta);
+    propsByAddress.set(instruction.programAddress, programMeta);
     for (const input of instruction.inputs) {
-      const inputMeta = metaByAddress.get(input.address) ?? {
+      const inputMeta = propsByAddress.get(input.address) ?? {
         invoked: false,
         signing: false,
         writable: false,
       };
       inputMeta.signing = inputMeta.signing || input.signing;
       inputMeta.writable = inputMeta.writable || input.writable;
-      metaByAddress.set(input.address, inputMeta);
+      propsByAddress.set(input.address, inputMeta);
     }
   }
-  const addressesWithMetas = [...metaByAddress.entries()];
-  const writableSigners = addressesWithMetas.filter(
+  const allAccounts = [...propsByAddress.entries()];
+  const writableSigners = allAccounts.filter(
     ([, meta]) => meta.signing && meta.writable,
   );
-  const readonlySigners = addressesWithMetas.filter(
+  const readonlySigners = allAccounts.filter(
     ([, meta]) => meta.signing && !meta.writable,
   );
-  const writableNonSigners = addressesWithMetas.filter(
+  const writableNonSigners = allAccounts.filter(
     ([, meta]) => !meta.signing && meta.writable,
   );
-  const readonlyNonSigners = addressesWithMetas.filter(
+  const readonlyNonSigners = allAccounts.filter(
     ([, meta]) => !meta.signing && !meta.writable,
   );
-  const numRequiredSignatures = writableSigners.length + readonlySigners.length;
-  const numReadonlySignedAccounts = readonlySigners.length;
-  const numReadonlyUnsignedAccounts = readonlyNonSigners.length;
-  const staticAccountKeys = [
+  const signersCount = writableSigners.length + readonlySigners.length;
+  const readonlySignersCount = readonlySigners.length;
+  const readonlyNonSignersCount = readonlyNonSigners.length;
+  const staticAddresses = [
     ...writableSigners.map(([address]) => address),
     ...readonlySigners.map(([address]) => address),
     ...writableNonSigners.map(([address]) => address),
     ...readonlyNonSigners.map(([address]) => address),
   ];
-  let length = 1 + 4 + staticAccountKeys.length * 32 + 32 + 1;
+  let length = 1 + 3 + 1 + staticAddresses.length * 32 + 32 + 1;
   for (const instruction of message.instructions) {
-    length += 2 + instruction.inputs.length + 1 + instruction.data.length;
+    length += 1 + 1 + instruction.inputs.length + 1 + instruction.data.length;
   }
   length += 1; // LUTs count
   // TODO - handle LUTs
   const addressesToIndexes = new Map<Pubkey, number>();
-  for (let index = 0; index < staticAccountKeys.length; index++) {
-    addressesToIndexes.set(staticAccountKeys[index]!, index);
+  for (let index = 0; index < staticAddresses.length; index++) {
+    addressesToIndexes.set(staticAddresses[index]!, index);
   }
   let index = 0;
   const frame = new Uint8Array(length);
   frame[index++] = 0x80;
-  frame[index++] = numRequiredSignatures;
-  frame[index++] = numReadonlySignedAccounts;
-  frame[index++] = numReadonlyUnsignedAccounts;
-  frame[index++] = staticAccountKeys.length;
-  for (const staticAccountKey of staticAccountKeys) {
-    frame.set(base58Decode(staticAccountKey), index);
+  frame[index++] = signersCount;
+  frame[index++] = readonlySignersCount;
+  frame[index++] = readonlyNonSignersCount;
+  frame[index++] = staticAddresses.length;
+  for (const staticAddress of staticAddresses) {
+    frame.set(base58Decode(staticAddress), index);
     index += 32;
   }
   frame.set(base58Decode(message.recentBlockhash), index);
@@ -110,26 +110,22 @@ export async function messageSign(
   const compiledHeaderSize = 1 + 3 + 1;
   if (messageCompiled.length < compiledHeaderSize) {
     throw new Error(
-      `Message: Expected message header (found ${messageCompiled.length} bytes)`,
+      `Message: Expected valid compiled message header (found ${messageCompiled.length} bytes)`,
     );
   }
-  const numRequiredSignatures = messageCompiled[1]!;
-  const staticAccountKeysLength = messageCompiled[4]!;
-  if (
-    messageCompiled.length <
-    compiledHeaderSize + staticAccountKeysLength * 32 + 32 + 1 + 1
-  ) {
+  const signersCount = messageCompiled[1]!;
+  if (messageCompiled.length < compiledHeaderSize + signersCount * 32) {
     throw new Error(
-      `Message: Expected valid compiled message (found ${messageCompiled.length} bytes)`,
+      `Message: Expected valid compiled message ${signersCount} signers (found ${messageCompiled.length} bytes)`,
     );
   }
-  const signaturesSize = 1 + 64 * numRequiredSignatures;
+  const signaturesSize = 1 + 64 * signersCount;
   const messageSigned = new Uint8Array(signaturesSize + messageCompiled.length);
-  messageSigned[0] = numRequiredSignatures;
-  for (let index = 0; index < numRequiredSignatures; index++) {
-    const addressIndex = compiledHeaderSize + index * 32;
+  messageSigned[0] = signersCount;
+  for (let signerIndex = 0; signerIndex < signersCount; signerIndex++) {
+    const compiledAddressOffset = compiledHeaderSize + signerIndex * 32;
     const signerAddress = base58Encode(
-      messageCompiled.slice(addressIndex, addressIndex + 32),
+      messageCompiled.slice(compiledAddressOffset, compiledAddressOffset + 32),
     );
     const signer = signerPerAddress.get(signerAddress);
     if (signer === undefined) {
@@ -137,7 +133,7 @@ export async function messageSign(
     }
     messageSigned.set(
       base58Decode(await signer.sign(messageCompiled)),
-      1 + index * 64,
+      1 + signerIndex * 64,
     );
   }
   messageSigned.set(messageCompiled, signaturesSize);

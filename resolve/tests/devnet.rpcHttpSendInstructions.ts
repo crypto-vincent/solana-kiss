@@ -1,6 +1,6 @@
 import { expect, it } from "@jest/globals";
 import {
-  lamportsFeePerSignature,
+  lamportsFeePerSigner,
   lamportsRentExemptionMinimumForSpace,
   pubkeyDefault,
   pubkeyNewDummy,
@@ -50,7 +50,7 @@ it("run", async () => {
   );
   const transaction = await rpcHttpWaitForTransaction(rpcHttp, signature, 3000);
   expect(transaction.error).toStrictEqual(null);
-  expect(transaction.chargedFees).toStrictEqual(lamportsFeePerSignature() * 2n);
+  expect(transaction.chargedFees).toStrictEqual(lamportsFeePerSigner * 2n);
   const receiverMetadata = await rpcHttpGetAccountMetadata(
     rpcHttp,
     ownedSigner.address,

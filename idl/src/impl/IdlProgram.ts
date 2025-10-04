@@ -3,7 +3,7 @@ import {
   Instruction,
   JsonObject,
   JsonValue,
-  camelCaseToSnakeCase,
+  casingCamelToSnake,
   jsonAsArray,
   jsonAsObject,
   jsonTypeObjectRaw,
@@ -149,7 +149,7 @@ function parseScopedNamedValues<T, P>(
       const itemObject = jsonTypeObjectRaw.decoder(itemValue);
       let itemName = jsonTypeString.decoder(itemObject["name"]);
       if (convertNameToSnakeCase) {
-        itemName = camelCaseToSnakeCase(itemName);
+        itemName = casingCamelToSnake(itemName);
       }
       values.set(
         itemName,
@@ -163,7 +163,7 @@ function parseScopedNamedValues<T, P>(
   if (collectionObject !== undefined) {
     Object.entries(collectionObject).forEach(([key, value]) => {
       if (convertNameToSnakeCase) {
-        key = camelCaseToSnakeCase(key);
+        key = casingCamelToSnake(key);
       }
       values.set(
         key,

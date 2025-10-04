@@ -1,7 +1,7 @@
 import {
   JsonDecoder,
   JsonValue,
-  camelCaseToSnakeCase,
+  casingCamelToSnake,
   jsonAsArray,
   jsonAsNumber,
   jsonAsObject,
@@ -136,7 +136,7 @@ const fieldsJsonDecoder = jsonDecoderByKind({
           named = true;
         }
         return {
-          name: camelCaseToSnakeCase(fieldInfo.name ?? fieldIndex.toString()),
+          name: casingCamelToSnake(fieldInfo.name ?? fieldIndex.toString()),
           docs: fieldInfo.docs,
           content: fieldInfo.content,
         };

@@ -23,6 +23,7 @@ import { IdlTypeFull, IdlTypeFullFields } from "./IdlTypeFull";
 import { idlTypeFullSerialize } from "./IdlTypeFullSerialize";
 import { idlUtilsFlattenBlobs, idlUtilsInferValueTypeFlat } from "./IdlUtils";
 
+// TODO - add support for a "program" level PDA (for sysvar for examples?)
 export type IdlInstructionBlobContext = {
   instructionProgramAddress: Pubkey;
   instructionAddresses: Map<string, Pubkey>;
