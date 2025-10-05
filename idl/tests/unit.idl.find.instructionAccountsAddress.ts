@@ -1,5 +1,5 @@
 import { expect, it } from "@jest/globals";
-import { jsonTypePubkey, pubkeyNewDummy } from "solana-kiss-data";
+import { pubkeyNewDummy, pubkeyToString } from "solana-kiss-data";
 import { idlInstructionAddressesFind, idlProgramParse } from "../src";
 
 it("run", () => {
@@ -13,7 +13,7 @@ it("run", () => {
         accounts: [
           {
             name: "const_address",
-            address: jsonTypePubkey.encoder(dummyAddress),
+            address: pubkeyToString(dummyAddress),
           },
         ],
       },

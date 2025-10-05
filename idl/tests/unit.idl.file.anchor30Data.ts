@@ -1,5 +1,5 @@
 import { expect, it } from "@jest/globals";
-import { jsonTypePubkey, pubkeyNewDummy } from "solana-kiss-data";
+import { pubkeyNewDummy, pubkeyToString } from "solana-kiss-data";
 import {
   idlAccountDecode,
   idlAccountEncode,
@@ -47,9 +47,9 @@ it("run", () => {
   const campaignAccountState = {
     bump: 99,
     index: "77",
-    authority: jsonTypePubkey.encoder(pubkeyNewDummy()),
-    collateral_mint: jsonTypePubkey.encoder(pubkeyNewDummy()),
-    redeemable_mint: jsonTypePubkey.encoder(pubkeyNewDummy()),
+    authority: pubkeyToString(pubkeyNewDummy()),
+    collateral_mint: pubkeyToString(pubkeyNewDummy()),
+    redeemable_mint: pubkeyToString(pubkeyNewDummy()),
     funding_goal_collateral_amount: "11",
     total_deposited_collateral_amount: "22",
     total_claimed_redeemable_amount: "33",

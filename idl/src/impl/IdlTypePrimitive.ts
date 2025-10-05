@@ -6,6 +6,7 @@ import {
   jsonTypePubkey,
   pubkeyFromBytes,
   pubkeyToBytes,
+  pubkeyToString,
 } from "solana-kiss-data";
 
 export class IdlTypePrimitive {
@@ -227,8 +228,7 @@ const visitorDeserialize = {
     return data.getUint8(dataOffset) != 0;
   },
   pubkey: (data: DataView, dataOffset: number): JsonValue => {
-    return jsonTypePubkey.encoder(
-      // TODO - use pubkeyToString ?
+    return pubkeyToString(
       pubkeyFromBytes(new Uint8Array(data.buffer, dataOffset, 32)),
     );
   },

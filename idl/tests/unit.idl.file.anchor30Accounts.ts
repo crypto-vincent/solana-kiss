@@ -1,10 +1,10 @@
 import { expect, it } from "@jest/globals";
 import {
-  jsonTypePubkey,
   pubkeyFindPdaAddress,
   pubkeyFromString,
   pubkeyNewDummy,
   pubkeyToBytes,
+  pubkeyToString,
 } from "solana-kiss-data";
 import { idlInstructionAddressesFind, idlProgramParse } from "../src";
 
@@ -89,7 +89,7 @@ it("run", () => {
       instructionAccountsStates: new Map([
         [
           "campaign",
-          { collateral_mint: jsonTypePubkey.encoder(collateralMintAddress) },
+          { collateral_mint: pubkeyToString(collateralMintAddress) },
         ],
       ]),
       instructionAccountsContentsTypeFull: new Map([
@@ -131,7 +131,7 @@ it("run", () => {
       instructionAccountsStates: new Map([
         [
           "campaign",
-          { collateral_mint: jsonTypePubkey.encoder(collateralMintAddress) },
+          { collateral_mint: pubkeyToString(collateralMintAddress) },
         ],
       ]),
       instructionAccountsContentsTypeFull: new Map([

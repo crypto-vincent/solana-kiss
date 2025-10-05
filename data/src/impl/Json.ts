@@ -343,7 +343,7 @@ export const jsonTypeObjectRaw: JsonType<JsonObject> = {
 export const jsonTypeInteger: JsonType<bigint> = {
   decoder: jsonDecoderByKind({
     number: (number: number) => BigInt(number),
-    string: (string: string) => BigInt(string),
+    string: (string: string) => BigInt(string.replace(/_/g, "")),
   }),
   encoder: (decoded: Immutable<bigint>): JsonValue => {
     return String(decoded);
@@ -352,7 +352,7 @@ export const jsonTypeInteger: JsonType<bigint> = {
 export const jsonTypeFloating: JsonType<number> = {
   decoder: jsonDecoderByKind({
     number: (number: number) => number,
-    string: (string: string) => Number(string),
+    string: (string: string) => Number(string.replace(/_/g, "")),
   }),
   encoder: (decoded: Immutable<number>): JsonValue => {
     return decoded;

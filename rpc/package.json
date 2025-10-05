@@ -1,6 +1,6 @@
 {
   "name": "solana-kiss-rpc",
-  "version": "0.0.8",
+  "version": "0.0.9",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "devDependencies": {
@@ -13,7 +13,7 @@
     "typescript": "^5.8.3"
   },
   "dependencies": {
-    "solana-kiss-data": "0.0.8"
+    "solana-kiss-data": "0.0.9"
   },
   "scripts": {
     "build": "tsup src/index.ts --dts --clean --minify --sourcemap --out-dir dist",

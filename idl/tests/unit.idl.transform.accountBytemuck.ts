@@ -1,5 +1,5 @@
 import { expect, it } from "@jest/globals";
-import { jsonTypePubkey, pubkeyFromBytes } from "solana-kiss-data";
+import { pubkeyFromBytes, pubkeyToString } from "solana-kiss-data";
 import { idlAccountDecode, idlAccountEncode, idlProgramParse } from "../src";
 
 it("run", () => {
@@ -78,7 +78,7 @@ it("run", () => {
   // Choose the instruction
   const accountIdl = programIdl.accounts.get("BytemuckAccount")!;
   // Bytemuck constants
-  const keyF2 = jsonTypePubkey.encoder(
+  const keyF2 = pubkeyToString(
     pubkeyFromBytes(
       new Uint8Array([
         0xf2, 0xf2, 0xf2, 0xf2, 0xf2, 0xf2, 0xf2, 0xf2, 0xf2, 0xf2, 0xf2, 0xf2,
@@ -87,7 +87,7 @@ it("run", () => {
       ]),
     ),
   );
-  const keyC2 = jsonTypePubkey.encoder(
+  const keyC2 = pubkeyToString(
     pubkeyFromBytes(
       new Uint8Array([
         0xc2, 0xc2, 0xc2, 0xc2, 0xc2, 0xc2, 0xc2, 0xc2, 0xc2, 0xc2, 0xc2, 0xc2,

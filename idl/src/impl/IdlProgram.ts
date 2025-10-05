@@ -21,6 +21,8 @@ import {
 import { IdlMetadata, idlMetadataParse } from "./IdlMetadata";
 import { IdlTypedef, idlTypedefParse } from "./IdlTypedef";
 
+// TODO - should add support for IDL constants??
+// TODO - should add support for IDL root level PDAs?
 export type IdlProgram = {
   metadata: IdlMetadata;
   typedefs: Map<string, IdlTypedef>;
