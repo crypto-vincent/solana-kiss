@@ -3,7 +3,7 @@ import {
   jsonTypeBoolean,
   jsonTypeFloating,
   jsonTypeInteger,
-  jsonTypeString,
+  jsonTypePubkey,
   pubkeyFromBytes,
   pubkeyToBytes,
 } from "solana-kiss-data";
@@ -178,7 +178,7 @@ const visitorSerialize = {
     }
   },
   pubkey: (blob: Uint8Array, value: JsonValue) => {
-    blob.set(pubkeyToBytes(jsonTypeString.decoder(value)));
+    blob.set(pubkeyToBytes(jsonTypePubkey.decoder(value)));
   },
 };
 
@@ -227,6 +227,9 @@ const visitorDeserialize = {
     return data.getUint8(dataOffset) != 0;
   },
   pubkey: (data: DataView, dataOffset: number): JsonValue => {
-    return pubkeyFromBytes(new Uint8Array(data.buffer, dataOffset, 32));
+    return jsonTypePubkey.encoder(
+      // TODO - use pubkeyToString ?
+      pubkeyFromBytes(new Uint8Array(data.buffer, dataOffset, 32)),
+    );
   },
 };

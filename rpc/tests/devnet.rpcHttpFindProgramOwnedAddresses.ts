@@ -1,4 +1,5 @@
 import { expect, it } from "@jest/globals";
+import { pubkeyFromString } from "solana-kiss-data";
 import {
   rpcHttpFindProgramOwnedAddresses,
   rpcHttpFromUrl,
@@ -9,7 +10,7 @@ it("run", async () => {
   const rpcHttp = rpcHttpFromUrl("https://api.devnet.solana.com");
   const ownedAddresses = await rpcHttpFindProgramOwnedAddresses(
     rpcHttp,
-    "vVeH6Xd43HAScbxjVtvfwDGqBMaMvNDLsAxwM5WK1pG",
+    pubkeyFromString("vVeH6Xd43HAScbxjVtvfwDGqBMaMvNDLsAxwM5WK1pG"),
   );
   expect(ownedAddresses.size).toBeGreaterThan(0);
   const ownedAddress = Array.from(ownedAddresses)[0]!;

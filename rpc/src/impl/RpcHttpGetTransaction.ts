@@ -1,6 +1,6 @@
 import {
-  Input,
   Instruction,
+  InstructionInput,
   Pubkey,
   Signature,
   base58Decode,
@@ -9,7 +9,10 @@ import {
   jsonDecoderObject,
   jsonDecoderObjectToRecord,
   jsonDecoderOptional,
+  jsonTypeBlockhash,
   jsonTypeNumber,
+  jsonTypePubkey,
+  jsonTypeSignature,
   jsonTypeString,
   jsonTypeValue,
 } from "solana-kiss-data";
@@ -25,7 +28,7 @@ export async function rpcHttpGetTransaction(
 ): Promise<Transaction | undefined> {
   const result = resultJsonDecoder(
     await rpcHttp("getTransaction", [
-      transactionSignature,
+      jsonTypeSignature.encoder(transactionSignature),
       {
         commitment: context?.commitment,
         encoding: "json",
@@ -63,12 +66,12 @@ export async function rpcHttpGetTransaction(
       recentBlockhash: message.recentBlockhash,
     },
     slot: result.slot,
+    error: meta.err, // TODO - parse error to find custom program errors ?
+    logs: meta.logMessages, // TODO - parse logs for invocations and event data
     processedTime: result.blockTime
       ? new Date(result.blockTime * 1000)
       : undefined,
-    error: meta.err, // TODO - parse error to find custom program errors ?
-    logs: meta.logMessages, // TODO - parse logs for invocations and event data
-    chargedFees: BigInt(meta.fee),
+    chargedFeesLamports: BigInt(meta.fee),
     consumedComputeUnits: meta.computeUnitsConsumed,
     invocations: decompileTransactionInvocations(
       transactionInputs,
@@ -116,7 +119,7 @@ function decompileTransactionInputs(
   inputsAddresses.push(...staticAddresses);
   inputsAddresses.push(...loadedWritableAddresses);
   inputsAddresses.push(...loadedReadonlyAddresses);
-  const transactionInputs = new Array<Input>();
+  const transactionInputs = new Array<InstructionInput>();
   for (const inputAddress of inputsAddresses) {
     transactionInputs.push({
       address: inputAddress,
@@ -128,7 +131,7 @@ function decompileTransactionInputs(
 }
 
 function decompileTransactionInstructions(
-  transactionInputs: Array<Input>,
+  transactionInputs: Array<InstructionInput>,
   compiledInstructions: Array<CompiledInstruction>,
 ): Array<Instruction> {
   const instructions = new Array<Instruction>();
@@ -147,7 +150,7 @@ function decompileTransactionInstructions(
 }
 
 function decompileTransactionInvocations(
-  transactionInputs: Array<Input>,
+  transactionInputs: Array<InstructionInput>,
   transactionInstructions: Array<Instruction>,
   compiledInnerInstructions: Array<{
     index: number;
@@ -205,14 +208,14 @@ type CompiledInstruction = {
 };
 
 function decompileTransactionInstruction(
-  transactionInputs: Array<Input>,
+  transactionInputs: Array<InstructionInput>,
   compiledInstruction: CompiledInstruction,
 ): Instruction {
   const instructionProgram = expectItemInArray(
     transactionInputs,
     compiledInstruction.programIndex,
   );
-  const instructionInputs = new Array<Input>();
+  const instructionInputs = new Array<InstructionInput>();
   for (const accountIndex of compiledInstruction.accountsIndexes) {
     instructionInputs.push(expectItemInArray(transactionInputs, accountIndex));
   }
@@ -256,8 +259,8 @@ const resultJsonDecoder = jsonDecoderOptional(
       ),
       loadedAddresses: jsonDecoderOptional(
         jsonDecoderObject({
-          writable: jsonDecoderArray(jsonTypeString.decoder),
-          readonly: jsonDecoderArray(jsonTypeString.decoder),
+          writable: jsonDecoderArray(jsonTypePubkey.decoder),
+          readonly: jsonDecoderArray(jsonTypePubkey.decoder),
         }),
       ),
       logMessages: jsonDecoderOptional(
@@ -267,11 +270,11 @@ const resultJsonDecoder = jsonDecoderOptional(
     slot: jsonTypeNumber.decoder,
     transaction: jsonDecoderObject({
       message: jsonDecoderObject({
-        accountKeys: jsonDecoderArray(jsonTypeString.decoder),
+        accountKeys: jsonDecoderArray(jsonTypePubkey.decoder),
         addressTableLookups: jsonDecoderOptional(
           jsonDecoderArray(
             jsonDecoderObject({
-              accountKey: jsonTypeString.decoder,
+              accountKey: jsonTypePubkey.decoder,
               readonlyIndexes: jsonDecoderArray(jsonTypeNumber.decoder),
               writableIndexes: jsonDecoderArray(jsonTypeNumber.decoder),
             }),
@@ -283,14 +286,14 @@ const resultJsonDecoder = jsonDecoderOptional(
           numRequiredSignatures: jsonTypeNumber.decoder,
         }),
         instructions: jsonDecoderArray(instructionDecoder),
-        recentBlockhash: jsonTypeString.decoder,
+        recentBlockhash: jsonTypeBlockhash.decoder,
       }),
-      signatures: jsonDecoderArray(jsonTypeString.decoder),
+      signatures: jsonDecoderArray(jsonTypeSignature.decoder),
     }),
   }),
 );
 
-export function expectItemInArray<T>(array: Array<T>, index: number): T {
+function expectItemInArray<T>(array: Array<T>, index: number): T {
   if (index < 0 || index >= array.length) {
     throw new Error(
       `Array index ${index} out of bounds (length: ${array.length})`,

@@ -22,6 +22,10 @@ export function signatureToBytes(signature: Signature): Uint8Array {
   return bytes;
 }
 
+export function signatureToString(signature: Signature): string {
+  return signature as string;
+}
+
 function signatureBytesCheck(bytes: Uint8Array) {
   if (bytes.length !== 64) {
     throw new Error(

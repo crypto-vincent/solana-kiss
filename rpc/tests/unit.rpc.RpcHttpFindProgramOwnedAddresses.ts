@@ -1,4 +1,5 @@
 import { expect, it } from "@jest/globals";
+import { pubkeyNewDummy } from "solana-kiss-data";
 import { RpcHttp, rpcHttpFindProgramOwnedAddresses } from "../src";
 
 it("run", async () => {
@@ -7,7 +8,7 @@ it("run", async () => {
   };
   const accountsAddresses = await rpcHttpFindProgramOwnedAddresses(
     rpcHttp,
-    "!",
+    pubkeyNewDummy(),
   );
   expect(accountsAddresses.size).toStrictEqual(100);
   expect(accountsAddresses).toContain(

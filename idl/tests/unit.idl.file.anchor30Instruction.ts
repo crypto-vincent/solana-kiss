@@ -1,8 +1,10 @@
 import { expect, it } from "@jest/globals";
 import {
-  Input,
+  InstructionInput,
   Pubkey,
+  pubkeyDefault,
   pubkeyFindPdaAddress,
+  pubkeyFromString,
   pubkeyNewDummy,
   pubkeyToBytes,
 } from "solana-kiss-data";
@@ -12,9 +14,13 @@ import {
   idlProgramParse,
 } from "../src";
 
-const systemProgramAddress = "11111111111111111111111111111111";
-const tokenProgramAddress = "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA";
-const ataProgramAddress = "ATokenGPvbdGVxr1b2hvZbsiqW5xWH25efTNsLJA8knL";
+const systemProgramAddress = pubkeyDefault;
+const tokenProgramAddress = pubkeyFromString(
+  "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA",
+);
+const ataProgramAddress = pubkeyFromString(
+  "ATokenGPvbdGVxr1b2hvZbsiqW5xWH25efTNsLJA8knL",
+);
 
 it("run", () => {
   // Parse IDL from file JSON directly
@@ -104,12 +110,12 @@ it("run", () => {
 });
 
 function expectInput(
-  input: Input | undefined,
+  instructionInput: InstructionInput | undefined,
   address: Pubkey,
   signing: boolean,
   writable: boolean,
 ) {
-  expect(input).toStrictEqual({
+  expect(instructionInput).toStrictEqual({
     address,
     signing,
     writable,

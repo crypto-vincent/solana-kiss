@@ -1,5 +1,6 @@
 import { expect, it } from "@jest/globals";
 import {
+  jsonTypePubkey,
   pubkeyFindPdaAddress,
   pubkeyNewDummy,
   pubkeyToBytes,
@@ -102,7 +103,13 @@ it("run", () => {
       ]),
       instructionPayload: { global_market_seed: globalMarketSeed },
       instructionAccountsStates: new Map([
-        ["deal", { deal_number: dealNumber, borrower: borrowerAddress }],
+        [
+          "deal",
+          {
+            deal_number: dealNumber,
+            borrower: jsonTypePubkey.encoder(borrowerAddress),
+          },
+        ],
       ]),
     },
   );

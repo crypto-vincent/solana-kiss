@@ -16,7 +16,7 @@ import { IdlTypeFull } from "./IdlTypeFull";
 import { idlTypeFullDeserialize } from "./IdlTypeFullDeserialize";
 import { idlTypeFullSerialize } from "./IdlTypeFullSerialize";
 import {
-  idlUtilsBytesJsonDecoder,
+  idlUtilsBytesJsonType,
   idlUtilsDiscriminator,
   idlUtilsExpectBlobAt,
   idlUtilsFlattenBlobs,
@@ -91,5 +91,5 @@ export function idlEventParse(
 
 const infoJsonDecoder = jsonDecoderObject({
   docs: jsonTypeValue.decoder,
-  discriminator: jsonDecoderOptional(idlUtilsBytesJsonDecoder),
+  discriminator: jsonDecoderOptional(idlUtilsBytesJsonType.decoder),
 });

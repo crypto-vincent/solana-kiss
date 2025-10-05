@@ -22,6 +22,10 @@ export function blockhashToBytes(blockhash: Blockhash): Uint8Array {
   return bytes;
 }
 
+export function blockhashToString(blockhash: Blockhash): string {
+  return blockhash as string;
+}
+
 function blockhashBytesCheck(bytes: Uint8Array) {
   if (bytes.length !== 32) {
     throw new Error(

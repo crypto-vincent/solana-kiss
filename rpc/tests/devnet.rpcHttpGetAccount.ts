@@ -1,5 +1,5 @@
 import { expect, it } from "@jest/globals";
-import { pubkeyDefault } from "solana-kiss-data";
+import { pubkeyDefault, pubkeyFromString } from "solana-kiss-data";
 import {
   rpcHttpFromUrl,
   rpcHttpGetAccountLamports,
@@ -9,20 +9,23 @@ import {
 
 it("run", async () => {
   const rpcHttp = rpcHttpFromUrl("https://api.devnet.solana.com");
+  const accountAddress = pubkeyFromString(
+    "DL8WvebR4WVMu8WDv42zyzWuH9UZELYZ8kdhCaa83skB",
+  );
   const resultWithData = await rpcHttpGetAccountWithData(
     rpcHttp,
-    "DL8WvebR4WVMu8WDv42zyzWuH9UZELYZ8kdhCaa83skB",
+    accountAddress,
   );
   const resultLamports = await rpcHttpGetAccountLamports(
     rpcHttp,
-    "DL8WvebR4WVMu8WDv42zyzWuH9UZELYZ8kdhCaa83skB",
+    accountAddress,
   );
   const resultMetadata = await rpcHttpGetAccountMetadata(
     rpcHttp,
-    "DL8WvebR4WVMu8WDv42zyzWuH9UZELYZ8kdhCaa83skB",
+    accountAddress,
   );
   expect(resultWithData.lamports).toBeGreaterThan(0n);
-  expect(resultWithData.owner).not.toBe(pubkeyDefault());
+  expect(resultWithData.owner).not.toBe(pubkeyDefault);
   expect(resultWithData.data.length).toBeGreaterThan(0);
   expect(resultWithData.lamports).toBe(resultLamports);
   expect(resultWithData.lamports).toBe(resultMetadata.lamports);

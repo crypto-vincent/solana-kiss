@@ -38,6 +38,10 @@ export function pubkeyToBytes(pubkey: Pubkey): Uint8Array {
   return bytes;
 }
 
+export function pubkeyToString(pubkey: Pubkey): string {
+  return pubkey as string;
+}
+
 export function pubkeyFindPdaAddress(
   programAddress: Pubkey,
   seedsBlobs: Array<Uint8Array>,

@@ -4,6 +4,7 @@ import {
   jsonDecoderObject,
   jsonDecoderOptional,
   jsonTypeBoolean,
+  jsonTypePubkey,
   jsonTypeString,
   jsonTypeValue,
   JsonValue,
@@ -120,7 +121,7 @@ const infoJsonDecoder = jsonDecoderObject({
   isMut: jsonDecoderOptional(jsonTypeBoolean.decoder),
   optional: jsonDecoderOptional(jsonTypeBoolean.decoder),
   isOptional: jsonDecoderOptional(jsonTypeBoolean.decoder),
-  address: jsonDecoderOptional(jsonTypeString.decoder),
+  address: jsonDecoderOptional(jsonTypePubkey.decoder),
   pda: jsonDecoderOptional(
     jsonDecoderObject({
       seeds: jsonDecoderOptional(jsonDecoderArray(jsonTypeValue.decoder)),

@@ -29,7 +29,7 @@ import {
   IdlTypePrimitive,
   idlTypePrimitiveSerialize,
 } from "./IdlTypePrimitive";
-import { idlUtilsBytesJsonDecoder } from "./IdlUtils";
+import { idlUtilsBytesJsonType } from "./IdlUtils";
 
 export function idlTypeFullSerialize(
   typeFull: IdlTypeFull,
@@ -80,7 +80,7 @@ const visitorSerialize = {
     prefixed: boolean,
   ) => {
     if (self.items.isPrimitive(IdlTypePrimitive.u8)) {
-      const bytes = idlUtilsBytesJsonDecoder(value);
+      const bytes = idlUtilsBytesJsonType.decoder(value);
       if (prefixed) {
         idlTypePrefixSerialize(self.prefix, BigInt(bytes.length), blobs);
       }
@@ -102,7 +102,7 @@ const visitorSerialize = {
     prefixed: boolean,
   ) => {
     if (self.items.isPrimitive(IdlTypePrimitive.u8)) {
-      const bytes = idlUtilsBytesJsonDecoder(value);
+      const bytes = idlUtilsBytesJsonType.decoder(value);
       if (bytes.length != self.length) {
         throw new Error(
           `Expected an array of size: ${self.length}, found: ${bytes.length}`,

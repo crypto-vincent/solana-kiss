@@ -1,4 +1,5 @@
 import {
+  jsonAsObject,
   jsonDecoderObject,
   jsonDecoderOptional,
   jsonTypeNumber,
@@ -10,7 +11,7 @@ import { Commitment } from "./RpcTypes";
 
 export type RpcHttp = (
   method: string,
-  params: Array<any>,
+  params: Array<JsonValue>,
 ) => Promise<JsonValue>;
 
 export function rpcHttpFromUrl(
@@ -34,10 +35,11 @@ export function rpcHttpFromUrl(
     const defaultCommitment = defaultContext?.commitment;
     if (defaultCommitment !== undefined) {
       const paramsLastIndex = params.length - 1;
-      if (params[paramsLastIndex].commitment === undefined) {
+      const lastParamObject = jsonAsObject(params[paramsLastIndex]);
+      if (lastParamObject !== undefined) {
         params = params.slice();
         params[paramsLastIndex] = {
-          ...params[paramsLastIndex],
+          ...lastParamObject,
           preflightCommitment: defaultCommitment,
           commitment: defaultCommitment,
         };

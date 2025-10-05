@@ -1,8 +1,8 @@
 import {
   Blockhash,
   jsonDecoderObject,
+  jsonTypeBlockhash,
   jsonTypeNumber,
-  jsonTypeString,
 } from "solana-kiss-data";
 import { RpcHttp } from "./RpcHttp";
 import { Commitment } from "./RpcTypes";
@@ -24,7 +24,7 @@ const resultJsonDecoder = jsonDecoderObject({
     slot: jsonTypeNumber.decoder,
   }),
   value: jsonDecoderObject({
-    blockhash: jsonTypeString.decoder,
+    blockhash: jsonTypeBlockhash.decoder,
     lastValidBlockHeight: jsonTypeNumber.decoder,
   }),
 });

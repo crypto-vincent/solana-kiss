@@ -1,5 +1,4 @@
 import {
-  Lamports,
   Pubkey,
   base64Decode,
   jsonDecoderArrayToObject,
@@ -8,6 +7,7 @@ import {
   jsonDecoderOptional,
   jsonTypeBoolean,
   jsonTypeNumber,
+  jsonTypePubkey,
   jsonTypeString,
   pubkeyDefault,
 } from "solana-kiss-data";
@@ -22,13 +22,13 @@ export async function rpcHttpGetAccountWithData(
   },
 ): Promise<{
   executable: boolean;
-  lamports: Lamports;
+  lamports: bigint;
   owner: Pubkey;
   data: Uint8Array;
 }> {
   const result = resultJsonDecoder(
     await rpcHttp("getAccountInfo", [
-      accountAddress,
+      jsonTypePubkey.encoder(accountAddress),
       {
         commitment: context?.commitment,
         encoding: "base64",
@@ -39,7 +39,7 @@ export async function rpcHttpGetAccountWithData(
     return {
       executable: false,
       lamports: 0n,
-      owner: pubkeyDefault(),
+      owner: pubkeyDefault,
       data: new Uint8Array(0),
     };
   }
@@ -61,7 +61,7 @@ const resultJsonDecoder = jsonDecoderObject({
     jsonDecoderObject({
       executable: jsonTypeBoolean.decoder,
       lamports: jsonTypeNumber.decoder,
-      owner: jsonTypeString.decoder,
+      owner: jsonTypePubkey.decoder,
       data: jsonDecoderArrayToObject({
         encoded: jsonTypeString.decoder,
         encoding: jsonDecoderConst("base64"),

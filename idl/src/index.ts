@@ -17,3 +17,4 @@ export * from "./impl/IdlTypeFullDeserialize";
 export * from "./impl/IdlTypeFullSerialize";
 export * from "./impl/IdlTypePrefix";
 export * from "./impl/IdlTypePrimitive";
+export * from "./impl/IdlUtils";

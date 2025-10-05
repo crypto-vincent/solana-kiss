@@ -1,4 +1,5 @@
 import { expect, it } from "@jest/globals";
+import { signatureFromString } from "solana-kiss-data";
 import { rpcHttpFromUrl, rpcHttpWaitForTransaction } from "../src";
 
 it("run", async () => {
@@ -6,7 +7,9 @@ it("run", async () => {
   // This should be a simple success
   const transaction1 = await rpcHttpWaitForTransaction(
     rpcHttp,
-    "2pqW2HvC2FqVr1GkSgLrPCp55THBzYWP6oMkaB6bZzaRXKYNJ2wfcBCu3M9r64SVcX3fEC5EomwxF939kn4pYXBW",
+    signatureFromString(
+      "2pqW2HvC2FqVr1GkSgLrPCp55THBzYWP6oMkaB6bZzaRXKYNJ2wfcBCu3M9r64SVcX3fEC5EomwxF939kn4pYXBW",
+    ),
     0,
   );
   expect(transaction1.message.payerAddress).toStrictEqual(
@@ -20,7 +23,9 @@ it("run", async () => {
   // This should be a failure with error
   const transaction2 = await rpcHttpWaitForTransaction(
     rpcHttp,
-    "3VBrBZQERLxdNjqLTzwx7TMQYbUr8ti4547CUK53WByooyJHJGmnkccw2pCQVv7D7Xi65S1E7mSFZETw6ECjxdmd",
+    signatureFromString(
+      "3VBrBZQERLxdNjqLTzwx7TMQYbUr8ti4547CUK53WByooyJHJGmnkccw2pCQVv7D7Xi65S1E7mSFZETw6ECjxdmd",
+    ),
     0,
   );
   expect(transaction2.message.payerAddress).toStrictEqual(
@@ -36,7 +41,9 @@ it("run", async () => {
   // This should be a transaction with many instructions (> 50)
   const transaction3 = await rpcHttpWaitForTransaction(
     rpcHttp,
-    "2MZyi9uezffec3YyAHpkC33r8Nmgwf3cBHKH1Y9H4EHfoKtZ8sQEKVCHF2Rwb17qQCrUDXS1u1wpNnxgz79U6yWY",
+    signatureFromString(
+      "2MZyi9uezffec3YyAHpkC33r8Nmgwf3cBHKH1Y9H4EHfoKtZ8sQEKVCHF2Rwb17qQCrUDXS1u1wpNnxgz79U6yWY",
+    ),
     0,
   );
   expect(transaction3.message.payerAddress).toStrictEqual(

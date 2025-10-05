@@ -3,8 +3,7 @@ import {
   jsonDecoderOptional,
   jsonTypeBoolean,
   jsonTypeNumber,
-  jsonTypeString,
-  Lamports,
+  jsonTypePubkey,
   Pubkey,
   pubkeyDefault,
 } from "solana-kiss-data";
@@ -19,13 +18,13 @@ export async function rpcHttpGetAccountMetadata(
   },
 ): Promise<{
   executable: boolean;
-  lamports: Lamports;
+  lamports: bigint;
   owner: Pubkey;
   space: number;
 }> {
   const result = resultJsonDecoder(
     await rpcHttp("getAccountInfo", [
-      accountAddress,
+      jsonTypePubkey.encoder(accountAddress),
       {
         commitment: context?.commitment,
         dataSlice: { offset: 0, length: 0 },
@@ -37,7 +36,7 @@ export async function rpcHttpGetAccountMetadata(
     return {
       executable: false,
       lamports: 0n,
-      owner: pubkeyDefault(),
+      owner: pubkeyDefault,
       space: 0,
     };
   }
@@ -54,7 +53,7 @@ const resultJsonDecoder = jsonDecoderObject({
     jsonDecoderObject({
       executable: jsonTypeBoolean.decoder,
       lamports: jsonTypeNumber.decoder,
-      owner: jsonTypeString.decoder,
+      owner: jsonTypePubkey.decoder,
       space: jsonTypeNumber.decoder,
     }),
   ),

@@ -1,11 +1,16 @@
 import { expect, it } from "@jest/globals";
+import { pubkeyNewDummy } from "solana-kiss-data";
 import { RpcHttp, rpcHttpFindAccountPastSignatures } from "../src";
 
 it("run", async () => {
   const rpcHttp: RpcHttp = async () => {
     return require("./fixtures/RpcHttpGetSignaturesForAddress.json");
   };
-  const signatures = await rpcHttpFindAccountPastSignatures(rpcHttp, "!", 15);
+  const signatures = await rpcHttpFindAccountPastSignatures(
+    rpcHttp,
+    pubkeyNewDummy(),
+    15,
+  );
   expect(signatures.length).toStrictEqual(15);
   expect(signatures[0]).toStrictEqual(
     "ap239tUavGE8jWq9NKxTYqbwznBPxc4TTfcVWi6S5pJwnvEGjEZQrXqZ4SX44aPrAptwd1rG4f7JJwHRRwXrqNL",

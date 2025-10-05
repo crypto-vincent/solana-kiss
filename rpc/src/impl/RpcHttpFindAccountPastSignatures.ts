@@ -1,7 +1,8 @@
 import {
   jsonDecoderArray,
   jsonDecoderObject,
-  jsonTypeString,
+  jsonTypePubkey,
+  jsonTypeSignature,
   Pubkey,
   Signature,
 } from "solana-kiss-data";
@@ -13,8 +14,8 @@ export async function rpcHttpFindAccountPastSignatures(
   accountAddress: Pubkey,
   maxLength: number,
   pagination?: {
-    startBeforeSignature?: Signature;
-    rewindUntilSignature?: Signature;
+    startBefore?: Signature;
+    rewindUntil?: Signature;
   },
   context?: {
     commitment?: Commitment;
@@ -22,15 +23,17 @@ export async function rpcHttpFindAccountPastSignatures(
 ): Promise<Array<Signature>> {
   const requestLimit = 1000;
   const signatures = new Array<Signature>();
-  const rewindUntilSignature = pagination?.rewindUntilSignature;
-  let startBeforeSignature = pagination?.startBeforeSignature;
+  const rewindUntil = pagination?.rewindUntil;
+  let startBefore = pagination?.startBefore;
   while (true) {
     const result = resultJsonDecoder(
       await rpcHttp("getSignaturesForAddress", [
-        accountAddress,
+        jsonTypePubkey.encoder(accountAddress),
         {
           limit: requestLimit,
-          before: startBeforeSignature,
+          before: startBefore
+            ? jsonTypeSignature.encoder(startBefore)
+            : undefined,
           commitment: context?.commitment,
         },
       ]),
@@ -41,10 +44,10 @@ export async function rpcHttpFindAccountPastSignatures(
       if (signatures.length >= maxLength) {
         return signatures;
       }
-      if (signature === rewindUntilSignature) {
+      if (signature === rewindUntil) {
         return signatures;
       }
-      startBeforeSignature = signature;
+      startBefore = signature;
     }
     if (result.length < requestLimit) {
       return signatures;
@@ -54,6 +57,6 @@ export async function rpcHttpFindAccountPastSignatures(
 
 const resultJsonDecoder = jsonDecoderArray(
   jsonDecoderObject({
-    signature: jsonTypeString.decoder,
+    signature: jsonTypeSignature.decoder,
   }),
 );

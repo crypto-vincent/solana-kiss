@@ -1,4 +1,5 @@
 import { expect, it } from "@jest/globals";
+import { pubkeyFromString } from "solana-kiss-data";
 import {
   rpcHttpFindAccountPastSignatures,
   rpcHttpFromUrl,
@@ -9,7 +10,7 @@ it("run", async () => {
   const rpcHttp = rpcHttpFromUrl("https://api.devnet.solana.com");
   const pastSignatures = await rpcHttpFindAccountPastSignatures(
     rpcHttp,
-    "vVeH6Xd43HAScbxjVtvfwDGqBMaMvNDLsAxwM5WK1pG",
+    pubkeyFromString("vVeH6Xd43HAScbxjVtvfwDGqBMaMvNDLsAxwM5WK1pG"),
     4200,
   );
   expect(pastSignatures.length).toBeGreaterThan(0);
@@ -19,7 +20,9 @@ it("run", async () => {
     pastSignature,
     0,
   );
-  expect(transaction.processedTime).toStrictEqual("2025-08-21T15:26:48.000Z");
+  expect(transaction.processedTime?.toISOString()).toStrictEqual(
+    "2025-08-21T15:26:48.000Z",
+  );
   let found = 0;
   for (const log of transaction.logs ?? []) {
     if (log.includes("vVeH6Xd43HAScbxjVtvfwDGqBMaMvNDLsAxwM5WK1pG")) {

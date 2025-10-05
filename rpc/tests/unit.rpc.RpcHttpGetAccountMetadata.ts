@@ -1,11 +1,15 @@
 import { expect, it } from "@jest/globals";
+import { pubkeyNewDummy } from "solana-kiss-data";
 import { RpcHttp, rpcHttpGetAccountMetadata } from "../src";
 
 it("run", async () => {
   const rpcHttp: RpcHttp = async () => {
     return require("./fixtures/RpcHttpGetAccountInfo.json");
   };
-  const accountInfo = await rpcHttpGetAccountMetadata(rpcHttp, "!");
+  const accountInfo = await rpcHttpGetAccountMetadata(
+    rpcHttp,
+    pubkeyNewDummy(),
+  );
   expect(accountInfo.executable).toStrictEqual(true);
   expect(accountInfo.lamports).toStrictEqual(42_000_000_000_000n);
   expect(accountInfo.owner).toStrictEqual(

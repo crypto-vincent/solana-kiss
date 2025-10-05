@@ -1,7 +1,7 @@
 import {
   Immutable,
-  Input,
   Instruction,
+  InstructionInput,
   jsonDecoderObject,
   jsonDecoderOptional,
   jsonTypeArrayRaw,
@@ -27,7 +27,7 @@ import { IdlTypeFull, IdlTypeFullFields } from "./IdlTypeFull";
 import { idlTypeFullFieldsDeserialize } from "./IdlTypeFullDeserialize";
 import { idlTypeFullFieldsSerialize } from "./IdlTypeFullSerialize";
 import {
-  idlUtilsBytesJsonDecoder,
+  idlUtilsBytesJsonType,
   idlUtilsDiscriminator,
   idlUtilsExpectBlobAt,
   idlUtilsFlattenBlobs,
@@ -102,7 +102,7 @@ export function idlInstructionDecode(
 
 export function idlInstructionCheck(
   instructionIdl: IdlInstruction,
-  instructionInputs: Array<Input>,
+  instructionInputs: Array<InstructionInput>,
   instructionData: Uint8Array,
 ): void {
   idlInstructionAccountsCheck(instructionIdl, instructionInputs);
@@ -112,8 +112,8 @@ export function idlInstructionCheck(
 export function idlInstructionAccountsEncode(
   instructionIdl: IdlInstruction,
   instructionAddresses: Map<string, Pubkey>,
-): Array<Input> {
-  const instructionInputs = new Array<Input>();
+): Array<InstructionInput> {
+  const instructionInputs = new Array<InstructionInput>();
   for (const instructionAccountIdl of instructionIdl.accounts) {
     if (
       instructionAccountIdl.optional &&
@@ -140,7 +140,7 @@ export function idlInstructionAccountsEncode(
 
 export function idlInstructionAccountsDecode(
   instructionIdl: IdlInstruction,
-  instructionInputs: Array<Input>,
+  instructionInputs: Array<InstructionInput>,
 ): Map<string, Pubkey> {
   idlInstructionAccountsCheck(instructionIdl, instructionInputs);
   let instructionOptionalsPossible = 0;
@@ -177,7 +177,7 @@ export function idlInstructionAccountsDecode(
 
 export function idlInstructionAccountsCheck(
   instructionIdl: IdlInstruction,
-  instructionInputs: Array<Input>,
+  instructionInputs: Array<InstructionInput>,
 ): void {
   // TODO - improve the check logic
   let requiredCount = 0;
@@ -312,7 +312,7 @@ export function idlInstructionParse(
 
 const infoJsonDecoder = jsonDecoderObject({
   docs: jsonTypeValue.decoder,
-  discriminator: jsonDecoderOptional(idlUtilsBytesJsonDecoder),
+  discriminator: jsonDecoderOptional(idlUtilsBytesJsonType.decoder),
   args: jsonDecoderOptional(idlTypeFlatFieldsParse),
   returns: jsonDecoderOptional(idlTypeFlatParse),
   accounts: jsonDecoderOptional(jsonTypeArrayRaw.decoder),

@@ -22,40 +22,50 @@ import { idlTypeFlatHydrate } from "./IdlTypeFlatHydrate";
 import { idlTypeFlatParse } from "./IdlTypeFlatParse";
 import { idlTypeFullSerialize } from "./IdlTypeFullSerialize";
 
-export const idlUtilsBytesJsonDecoder = jsonDecoderByKind({
-  string: (string: string) => {
-    return new TextEncoder().encode(string);
-  },
-  array: (array: JsonArray) => {
-    return new Uint8Array(array.map(jsonTypeNumber.decoder));
-  },
-  object: jsonDecoderRemap(
-    jsonDecoderObject({
-      base16: jsonDecoderOptional(jsonTypeString.decoder),
-      base58: jsonDecoderOptional(jsonTypeString.decoder),
-      base64: jsonDecoderOptional(jsonTypeString.decoder),
-      value: jsonTypeValue.decoder,
-      type: jsonDecoderOptional(idlTypeFlatParse),
-      prefixed: jsonDecoderOptional(jsonTypeBoolean.decoder),
-    }),
-    (info) => {
-      if (info.base16 !== undefined) {
-        return base16Decode(info.base16);
-      }
-      if (info.base58 !== undefined) {
-        return base58Decode(info.base58);
-      }
-      if (info.base64 !== undefined) {
-        return base64Decode(info.base64);
-      }
-      const typeFlat = info.type ?? idlUtilsInferValueTypeFlat(info.value);
-      const typeFull = idlTypeFlatHydrate(typeFlat, new Map(), new Map());
-      const blobs = new Array<Uint8Array>();
-      idlTypeFullSerialize(typeFull, info.value, blobs, info.prefixed === true);
-      return idlUtilsFlattenBlobs(blobs);
+export const idlUtilsBytesJsonType = {
+  decoder: jsonDecoderByKind({
+    string: (string: string) => {
+      return new TextEncoder().encode(string);
     },
-  ),
-});
+    array: (array: JsonArray) => {
+      return new Uint8Array(array.map(jsonTypeNumber.decoder));
+    },
+    object: jsonDecoderRemap(
+      jsonDecoderObject({
+        base16: jsonDecoderOptional(jsonTypeString.decoder),
+        base58: jsonDecoderOptional(jsonTypeString.decoder),
+        base64: jsonDecoderOptional(jsonTypeString.decoder),
+        value: jsonTypeValue.decoder,
+        type: jsonDecoderOptional(idlTypeFlatParse),
+        prefixed: jsonDecoderOptional(jsonTypeBoolean.decoder),
+      }),
+      (info) => {
+        if (info.base16 !== undefined) {
+          return base16Decode(info.base16);
+        }
+        if (info.base58 !== undefined) {
+          return base58Decode(info.base58);
+        }
+        if (info.base64 !== undefined) {
+          return base64Decode(info.base64);
+        }
+        const typeFlat = info.type ?? idlUtilsInferValueTypeFlat(info.value);
+        const typeFull = idlTypeFlatHydrate(typeFlat, new Map(), new Map());
+        const blobs = new Array<Uint8Array>();
+        idlTypeFullSerialize(
+          typeFull,
+          info.value,
+          blobs,
+          info.prefixed === true,
+        );
+        return idlUtilsFlattenBlobs(blobs);
+      },
+    ),
+  }),
+  encoder: (bytes: Uint8Array): JsonValue => {
+    return Array.from(bytes);
+  },
+};
 
 export function idlUtilsInferValueTypeFlat(value: JsonValue): IdlTypeFlat {
   if (value === null || value === undefined) {

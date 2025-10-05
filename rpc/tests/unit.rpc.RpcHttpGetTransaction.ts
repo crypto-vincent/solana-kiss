@@ -1,11 +1,12 @@
 import { expect, it } from "@jest/globals";
+import { Signature } from "solana-kiss-data";
 import { RpcHttp, rpcHttpGetTransaction } from "../src";
 
 it("run", async () => {
   const rpcHttp: RpcHttp = async () => {
     return require("./fixtures/RpcHttpGetTransaction.json");
   };
-  const transaction = (await rpcHttpGetTransaction(rpcHttp, "!"))!;
+  const transaction = (await rpcHttpGetTransaction(rpcHttp, "!" as Signature))!;
   // Check basic stuff about the transaction
   expect(transaction.slot).toStrictEqual(328883613);
   expect(transaction.error).toStrictEqual(null);
@@ -13,7 +14,7 @@ it("run", async () => {
   expect(transaction.logs?.[0]).toStrictEqual(
     "Program ComputeBudget111111111111111111111111111111 invoke [1]",
   );
-  expect(transaction.chargedFees).toStrictEqual(32510n);
+  expect(transaction.chargedFeesLamports).toStrictEqual(32510n);
   expect(transaction.consumedComputeUnits).toStrictEqual(42381);
   // Check the message content
   expect(transaction.message.payerAddress).toStrictEqual(

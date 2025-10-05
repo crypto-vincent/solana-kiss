@@ -4,7 +4,7 @@ import { base16Encode, sha256Hash } from "../src";
 async function referenceImplementation(data: Uint8Array): Promise<Uint8Array> {
   if (globalThis.crypto?.subtle !== undefined) {
     return new Uint8Array(
-      await globalThis.crypto.subtle.digest("SHA-256", data as any),
+      await globalThis.crypto.subtle.digest("SHA-256", data as BufferSource),
     );
   } else {
     return new Uint8Array(

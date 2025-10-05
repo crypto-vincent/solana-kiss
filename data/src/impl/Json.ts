@@ -1,6 +1,6 @@
-import { Blockhash, blockhashFromString } from "./Blockhash";
-import { Pubkey, pubkeyFromString } from "./Pubkey";
-import { Signature, signatureFromString } from "./Signature";
+import { Blockhash, blockhashFromString, blockhashToString } from "./Blockhash";
+import { Pubkey, pubkeyFromString, pubkeyToString } from "./Pubkey";
+import { Signature, signatureFromString, signatureToString } from "./Signature";
 import { Immutable, withContext } from "./Utils";
 
 export type JsonValue =
@@ -205,22 +205,31 @@ export function jsonGetAtPath(
   },
 ): JsonValue {
   const tokens = path.replace(/\[(\w+)\]/g, ".$1").split(".");
-  let current: JsonValue = value;
-  for (let i = 0; i < tokens.length; i++) {
-    const token = tokens[i]!;
-    if (typeof current !== "object" || current === null) {
-      if (options?.failOnMissing) {
-        const pathSoFar = tokens.slice(0, i).join(".");
-        throw new Error(
-          `JSON: Expected an object or array at path "${pathSoFar}" (found: ${jsonPreview(current)})`,
-        );
-      } else {
-        return undefined;
+  let currentValue = value;
+  for (let tokenIndex = 0; tokenIndex < tokens.length; tokenIndex++) {
+    const token = tokens[tokenIndex]!;
+    const currentArray = jsonAsArray(currentValue);
+    if (currentArray !== undefined) {
+      const arrayIndex = Number(token);
+      if (!isFinite(arrayIndex)) {
+        throw new Error(`JSON: Expected a valid array index (found: ${token})`);
       }
+      currentValue = currentArray[arrayIndex];
+      continue;
     }
-    current = (current as any)[token];
+    const currentObject = jsonAsObject(currentValue);
+    if (currentObject !== undefined) {
+      currentValue = currentObject[token];
+      continue;
+    }
+    if (options?.failOnMissing) {
+      const pathSoFar = tokens.slice(0, tokenIndex).join(".");
+      throw new Error(
+        `JSON: Expected an object or array at path "${pathSoFar}" (found: ${jsonPreview(currentValue)})`,
+      );
+    }
   }
-  return current;
+  return currentValue;
 }
 
 export type JsonDecoderContent<S> = S extends JsonDecoder<infer T> ? T : never;
@@ -357,17 +366,17 @@ export const jsonTypeDateTime: JsonType<Date> = jsonTypeRemap(
 export const jsonTypePubkey: JsonType<Pubkey> = jsonTypeRemap(
   jsonTypeString,
   pubkeyFromString,
-  (remapped) => remapped as string,
+  pubkeyToString,
 );
 export const jsonTypeSignature: JsonType<Signature> = jsonTypeRemap(
   jsonTypeString,
   signatureFromString,
-  (remapped) => remapped as string,
+  signatureToString,
 );
 export const jsonTypeBlockhash: JsonType<Blockhash> = jsonTypeRemap(
   jsonTypeString,
   blockhashFromString,
-  (remapped) => remapped as string,
+  blockhashToString,
 );
 
 export function jsonDecoderConst<Const extends boolean | number | string>(

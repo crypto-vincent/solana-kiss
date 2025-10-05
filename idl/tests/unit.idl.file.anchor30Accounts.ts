@@ -1,13 +1,19 @@
 import { expect, it } from "@jest/globals";
 import {
+  jsonTypePubkey,
   pubkeyFindPdaAddress,
+  pubkeyFromString,
   pubkeyNewDummy,
   pubkeyToBytes,
 } from "solana-kiss-data";
 import { idlInstructionAddressesFind, idlProgramParse } from "../src";
 
-const tokenProgramAddress = "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA";
-const ataProgramAddress = "ATokenGPvbdGVxr1b2hvZbsiqW5xWH25efTNsLJA8knL";
+const tokenProgramAddress = pubkeyFromString(
+  "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA",
+);
+const ataProgramAddress = pubkeyFromString(
+  "ATokenGPvbdGVxr1b2hvZbsiqW5xWH25efTNsLJA8knL",
+);
 
 it("run", () => {
   // Parse IDL from file JSON directly
@@ -81,7 +87,10 @@ it("run", () => {
       ]),
       instructionPayload: { params: { index: campaignIndex } },
       instructionAccountsStates: new Map([
-        ["campaign", { collateral_mint: collateralMintAddress }],
+        [
+          "campaign",
+          { collateral_mint: jsonTypePubkey.encoder(collateralMintAddress) },
+        ],
       ]),
       instructionAccountsContentsTypeFull: new Map([
         ["campaign", programIdl.accounts.get("Campaign")!.contentTypeFull],
@@ -120,7 +129,10 @@ it("run", () => {
       ]),
       instructionPayload: {},
       instructionAccountsStates: new Map([
-        ["campaign", { collateral_mint: collateralMintAddress }],
+        [
+          "campaign",
+          { collateral_mint: jsonTypePubkey.encoder(collateralMintAddress) },
+        ],
       ]),
       instructionAccountsContentsTypeFull: new Map([
         ["campaign", programIdl.accounts.get("Campaign")!.contentTypeFull],

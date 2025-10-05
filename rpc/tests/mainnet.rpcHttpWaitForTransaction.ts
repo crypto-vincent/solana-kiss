@@ -1,4 +1,5 @@
 import { expect, it } from "@jest/globals";
+import { signatureFromString } from "solana-kiss-data";
 import { rpcHttpFromUrl, rpcHttpWaitForTransaction } from "../src";
 
 it("run", async () => {
@@ -6,7 +7,9 @@ it("run", async () => {
   // Complex transaction with many inner instructions nested
   const transaction = await rpcHttpWaitForTransaction(
     rpcHttp,
-    "5c4TRGCXbv6ChbTpTnmFzt3WFqpWMMSAKdEqiqCFzG7hTFTWxdHpv2VxfQBzG3VwvQ2mMyG4rvV2eTN68jrLKy3U",
+    signatureFromString(
+      "5c4TRGCXbv6ChbTpTnmFzt3WFqpWMMSAKdEqiqCFzG7hTFTWxdHpv2VxfQBzG3VwvQ2mMyG4rvV2eTN68jrLKy3U",
+    ),
     0,
   );
   expect(transaction.message.payerAddress).toStrictEqual(

@@ -1,6 +1,7 @@
 import {
   jsonDecoderObject,
   jsonDecoderOptional,
+  jsonTypePubkey,
   jsonTypeString,
   jsonTypeValue,
   JsonValue,
@@ -34,7 +35,7 @@ const infoJsonDecoder = jsonDecoderOptional(
     name: jsonDecoderOptional(jsonTypeString.decoder),
     docs: jsonDecoderOptional(jsonTypeValue.decoder),
     description: jsonDecoderOptional(jsonTypeString.decoder),
-    address: jsonDecoderOptional(jsonTypeString.decoder),
+    address: jsonDecoderOptional(jsonTypePubkey.decoder),
     version: jsonDecoderOptional(jsonTypeString.decoder),
     spec: jsonDecoderOptional(jsonTypeString.decoder),
   }),

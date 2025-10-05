@@ -1,8 +1,8 @@
 import {
-  Lamports,
   Pubkey,
   jsonDecoderObject,
   jsonTypeNumber,
+  jsonTypePubkey,
 } from "solana-kiss-data";
 import { RpcHttp } from "./RpcHttp";
 import { Commitment } from "./RpcTypes";
@@ -13,10 +13,10 @@ export async function rpcHttpGetAccountLamports(
   context?: {
     commitment?: Commitment;
   },
-): Promise<Lamports> {
+): Promise<bigint> {
   const result = resultJsonDecoder(
     await rpcHttp("getBalance", [
-      accountAddress,
+      jsonTypePubkey.encoder(accountAddress),
       { commitment: context?.commitment },
     ]),
   );

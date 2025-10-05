@@ -1,5 +1,5 @@
 import { expect, it } from "@jest/globals";
-import { Input, Pubkey, pubkeyNewDummy } from "solana-kiss-data";
+import { InstructionInput, Pubkey, pubkeyNewDummy } from "solana-kiss-data";
 import { idlInstructionEncode, idlProgramParse } from "../src";
 
 it("run", () => {
@@ -66,12 +66,12 @@ it("run", () => {
 });
 
 function expectInput(
-  input: Input | undefined,
+  instructionInput: InstructionInput | undefined,
   address: Pubkey,
   signing: boolean,
   writable: boolean,
 ) {
-  expect(input).toStrictEqual({
+  expect(instructionInput).toStrictEqual({
     address,
     signing,
     writable,
