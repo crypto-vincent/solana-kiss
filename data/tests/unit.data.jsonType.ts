@@ -24,15 +24,9 @@ it("run", async () => {
     decoded: any;
   }> = [
     {
-      encoded: {
-        key: "Hello World",
-      },
-      type: jsonTypeObject({
-        key: jsonTypeString,
-      }),
-      decoded: {
-        key: "Hello World",
-      },
+      encoded: { key: "Hello World" },
+      type: jsonTypeObject({ key: jsonTypeString }),
+      decoded: { key: "Hello World" },
     },
     {
       encoded: [42, 43],
@@ -45,50 +39,32 @@ it("run", async () => {
       decoded: [undefined, "Hello", undefined],
     },
     {
-      encoded: {
-        encoded_key: 42,
-      },
+      encoded: { encoded_key: 42 },
       type: jsonTypeObject(
         { decodedKey: jsonTypeNumber },
         { decodedKey: "encoded_key" },
       ),
-      decoded: {
-        decodedKey: 42,
-      },
+      decoded: { decodedKey: 42 },
     },
     {
-      encoded: {
-        my_value_v1: 42,
-      },
+      encoded: { my_value_v1: 42 },
       type: jsonTypeRemap(
         jsonTypeObject({ my_value_v1: jsonTypeNumber }),
         casingKeyedSnakeToCamel,
         casingKeyedCamelToSnake,
       ),
-      decoded: {
-        myValueV1: 42,
-      },
+      decoded: { myValueV1: 42 },
     },
     {
-      encoded: {
-        const: 42,
-        nullables: [null, true, false, null],
-      },
+      encoded: { const: 42, nullables: [null, true, false, null] },
       type: jsonTypeObject({
         const: jsonTypeConst(42),
         nullables: jsonTypeArray(jsonTypeNullable(jsonTypeBoolean)),
       }),
-      decoded: {
-        const: 42,
-        nullables: [null, true, false, null],
-      },
+      decoded: { const: 42, nullables: [null, true, false, null] },
     },
     {
-      encoded: {
-        keyed: {
-          value: "Hello",
-        },
-      },
+      encoded: { keyed: { value: "Hello" } },
       type: jsonTypeObjectKey(
         "keyed",
         jsonTypeObjectKey("value", jsonTypeString),
@@ -96,9 +72,7 @@ it("run", async () => {
       decoded: "Hello",
     },
     {
-      encoded: {
-        now: now.toISOString(),
-      },
+      encoded: { now: now.toISOString() },
       type: jsonTypeObject({
         now: jsonTypeDateTime,
       }),
