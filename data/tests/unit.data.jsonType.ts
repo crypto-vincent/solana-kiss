@@ -1,5 +1,6 @@
 import { expect, it } from "@jest/globals";
 import {
+  casingCamelToSnake,
   casingKeyedCamelToSnake,
   casingKeyedSnakeToCamel,
   JsonType,
@@ -45,6 +46,11 @@ it("run", async () => {
         { decodedKey: "encoded_key" },
       ),
       decoded: { decodedKey: 42 },
+    },
+    {
+      encoded: { hello_world: 42 },
+      type: jsonTypeObject({ helloWorld: jsonTypeNumber }, casingCamelToSnake),
+      decoded: { helloWorld: 42 },
     },
     {
       encoded: { my_value_v1: 42 },

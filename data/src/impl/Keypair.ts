@@ -1,6 +1,5 @@
-import { base58Decode, base58Encode } from "./Base58";
-import { Signature } from "./Execution";
-import { Pubkey } from "./Pubkey";
+import { Pubkey, pubkeyFromBytes } from "./Pubkey";
+import { Signature, signatureFromBytes, signatureToBytes } from "./Signature";
 
 export type Keypair = {
   address: Pubkey;
@@ -50,12 +49,15 @@ export async function keypairFromSecret(
   return keypair;
 }
 
-async function keypairNew(privateKey: any, publicKey: any): Promise<Keypair> {
+async function keypairNew(
+  privateKey: CryptoKey,
+  publicKey: CryptoKey,
+): Promise<Keypair> {
   const spki = await crypto.subtle.exportKey("spki", publicKey);
   return {
     address: extractPubkeyFromSpki(new Uint8Array(spki)),
     sign: async (message: Uint8Array) => {
-      return base58Encode(
+      return signatureFromBytes(
         new Uint8Array(
           await crypto.subtle.sign(
             "Ed25519",
@@ -69,15 +71,15 @@ async function keypairNew(privateKey: any, publicKey: any): Promise<Keypair> {
       return await crypto.subtle.verify(
         "Ed25519",
         publicKey,
-        base58Decode(signature) as BufferSource,
+        signatureToBytes(signature) as BufferSource,
         message as BufferSource,
       );
     },
   };
 }
 
-function extractPubkeyFromSpki(spkiDer: Uint8Array): string {
-  return base58Encode(spkiDer.slice(-32));
+function extractPubkeyFromSpki(spkiDer: Uint8Array): Pubkey {
+  return pubkeyFromBytes(spkiDer.slice(-32));
 }
 
 function pkcs8FromEd25519(secretBlob32: Uint8Array): Uint8Array {

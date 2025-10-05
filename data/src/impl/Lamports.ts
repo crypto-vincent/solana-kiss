@@ -1,14 +1,12 @@
-export type Lamports = bigint;
-
-export function approximateSolsForLamports(lamports: Lamports): number {
+export function approximateSolsForLamports(lamports: bigint): number {
   return Number(lamports) / Number(1_000_000_000);
 }
 
-export function approximateLamportsForSols(sols: number): Lamports {
+export function approximateLamportsForSols(sols: number): bigint {
   return BigInt(Math.floor(sols * 1_000_000_000));
 }
 
-export function lamportsRentExemptionMinimumForSpace(space: number): Lamports {
+export function lamportsRentExemptionMinimumForSpace(space: number): bigint {
   const storageBytesNeeded = 128n + BigInt(space);
   return storageBytesNeeded * lamportsFeePerBytePerYear * 2n;
 }

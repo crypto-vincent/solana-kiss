@@ -1,35 +1,41 @@
 import { expect, it } from "@jest/globals";
 import { PublicKey } from "@solana/web3.js";
 import {
-  base58Decode,
+  Pubkey,
   pubkeyDefault,
   pubkeyFindPdaAddressAndBump,
+  pubkeyFromString,
   pubkeyNewDummy,
+  pubkeyToBytes,
 } from "../src";
 
 it("run", async () => {
   const tests: Array<{
-    programAddress: string;
+    programAddress: Pubkey;
     seeds: Array<Uint8Array>;
   }> = [
     {
-      programAddress: pubkeyDefault(),
+      programAddress: pubkeyDefault,
       seeds: [],
     },
     {
-      programAddress: pubkeyDefault(),
+      programAddress: pubkeyDefault,
       seeds: [new Uint8Array(), new Uint8Array(), new Uint8Array()],
     },
     {
-      programAddress: pubkeyDefault(),
+      programAddress: pubkeyDefault,
       seeds: [new Uint8Array([1, 2, 3]), new Uint8Array([4, 5, 6])],
     },
     {
-      programAddress: "BPFLoader1111111111111111111111111111111111",
+      programAddress: pubkeyFromString(
+        "BPFLoader1111111111111111111111111111111111",
+      ),
       seeds: [new Uint8Array([1, 2, 3]), new Uint8Array([4, 5, 6])],
     },
     {
-      programAddress: "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA",
+      programAddress: pubkeyFromString(
+        "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA",
+      ),
       seeds: [new Uint8Array([1, 2, 3]), new Uint8Array([4, 5, 6])],
     },
   ];
@@ -47,9 +53,9 @@ it("run", async () => {
     tests.push({
       programAddress: pubkeyNewDummy(),
       seeds: [
-        base58Decode(pubkeyNewDummy()),
-        base58Decode(pubkeyNewDummy()),
-        base58Decode(pubkeyNewDummy()),
+        pubkeyToBytes(pubkeyNewDummy()),
+        pubkeyToBytes(pubkeyNewDummy()),
+        pubkeyToBytes(pubkeyNewDummy()),
       ],
     });
   }

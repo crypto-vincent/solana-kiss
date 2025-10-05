@@ -113,20 +113,29 @@ export function rpcHttpWithMaxConcurrentRequests(
 
 export function rpcHttpWithRetryOnError(
   rpcHttp: RpcHttp,
-  nextRetryDelayMs: (retryCount: number, error: any) => number | null,
+  retryApprover: (
+    error: any,
+    context: {
+      retryCounter: number;
+      totalTimeMs: number;
+    },
+  ) => Promise<boolean>,
 ): RpcHttp {
   return async function (method, params) {
-    let retryCount = 0;
+    let startTime = Date.now();
+    let retriedTimes = 0;
     while (true) {
       try {
         return await rpcHttp(method, params);
       } catch (error) {
-        const delay = nextRetryDelayMs(retryCount, error);
-        if (delay === null) {
+        const retryApproved = await retryApprover(error, {
+          retryCounter: retriedTimes,
+          totalTimeMs: Date.now() - startTime,
+        });
+        if (!retryApproved) {
           throw error;
         }
-        await new Promise((resolve) => setTimeout(resolve, delay));
-        retryCount++;
+        retriedTimes++;
       }
     }
   };

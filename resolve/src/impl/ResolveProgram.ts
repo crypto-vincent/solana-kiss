@@ -8,9 +8,13 @@ import { IdlProgram, idlProgramParse } from "solana-kiss-idl";
 import { RpcHttp, rpcHttpGetAccountWithData } from "solana-kiss-rpc";
 import { inflate } from "uzip";
 
+const anchorIdlDiscriminator = new Uint8Array([
+  24, 70, 98, 191, 58, 144, 123, 158,
+]);
+
 export function resolveProgramAnchorIdlAddress(programAddress: Pubkey): Pubkey {
-  const programBaseAddress = pubkeyFindPdaAddress(programAddress, []);
-  return pubkeyCreateFromSeed(programAddress, programBaseAddress, "anchor:idl");
+  const basePdaAddress = pubkeyFindPdaAddress(programAddress, []);
+  return pubkeyCreateFromSeed(basePdaAddress, "anchor:idl", programAddress);
 }
 
 export async function resolveProgramAnchorIdl(

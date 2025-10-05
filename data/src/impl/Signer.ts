@@ -1,6 +1,6 @@
-import { Signature } from "./Execution";
 import { keypairFromSecret, keypairGenerate } from "./Keypair";
 import { Pubkey } from "./Pubkey";
+import { Signature } from "./Signature";
 
 export type Signer = {
   address: Pubkey;

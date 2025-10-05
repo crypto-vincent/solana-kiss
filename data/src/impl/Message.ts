@@ -1,6 +1,7 @@
-import { base58Decode, base58Encode } from "./Base58";
-import { Blockhash, Instruction } from "./Execution";
-import { Pubkey } from "./Pubkey";
+import { Blockhash, blockhashToBytes } from "./Blockhash";
+import { Instruction } from "./Instruction";
+import { Pubkey, pubkeyFromBytes, pubkeyToBytes } from "./Pubkey";
+import { signatureToBytes } from "./Signature";
 import { Signer } from "./Signer";
 
 export type Message = {
@@ -78,10 +79,10 @@ export function messageCompile(message: Message): Uint8Array {
   frame[index++] = readonlyNonSignersCount;
   frame[index++] = staticAddresses.length;
   for (const staticAddress of staticAddresses) {
-    frame.set(base58Decode(staticAddress), index);
+    frame.set(pubkeyToBytes(staticAddress), index);
     index += 32;
   }
-  frame.set(base58Decode(message.recentBlockhash), index);
+  frame.set(blockhashToBytes(message.recentBlockhash), index);
   index += 32;
   frame[index++] = message.instructions.length;
   for (const instruction of message.instructions) {
@@ -124,7 +125,7 @@ export async function messageSign(
   messageSigned[0] = signersCount;
   for (let signerIndex = 0; signerIndex < signersCount; signerIndex++) {
     const compiledAddressOffset = compiledHeaderSize + signerIndex * 32;
-    const signerAddress = base58Encode(
+    const signerAddress = pubkeyFromBytes(
       messageCompiled.slice(compiledAddressOffset, compiledAddressOffset + 32),
     );
     const signer = signerPerAddress.get(signerAddress);
@@ -132,7 +133,7 @@ export async function messageSign(
       throw new Error(`Message: Missing signer for address: ${signerAddress}`);
     }
     messageSigned.set(
-      base58Decode(await signer.sign(messageCompiled)),
+      signatureToBytes(await signer.sign(messageCompiled)),
       1 + signerIndex * 64,
     );
   }

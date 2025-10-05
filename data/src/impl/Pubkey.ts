@@ -1,11 +1,11 @@
 import { base58Decode, base58Encode } from "./Base58";
 import { sha256Hash } from "./Sha256";
 
-export type Pubkey = string;
+export type Pubkey =
+  | (string & { readonly __brand: unique symbol })
+  | { readonly __brand: unique symbol };
 
-export function pubkeyDefault(): Pubkey {
-  return "11111111111111111111111111111111";
-}
+export const pubkeyDefault = pubkeyFromBytes(new Uint8Array(32));
 
 export function pubkeyNewDummy(): Pubkey {
   const bytes = new Uint8Array(32);
@@ -17,26 +17,24 @@ export function pubkeyNewDummy(): Pubkey {
   for (let i = 5; i < 32; i++) {
     bytes[i] = Math.floor(Math.random() * 256);
   }
-  return base58Encode(bytes);
+  return base58Encode(bytes) as Pubkey;
+}
+
+export function pubkeyFromString(string: string): Pubkey {
+  const bytes = base58Decode(string);
+  pubkeyBytesCheck(bytes);
+  return string as Pubkey;
 }
 
 export function pubkeyFromBytes(bytes: Uint8Array): Pubkey {
+  pubkeyBytesCheck(bytes);
   const pubkey = base58Encode(bytes);
-  if (bytes.length !== 32) {
-    throw new Error(
-      `Pubkey: Expected pubkey spanning 32 bytes (found: ${bytes.length}, with ${pubkey})`,
-    );
-  }
-  return pubkey;
+  return pubkey as Pubkey;
 }
 
-export function pubkeyToBytes(address: Pubkey): Uint8Array {
-  const bytes = base58Decode(address);
-  if (bytes.length !== 32) {
-    throw new Error(
-      `Pubkey: Expected pubkey spanning 32 bytes (found: ${bytes.length} with ${address})`,
-    );
-  }
+export function pubkeyToBytes(pubkey: Pubkey): Uint8Array {
+  const bytes = base58Decode(pubkey as string);
+  pubkeyBytesCheck(bytes);
   return bytes;
 }
 
@@ -83,7 +81,7 @@ export function pubkeyCreatePdaAddress(
       );
     }
   }
-  const pdaAddress = base58Encode(
+  const pdaAddress = pubkeyFromBytes(
     sha256Hash([...seedsBytes, programBytes, pdaMarker]),
   );
   if (pubkeyIsOnCurve(pdaAddress)) {
@@ -93,18 +91,18 @@ export function pubkeyCreatePdaAddress(
 }
 
 export function pubkeyCreateFromSeed(
-  programAddress: Pubkey,
-  derivedAddress: Pubkey,
-  seed: string,
+  signerAddress: Pubkey,
+  seedUtf8: string,
+  ownerAddress: Pubkey,
 ): Pubkey {
-  if (seed.length > 32) {
+  if (seedUtf8.length > 32) {
     throw new Error(`Pubkey: Create: Seed length must not exceed 32 bytes`);
   }
   return pubkeyFromBytes(
     sha256Hash([
-      pubkeyToBytes(derivedAddress),
-      new TextEncoder().encode(seed),
-      pubkeyToBytes(programAddress),
+      pubkeyToBytes(signerAddress),
+      new TextEncoder().encode(seedUtf8),
+      pubkeyToBytes(ownerAddress),
     ]),
   );
 }
@@ -169,3 +167,11 @@ function inv(value: bigint) {
 }
 
 const pdaMarker = new TextEncoder().encode("ProgramDerivedAddress");
+
+function pubkeyBytesCheck(bytes: Uint8Array) {
+  if (bytes.length !== 32) {
+    throw new Error(
+      `Pubkey: Expected pubkey spanning 32 bytes (found: ${bytes.length})`,
+    );
+  }
+}

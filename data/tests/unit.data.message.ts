@@ -6,6 +6,7 @@ import {
   VersionedTransaction,
 } from "@solana/web3.js";
 import {
+  blockhashFromBytes,
   keypairFromSecret,
   messageCompile,
   messageSign,
@@ -20,18 +21,18 @@ it("run", async () => {
   const payerCurrent = await keypairFromSecret(payerSecret);
   const signer1Current = await keypairFromSecret(signer1Secret);
   const signer2Current = await keypairFromSecret(signer2Secret);
-  const blockHash = pubkeyNewDummy();
+  const blockHash = blockhashFromBytes(new Uint8Array(32).fill(42));
   const generatedInstruction1 = generateInstruction(
-    signer1Reference.publicKey.toBase58(),
+    signer1Reference.publicKey.toBase58() as Pubkey,
     signer2Current.address,
   );
   const generatedInstruction2 = generateInstruction(
     signer1Current.address,
-    signer2Reference.publicKey.toBase58(),
+    signer2Reference.publicKey.toBase58() as Pubkey,
   );
   const referenceCompiledMessage = new TransactionMessage({
     payerKey: payerReference.publicKey,
-    recentBlockhash: blockHash,
+    recentBlockhash: blockHash as string,
     instructions: [
       generatedInstruction1.reference,
       generatedInstruction2.reference,
