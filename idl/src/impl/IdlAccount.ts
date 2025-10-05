@@ -53,7 +53,7 @@ export function idlAccountEncode(
   idlTypeFullSerialize(accountIdl.contentTypeFull, accountState, blobs, true);
   return idlUtilsFlattenBlobs(blobs);
 }
-
+// TODO - should this be named pack/unpack??
 export function idlAccountDecode(
   accountIdl: IdlAccount,
   accountData: Uint8Array,

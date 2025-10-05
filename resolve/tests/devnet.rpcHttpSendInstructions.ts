@@ -1,5 +1,6 @@
 import { expect, it } from "@jest/globals";
 import {
+  jsonTypePubkey,
   lamportsFeePerSigner,
   lamportsRentExemptionMinimumForSpace,
   pubkeyDefault,
@@ -20,7 +21,7 @@ it("run", async () => {
   const rpcHttp = rpcHttpFromUrl("https://api.devnet.solana.com", {
     commitment: "confirmed",
   });
-  const programAddress = pubkeyDefault();
+  const programAddress = pubkeyDefault;
   const payerSigner = await signerFromSecret(secret);
   const ownedSigner = await signerGenerate();
   const ownerAddress = pubkeyNewDummy();
@@ -38,7 +39,7 @@ it("run", async () => {
     {
       lamports: String(transferLamports),
       space: requestedSpace,
-      owner: ownerAddress,
+      owner: jsonTypePubkey.encoder(ownerAddress),
     },
   );
   const signature = await rpcHttpSendInstructions(
@@ -50,7 +51,9 @@ it("run", async () => {
   );
   const transaction = await rpcHttpWaitForTransaction(rpcHttp, signature, 3000);
   expect(transaction.error).toStrictEqual(null);
-  expect(transaction.chargedFees).toStrictEqual(lamportsFeePerSigner * 2n);
+  expect(transaction.chargedFeesLamports).toStrictEqual(
+    lamportsFeePerSigner * 2n,
+  );
   const receiverMetadata = await rpcHttpGetAccountMetadata(
     rpcHttp,
     ownedSigner.address,

@@ -4,7 +4,11 @@ import {
   pubkeyCreateFromSeed,
   pubkeyFindPdaAddress,
 } from "solana-kiss-data";
-import { IdlProgram, idlProgramParse } from "solana-kiss-idl";
+import {
+  IdlProgram,
+  idlProgramParse,
+  idlUtilsExpectBlobAt,
+} from "solana-kiss-idl";
 import { RpcHttp, rpcHttpGetAccountWithData } from "solana-kiss-rpc";
 import { inflate } from "uzip";
 
@@ -24,9 +28,10 @@ export async function resolveProgramAnchorIdl(
   const idlAddress = resolveProgramAnchorIdlAddress(programAddress);
   const programRecord = await rpcHttpGetAccountWithData(rpcHttp, idlAddress);
   const programView = new DataView(programRecord.data.buffer);
+  idlUtilsExpectBlobAt(0, anchorIdlDiscriminator, programRecord.data);
   const idlLength = programView.getUint32(40, true);
   const idlDeflated = programRecord.data.slice(44, 44 + idlLength);
-  // TODO -better error handling and checks and could use IDL parsing
+  // TODO - better error handling and checks and could use IDL parsing
   const idlBytes = inflate(idlDeflated);
   const idlString = new TextDecoder().decode(idlBytes);
   const idlJson = JSON.parse(idlString) as JsonValue;
