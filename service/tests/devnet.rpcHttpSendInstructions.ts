@@ -1,10 +1,10 @@
 import { expect, it } from "@jest/globals";
 import {
-  jsonTypePubkey,
   lamportsFeePerSigner,
   lamportsRentExemptionMinimumForSpace,
   pubkeyDefault,
   pubkeyNewDummy,
+  pubkeyToString,
   signerFromSecret,
   signerGenerate,
 } from "solana-kiss-data";
@@ -39,7 +39,7 @@ it("run", async () => {
     {
       lamports: String(transferLamports),
       space: requestedSpace,
-      owner: jsonTypePubkey.encoder(ownerAddress),
+      owner: pubkeyToString(ownerAddress),
     },
   );
   const signature = await rpcHttpSendInstructions(

@@ -2,7 +2,7 @@ import {
   Pubkey,
   jsonDecoderObject,
   jsonTypeNumber,
-  jsonTypePubkey,
+  pubkeyToString,
 } from "solana-kiss-data";
 import { RpcHttp } from "./RpcHttp";
 import { Commitment } from "./RpcTypes";
@@ -16,7 +16,7 @@ export async function rpcHttpGetAccountLamports(
 ): Promise<bigint> {
   const result = resultJsonDecoder(
     await rpcHttp("getBalance", [
-      jsonTypePubkey.encoder(accountAddress),
+      pubkeyToString(accountAddress),
       { commitment: context?.commitment },
     ]),
   );

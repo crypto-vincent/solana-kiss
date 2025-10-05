@@ -1,9 +1,9 @@
 import {
   jsonDecoderArray,
   jsonDecoderObject,
-  jsonTypePubkey,
   jsonTypeSignature,
   Pubkey,
+  pubkeyToString,
   Signature,
 } from "solana-kiss-data";
 import { RpcHttp } from "./RpcHttp";
@@ -28,7 +28,7 @@ export async function rpcHttpFindAccountPastSignatures(
   while (true) {
     const result = resultJsonDecoder(
       await rpcHttp("getSignaturesForAddress", [
-        jsonTypePubkey.encoder(accountAddress),
+        pubkeyToString(accountAddress),
         {
           limit: requestLimit,
           before: startBefore
