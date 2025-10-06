@@ -1,11 +1,11 @@
 import { expect, it } from "@jest/globals";
 import { pubkeyFromBase58 } from "solana-kiss-data";
 import { rpcHttpFromUrl } from "solana-kiss-rpc";
-import { resolveProgramAnchorIdl } from "../src";
+import { anchorIdlParse } from "../src";
 
 it("run", async () => {
   const rpcHttp = rpcHttpFromUrl("https://api.devnet.solana.com");
-  const programAnchorIdl = (await resolveProgramAnchorIdl(
+  const programAnchorIdl = (await anchorIdlParse(
     rpcHttp,
     pubkeyFromBase58("UCNcQRtrbGmvuLKA3Jv719Cc6DS4r661ZRpyZduxu2j"),
   ))!;

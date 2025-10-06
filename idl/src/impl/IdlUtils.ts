@@ -40,6 +40,7 @@ export const idlUtilsBytesJsonType = {
         prefixed: jsonDecoderOptional(jsonTypeBoolean.decoder),
       }),
       (info) => {
+        // TODO - use jsonTypeBytes ?
         if (info.base16 !== undefined) {
           return base16Decode(info.base16);
         }
