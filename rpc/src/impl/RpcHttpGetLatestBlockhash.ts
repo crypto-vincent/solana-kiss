@@ -23,8 +23,11 @@ const resultJsonDecoder = jsonDecoderObject({
   context: jsonDecoderObject({
     slot: jsonTypeNumber.decoder,
   }),
-  value: jsonDecoderObject({
-    blockhash: jsonTypeBlockhash.decoder,
-    lastValidBlockHeight: jsonTypeNumber.decoder,
-  }),
+  value: jsonDecoderObject(
+    {
+      blockhash: jsonTypeBlockhash.decoder,
+      lastValidBlockHeight: jsonTypeNumber.decoder,
+    },
+    null,
+  ),
 });

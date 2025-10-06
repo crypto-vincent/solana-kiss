@@ -1,5 +1,5 @@
 import { expect, it } from "@jest/globals";
-import { pubkeyDefault, pubkeyFromString } from "solana-kiss-data";
+import { pubkeyDefault, pubkeyFromBase58 } from "solana-kiss-data";
 import {
   rpcHttpFromUrl,
   rpcHttpGetAccountLamports,
@@ -9,7 +9,7 @@ import {
 
 it("run", async () => {
   const rpcHttp = rpcHttpFromUrl("https://api.devnet.solana.com");
-  const accountAddress = pubkeyFromString(
+  const accountAddress = pubkeyFromBase58(
     "DL8WvebR4WVMu8WDv42zyzWuH9UZELYZ8kdhCaa83skB",
   );
   const resultWithData = await rpcHttpGetAccountWithData(

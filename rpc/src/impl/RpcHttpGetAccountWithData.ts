@@ -10,7 +10,7 @@ import {
   jsonTypePubkey,
   jsonTypeString,
   pubkeyDefault,
-  pubkeyToString,
+  pubkeyToBase58,
 } from "solana-kiss-data";
 import { RpcHttp } from "./RpcHttp";
 import { Commitment } from "./RpcTypes";
@@ -29,7 +29,7 @@ export async function rpcHttpGetAccountWithData(
 }> {
   const result = resultJsonDecoder(
     await rpcHttp("getAccountInfo", [
-      pubkeyToString(accountAddress),
+      pubkeyToBase58(accountAddress),
       {
         commitment: context?.commitment,
         encoding: "base64",

@@ -2,8 +2,8 @@ import { expect, it } from "@jest/globals";
 import {
   pubkeyFindPdaAddress,
   pubkeyNewDummy,
+  pubkeyToBase58,
   pubkeyToBytes,
-  pubkeyToString,
 } from "solana-kiss-data";
 import { idlInstructionAddressesFind, idlProgramParse } from "../src";
 
@@ -107,7 +107,7 @@ it("run", () => {
           "deal",
           {
             deal_number: dealNumber,
-            borrower: pubkeyToString(borrowerAddress),
+            borrower: pubkeyToBase58(borrowerAddress),
           },
         ],
       ]),

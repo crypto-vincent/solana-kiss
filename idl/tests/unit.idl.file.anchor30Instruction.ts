@@ -4,7 +4,7 @@ import {
   Pubkey,
   pubkeyDefault,
   pubkeyFindPdaAddress,
-  pubkeyFromString,
+  pubkeyFromBase58,
   pubkeyNewDummy,
   pubkeyToBytes,
 } from "solana-kiss-data";
@@ -15,10 +15,10 @@ import {
 } from "../src";
 
 const systemProgramAddress = pubkeyDefault;
-const tokenProgramAddress = pubkeyFromString(
+const tokenProgramAddress = pubkeyFromBase58(
   "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA",
 );
-const ataProgramAddress = pubkeyFromString(
+const ataProgramAddress = pubkeyFromBase58(
   "ATokenGPvbdGVxr1b2hvZbsiqW5xWH25efTNsLJA8knL",
 );
 

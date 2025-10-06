@@ -493,6 +493,7 @@ export function jsonTypeArrayToObject<
   } as JsonType<{ [K in keyof Shape]: JsonTypeContent<Shape[K]> }>;
 }
 
+// TODO - make the key-encoding mandatory for clarity?
 export function jsonDecoderObject<
   Shape extends { [key: string]: JsonDecoder<any> },
 >(

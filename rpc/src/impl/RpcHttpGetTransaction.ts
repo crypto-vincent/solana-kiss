@@ -15,7 +15,7 @@ import {
   jsonTypeSignature,
   jsonTypeString,
   jsonTypeValue,
-  signatureToString,
+  signatureToBase58,
 } from "solana-kiss-data";
 import { RpcHttp } from "./RpcHttp";
 import { Commitment, Invocation, Transaction } from "./RpcTypes";
@@ -29,7 +29,7 @@ export async function rpcHttpGetTransaction(
 ): Promise<Transaction | undefined> {
   const result = resultJsonDecoder(
     await rpcHttp("getTransaction", [
-      signatureToString(transactionSignature),
+      signatureToBase58(transactionSignature),
       {
         commitment: context?.commitment,
         encoding: "json",
@@ -227,7 +227,7 @@ function decompileTransactionInstruction(
   };
 }
 
-const instructionDecoder = jsonDecoderObject(
+const instructionJsonDecoder = jsonDecoderObject(
   {
     stackHeight: jsonTypeNumber.decoder,
     programIndex: jsonTypeNumber.decoder,
@@ -235,6 +235,7 @@ const instructionDecoder = jsonDecoderObject(
     dataBase58: jsonTypeString.decoder,
   },
   {
+    stackHeight: "stackHeight",
     programIndex: "programIdIndex",
     accountsIndexes: "accounts",
     dataBase58: "data",
@@ -242,56 +243,71 @@ const instructionDecoder = jsonDecoderObject(
 );
 
 const resultJsonDecoder = jsonDecoderOptional(
-  jsonDecoderObject({
-    blockTime: jsonDecoderOptional(jsonTypeNumber.decoder),
-    meta: jsonDecoderObject({
-      computeUnitsConsumed: jsonTypeNumber.decoder,
-      err: jsonDecoderNullable(
-        jsonDecoderObjectToRecord(jsonTypeValue.decoder),
-      ),
-      fee: jsonTypeNumber.decoder,
-      innerInstructions: jsonDecoderOptional(
-        jsonDecoderArray(
-          jsonDecoderObject({
-            index: jsonTypeNumber.decoder,
-            instructions: jsonDecoderArray(instructionDecoder),
-          }),
-        ),
-      ),
-      loadedAddresses: jsonDecoderOptional(
-        jsonDecoderObject({
-          writable: jsonDecoderArray(jsonTypePubkey.decoder),
-          readonly: jsonDecoderArray(jsonTypePubkey.decoder),
-        }),
-      ),
-      logMessages: jsonDecoderOptional(
-        jsonDecoderArray(jsonTypeString.decoder),
-      ),
-    }),
-    slot: jsonTypeNumber.decoder,
-    transaction: jsonDecoderObject({
-      message: jsonDecoderObject({
-        accountKeys: jsonDecoderArray(jsonTypePubkey.decoder),
-        addressTableLookups: jsonDecoderOptional(
-          jsonDecoderArray(
+  jsonDecoderObject(
+    {
+      blockTime: jsonDecoderOptional(jsonTypeNumber.decoder),
+      meta: jsonDecoderObject(
+        {
+          computeUnitsConsumed: jsonTypeNumber.decoder,
+          err: jsonDecoderNullable(
+            jsonDecoderObjectToRecord(jsonTypeValue.decoder),
+          ),
+          fee: jsonTypeNumber.decoder,
+          innerInstructions: jsonDecoderOptional(
+            jsonDecoderArray(
+              jsonDecoderObject({
+                index: jsonTypeNumber.decoder,
+                instructions: jsonDecoderArray(instructionJsonDecoder),
+              }),
+            ),
+          ),
+          loadedAddresses: jsonDecoderOptional(
             jsonDecoderObject({
-              accountKey: jsonTypePubkey.decoder,
-              readonlyIndexes: jsonDecoderArray(jsonTypeNumber.decoder),
-              writableIndexes: jsonDecoderArray(jsonTypeNumber.decoder),
+              writable: jsonDecoderArray(jsonTypePubkey.decoder),
+              readonly: jsonDecoderArray(jsonTypePubkey.decoder),
             }),
           ),
+          logMessages: jsonDecoderOptional(
+            jsonDecoderArray(jsonTypeString.decoder),
+          ),
+        },
+        null,
+      ),
+      slot: jsonTypeNumber.decoder,
+      transaction: jsonDecoderObject({
+        message: jsonDecoderObject(
+          {
+            accountKeys: jsonDecoderArray(jsonTypePubkey.decoder),
+            addressTableLookups: jsonDecoderOptional(
+              jsonDecoderArray(
+                jsonDecoderObject(
+                  {
+                    accountKey: jsonTypePubkey.decoder,
+                    readonlyIndexes: jsonDecoderArray(jsonTypeNumber.decoder),
+                    writableIndexes: jsonDecoderArray(jsonTypeNumber.decoder),
+                  },
+                  null,
+                ),
+              ),
+            ),
+            header: jsonDecoderObject(
+              {
+                numReadonlySignedAccounts: jsonTypeNumber.decoder,
+                numReadonlyUnsignedAccounts: jsonTypeNumber.decoder,
+                numRequiredSignatures: jsonTypeNumber.decoder,
+              },
+              null,
+            ),
+            instructions: jsonDecoderArray(instructionJsonDecoder),
+            recentBlockhash: jsonTypeBlockhash.decoder,
+          },
+          null,
         ),
-        header: jsonDecoderObject({
-          numReadonlySignedAccounts: jsonTypeNumber.decoder,
-          numReadonlyUnsignedAccounts: jsonTypeNumber.decoder,
-          numRequiredSignatures: jsonTypeNumber.decoder,
-        }),
-        instructions: jsonDecoderArray(instructionDecoder),
-        recentBlockhash: jsonTypeBlockhash.decoder,
+        signatures: jsonDecoderArray(jsonTypeSignature.decoder),
       }),
-      signatures: jsonDecoderArray(jsonTypeSignature.decoder),
-    }),
-  }),
+    },
+    null,
+  ),
 );
 
 function expectItemInArray<T>(array: Array<T>, index: number): T {

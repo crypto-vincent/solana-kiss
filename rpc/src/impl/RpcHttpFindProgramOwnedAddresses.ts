@@ -4,7 +4,7 @@ import {
   jsonDecoderObject,
   jsonTypePubkey,
   Pubkey,
-  pubkeyToString,
+  pubkeyToBase58,
 } from "solana-kiss-data";
 import { RpcHttp } from "./RpcHttp";
 import { Commitment } from "./RpcTypes";
@@ -42,7 +42,7 @@ export async function rpcHttpFindProgramOwnedAddresses(
   }
   const result = resultJsonDecoder(
     await rpcHttp("getProgramAccounts", [
-      pubkeyToString(programAddress),
+      pubkeyToBase58(programAddress),
       {
         commitment: context?.commitment,
         filters: paramFilters.length > 0 ? paramFilters : undefined,

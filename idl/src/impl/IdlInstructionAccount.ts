@@ -111,21 +111,24 @@ export function idlInstructionAccountParse(
   };
 }
 
-const infoJsonDecoder = jsonDecoderObject({
-  name: jsonTypeString.decoder,
-  docs: jsonTypeValue.decoder,
-  signer: jsonDecoderOptional(jsonTypeBoolean.decoder),
-  isSigner: jsonDecoderOptional(jsonTypeBoolean.decoder),
-  signing: jsonDecoderOptional(jsonTypeBoolean.decoder),
-  writable: jsonDecoderOptional(jsonTypeBoolean.decoder),
-  isMut: jsonDecoderOptional(jsonTypeBoolean.decoder),
-  optional: jsonDecoderOptional(jsonTypeBoolean.decoder),
-  isOptional: jsonDecoderOptional(jsonTypeBoolean.decoder),
-  address: jsonDecoderOptional(jsonTypePubkey.decoder),
-  pda: jsonDecoderOptional(
-    jsonDecoderObject({
-      seeds: jsonDecoderOptional(jsonDecoderArray(jsonTypeValue.decoder)),
-      program: jsonDecoderOptional(jsonTypeValue.decoder),
-    }),
-  ),
-});
+const infoJsonDecoder = jsonDecoderObject(
+  {
+    name: jsonTypeString.decoder,
+    docs: jsonTypeValue.decoder,
+    signer: jsonDecoderOptional(jsonTypeBoolean.decoder),
+    isSigner: jsonDecoderOptional(jsonTypeBoolean.decoder),
+    signing: jsonDecoderOptional(jsonTypeBoolean.decoder),
+    writable: jsonDecoderOptional(jsonTypeBoolean.decoder),
+    isMut: jsonDecoderOptional(jsonTypeBoolean.decoder),
+    optional: jsonDecoderOptional(jsonTypeBoolean.decoder),
+    isOptional: jsonDecoderOptional(jsonTypeBoolean.decoder),
+    address: jsonDecoderOptional(jsonTypePubkey.decoder),
+    pda: jsonDecoderOptional(
+      jsonDecoderObject({
+        seeds: jsonDecoderOptional(jsonDecoderArray(jsonTypeValue.decoder)),
+        program: jsonDecoderOptional(jsonTypeValue.decoder),
+      }),
+    ),
+  },
+  null,
+);

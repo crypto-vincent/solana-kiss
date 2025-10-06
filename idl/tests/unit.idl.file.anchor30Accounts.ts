@@ -1,17 +1,17 @@
 import { expect, it } from "@jest/globals";
 import {
   pubkeyFindPdaAddress,
-  pubkeyFromString,
+  pubkeyFromBase58,
   pubkeyNewDummy,
+  pubkeyToBase58,
   pubkeyToBytes,
-  pubkeyToString,
 } from "solana-kiss-data";
 import { idlInstructionAddressesFind, idlProgramParse } from "../src";
 
-const tokenProgramAddress = pubkeyFromString(
+const tokenProgramAddress = pubkeyFromBase58(
   "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA",
 );
-const ataProgramAddress = pubkeyFromString(
+const ataProgramAddress = pubkeyFromBase58(
   "ATokenGPvbdGVxr1b2hvZbsiqW5xWH25efTNsLJA8knL",
 );
 
@@ -89,7 +89,7 @@ it("run", () => {
       instructionAccountsStates: new Map([
         [
           "campaign",
-          { collateral_mint: pubkeyToString(collateralMintAddress) },
+          { collateral_mint: pubkeyToBase58(collateralMintAddress) },
         ],
       ]),
       instructionAccountsContentsTypeFull: new Map([
@@ -131,7 +131,7 @@ it("run", () => {
       instructionAccountsStates: new Map([
         [
           "campaign",
-          { collateral_mint: pubkeyToString(collateralMintAddress) },
+          { collateral_mint: pubkeyToBase58(collateralMintAddress) },
         ],
       ]),
       instructionAccountsContentsTypeFull: new Map([

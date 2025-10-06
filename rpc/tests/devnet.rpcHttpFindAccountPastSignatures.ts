@@ -1,5 +1,5 @@
 import { expect, it } from "@jest/globals";
-import { pubkeyFromString } from "solana-kiss-data";
+import { pubkeyFromBase58 } from "solana-kiss-data";
 import {
   rpcHttpFindAccountPastSignatures,
   rpcHttpFromUrl,
@@ -10,7 +10,7 @@ it("run", async () => {
   const rpcHttp = rpcHttpFromUrl("https://api.devnet.solana.com");
   const pastSignatures = await rpcHttpFindAccountPastSignatures(
     rpcHttp,
-    pubkeyFromString("vVeH6Xd43HAScbxjVtvfwDGqBMaMvNDLsAxwM5WK1pG"),
+    pubkeyFromBase58("vVeH6Xd43HAScbxjVtvfwDGqBMaMvNDLsAxwM5WK1pG"),
     4200,
   );
   expect(pastSignatures.length).toBeGreaterThan(0);

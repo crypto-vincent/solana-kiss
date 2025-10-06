@@ -279,14 +279,14 @@ function objectVariantsJsonDecoder(prefix: IdlTypePrefix) {
 
 const objectPaddedInfoJsonDecoder = jsonDecoderObject({
   before: jsonDecoderOptional(jsonTypeNumber.decoder),
-  min_size: jsonDecoderOptional(jsonTypeNumber.decoder),
+  minSize: jsonDecoderOptional(jsonTypeNumber.decoder),
   after: jsonDecoderOptional(jsonTypeNumber.decoder),
 });
 function objectPaddedJsonDecoder(value: JsonValue): IdlTypeFlat {
   const info = objectPaddedInfoJsonDecoder(value);
   return IdlTypeFlat.padded({
     before: info.before,
-    minSize: info.min_size,
+    minSize: info.minSize,
     after: info.after,
     content: idlTypeFlatParseIsPossible(value)
       ? idlTypeFlatParse(value)

@@ -1,5 +1,5 @@
 import { expect, it } from "@jest/globals";
-import { pubkeyFromString } from "solana-kiss-data";
+import { pubkeyFromBase58 } from "solana-kiss-data";
 import { rpcHttpFromUrl } from "solana-kiss-rpc";
 import { resolveProgramAnchorIdl } from "../src";
 
@@ -7,7 +7,7 @@ it("run", async () => {
   const rpcHttp = rpcHttpFromUrl("https://api.devnet.solana.com");
   const programAnchorIdl = (await resolveProgramAnchorIdl(
     rpcHttp,
-    pubkeyFromString("UCNcQRtrbGmvuLKA3Jv719Cc6DS4r661ZRpyZduxu2j"),
+    pubkeyFromBase58("UCNcQRtrbGmvuLKA3Jv719Cc6DS4r661ZRpyZduxu2j"),
   ))!;
   expect(programAnchorIdl.metadata.name).toStrictEqual("psyche_crowd_funding");
   expect(programAnchorIdl.typedefs.size).toBe(9);

@@ -4,7 +4,7 @@ import {
   lamportsRentExemptionMinimumForSpace,
   pubkeyDefault,
   pubkeyNewDummy,
-  pubkeyToString,
+  pubkeyToBase58,
   signerFromSecret,
   signerGenerate,
 } from "solana-kiss-data";
@@ -39,7 +39,7 @@ it("run", async () => {
     {
       lamports: String(transferLamports),
       space: requestedSpace,
-      owner: pubkeyToString(ownerAddress),
+      owner: pubkeyToBase58(ownerAddress),
     },
   );
   const signature = await rpcHttpSendInstructions(

@@ -1,5 +1,5 @@
 import { expect, it } from "@jest/globals";
-import { pubkeyNewDummy, pubkeyToString } from "solana-kiss-data";
+import { pubkeyNewDummy, pubkeyToBase58 } from "solana-kiss-data";
 import {
   idlAccountDecode,
   idlAccountEncode,
@@ -23,15 +23,15 @@ it("run", () => {
       numerator: 51,
       denominator: 52,
     },
-    multisig: pubkeyToString(pubkeyNewDummy()),
+    multisig: pubkeyToBase58(pubkeyNewDummy()),
     managers: [
-      pubkeyToString(pubkeyNewDummy()),
-      pubkeyToString(pubkeyNewDummy()),
+      pubkeyToBase58(pubkeyNewDummy()),
+      pubkeyToBase58(pubkeyNewDummy()),
     ],
     pass_issuers: [
-      pubkeyToString(pubkeyNewDummy()),
-      pubkeyToString(pubkeyNewDummy()),
-      pubkeyToString(pubkeyNewDummy()),
+      pubkeyToBase58(pubkeyNewDummy()),
+      pubkeyToBase58(pubkeyNewDummy()),
+      pubkeyToBase58(pubkeyNewDummy()),
     ],
     withdraw_epoch_request_seconds: 22,
     withdraw_epoch_redeem_seconds: 23,
@@ -48,10 +48,10 @@ it("run", () => {
   // Prepare an account contents
   const marketAccountIdl = programIdl.accounts.get("GlobalMarketState")!;
   const marketAccountState = {
-    base_token_mint: pubkeyToString(pubkeyNewDummy()),
-    lp_token_mint: pubkeyToString(pubkeyNewDummy()),
+    base_token_mint: pubkeyToBase58(pubkeyNewDummy()),
+    lp_token_mint: pubkeyToBase58(pubkeyNewDummy()),
     pool_outstanding_credit: 5_000_000_000n.toString(),
-    treasury_pool_token_account: pubkeyToString(pubkeyNewDummy()),
+    treasury_pool_token_account: pubkeyToBase58(pubkeyNewDummy()),
     signing_authority_bump: 4,
     bump: 5,
     credix_fee_percentage: {
@@ -86,20 +86,20 @@ it("run", () => {
   // Prepare an account contents
   const programAccountIdl = programIdl.accounts.get("ProgramState")!;
   const programAccountState = {
-    credix_multisig_key: pubkeyToString(pubkeyNewDummy()),
+    credix_multisig_key: pubkeyToBase58(pubkeyNewDummy()),
     credix_managers: [
-      pubkeyToString(pubkeyNewDummy()),
-      pubkeyToString(pubkeyNewDummy()),
-      pubkeyToString(pubkeyNewDummy()),
-      pubkeyToString(pubkeyNewDummy()),
-      pubkeyToString(pubkeyNewDummy()),
-      pubkeyToString(pubkeyNewDummy()),
-      pubkeyToString(pubkeyNewDummy()),
-      pubkeyToString(pubkeyNewDummy()),
-      pubkeyToString(pubkeyNewDummy()),
-      pubkeyToString(pubkeyNewDummy()),
+      pubkeyToBase58(pubkeyNewDummy()),
+      pubkeyToBase58(pubkeyNewDummy()),
+      pubkeyToBase58(pubkeyNewDummy()),
+      pubkeyToBase58(pubkeyNewDummy()),
+      pubkeyToBase58(pubkeyNewDummy()),
+      pubkeyToBase58(pubkeyNewDummy()),
+      pubkeyToBase58(pubkeyNewDummy()),
+      pubkeyToBase58(pubkeyNewDummy()),
+      pubkeyToBase58(pubkeyNewDummy()),
+      pubkeyToBase58(pubkeyNewDummy()),
     ],
-    credix_treasury: pubkeyToString(pubkeyNewDummy()),
+    credix_treasury: pubkeyToBase58(pubkeyNewDummy()),
   };
   // Decode the account content and check that it matches the original
   const programAccountData = idlAccountEncode(

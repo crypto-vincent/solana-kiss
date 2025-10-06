@@ -1,5 +1,5 @@
 import { expect, it } from "@jest/globals";
-import { pubkeyFromString } from "solana-kiss-data";
+import { pubkeyFromBase58 } from "solana-kiss-data";
 import {
   rpcHttpFindProgramOwnedAddresses,
   rpcHttpFromUrl,
@@ -14,12 +14,12 @@ it("run", async () => {
   const rpcHttp = rpcHttpFromUrl("https://api.devnet.solana.com");
   const ownedAddressesBySize = await rpcHttpFindProgramOwnedAddresses(
     rpcHttp,
-    pubkeyFromString("vVeH6Xd43HAScbxjVtvfwDGqBMaMvNDLsAxwM5WK1pG"),
+    pubkeyFromBase58("vVeH6Xd43HAScbxjVtvfwDGqBMaMvNDLsAxwM5WK1pG"),
     { dataSize: 32 },
   );
   const ownedAddressesByBlob = await rpcHttpFindProgramOwnedAddresses(
     rpcHttp,
-    pubkeyFromString("vVeH6Xd43HAScbxjVtvfwDGqBMaMvNDLsAxwM5WK1pG"),
+    pubkeyFromBase58("vVeH6Xd43HAScbxjVtvfwDGqBMaMvNDLsAxwM5WK1pG"),
     {
       dataBlobs: [
         { offset: 0, bytes: expectedDiscriminatorBytes.slice(0, 4) },
