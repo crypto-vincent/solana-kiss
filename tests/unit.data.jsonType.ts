@@ -16,13 +16,16 @@ import {
   jsonTypeNumber,
   jsonTypeObject,
   jsonTypeObjectKey,
+  jsonTypeObjectToMap,
   jsonTypeOptional,
   jsonTypePubkey,
   jsonTypeRemap,
   jsonTypeSignature,
   jsonTypeString,
   JsonValue,
+  pubkeyFromBase58,
   pubkeyNewDummy,
+  pubkeyToBase58,
   signatureFromBytes,
 } from "../src";
 
@@ -126,6 +129,17 @@ it("run", async () => {
         }),
       }),
       decoded: { outer: { inner: { value: 42 } } },
+    },
+    {
+      encoded: { [address.toString()]: 42 },
+      type: jsonTypeObjectToMap(
+        {
+          keyEncoder: pubkeyToBase58,
+          keyDecoder: pubkeyFromBase58,
+        },
+        jsonTypeNumber,
+      ),
+      decoded: new Map([[address, 42]]),
     },
   ];
   for (const test of tests) {

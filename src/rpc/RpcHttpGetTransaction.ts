@@ -4,7 +4,6 @@ import {
   jsonDecoderArray,
   jsonDecoderNullable,
   jsonDecoderObject,
-  jsonDecoderObjectToRecord,
   jsonDecoderOptional,
   jsonTypeBlockhash,
   jsonTypeNumber,
@@ -23,7 +22,7 @@ export async function rpcHttpGetTransaction(
   transactionSignature: Signature,
   context?: {
     commitment?: Commitment;
-  }
+  },
 ): Promise<Transaction | undefined> {
   const result = resultJsonDecoder(
     await rpcHttp("getTransaction", [
@@ -33,7 +32,7 @@ export async function rpcHttpGetTransaction(
         encoding: "json",
         maxSupportedTransactionVersion: 0,
       },
-    ])
+    ]),
   );
   if (result === undefined) {
     return undefined;
@@ -52,11 +51,11 @@ export async function rpcHttpGetTransaction(
     header.numReadonlyUnsignedAccounts,
     accountKeys,
     loadedAddresses?.writable ?? [],
-    loadedAddresses?.readonly ?? []
+    loadedAddresses?.readonly ?? [],
   );
   const transactionInstructions = decompileTransactionInstructions(
     transactionInputs,
-    message.instructions
+    message.instructions,
   );
   return {
     message: {
@@ -75,7 +74,7 @@ export async function rpcHttpGetTransaction(
     invocations: decompileTransactionInvocations(
       transactionInputs,
       transactionInstructions,
-      meta.innerInstructions ?? []
+      meta.innerInstructions ?? [],
     ),
   };
 }
@@ -86,7 +85,7 @@ function decompileTransactionInputs(
   readonlyUnsignedAccountsCount: number,
   staticAddresses: Array<Pubkey>,
   loadedWritableAddresses: Array<Pubkey>,
-  loadedReadonlyAddresses: Array<Pubkey>
+  loadedReadonlyAddresses: Array<Pubkey>,
 ) {
   const signingAddresses = new Set<Pubkey>();
   for (
@@ -131,18 +130,18 @@ function decompileTransactionInputs(
 
 function decompileTransactionInstructions(
   transactionInputs: Array<InstructionInput>,
-  compiledInstructions: Array<CompiledInstruction>
+  compiledInstructions: Array<CompiledInstruction>,
 ): Array<Instruction> {
   const instructions = new Array<Instruction>();
   for (const compiledInstruction of compiledInstructions) {
     const stackIndex = compiledInstruction.stackHeight - 1;
     if (stackIndex !== 0) {
       throw new Error(
-        `RpcHttp: Expected instruction stack index to be 0 (found ${stackIndex})`
+        `RpcHttp: Expected instruction stack index to be 0 (found ${stackIndex})`,
       );
     }
     instructions.push(
-      decompileTransactionInstruction(transactionInputs, compiledInstruction)
+      decompileTransactionInstruction(transactionInputs, compiledInstruction),
     );
   }
   return instructions;
@@ -154,7 +153,7 @@ function decompileTransactionInvocations(
   compiledInnerInstructions: Array<{
     index: number;
     instructions: Array<CompiledInstruction>;
-  }>
+  }>,
 ): Array<Invocation> {
   const rootInvocations = new Array<Invocation>();
   for (let index = 0; index < transactionInstructions.length; index++) {
@@ -166,7 +165,7 @@ function decompileTransactionInvocations(
   for (const compiledInnerInstructionBlock of compiledInnerInstructions) {
     const rootInvocation = expectItemInArray(
       rootInvocations,
-      compiledInnerInstructionBlock.index
+      compiledInnerInstructionBlock.index,
     );
     const invocationStack = new Array<Invocation>();
     invocationStack.push(rootInvocation);
@@ -174,14 +173,14 @@ function decompileTransactionInvocations(
       const innerInvocation = {
         instruction: decompileTransactionInstruction(
           transactionInputs,
-          compiledInnerInstruction
+          compiledInnerInstruction,
         ),
         invocations: [],
       };
       const stackIndex = compiledInnerInstruction.stackHeight - 1;
       if (stackIndex < 1 || stackIndex > invocationStack.length) {
         throw new Error(
-          `RpcHttp: Expected inner instruction stack height to be between 2 and ${invocationStack.length + 1} (found: ${stackIndex + 1})`
+          `RpcHttp: Expected inner instruction stack height to be between 2 and ${invocationStack.length + 1} (found: ${stackIndex + 1})`,
         );
       }
       if (stackIndex === invocationStack.length) {
@@ -208,11 +207,11 @@ type CompiledInstruction = {
 
 function decompileTransactionInstruction(
   transactionInputs: Array<InstructionInput>,
-  compiledInstruction: CompiledInstruction
+  compiledInstruction: CompiledInstruction,
 ): Instruction {
   const instructionProgram = expectItemInArray(
     transactionInputs,
-    compiledInstruction.programIndex
+    compiledInstruction.programIndex,
   );
   const instructionInputs = new Array<InstructionInput>();
   for (const accountIndex of compiledInstruction.accountsIndexes) {
@@ -237,7 +236,7 @@ const instructionJsonDecoder = jsonDecoderObject(
     programIndex: jsonTypeNumber.decoder,
     accountsIndexes: jsonDecoderArray(jsonTypeNumber.decoder),
     dataBase58: jsonTypeString.decoder,
-  }
+  },
 );
 
 const resultJsonDecoder = jsonDecoderOptional(
@@ -245,26 +244,24 @@ const resultJsonDecoder = jsonDecoderOptional(
     blockTime: jsonDecoderOptional(jsonTypeNumber.decoder),
     meta: jsonDecoderObject((key) => key, {
       computeUnitsConsumed: jsonTypeNumber.decoder,
-      err: jsonDecoderNullable(
-        jsonDecoderObjectToRecord(jsonTypeValue.decoder)
-      ),
+      err: jsonDecoderNullable(jsonTypeValue.decoder),
       fee: jsonTypeNumber.decoder,
       innerInstructions: jsonDecoderOptional(
         jsonDecoderArray(
           jsonDecoderObject((key) => key, {
             index: jsonTypeNumber.decoder,
             instructions: jsonDecoderArray(instructionJsonDecoder),
-          })
-        )
+          }),
+        ),
       ),
       loadedAddresses: jsonDecoderOptional(
         jsonDecoderObject((key) => key, {
           writable: jsonDecoderArray(jsonTypePubkey.decoder),
           readonly: jsonDecoderArray(jsonTypePubkey.decoder),
-        })
+        }),
       ),
       logMessages: jsonDecoderOptional(
-        jsonDecoderArray(jsonTypeString.decoder)
+        jsonDecoderArray(jsonTypeString.decoder),
       ),
     }),
     slot: jsonTypeNumber.decoder,
@@ -277,8 +274,8 @@ const resultJsonDecoder = jsonDecoderOptional(
               accountKey: jsonTypePubkey.decoder,
               readonlyIndexes: jsonDecoderArray(jsonTypeNumber.decoder),
               writableIndexes: jsonDecoderArray(jsonTypeNumber.decoder),
-            })
-          )
+            }),
+          ),
         ),
         header: jsonDecoderObject((key) => key, {
           numReadonlySignedAccounts: jsonTypeNumber.decoder,
@@ -290,13 +287,13 @@ const resultJsonDecoder = jsonDecoderOptional(
       }),
       signatures: jsonDecoderArray(jsonTypeSignature.decoder),
     }),
-  })
+  }),
 );
 
 function expectItemInArray<T>(array: Array<T>, index: number): T {
   if (index < 0 || index >= array.length) {
     throw new Error(
-      `Array index ${index} out of bounds (length: ${array.length})`
+      `Array index ${index} out of bounds (length: ${array.length})`,
     );
   }
   return array[index]!;
