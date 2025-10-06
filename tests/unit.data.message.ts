@@ -6,22 +6,22 @@ import {
   VersionedTransaction,
 } from "@solana/web3.js";
 import {
-  blockhashFromBytes,
-  keypairFromSecret,
+  blockHashFromBytes,
   messageCompile,
   messageSign,
   Pubkey,
   pubkeyNewDummy,
+  signerFromSecret,
 } from "../src";
 
 it("run", async () => {
   const payerReference = Keypair.fromSecretKey(payerSecret);
   const signer1Reference = Keypair.fromSecretKey(signer1Secret);
   const signer2Reference = Keypair.fromSecretKey(signer2Secret);
-  const payerCurrent = await keypairFromSecret(payerSecret);
-  const signer1Current = await keypairFromSecret(signer1Secret);
-  const signer2Current = await keypairFromSecret(signer2Secret);
-  const blockHash = blockhashFromBytes(new Uint8Array(32).fill(42));
+  const payerCurrent = await signerFromSecret(payerSecret);
+  const signer1Current = await signerFromSecret(signer1Secret);
+  const signer2Current = await signerFromSecret(signer2Secret);
+  const blockHash = blockHashFromBytes(new Uint8Array(32).fill(42));
   const generatedInstruction1 = generateInstruction(
     signer1Reference.publicKey.toBase58() as Pubkey,
     signer2Current.address,
@@ -53,7 +53,7 @@ it("run", async () => {
       generatedInstruction1.current,
       generatedInstruction2.current,
     ],
-    recentBlockhash: blockHash,
+    recentBlockHash: blockHash,
   });
   expect(currentCompiledBytes).toStrictEqual(referenceCompiledBytes);
   const referenceSignedBytes = referenceSignedMessage.serialize();

@@ -5,7 +5,8 @@ import {
   jsonDecoderNullable,
   jsonDecoderObject,
   jsonDecoderOptional,
-  jsonTypeBlockhash,
+  jsonTypeBlockHash,
+  jsonTypeBlockSlot,
   jsonTypeNumber,
   jsonTypePubkey,
   jsonTypeSignature,
@@ -15,7 +16,7 @@ import {
 import { Pubkey } from "../data/Pubkey";
 import { Signature, signatureToBase58 } from "../data/Signature";
 import { RpcHttp } from "./RpcHttp";
-import { Commitment, Invocation, Transaction } from "./RpcTypes";
+import { Commitment, Transaction, TransactionInvocation } from "./RpcTypes";
 
 export async function rpcHttpGetTransaction(
   rpcHttp: RpcHttp,
@@ -58,17 +59,17 @@ export async function rpcHttpGetTransaction(
     message.instructions,
   );
   return {
+    block: {
+      time: result.blockTime ? new Date(result.blockTime * 1000) : undefined,
+      slot: result.slot,
+    },
     message: {
       payerAddress: accountKeys[0]!,
       instructions: transactionInstructions,
-      recentBlockhash: message.recentBlockhash,
+      recentBlockHash: message.recentBlockhash,
     },
-    blockslot: result.slot,
     error: meta.err, // TODO - parse error to find custom program errors ?
     logs: meta.logMessages, // TODO - parse logs for invocations and event data
-    processedTime: result.blockTime
-      ? new Date(result.blockTime * 1000)
-      : undefined,
     chargedFeesLamports: BigInt(meta.fee),
     consumedComputeUnits: meta.computeUnitsConsumed,
     invocations: decompileTransactionInvocations(
@@ -154,8 +155,8 @@ function decompileTransactionInvocations(
     index: number;
     instructions: Array<CompiledInstruction>;
   }>,
-): Array<Invocation> {
-  const rootInvocations = new Array<Invocation>();
+): Array<TransactionInvocation> {
+  const rootInvocations = new Array<TransactionInvocation>();
   for (let index = 0; index < transactionInstructions.length; index++) {
     rootInvocations.push({
       instruction: transactionInstructions[index]!,
@@ -167,7 +168,7 @@ function decompileTransactionInvocations(
       rootInvocations,
       compiledInnerInstructionBlock.index,
     );
-    const invocationStack = new Array<Invocation>();
+    const invocationStack = new Array<TransactionInvocation>();
     invocationStack.push(rootInvocation);
     for (const compiledInnerInstruction of compiledInnerInstructionBlock.instructions) {
       const innerInvocation = {
@@ -264,7 +265,7 @@ const resultJsonDecoder = jsonDecoderOptional(
         jsonDecoderArray(jsonTypeString.decoder),
       ),
     }),
-    slot: jsonTypeNumber.decoder,
+    slot: jsonTypeBlockSlot.decoder,
     transaction: jsonDecoderObject((key) => key, {
       message: jsonDecoderObject((key) => key, {
         accountKeys: jsonDecoderArray(jsonTypePubkey.decoder),
@@ -283,7 +284,7 @@ const resultJsonDecoder = jsonDecoderOptional(
           numRequiredSignatures: jsonTypeNumber.decoder,
         }),
         instructions: jsonDecoderArray(instructionJsonDecoder),
-        recentBlockhash: jsonTypeBlockhash.decoder,
+        recentBlockhash: jsonTypeBlockHash.decoder,
       }),
       signatures: jsonDecoderArray(jsonTypeSignature.decoder),
     }),

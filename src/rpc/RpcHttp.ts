@@ -118,26 +118,26 @@ export function rpcHttpWithRetryOnError(
   retryApprover: (
     error: any,
     context: {
-      retryCounter: number;
-      totalTimeMs: number;
+      retriedCounter: number;
+      totalDurationMs: number;
     },
   ) => Promise<boolean>,
 ): RpcHttp {
   return async function (method, params) {
     let startTime = Date.now();
-    let retriedTimes = 0;
+    let retriedCounter = 0;
     while (true) {
       try {
         return await rpcHttp(method, params);
       } catch (error) {
         const retryApproved = await retryApprover(error, {
-          retryCounter: retriedTimes,
-          totalTimeMs: Date.now() - startTime,
+          retriedCounter,
+          totalDurationMs: Date.now() - startTime,
         });
         if (!retryApproved) {
           throw error;
         }
-        retriedTimes++;
+        retriedCounter++;
       }
     }
   };
@@ -145,13 +145,11 @@ export function rpcHttpWithRetryOnError(
 
 let uniqueRequestId = 1;
 
-const identity = <T>(value: T): T => value;
-
-const responseJsonDecoder = jsonDecoderObject(identity, {
+const responseJsonDecoder = jsonDecoderObject((key) => key, {
   jsonrpc: jsonTypeString.decoder,
   id: jsonTypeNumber.decoder,
   error: jsonDecoderOptional(
-    jsonDecoderObject(identity, {
+    jsonDecoderObject((key) => key, {
       code: jsonTypeNumber.decoder,
       message: jsonTypeString.decoder,
     }),

@@ -1,7 +1,7 @@
 export * from "./data/Base16";
 export * from "./data/Base58";
 export * from "./data/Base64";
-export * from "./data/Blockhash";
+export * from "./data/Block";
 export * from "./data/Casing";
 export * from "./data/Instruction";
 export * from "./data/Json";
@@ -20,7 +20,7 @@ export * from "./rpc/RpcHttpFindProgramOwnedAddresses";
 export * from "./rpc/RpcHttpGetAccountLamports";
 export * from "./rpc/RpcHttpGetAccountMetadata";
 export * from "./rpc/RpcHttpGetAccountWithData";
-export * from "./rpc/RpcHttpGetLatestBlockhash";
+export * from "./rpc/RpcHttpGetLatestBlockHash";
 export * from "./rpc/RpcHttpGetTransaction";
 export * from "./rpc/RpcHttpSendInstructions";
 export * from "./rpc/RpcHttpWaitForTransaction";

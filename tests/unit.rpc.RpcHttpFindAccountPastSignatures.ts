@@ -1,16 +1,9 @@
 import { expect, it } from "@jest/globals";
-import {
-  pubkeyNewDummy,
-  RpcHttp,
-  rpcHttpFindAccountPastSignatures,
-} from "../src";
+import { pubkeyNewDummy, rpcHttpFindAccountPastSignatures } from "../src";
 
 it("run", async () => {
-  const rpcHttp: RpcHttp = async () => {
-    return require("./fixtures/RpcHttpGetSignaturesForAddress.json");
-  };
   const signatures = await rpcHttpFindAccountPastSignatures(
-    rpcHttp,
+    () => require("./fixtures/RpcHttpGetSignaturesForAddress.json"),
     pubkeyNewDummy(),
     15,
   );

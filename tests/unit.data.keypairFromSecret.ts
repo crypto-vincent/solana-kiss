@@ -12,7 +12,7 @@ const secret = new Uint8Array([
 it("run", async () => {
   const referenceKeypair = Keypair.fromSecretKey(secret);
   const currentKeypair = await keypairFromSecret(secret);
-  expect(currentKeypair.address).toStrictEqual(
+  expect(currentKeypair.pubkey).toStrictEqual(
     referenceKeypair.publicKey.toBase58(),
   );
   for (let counter = 0; counter < 10; counter++) {
@@ -26,7 +26,7 @@ it("run", async () => {
     const currentBrokenKeypair = await keypairFromSecret(randomized, {
       skipValidation: true,
     });
-    expect(currentBrokenKeypair.address).toStrictEqual(
+    expect(currentBrokenKeypair.pubkey).toStrictEqual(
       referenceBrokenKeypair.publicKey.toBase58(),
     );
   }

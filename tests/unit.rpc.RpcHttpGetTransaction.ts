@@ -1,15 +1,14 @@
 import { expect, it } from "@jest/globals";
 import { Signature } from "../src";
-import { RpcHttp } from "../src/rpc/RpcHttp";
 import { rpcHttpGetTransaction } from "../src/rpc/RpcHttpGetTransaction";
 
 it("run", async () => {
-  const rpcHttp: RpcHttp = async () => {
-    return require("./fixtures/RpcHttpGetTransaction.json");
-  };
-  const transaction = (await rpcHttpGetTransaction(rpcHttp, "!" as Signature))!;
+  const transaction = (await rpcHttpGetTransaction(
+    () => require("./fixtures/RpcHttpGetTransaction.json"),
+    "!" as Signature,
+  ))!;
   // Check basic stuff about the transaction
-  expect(transaction.blockslot).toStrictEqual(328883613);
+  expect(transaction.block.slot).toStrictEqual(328883613);
   expect(transaction.error).toStrictEqual(null);
   expect(transaction.logs?.length).toStrictEqual(18);
   expect(transaction.logs?.[0]).toStrictEqual(
@@ -28,7 +27,7 @@ it("run", async () => {
   expect(transaction.message.instructions[0]!.data).toStrictEqual(
     new Uint8Array([2, 32, 161, 7, 0]),
   );
-  expect(transaction.message.recentBlockhash).toStrictEqual(
+  expect(transaction.message.recentBlockHash).toStrictEqual(
     "4nTobZxuiA9xZDuSMfSQE6WJSswAkoVoF7ycve42iiy2",
   );
   // Check the invocations content

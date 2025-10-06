@@ -1,10 +1,9 @@
 import { Pubkey, pubkeyFromBytes } from "./Pubkey";
-import { Signature, signatureFromBytes, signatureToBytes } from "./Signature";
 
 export type Keypair = {
-  address: Pubkey;
-  sign: (message: Uint8Array) => Promise<Signature>;
-  verify: (message: Uint8Array, signature: Signature) => Promise<boolean>;
+  pubkey: Pubkey;
+  sign: (message: Uint8Array) => Promise<Uint8Array>;
+  verify: (message: Uint8Array, signed: Uint8Array) => Promise<boolean>;
 };
 
 export async function keypairGenerate(): Promise<Keypair> {
@@ -13,7 +12,7 @@ export async function keypairGenerate(): Promise<Keypair> {
     false,
     ["sign", "verify"],
   );
-  return keypairNew(privateKey, publicKey);
+  return keypairFromKeys(privateKey, publicKey);
 }
 
 export async function keypairFromSecret(
@@ -39,7 +38,7 @@ export async function keypairFromSecret(
     true,
     ["verify"],
   );
-  const keypair = await keypairNew(privateKey, publicKey);
+  const keypair = await keypairFromKeys(privateKey, publicKey);
   if (!options?.skipValidation) {
     const message = new Uint8Array();
     if (!(await keypair.verify(message, await keypair.sign(message)))) {
@@ -49,29 +48,27 @@ export async function keypairFromSecret(
   return keypair;
 }
 
-async function keypairNew(
+async function keypairFromKeys(
   privateKey: CryptoKey,
   publicKey: CryptoKey,
 ): Promise<Keypair> {
   const spki = await crypto.subtle.exportKey("spki", publicKey);
   return {
-    address: extractPubkeyFromSpki(new Uint8Array(spki)),
+    pubkey: extractPubkeyFromSpki(new Uint8Array(spki)),
     sign: async (message: Uint8Array) => {
-      return signatureFromBytes(
-        new Uint8Array(
-          await crypto.subtle.sign(
-            "Ed25519",
-            privateKey,
-            message as BufferSource,
-          ),
+      return new Uint8Array(
+        await crypto.subtle.sign(
+          "Ed25519",
+          privateKey,
+          message as BufferSource,
         ),
       );
     },
-    verify: async (message: Uint8Array, signature: Signature) => {
+    verify: async (message: Uint8Array, signed: Uint8Array) => {
       return await crypto.subtle.verify(
         "Ed25519",
         publicKey,
-        signatureToBytes(signature) as BufferSource,
+        signed as BufferSource,
         message as BufferSource,
       );
     },

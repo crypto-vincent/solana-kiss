@@ -1,12 +1,9 @@
 import { expect, it } from "@jest/globals";
-import { pubkeyNewDummy, RpcHttp, rpcHttpGetAccountWithData } from "../src";
+import { pubkeyNewDummy, rpcHttpGetAccountWithData } from "../src";
 
 it("run", async () => {
-  const rpcHttp: RpcHttp = async () => {
-    return require("./fixtures/RpcHttpGetAccountInfo.json");
-  };
   const accountInfo = await rpcHttpGetAccountWithData(
-    rpcHttp,
+    () => require("./fixtures/RpcHttpGetAccountInfo.json"),
     pubkeyNewDummy(),
   );
   expect(accountInfo.executable).toStrictEqual(true);

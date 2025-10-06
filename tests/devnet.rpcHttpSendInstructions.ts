@@ -9,7 +9,7 @@ import {
   pubkeyToBase58,
   rpcHttpFromUrl,
   rpcHttpGetAccountMetadata,
-  rpcHttpGetLatestBlockhash,
+  rpcHttpGetLatestBlockHash,
   rpcHttpSendInstructions,
   rpcHttpWaitForTransaction,
   signerFromSecret,
@@ -24,7 +24,7 @@ it("run", async () => {
   const payerSigner = await signerFromSecret(secret);
   const ownedSigner = await signerGenerate();
   const ownerAddress = pubkeyNewDummy();
-  const recentBlockhash = await rpcHttpGetLatestBlockhash(rpcHttp);
+  const recentBlockHash = await rpcHttpGetLatestBlockHash(rpcHttp);
   const requestedSpace = 42;
   const transferLamports = lamportsRentExemptionMinimumForSpace(requestedSpace);
   const instructionIdl = programIdl.instructions.get("create")!;
@@ -45,7 +45,7 @@ it("run", async () => {
     rpcHttp,
     payerSigner,
     [instruction],
-    recentBlockhash,
+    recentBlockHash,
     { extraSigners: [ownedSigner] },
   );
   const transaction = await rpcHttpWaitForTransaction(rpcHttp, signature, 3000);

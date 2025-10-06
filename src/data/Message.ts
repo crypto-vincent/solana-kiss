@@ -1,4 +1,4 @@
-import { Blockhash, blockhashToBytes } from "./Blockhash";
+import { BlockHash, blockHashToBytes } from "./Block";
 import { Instruction } from "./Instruction";
 import { Pubkey, pubkeyFromBytes, pubkeyToBytes } from "./Pubkey";
 import { signatureToBytes } from "./Signature";
@@ -7,7 +7,7 @@ import { Signer } from "./Signer";
 export type Message = {
   payerAddress: Pubkey;
   instructions: Array<Instruction>;
-  recentBlockhash: Blockhash;
+  recentBlockHash: BlockHash;
 };
 
 export function messageCompile(message: Message): Uint8Array {
@@ -82,7 +82,7 @@ export function messageCompile(message: Message): Uint8Array {
     frame.set(pubkeyToBytes(staticAddress), index);
     index += 32;
   }
-  frame.set(blockhashToBytes(message.recentBlockhash), index);
+  frame.set(blockHashToBytes(message.recentBlockHash), index);
   index += 32;
   frame[index++] = message.instructions.length;
   for (const instruction of message.instructions) {

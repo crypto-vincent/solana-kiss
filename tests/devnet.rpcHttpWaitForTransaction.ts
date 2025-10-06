@@ -18,7 +18,7 @@ it("run", async () => {
   expect(transaction1.message.payerAddress).toStrictEqual(
     "Eyh77zP5b7arPtPgpnCT8vsGmq9p5Z9HHnBSeQLnAFQi",
   );
-  expect(transaction1.message.recentBlockhash).toStrictEqual(
+  expect(transaction1.message.recentBlockHash).toStrictEqual(
     "EZY4BjNgBeSKEnCV2DycDchJg1kjqiwJ3cb9GFc5Avhy",
   );
   expect(transaction1.error).toStrictEqual(null);
@@ -34,7 +34,7 @@ it("run", async () => {
   expect(transaction2.message.payerAddress).toStrictEqual(
     "Eyh77zP5b7arPtPgpnCT8vsGmq9p5Z9HHnBSeQLnAFQi",
   );
-  expect(transaction2.message.recentBlockhash).toStrictEqual(
+  expect(transaction2.message.recentBlockHash).toStrictEqual(
     "EEkjZAAnF3qd5VRRt62GXjcoBqQYm2ezt9vNVZgZi6xQ",
   );
   expect(transaction2.error).toStrictEqual({
@@ -52,7 +52,7 @@ it("run", async () => {
   expect(transaction3.message.payerAddress).toStrictEqual(
     "8sQEYJA7f5k3LrTDDkRDj46tWayc1fAdhurh61BtfUxF",
   );
-  expect(transaction3.message.recentBlockhash).toStrictEqual(
+  expect(transaction3.message.recentBlockHash).toStrictEqual(
     "6gtmFZxPgbkS5b2Wxw9bk5XUGZXqwjRTwn2rLVYJiRJS",
   );
   expect(transaction3.error).toStrictEqual(null);

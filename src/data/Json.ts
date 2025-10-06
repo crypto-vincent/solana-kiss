@@ -1,7 +1,14 @@
 import { base16Decode, base16Encode } from "./Base16";
 import { base58Decode, base58Encode } from "./Base58";
 import { base64Decode, base64Encode } from "./Base64";
-import { Blockhash, blockhashFromBase58, blockhashToBase58 } from "./Blockhash";
+import {
+  BlockHash,
+  blockHashFromBase58,
+  blockHashToBase58,
+  BlockSlot,
+  blockSlotFromNumber,
+  blockSlotToNumber,
+} from "./Block";
 import { Pubkey, pubkeyFromBase58, pubkeyToBase58 } from "./Pubkey";
 import { Signature, signatureFromBase58, signatureToBase58 } from "./Signature";
 import { withContext } from "./Utils";
@@ -376,10 +383,15 @@ export const jsonTypeSignature: JsonType<Signature> = jsonTypeRemap(
   signatureFromBase58,
   signatureToBase58,
 );
-export const jsonTypeBlockhash: JsonType<Blockhash> = jsonTypeRemap(
+export const jsonTypeBlockHash: JsonType<BlockHash> = jsonTypeRemap(
   jsonTypeString,
-  blockhashFromBase58,
-  blockhashToBase58,
+  blockHashFromBase58,
+  blockHashToBase58,
+);
+export const jsonTypeBlockSlot: JsonType<BlockSlot> = jsonTypeRemap(
+  jsonTypeNumber,
+  blockSlotFromNumber,
+  blockSlotToNumber,
 );
 
 export const jsonTypeBytesArray: JsonType<Uint8Array> = jsonTypeRemap(
@@ -596,40 +608,6 @@ function jsonTypeObjectKeyEncoding<Shape extends { [key: string]: any }>(
     return keyEncoder(keyDecoded);
   }
   return keyEncoder[keyDecoded] ?? keyDecoded;
-}
-
-export function jsonDecoderObjectToRecord<Value>(
-  valueDecoder: JsonDecoder<Value>,
-): JsonDecoder<Record<string, Value>> {
-  return (encoded: JsonValue): Record<string, Value> => {
-    const decoded: Record<string, Value> = {};
-    const object = jsonTypeObjectRaw.decoder(encoded);
-    for (const key of Object.keys(object)) {
-      decoded[key] = withContext(`JSON: Decode Object["${key}"] =>`, () =>
-        valueDecoder(object[key]!),
-      );
-    }
-    return decoded;
-  };
-}
-export function jsonEncoderObjectToRecord<Value>(
-  valueEncode: JsonEncoder<Value>,
-): JsonEncoder<Record<string, Value>> {
-  return (decoded: Record<string, Value>): JsonValue => {
-    const encoded = {} as JsonObject;
-    for (const [key, value] of Object.entries(decoded)) {
-      encoded[key] = valueEncode(value);
-    }
-    return encoded;
-  };
-}
-export function jsonTypeObjectToRecord<Value>(
-  valueType: JsonType<Value>,
-): JsonType<Record<string, Value>> {
-  return {
-    decoder: jsonDecoderObjectToRecord(valueType.decoder),
-    encoder: jsonEncoderObjectToRecord(valueType.encoder),
-  };
 }
 
 export function jsonDecoderObjectToMap<Key, Value>(

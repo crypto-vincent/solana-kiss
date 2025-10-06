@@ -1,18 +1,18 @@
-import { Blockhash } from "../data/Blockhash";
+import { BlockHash } from "../data/Block";
 import {
   jsonDecoderObject,
-  jsonTypeBlockhash,
+  jsonTypeBlockHash,
   jsonTypeNumber,
 } from "../data/Json";
 import { RpcHttp } from "./RpcHttp";
 import { Commitment } from "./RpcTypes";
 
-export async function rpcHttpGetLatestBlockhash(
+export async function rpcHttpGetLatestBlockHash(
   rpcHttp: RpcHttp,
   context?: {
     commitment?: Commitment;
   },
-): Promise<Blockhash> {
+): Promise<BlockHash> {
   const result = resultJsonDecoder(
     await rpcHttp("getLatestBlockhash", [{ commitment: context?.commitment }]),
   );
@@ -24,7 +24,7 @@ const resultJsonDecoder = jsonDecoderObject((key) => key, {
     slot: jsonTypeNumber.decoder,
   }),
   value: jsonDecoderObject((key) => key, {
-    blockhash: jsonTypeBlockhash.decoder,
+    blockhash: jsonTypeBlockHash.decoder,
     lastValidBlockHeight: jsonTypeNumber.decoder,
   }),
 });

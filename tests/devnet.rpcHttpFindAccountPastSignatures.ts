@@ -20,7 +20,7 @@ it("run", async () => {
     pastSignature,
     0,
   );
-  expect(transaction.processedTime?.toISOString()).toStrictEqual(
+  expect(transaction.block.time?.toISOString()).toStrictEqual(
     "2025-08-21T15:26:48.000Z",
   );
   let found = 0;

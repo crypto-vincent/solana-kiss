@@ -11,7 +11,7 @@ import {
   jsonDecoderAsEnum,
   jsonDecoderByKind,
   jsonDecoderObject,
-  jsonDecoderObjectToRecord,
+  jsonDecoderObjectToMap,
   jsonDecoderOptional,
   jsonDecoderRemap,
   jsonTypeInteger,
@@ -215,10 +215,10 @@ const variantsJsonDecoder = jsonDecoderByKind({
       }),
   ),
   object: jsonDecoderRemap(
-    jsonDecoderObjectToRecord(variantsObjectValueJsonDecoder),
-    (variantsRecord) => {
+    jsonDecoderObjectToMap((key) => key, variantsObjectValueJsonDecoder),
+    (variantsMap) => {
       const variants = new Array<IdlTypeFlatEnumVariant>();
-      for (const [variantName, variantInfo] of Object.entries(variantsRecord)) {
+      for (const [variantName, variantInfo] of variantsMap) {
         variants.push({
           name: variantName,
           code: variantInfo.code,

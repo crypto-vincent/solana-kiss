@@ -18,7 +18,7 @@ it("run", async () => {
   expect(transaction.message.payerAddress).toStrictEqual(
     "Ewfot2ZKhuGuEWaSRyFpe3LpK9xSEEUrDZk4AQpTazAR",
   );
-  expect(transaction.message.recentBlockhash).toStrictEqual(
+  expect(transaction.message.recentBlockHash).toStrictEqual(
     "ETzLkjyxUNupAQxQRnTuG2u7wnQCWEgtdTLegeQycCPv",
   );
   expect(transaction.error).toStrictEqual(null);

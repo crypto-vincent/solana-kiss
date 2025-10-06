@@ -1,13 +1,15 @@
 import { expect, it } from "@jest/globals";
 import {
-  blockhashFromBytes,
+  blockHashFromBytes,
+  blockSlotFromNumber,
   casingCamelToSnake,
   casingKeyedCamelToSnake,
   casingKeyedSnakeToCamel,
   casingSnakeToCamel,
   JsonType,
   jsonTypeArray,
-  jsonTypeBlockhash,
+  jsonTypeBlockHash,
+  jsonTypeBlockSlot,
   jsonTypeBoolean,
   jsonTypeConst,
   jsonTypeDateTime,
@@ -103,15 +105,23 @@ it("run", async () => {
         datetime: now.toISOString(),
         pubkey: address.toString(),
         signature: signature.toString(),
-        blockhash: blockhash.toString(),
+        blockHash: blockHash.toString(),
+        blockSlot: 42,
       },
       type: jsonTypeObject((key) => key, {
         datetime: jsonTypeDateTime,
         pubkey: jsonTypePubkey,
         signature: jsonTypeSignature,
-        blockhash: jsonTypeBlockhash,
+        blockHash: jsonTypeBlockHash,
+        blockSlot: jsonTypeBlockSlot,
       }),
-      decoded: { datetime: now, pubkey: address, signature, blockhash },
+      decoded: {
+        datetime: now,
+        pubkey: address,
+        signature,
+        blockHash,
+        blockSlot: blockSlotFromNumber(42),
+      },
     },
     {
       encoded: { integer1: "-42", integer2: "4242424242424242424242424242" },
@@ -151,4 +161,4 @@ it("run", async () => {
 const now = new Date();
 const address = pubkeyNewDummy();
 const signature = signatureFromBytes(new Uint8Array(64).fill(42));
-const blockhash = blockhashFromBytes(new Uint8Array(32).fill(24));
+const blockHash = blockHashFromBytes(new Uint8Array(32).fill(24));
