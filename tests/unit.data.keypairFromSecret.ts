@@ -8,7 +8,7 @@ const secret = new Uint8Array([
   85, 215, 5, 230, 110, 192, 255, 29, 27, 96, 27, 203, 56, 119, 189, 226, 99,
   13, 150, 68, 70, 138, 190, 182, 126, 125, 69, 25, 66, 190, 239,
 ]);
-// TODO - fix those tests for jest environment
+
 it("run", async () => {
   const referenceKeypair = Keypair.fromSecretKey(secret);
   const currentKeypair = await keypairFromSecret(secret);

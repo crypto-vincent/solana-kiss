@@ -1,13 +1,10 @@
-import { BlockSlot } from "../data/Block";
-import { Instruction } from "../data/Instruction";
-import { JsonValue } from "../data/Json";
-import { Message } from "../data/Message";
-
-export type Commitment = "confirmed" | "finalized";
+import { BlockSlot } from "./Block";
+import { Instruction } from "./Instruction";
+import { JsonValue } from "./Json";
+import { Message } from "./Message";
 
 // TODO - should add phantom integration (maybe different package?)
 // TODO - should integrate indexing capabilities ?
-// TODO - where should this be located ?
 
 export type Transaction = {
   block: {

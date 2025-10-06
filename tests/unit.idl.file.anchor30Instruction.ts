@@ -42,7 +42,7 @@ it("run", () => {
   }
   const instructionPayload = {
     params: {
-      index: 11, // TODO - should the library use camelCase only ?
+      index: 11,
       funding_goal_collateral_amount: 41,
       funding_phase_duration_seconds: 42,
       metadata: {

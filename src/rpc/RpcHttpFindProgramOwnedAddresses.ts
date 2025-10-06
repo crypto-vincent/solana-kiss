@@ -6,7 +6,6 @@ import {
 } from "../data/Json";
 import { Pubkey, pubkeyToBase58 } from "../data/Pubkey";
 import { RpcHttp } from "./RpcHttp";
-import { Commitment } from "./RpcTypes";
 
 export async function rpcHttpFindProgramOwnedAddresses(
   rpcHttp: RpcHttp,
@@ -17,9 +16,6 @@ export async function rpcHttpFindProgramOwnedAddresses(
       offset: number;
       bytes: Uint8Array;
     }>;
-  },
-  context?: {
-    commitment?: Commitment;
   },
 ): Promise<Set<Pubkey>> {
   const paramFilters = [];
@@ -40,15 +36,11 @@ export async function rpcHttpFindProgramOwnedAddresses(
     throw new Error("RpcHttp: Too many filters, max is 4");
   }
   const result = resultJsonDecoder(
-    await rpcHttp("getProgramAccounts", [
-      pubkeyToBase58(programAddress),
-      {
-        commitment: context?.commitment,
-        filters: paramFilters.length > 0 ? paramFilters : undefined,
-        dataSlice: { offset: 0, length: 0 },
-        encoding: "base64",
-      },
-    ]),
+    await rpcHttp("getProgramAccounts", [pubkeyToBase58(programAddress)], {
+      filters: paramFilters.length > 0 ? paramFilters : undefined,
+      dataSlice: { offset: 0, length: 0 },
+      encoding: "base64",
+    }),
   );
   const accountsAddresses = new Set<Pubkey>();
   for (const item of result) {

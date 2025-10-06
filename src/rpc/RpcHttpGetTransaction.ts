@@ -15,25 +15,18 @@ import {
 } from "../data/Json";
 import { Pubkey } from "../data/Pubkey";
 import { Signature, signatureToBase58 } from "../data/Signature";
+import { Transaction, TransactionInvocation } from "../data/Transaction";
 import { RpcHttp } from "./RpcHttp";
-import { Commitment, Transaction, TransactionInvocation } from "./RpcTypes";
 
 export async function rpcHttpGetTransaction(
   rpcHttp: RpcHttp,
   transactionSignature: Signature,
-  context?: {
-    commitment?: Commitment;
-  },
 ): Promise<Transaction | undefined> {
   const result = resultJsonDecoder(
-    await rpcHttp("getTransaction", [
-      signatureToBase58(transactionSignature),
-      {
-        commitment: context?.commitment,
-        encoding: "json",
-        maxSupportedTransactionVersion: 0,
-      },
-    ]),
+    await rpcHttp("getTransaction", [signatureToBase58(transactionSignature)], {
+      encoding: "json",
+      maxSupportedTransactionVersion: 0,
+    }),
   );
   if (result === undefined) {
     return undefined;

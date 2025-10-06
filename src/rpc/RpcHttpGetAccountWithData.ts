@@ -11,14 +11,10 @@ import {
 } from "../data/Json";
 import { Pubkey, pubkeyDefault, pubkeyToBase58 } from "../data/Pubkey";
 import { RpcHttp } from "./RpcHttp";
-import { Commitment } from "./RpcTypes";
 
 export async function rpcHttpGetAccountWithData(
   rpcHttp: RpcHttp,
   accountAddress: Pubkey,
-  context?: {
-    commitment?: Commitment;
-  },
 ): Promise<{
   executable: boolean;
   lamports: bigint;
@@ -26,13 +22,9 @@ export async function rpcHttpGetAccountWithData(
   data: Uint8Array;
 }> {
   const result = resultJsonDecoder(
-    await rpcHttp("getAccountInfo", [
-      pubkeyToBase58(accountAddress),
-      {
-        commitment: context?.commitment,
-        encoding: "base64",
-      },
-    ]),
+    await rpcHttp("getAccountInfo", [pubkeyToBase58(accountAddress)], {
+      encoding: "base64",
+    }),
   );
   if (result.value === undefined) {
     return {

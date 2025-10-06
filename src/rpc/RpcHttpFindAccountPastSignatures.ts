@@ -6,7 +6,6 @@ import {
 import { Pubkey, pubkeyToBase58 } from "../data/Pubkey";
 import { Signature, signatureToBase58 } from "../data/Signature";
 import { RpcHttp } from "./RpcHttp";
-import { Commitment } from "./RpcTypes";
 
 export async function rpcHttpFindAccountPastSignatures(
   rpcHttp: RpcHttp,
@@ -16,9 +15,6 @@ export async function rpcHttpFindAccountPastSignatures(
     startBefore?: Signature;
     rewindUntil?: Signature;
   },
-  context?: {
-    commitment?: Commitment;
-  },
 ): Promise<Array<Signature>> {
   const requestLimit = 1000;
   const signatures = new Array<Signature>();
@@ -26,14 +22,14 @@ export async function rpcHttpFindAccountPastSignatures(
   let startBefore = pagination?.startBefore;
   while (true) {
     const result = resultJsonDecoder(
-      await rpcHttp("getSignaturesForAddress", [
-        pubkeyToBase58(accountAddress),
+      await rpcHttp(
+        "getSignaturesForAddress",
+        [pubkeyToBase58(accountAddress)],
         {
           limit: requestLimit,
           before: startBefore ? signatureToBase58(startBefore) : undefined,
-          commitment: context?.commitment,
         },
-      ]),
+      ),
     );
     for (const item of result) {
       const signature = item.signature;

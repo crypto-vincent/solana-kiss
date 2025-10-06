@@ -14,6 +14,7 @@ export * from "./data/Signature";
 export * from "./data/Signer";
 export * from "./data/Utils";
 
+export * from "./data/Transaction";
 export * from "./rpc/RpcHttp";
 export * from "./rpc/RpcHttpFindAccountPastSignatures";
 export * from "./rpc/RpcHttpFindProgramOwnedAddresses";
@@ -24,7 +25,6 @@ export * from "./rpc/RpcHttpGetLatestBlockHash";
 export * from "./rpc/RpcHttpGetTransaction";
 export * from "./rpc/RpcHttpSendInstructions";
 export * from "./rpc/RpcHttpWaitForTransaction";
-export * from "./rpc/RpcTypes";
 
 export * from "./idl/IdlAccount";
 export * from "./idl/IdlError";

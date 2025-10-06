@@ -6,7 +6,6 @@ import { messageCompile, messageSign } from "../data/Message";
 import { Signature } from "../data/Signature";
 import { Signer } from "../data/Signer";
 import { RpcHttp } from "./RpcHttp";
-import { Commitment } from "./RpcTypes";
 
 // TODO - provide a higher level function that handle block hash and wait for confirmation
 export async function rpcHttpSendInstructions(
@@ -18,9 +17,6 @@ export async function rpcHttpSendInstructions(
     extraSigners?: Array<Signer>;
     skipPreflight?: boolean;
   },
-  context?: {
-    commitment?: Commitment;
-  },
 ): Promise<Signature> {
   const signers = [payerSigner, ...(options?.extraSigners ?? [])];
   const messageCompiled = messageCompile({
@@ -30,14 +26,9 @@ export async function rpcHttpSendInstructions(
   });
   const messageSigned = await messageSign(messageCompiled, signers);
   return jsonTypeSignature.decoder(
-    await rpcHttp("sendTransaction", [
-      base64Encode(messageSigned),
-      {
-        skipPreflight: options?.skipPreflight,
-        preflightCommitment: context?.commitment,
-        commitment: context?.commitment,
-        encoding: "base64",
-      },
-    ]),
+    await rpcHttp("sendTransaction", [base64Encode(messageSigned)], {
+      skipPreflight: options?.skipPreflight,
+      encoding: "base64",
+    }),
   );
 }

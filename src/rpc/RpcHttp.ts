@@ -1,23 +1,23 @@
 import {
+  JsonObject,
   JsonValue,
-  jsonAsObject,
   jsonDecoderObject,
   jsonDecoderOptional,
   jsonTypeNumber,
   jsonTypeString,
   jsonTypeValue,
 } from "../data/Json";
-import { Commitment } from "./RpcTypes";
 
 export type RpcHttp = (
   method: string,
   params: Array<JsonValue>,
+  config: JsonObject,
 ) => Promise<JsonValue>;
 
 export function rpcHttpFromUrl(
   url: string,
-  defaultContext?: {
-    commitment?: Commitment; // TODO - should this stay an object?
+  context?: {
+    commitment?: "confirmed" | "finalized"; // TODO - should this stay an object?
   },
   customFetch?: (
     url: string,
@@ -28,28 +28,25 @@ export function rpcHttpFromUrl(
     },
   ) => Promise<{ json: () => Promise<JsonValue> }>,
 ): RpcHttp {
-  return async function (method, params) {
-    if (params.length <= 0) {
-      throw new Error(`RpcHttp: Expected params array to not be empty`);
-    }
-    const defaultCommitment = defaultContext?.commitment;
-    if (defaultCommitment !== undefined) {
-      const paramsLastIndex = params.length - 1;
-      const lastParamObject = jsonAsObject(params[paramsLastIndex]);
-      if (lastParamObject !== undefined) {
-        params = params.slice();
-        params[paramsLastIndex] = {
-          ...lastParamObject,
-          preflightCommitment: defaultCommitment,
-          commitment: defaultCommitment,
-        };
-      }
+  return async function (methodName, params, config) {
+    const contextCommitment = context?.commitment;
+    if (contextCommitment !== undefined) {
+      config = {
+        preflightCommitment: contextCommitment,
+        commitment: contextCommitment,
+        ...config,
+      };
     }
     const requestId = uniqueRequestId++;
     const responseRaw = await (customFetch ?? fetch)(url, {
       headers: { "Content-Type": "application/json" },
       method: "POST",
-      body: JSON.stringify({ jsonrpc: "2.0", id: requestId, method, params }),
+      body: JSON.stringify({
+        jsonrpc: "2.0",
+        id: requestId,
+        method: methodName,
+        params: [...params, config],
+      }),
     });
     const responseJson = await responseRaw.json();
     const responseInfo = responseJsonDecoder(responseJson);
@@ -77,9 +74,9 @@ export function rpcHttpWithTimeout(
   rpcHttp: RpcHttp,
   timeoutMs: number,
 ): RpcHttp {
-  return async function (method, params) {
+  return async function (method, params, config) {
     return await Promise.race<JsonValue>([
-      rpcHttp(method, params),
+      rpcHttp(method, params, config),
       new Promise((_, reject) =>
         setTimeout(
           () => reject(new Error(`RpcHttp: Timeout (${timeoutMs}ms)`)),
@@ -99,13 +96,13 @@ export function rpcHttpWithMaxConcurrentRequests(
   }
   let ongoingRequests = 0;
   const queue = new Array<() => void>();
-  return async function (method, params) {
+  return async function (method, params, config) {
     if (ongoingRequests >= maxConcurrentRequests) {
       await new Promise<void>((resolve) => queue.push(resolve));
     }
     ongoingRequests++;
     try {
-      return await rpcHttp(method, params);
+      return await rpcHttp(method, params, config);
     } finally {
       ongoingRequests--;
       queue.shift()?.();
@@ -123,12 +120,12 @@ export function rpcHttpWithRetryOnError(
     },
   ) => Promise<boolean>,
 ): RpcHttp {
-  return async function (method, params) {
+  return async function (method, params, config) {
     let startTime = Date.now();
     let retriedCounter = 0;
     while (true) {
       try {
-        return await rpcHttp(method, params);
+        return await rpcHttp(method, params, config);
       } catch (error) {
         const retryApproved = await retryApprover(error, {
           retriedCounter,

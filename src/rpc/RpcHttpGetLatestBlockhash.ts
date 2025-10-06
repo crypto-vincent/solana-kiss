@@ -5,17 +5,11 @@ import {
   jsonTypeNumber,
 } from "../data/Json";
 import { RpcHttp } from "./RpcHttp";
-import { Commitment } from "./RpcTypes";
 
 export async function rpcHttpGetLatestBlockHash(
   rpcHttp: RpcHttp,
-  context?: {
-    commitment?: Commitment;
-  },
 ): Promise<BlockHash> {
-  const result = resultJsonDecoder(
-    await rpcHttp("getLatestBlockhash", [{ commitment: context?.commitment }]),
-  );
+  const result = resultJsonDecoder(await rpcHttp("getLatestBlockhash", [], {}));
   return result.value.blockhash;
 }
 
