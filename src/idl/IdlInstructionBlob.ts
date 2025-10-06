@@ -54,7 +54,7 @@ export class IdlInstructionBlob {
 
   private constructor(
     discriminant: IdlInstructionBlobDiscriminant,
-    content: IdlInstructionBlobContent
+    content: IdlInstructionBlobContent,
   ) {
     this.discriminant = discriminant;
     this.content = content;
@@ -77,7 +77,7 @@ export class IdlInstructionBlob {
       account: (value: IdlInstructionBlobAccount, p1: P1, p2: P2) => T;
     },
     p1: P1,
-    p2: P2
+    p2: P2,
   ): T {
     return visitor[this.discriminant](this.content as any, p1, p2);
   }
@@ -86,7 +86,7 @@ export class IdlInstructionBlob {
 export function idlInstructionBlobParse(
   instructionBlobValue: JsonValue,
   instructionArgsTypeFullFields: IdlTypeFullFields,
-  typedefsIdls: Map<string, IdlTypedef>
+  typedefsIdls: Map<string, IdlTypedef>,
 ): IdlInstructionBlob {
   const info = infoJsonDecoder(instructionBlobValue);
   if (info.value !== undefined || info.kind === "const") {
@@ -100,7 +100,7 @@ export function idlInstructionBlobParse(
       info.path,
       info.type,
       instructionArgsTypeFullFields,
-      typedefsIdls
+      typedefsIdls,
     );
   }
   if (info.kind === undefined || info.kind === "account") {
@@ -112,12 +112,12 @@ export function idlInstructionBlobParse(
 export function idlInstructionBlobParseConst(
   instructionBlobValue: JsonValue,
   instructionBlobType: IdlTypeFlat | undefined,
-  typedefsIdls: Map<string, IdlTypedef>
+  typedefsIdls: Map<string, IdlTypedef>,
 ): IdlInstructionBlob {
   const typeFull = idlTypeFlatHydrate(
     instructionBlobType ?? idlUtilsInferValueTypeFlat(instructionBlobValue),
     new Map(),
-    typedefsIdls
+    typedefsIdls,
   );
   const blobs = new Array<Uint8Array>();
   idlTypeFullSerialize(typeFull, instructionBlobValue, blobs, false);
@@ -130,20 +130,20 @@ export function idlInstructionBlobParseArg(
   instructionBlobPath: string,
   instructionBlobType: IdlTypeFlat | undefined,
   instructionArgsTypeFullFields: IdlTypeFullFields,
-  typedefsIdls: Map<string, IdlTypedef>
+  typedefsIdls: Map<string, IdlTypedef>,
 ): IdlInstructionBlob {
   const path = idlPathParse(instructionBlobPath);
   if (instructionBlobType === undefined) {
     const typeFull = idlPathGetTypeFullFields(
       path,
-      instructionArgsTypeFullFields
+      instructionArgsTypeFullFields,
     );
     return IdlInstructionBlob.arg({ path, typeFull });
   }
   const typeFull = idlTypeFlatHydrate(
     instructionBlobType,
     new Map(),
-    typedefsIdls
+    typedefsIdls,
   );
   return IdlInstructionBlob.arg({ path, typeFull });
 }
@@ -151,7 +151,7 @@ export function idlInstructionBlobParseArg(
 export function idlInstructionBlobParseAccount(
   instructionBlobPath: string,
   instructionBlobType: IdlTypeFlat | undefined,
-  typedefsIdls: Map<string, IdlTypedef>
+  typedefsIdls: Map<string, IdlTypedef>,
 ): IdlInstructionBlob {
   const path = idlPathParse(instructionBlobPath);
   if (instructionBlobType === undefined) {
@@ -160,7 +160,7 @@ export function idlInstructionBlobParseAccount(
   const typeFull = idlTypeFlatHydrate(
     instructionBlobType,
     new Map(),
-    typedefsIdls
+    typedefsIdls,
   );
   return IdlInstructionBlob.account({ path, typeFull });
 }
@@ -193,19 +193,19 @@ const infoJsonDecoder = jsonDecoderByKind<{
 
 export function idlInstructionBlobCompute(
   instructionBlobIdl: IdlInstructionBlob,
-  instructionBlobContext: IdlInstructionBlobContext
+  instructionBlobContext: IdlInstructionBlobContext,
 ): Uint8Array {
   return instructionBlobIdl.traverse(
     computeVisitor,
     instructionBlobContext,
-    undefined
+    undefined,
   );
 }
 
 const computeVisitor = {
   const: (
     self: IdlInstructionBlobConst,
-    _context: IdlInstructionBlobContext
+    _context: IdlInstructionBlobContext,
   ) => {
     return self.bytes;
   },
@@ -217,11 +217,11 @@ const computeVisitor = {
   },
   account: (
     self: IdlInstructionBlobAccount,
-    context: IdlInstructionBlobContext
+    context: IdlInstructionBlobContext,
   ) => {
     if (self.path.isEmpty()) {
       throw new Error(
-        "PDA Blob account path is empty (should have at least the account name)"
+        "PDA Blob account path is empty (should have at least the account name)",
       );
     }
     const split = self.path.splitFirst();
@@ -231,27 +231,27 @@ const computeVisitor = {
     const instructionAccountName = split.first.key();
     if (!instructionAccountName) {
       throw new Error(
-        "PDA Blob account path first part should be an account name"
+        "PDA Blob account path first part should be an account name",
       );
     }
     const contentPath = split.rest;
     if (contentPath.isEmpty()) {
       const instructionAddress = context.instructionAddresses.get(
-        instructionAccountName
+        instructionAccountName,
       )!;
       if (!instructionAddress) {
         throw new Error(
-          `Could not find address for account: ${instructionAccountName}`
+          `Could not find address for account: ${instructionAccountName}`,
         );
       }
       return pubkeyToBytes(instructionAddress);
     }
     const instructionAccountState = context.instructionAccountsStates?.get(
-      instructionAccountName
+      instructionAccountName,
     );
     if (instructionAccountState === undefined) {
       throw new Error(
-        `Could not find state for account: ${instructionAccountName}`
+        `Could not find state for account: ${instructionAccountName}`,
       );
     }
     const value = idlPathGetJsonValue(contentPath, instructionAccountState);
@@ -264,12 +264,12 @@ const computeVisitor = {
       context.instructionAccountsContentsTypeFull?.get(instructionAccountName);
     if (instructionAccountContentTypeFull === undefined) {
       throw new Error(
-        `Could not find content type for account: ${instructionAccountName}`
+        `Could not find content type for account: ${instructionAccountName}`,
       );
     }
     const typeFull = idlPathGetTypeFull(
       contentPath,
-      instructionAccountContentTypeFull
+      instructionAccountContentTypeFull,
     );
     idlTypeFullSerialize(typeFull, value, blobs, false);
     return idlUtilsFlattenBlobs(blobs);

@@ -67,7 +67,7 @@ export class IdlTypeFull {
 
   private constructor(
     discriminant: IdlTypeFullDiscriminant,
-    content: IdlTypeFullContent
+    content: IdlTypeFullContent,
   ) {
     this.discriminant = discriminant;
     this.content = content;
@@ -129,7 +129,7 @@ export class IdlTypeFull {
     },
     p1: P1,
     p2: P2,
-    p3: P3
+    p3: P3,
   ): T {
     return visitor[this.discriminant](this.content as any, p1, p2, p3);
   }
@@ -156,7 +156,7 @@ export class IdlTypeFullFields {
 
   private constructor(
     discriminant: IdlTypeFullFieldsDiscriminant,
-    content: IdlTypeFullFieldsContent
+    content: IdlTypeFullFieldsContent,
   ) {
     this.discriminant = discriminant;
     this.content = content;
@@ -169,7 +169,7 @@ export class IdlTypeFullFields {
     return new IdlTypeFullFields("named", value);
   }
   public static unnamed(
-    value: Array<IdlTypeFullFieldUnnamed>
+    value: Array<IdlTypeFullFieldUnnamed>,
   ): IdlTypeFullFields {
     return new IdlTypeFullFields("unnamed", value);
   }
@@ -186,12 +186,12 @@ export class IdlTypeFullFields {
         value: Array<IdlTypeFullFieldUnnamed>,
         p1: P1,
         p2: P2,
-        p3: P3
+        p3: P3,
       ) => T;
     },
     p1: P1,
     p2: P2,
-    p3: P3
+    p3: P3,
   ) {
     switch (this.discriminant) {
       case "nothing":
@@ -201,14 +201,14 @@ export class IdlTypeFullFields {
           this.content as Array<IdlTypeFullFieldNamed>,
           p1,
           p2,
-          p3
+          p3,
         );
       case "unnamed":
         return visitor.unnamed(
           this.content as Array<IdlTypeFullFieldUnnamed>,
           p1,
           p2,
-          p3
+          p3,
         );
     }
   }
