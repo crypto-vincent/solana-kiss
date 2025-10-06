@@ -4,10 +4,10 @@ export type Blockhash =
   | (string & { readonly __brand: unique symbol })
   | { readonly __brand: unique symbol };
 
-export function blockhashFromString(string: string): Blockhash {
-  const bytes = base58Decode(string);
+export function blockhashFromBase58(base58: string): Blockhash {
+  const bytes = base58Decode(base58);
   blockhashBytesCheck(bytes);
-  return string as Blockhash;
+  return base58 as Blockhash;
 }
 
 export function blockhashFromBytes(bytes: Uint8Array): Blockhash {
@@ -16,14 +16,14 @@ export function blockhashFromBytes(bytes: Uint8Array): Blockhash {
   return blockhash as Blockhash;
 }
 
-export function blockhashToBytes(blockhash: Blockhash): Uint8Array {
-  const bytes = base58Decode(blockhash as string);
+export function blockhashToBytes(value: Blockhash): Uint8Array {
+  const bytes = base58Decode(value as string);
   blockhashBytesCheck(bytes);
   return bytes;
 }
 
-export function blockhashToString(blockhash: Blockhash): string {
-  return blockhash as string;
+export function blockhashToBase58(value: Blockhash): string {
+  return value as string;
 }
 
 function blockhashBytesCheck(bytes: Uint8Array) {

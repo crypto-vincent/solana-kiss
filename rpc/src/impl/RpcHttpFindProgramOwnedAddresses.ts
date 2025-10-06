@@ -27,7 +27,6 @@ export async function rpcHttpFindProgramOwnedAddresses(
   if (filters?.dataSize !== undefined) {
     paramFilters.push({ dataSize: filters.dataSize });
   }
-  // TODO - add testing for filters
   if (filters?.dataBlobs !== undefined) {
     for (const dataBlob of filters.dataBlobs) {
       paramFilters.push({

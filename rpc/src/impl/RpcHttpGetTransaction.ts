@@ -15,6 +15,7 @@ import {
   jsonTypeSignature,
   jsonTypeString,
   jsonTypeValue,
+  signatureToString,
 } from "solana-kiss-data";
 import { RpcHttp } from "./RpcHttp";
 import { Commitment, Invocation, Transaction } from "./RpcTypes";
@@ -28,7 +29,7 @@ export async function rpcHttpGetTransaction(
 ): Promise<Transaction | undefined> {
   const result = resultJsonDecoder(
     await rpcHttp("getTransaction", [
-      jsonTypeSignature.encoder(transactionSignature),
+      signatureToString(transactionSignature),
       {
         commitment: context?.commitment,
         encoding: "json",

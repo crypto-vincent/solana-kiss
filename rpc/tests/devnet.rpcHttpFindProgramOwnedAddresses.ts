@@ -3,20 +3,36 @@ import { pubkeyFromString } from "solana-kiss-data";
 import {
   rpcHttpFindProgramOwnedAddresses,
   rpcHttpFromUrl,
-  rpcHttpGetAccountMetadata,
+  rpcHttpGetAccountWithData,
 } from "../src";
+
+const expectedDiscriminatorBytes = new Uint8Array([
+  32, 142, 108, 79, 247, 179, 54, 6,
+]);
 
 it("run", async () => {
   const rpcHttp = rpcHttpFromUrl("https://api.devnet.solana.com");
-  const ownedAddresses = await rpcHttpFindProgramOwnedAddresses(
+  const ownedAddressesBySize = await rpcHttpFindProgramOwnedAddresses(
     rpcHttp,
     pubkeyFromString("vVeH6Xd43HAScbxjVtvfwDGqBMaMvNDLsAxwM5WK1pG"),
+    { dataSize: 32 },
   );
-  expect(ownedAddresses.size).toBeGreaterThan(0);
-  const ownedAddress = Array.from(ownedAddresses)[0]!;
-  const ownedMetadata = await rpcHttpGetAccountMetadata(rpcHttp, ownedAddress);
-  expect(ownedMetadata.space).toBeGreaterThan(0);
-  expect(ownedMetadata.owner).toBe(
-    "vVeH6Xd43HAScbxjVtvfwDGqBMaMvNDLsAxwM5WK1pG",
+  const ownedAddressesByBlob = await rpcHttpFindProgramOwnedAddresses(
+    rpcHttp,
+    pubkeyFromString("vVeH6Xd43HAScbxjVtvfwDGqBMaMvNDLsAxwM5WK1pG"),
+    {
+      dataBlobs: [
+        { offset: 0, bytes: expectedDiscriminatorBytes.slice(0, 4) },
+        { offset: 2, bytes: expectedDiscriminatorBytes.slice(2, 8) },
+      ],
+    },
   );
+  expect(ownedAddressesBySize).toStrictEqual(ownedAddressesByBlob);
+  for (const ownedAddress of [...ownedAddressesBySize].slice(0, 3)) {
+    const metadata = await rpcHttpGetAccountWithData(rpcHttp, ownedAddress);
+    expect(metadata.data.slice(0, 8)).toStrictEqual(expectedDiscriminatorBytes);
+    expect(metadata.owner).toStrictEqual(
+      "vVeH6Xd43HAScbxjVtvfwDGqBMaMvNDLsAxwM5WK1pG",
+    );
+  }
 });

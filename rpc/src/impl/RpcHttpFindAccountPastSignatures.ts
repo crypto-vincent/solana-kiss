@@ -5,6 +5,7 @@ import {
   Pubkey,
   pubkeyToString,
   Signature,
+  signatureToString,
 } from "solana-kiss-data";
 import { RpcHttp } from "./RpcHttp";
 import { Commitment } from "./RpcTypes";
@@ -31,9 +32,7 @@ export async function rpcHttpFindAccountPastSignatures(
         pubkeyToString(accountAddress),
         {
           limit: requestLimit,
-          before: startBefore
-            ? jsonTypeSignature.encoder(startBefore)
-            : undefined,
+          before: startBefore ? signatureToString(startBefore) : undefined,
           commitment: context?.commitment,
         },
       ]),

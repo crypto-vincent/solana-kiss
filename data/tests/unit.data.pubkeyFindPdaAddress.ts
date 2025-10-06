@@ -4,7 +4,7 @@ import {
   Pubkey,
   pubkeyDefault,
   pubkeyFindPdaAddressAndBump,
-  pubkeyFromString,
+  pubkeyFromBase58,
   pubkeyNewDummy,
   pubkeyToBytes,
 } from "../src";
@@ -27,13 +27,13 @@ it("run", async () => {
       seeds: [new Uint8Array([1, 2, 3]), new Uint8Array([4, 5, 6])],
     },
     {
-      programAddress: pubkeyFromString(
+      programAddress: pubkeyFromBase58(
         "BPFLoader1111111111111111111111111111111111",
       ),
       seeds: [new Uint8Array([1, 2, 3]), new Uint8Array([4, 5, 6])],
     },
     {
-      programAddress: pubkeyFromString(
+      programAddress: pubkeyFromBase58(
         "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA",
       ),
       seeds: [new Uint8Array([1, 2, 3]), new Uint8Array([4, 5, 6])],

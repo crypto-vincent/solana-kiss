@@ -20,10 +20,10 @@ export function pubkeyNewDummy(): Pubkey {
   return base58Encode(bytes) as Pubkey;
 }
 
-export function pubkeyFromString(string: string): Pubkey {
-  const bytes = base58Decode(string);
+export function pubkeyFromBase58(base58: string): Pubkey {
+  const bytes = base58Decode(base58);
   pubkeyBytesCheck(bytes);
-  return string as Pubkey;
+  return base58 as Pubkey;
 }
 
 export function pubkeyFromBytes(bytes: Uint8Array): Pubkey {
@@ -32,14 +32,14 @@ export function pubkeyFromBytes(bytes: Uint8Array): Pubkey {
   return pubkey as Pubkey;
 }
 
-export function pubkeyToBytes(pubkey: Pubkey): Uint8Array {
-  const bytes = base58Decode(pubkey as string);
+export function pubkeyToBytes(value: Pubkey): Uint8Array {
+  const bytes = base58Decode(value as string);
   pubkeyBytesCheck(bytes);
   return bytes;
 }
 
-export function pubkeyToString(pubkey: Pubkey): string {
-  return pubkey as string;
+export function pubkeyToBase58(value: Pubkey): string {
+  return value as string;
 }
 
 export function pubkeyFindPdaAddress(

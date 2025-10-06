@@ -1,6 +1,7 @@
-import { Blockhash, blockhashFromString, blockhashToString } from "./Blockhash";
-import { Pubkey, pubkeyFromString, pubkeyToString } from "./Pubkey";
-import { Signature, signatureFromString, signatureToString } from "./Signature";
+import { Blockhash, blockhashFromBase58, blockhashToBase58 } from "./Blockhash";
+import { casingCamelToSnake } from "./Casing";
+import { Pubkey, pubkeyFromBase58, pubkeyToBase58 } from "./Pubkey";
+import { Signature, signatureFromBase58, signatureToBase58 } from "./Signature";
 import { Immutable, withContext } from "./Utils";
 
 export type JsonValue =
@@ -365,18 +366,18 @@ export const jsonTypeDateTime: JsonType<Date> = jsonTypeRemap(
 );
 export const jsonTypePubkey: JsonType<Pubkey> = jsonTypeRemap(
   jsonTypeString,
-  pubkeyFromString,
-  pubkeyToString,
+  pubkeyFromBase58,
+  pubkeyToBase58,
 );
 export const jsonTypeSignature: JsonType<Signature> = jsonTypeRemap(
   jsonTypeString,
-  signatureFromString,
-  signatureToString,
+  signatureFromBase58,
+  signatureToBase58,
 );
 export const jsonTypeBlockhash: JsonType<Blockhash> = jsonTypeRemap(
   jsonTypeString,
-  blockhashFromString,
-  blockhashToString,
+  blockhashFromBase58,
+  blockhashToBase58,
 );
 
 export function jsonDecoderConst<Const extends boolean | number | string>(
@@ -498,7 +499,8 @@ export function jsonDecoderObject<
   shape: Shape,
   keysEncoding?:
     | { [K in keyof Shape]?: string }
-    | ((keyDecoded: keyof Shape) => string),
+    | ((keyDecoded: keyof Shape) => string)
+    | null,
 ): JsonDecoder<{ [K in keyof Shape]: JsonDecoderContent<Shape[K]> }> {
   return (
     encoded: JsonValue,
@@ -510,10 +512,7 @@ export function jsonDecoderObject<
     };
     const object = jsonTypeObjectRaw.decoder(encoded);
     for (const keyDecoded in shape) {
-      const keyEncoded =
-        typeof keysEncoding === "function"
-          ? keysEncoding(keyDecoded)
-          : (keysEncoding?.[keyDecoded] ?? keyDecoded);
+      const keyEncoded = jsonTypeObjectKeyEncoding(keyDecoded, keysEncoding);
       decoded[keyDecoded] = withContext(
         `JSON: Decode Object["${keyEncoded}"] =>`,
         () => shape[keyDecoded]!(object[keyEncoded]),
@@ -528,7 +527,8 @@ export function jsonEncoderObject<
   shape: Shape,
   keysEncoding?:
     | { [K in keyof Shape]?: string }
-    | ((keyDecoded: keyof Shape) => string),
+    | ((keyDecoded: keyof Shape) => string)
+    | null,
 ): JsonEncoder<{ [K in keyof Shape]: JsonEncoderContent<Shape[K]> }> {
   return (
     decoded: Immutable<{
@@ -537,10 +537,7 @@ export function jsonEncoderObject<
   ): JsonValue => {
     const encoded = {} as JsonObject;
     for (const keyDecoded in shape) {
-      const keyEncoded =
-        typeof keysEncoding === "function"
-          ? keysEncoding(keyDecoded)
-          : (keysEncoding?.[keyDecoded] ?? keyDecoded);
+      const keyEncoded = jsonTypeObjectKeyEncoding(keyDecoded, keysEncoding);
       encoded[keyEncoded] = shape[keyDecoded]!(
         decoded[keyDecoded as keyof typeof decoded],
       );
@@ -552,7 +549,8 @@ export function jsonTypeObject<Shape extends { [key: string]: JsonType<any> }>(
   shape: Shape,
   keysEncoding?:
     | { [K in keyof Shape]?: string }
-    | ((keyDecoded: keyof Shape) => string),
+    | ((keyDecoded: keyof Shape) => string)
+    | null,
 ): JsonType<{ [K in keyof Shape]: JsonTypeContent<Shape[K]> }> {
   const decodeShape = Object.fromEntries(
     Object.entries(shape).map(([key, type]) => [key, type.decoder]),
@@ -564,6 +562,20 @@ export function jsonTypeObject<Shape extends { [key: string]: JsonType<any> }>(
     decoder: jsonDecoderObject(decodeShape, keysEncoding),
     encoder: jsonEncoderObject(encodeShape, keysEncoding),
   } as JsonType<{ [K in keyof Shape]: JsonTypeContent<Shape[K]> }>;
+}
+function jsonTypeObjectKeyEncoding<Shape extends { [key: string]: any }>(
+  keyDecoded: string,
+  keysEncoding?:
+    | { [K in keyof Shape]?: string }
+    | ((keyDecoded: keyof Shape) => string)
+    | null,
+): string {
+  if (keysEncoding === null) {
+    return keyDecoded;
+  }
+  return typeof keysEncoding === "function"
+    ? keysEncoding(keyDecoded)
+    : (keysEncoding?.[keyDecoded] ?? casingCamelToSnake(keyDecoded));
 }
 
 export function jsonDecoderObjectToRecord<Value>(

@@ -4,10 +4,10 @@ export type Signature =
   | (string & { readonly __brand: unique symbol })
   | { readonly __brand: unique symbol };
 
-export function signatureFromString(string: string): Signature {
-  const bytes = base58Decode(string);
+export function signatureFromBase58(base58: string): Signature {
+  const bytes = base58Decode(base58);
   signatureBytesCheck(bytes);
-  return string as Signature;
+  return base58 as Signature;
 }
 
 export function signatureFromBytes(bytes: Uint8Array): Signature {
@@ -16,14 +16,14 @@ export function signatureFromBytes(bytes: Uint8Array): Signature {
   return signature as Signature;
 }
 
-export function signatureToBytes(signature: Signature): Uint8Array {
-  const bytes = base58Decode(signature as string);
+export function signatureToBytes(value: Signature): Uint8Array {
+  const bytes = base58Decode(value as string);
   signatureBytesCheck(bytes);
   return bytes;
 }
 
-export function signatureToString(signature: Signature): string {
-  return signature as string;
+export function signatureToBase58(value: Signature): string {
+  return value as string;
 }
 
 function signatureBytesCheck(bytes: Uint8Array) {
