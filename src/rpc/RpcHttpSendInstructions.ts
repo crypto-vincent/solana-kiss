@@ -7,6 +7,7 @@ import { Signature } from "../data/Signature";
 import { Signer } from "../data/Signer";
 import { RpcHttp } from "./RpcHttp";
 
+// TODO - support for simulateTransaction
 // TODO - provide a higher level function that handle block hash and wait for confirmation
 export async function rpcHttpSendInstructions(
   rpcHttp: RpcHttp,

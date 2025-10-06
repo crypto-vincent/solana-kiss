@@ -3,10 +3,11 @@ import { Instruction } from "../data/Instruction";
 import {
   JsonObject,
   JsonValue,
-  jsonAsArray,
-  jsonAsObject,
+  jsonDecoderByKind,
+  jsonDecoderObjectToMap,
   jsonTypeObjectRaw,
   jsonTypeString,
+  jsonTypeValue,
 } from "../data/Json";
 import { withContext } from "../data/Utils";
 import { IdlAccount, idlAccountCheck, idlAccountParse } from "./IdlAccount";
@@ -134,36 +135,33 @@ function parseScopedNamedValues<T, P>(
   parsingFunction: (name: string, value: JsonValue, param: P) => T,
 ): Map<string, T> {
   const values = new Map<string, T>();
-  const collectionValue = programObject[collectionName];
-  const collectionArray = jsonAsArray(collectionValue);
-  if (collectionArray !== undefined) {
-    for (const itemValue of collectionArray) {
-      const itemObject = jsonTypeObjectRaw.decoder(itemValue);
-      let itemName = jsonTypeString.decoder(itemObject["name"]);
-      if (convertNameToSnakeCase) {
-        itemName = casingCamelToSnake(itemName);
-      }
-      values.set(
-        itemName,
-        withContext(`Idl: Parse: ${collectionName}: ${itemName}`, () =>
-          parsingFunction(itemName, itemValue, param),
-        ),
-      );
+  const collection = collectionJsonDecoder(programObject[collectionName]);
+  for (const [name, value] of collection) {
+    let itemName = name;
+    if (convertNameToSnakeCase) {
+      itemName = casingCamelToSnake(name);
     }
-  }
-  const collectionObject = jsonAsObject(collectionValue);
-  if (collectionObject !== undefined) {
-    Object.entries(collectionObject).forEach(([key, value]) => {
-      if (convertNameToSnakeCase) {
-        key = casingCamelToSnake(key);
-      }
-      values.set(
-        key,
-        withContext(`Idl: Parse: ${collectionName}: ${key}`, () =>
-          parsingFunction(key, value, param),
-        ),
-      );
-    });
+    values.set(
+      itemName,
+      withContext(`Idl: Parse: ${collectionName}: ${itemName}`, () =>
+        parsingFunction(itemName, value, param),
+      ),
+    );
   }
   return values;
 }
+
+const collectionJsonDecoder = jsonDecoderByKind({
+  undefined: () => new Map<string, JsonValue>(),
+  object: jsonDecoderObjectToMap((key) => key, jsonTypeValue.decoder),
+  array: (array: Array<JsonValue>) => {
+    const map = new Map<string, JsonValue>();
+    // TODO - is this an example of a merged decoder?
+    for (const itemValue of array) {
+      const itemObject = jsonTypeObjectRaw.decoder(itemValue);
+      const itemName = jsonTypeString.decoder(itemObject["name"]);
+      map.set(itemName, itemValue);
+    }
+    return map;
+  },
+});

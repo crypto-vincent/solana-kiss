@@ -14,18 +14,6 @@ export * from "./data/Signature";
 export * from "./data/Signer";
 export * from "./data/Utils";
 
-export * from "./data/Transaction";
-export * from "./rpc/RpcHttp";
-export * from "./rpc/RpcHttpFindAccountPastSignatures";
-export * from "./rpc/RpcHttpFindProgramOwnedAddresses";
-export * from "./rpc/RpcHttpGetAccountLamports";
-export * from "./rpc/RpcHttpGetAccountMetadata";
-export * from "./rpc/RpcHttpGetAccountWithData";
-export * from "./rpc/RpcHttpGetLatestBlockHash";
-export * from "./rpc/RpcHttpGetTransaction";
-export * from "./rpc/RpcHttpSendInstructions";
-export * from "./rpc/RpcHttpWaitForTransaction";
-
 export * from "./idl/IdlAccount";
 export * from "./idl/IdlError";
 export * from "./idl/IdlEvent";
@@ -47,3 +35,17 @@ export * from "./idl/IdlTypeFullSerialize";
 export * from "./idl/IdlTypePrefix";
 export * from "./idl/IdlTypePrimitive";
 export * from "./idl/IdlUtils";
+
+export * from "./data/Transaction";
+export * from "./rpc/RpcHttp";
+export * from "./rpc/RpcHttpFindAccountPastSignatures";
+export * from "./rpc/RpcHttpFindProgramOwnedAddresses";
+export * from "./rpc/RpcHttpGetAccountLamports";
+export * from "./rpc/RpcHttpGetAccountMetadata";
+export * from "./rpc/RpcHttpGetAccountWithData";
+export * from "./rpc/RpcHttpGetBlock";
+export * from "./rpc/RpcHttpGetLatestBlockHash";
+export * from "./rpc/RpcHttpGetTransaction";
+export * from "./rpc/RpcHttpSendInstructions";
+export * from "./rpc/RpcHttpSimulateInstructions";
+export * from "./rpc/RpcHttpWaitForTransaction";

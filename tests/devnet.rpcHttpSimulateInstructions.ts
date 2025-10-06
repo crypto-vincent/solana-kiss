@@ -1,17 +1,13 @@
-import { expect, it } from "@jest/globals";
+import { it } from "@jest/globals";
 import {
   idlInstructionEncode,
   idlProgramParse,
-  lamportsFeePerSigner,
   lamportsRentExemptionMinimumForSpace,
   pubkeyDefault,
   pubkeyNewDummy,
   pubkeyToBase58,
   rpcHttpFromUrl,
-  rpcHttpGetAccountMetadata,
-  rpcHttpGetLatestBlockHash,
-  rpcHttpSendInstructions,
-  rpcHttpWaitForTransaction,
+  rpcHttpSimulateInstructions,
   signerFromSecret,
   signerGenerate,
 } from "../src";
@@ -22,10 +18,9 @@ it("run", async () => {
   });
   const programAddress = pubkeyDefault;
   const payerSigner = await signerFromSecret(secret);
-  console.log(payerSigner.address);
   const ownedSigner = await signerGenerate();
   const ownerAddress = pubkeyNewDummy();
-  const recentBlockHash = await rpcHttpGetLatestBlockHash(rpcHttp);
+  //const recentBlockHash = await rpcHttpGetLatestBlockHash(rpcHttp);
   const requestedSpace = 42;
   const transferLamports = lamportsRentExemptionMinimumForSpace(requestedSpace);
   const instruction = idlInstructionEncode(
@@ -41,26 +36,13 @@ it("run", async () => {
       owner: pubkeyToBase58(ownerAddress),
     },
   );
-  const signature = await rpcHttpSendInstructions(
+  const result = await rpcHttpSimulateInstructions(
     rpcHttp,
-    payerSigner,
     [instruction],
-    recentBlockHash,
-    { extraSigners: [ownedSigner] },
+    { payerAddress: payerSigner.address },
+    new Set([ownedSigner.address]),
   );
-  const transaction = await rpcHttpWaitForTransaction(rpcHttp, signature, 3000);
-  expect(transaction.error).toStrictEqual(null);
-  expect(transaction.chargedFeesLamports).toStrictEqual(
-    lamportsFeePerSigner * 2n,
-  );
-  const receiverMetadata = await rpcHttpGetAccountMetadata(
-    rpcHttp,
-    ownedSigner.address,
-  );
-  expect(receiverMetadata.executable).toBe(false);
-  expect(receiverMetadata.lamports).toBe(transferLamports);
-  expect(receiverMetadata.owner).toBe(ownerAddress);
-  expect(receiverMetadata.space).toBe(requestedSpace);
+  console.log(result);
 });
 
 const secret = new Uint8Array([
