@@ -6,7 +6,7 @@ import {
 } from "../src";
 import {
   idlOnchainAnchorAddress,
-  idlOnchainAnchorDeserialize,
+  idlOnchainAnchorDecode,
 } from "../src/idl/IdlOnchain";
 
 it("run", async () => {
@@ -18,7 +18,7 @@ it("run", async () => {
     rpcHttp,
     onchainAnchorAddress,
   );
-  const onchainAnchorIdl = idlOnchainAnchorDeserialize(onchainAnchorInfo.data);
+  const onchainAnchorIdl = idlOnchainAnchorDecode(onchainAnchorInfo.data);
   expect(onchainAnchorIdl.metadata.name).toStrictEqual("psyche_crowd_funding");
   expect(onchainAnchorIdl.typedefs.size).toBe(9);
   expect(onchainAnchorIdl.accounts.size).toBe(2);

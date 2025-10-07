@@ -22,8 +22,8 @@ import {
 } from "./IdlTypeFlatHydrate";
 import { idlTypeFlatFieldsParse, idlTypeFlatParse } from "./IdlTypeFlatParse";
 import { IdlTypeFull, IdlTypeFullFields } from "./IdlTypeFull";
-import { idlTypeFullFieldsDeserialize } from "./IdlTypeFullDeserialize";
-import { idlTypeFullFieldsSerialize } from "./IdlTypeFullSerialize";
+import { idlTypeFullFieldsDecode } from "./IdlTypeFullDecode";
+import { idlTypeFullFieldsEncode } from "./IdlTypeFullEncode";
 import {
   idlUtilsBytesJsonType,
   idlUtilsDiscriminator,
@@ -186,7 +186,7 @@ export function idlInstructionArgsEncode(
 ): Uint8Array {
   const blobs = new Array<Uint8Array>();
   blobs.push(instructionIdl.discriminator);
-  idlTypeFullFieldsSerialize(
+  idlTypeFullFieldsEncode(
     instructionIdl.argsTypeFullFields,
     instructionPayload,
     blobs,
@@ -200,7 +200,7 @@ export function idlInstructionArgsDecode(
   instructionData: Uint8Array,
 ): JsonValue {
   idlInstructionArgsCheck(instructionIdl, instructionData);
-  const [, payload] = idlTypeFullFieldsDeserialize(
+  const [, payload] = idlTypeFullFieldsDecode(
     instructionIdl.argsTypeFullFields,
     new DataView(instructionData.buffer),
     instructionIdl.discriminator.length,

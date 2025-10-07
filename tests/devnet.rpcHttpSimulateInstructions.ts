@@ -3,7 +3,7 @@ import {
   idlInstructionAddressesFind,
   idlInstructionEncode,
   idlOnchainAnchorAddress,
-  idlOnchainAnchorDeserialize,
+  idlOnchainAnchorDecode,
   lamportsFeePerSigner,
   pubkeyFindPdaAddress,
   pubkeyFromBase58,
@@ -26,7 +26,7 @@ it("run", async () => {
     rpcHttp,
     idlOnchainAnchorAddress(programAddress),
   );
-  const programIdl = idlOnchainAnchorDeserialize(programOnchainAnchorInfo.data);
+  const programIdl = idlOnchainAnchorDecode(programOnchainAnchorInfo.data);
   const instructionIdl = programIdl.instructions.get("pledge_create")!;
   const payerSigner = await signerFromSecret(secret);
   const userSigner = await signerGenerate();

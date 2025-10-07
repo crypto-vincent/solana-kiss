@@ -15,42 +15,39 @@ import {
   IdlTypeFullTypedef,
   IdlTypeFullVec,
 } from "./IdlTypeFull";
-import { idlTypePrefixDeserialize } from "./IdlTypePrefix";
-import {
-  IdlTypePrimitive,
-  idlTypePrimitiveDeserialize,
-} from "./IdlTypePrimitive";
+import { idlTypePrefixDecode } from "./IdlTypePrefix";
+import { IdlTypePrimitive, idlTypePrimitiveDecode } from "./IdlTypePrimitive";
 
-export function idlTypeFullDeserialize(
+export function idlTypeFullDecode(
   typeFull: IdlTypeFull,
   data: DataView,
   dataOffset: number,
 ): [number, JsonValue] {
-  return typeFull.traverse(visitorDeserialize, data, dataOffset, undefined);
+  return typeFull.traverse(visitorDecode, data, dataOffset, undefined);
 }
 
-export function idlTypeFullFieldsDeserialize(
+export function idlTypeFullFieldsDecode(
   typeFullFields: IdlTypeFullFields,
   data: DataView,
   dataOffset: number,
 ): [number, JsonValue] {
   return typeFullFields.traverse(
-    visitorFieldsDeserialize,
+    visitorFieldsDecode,
     data,
     dataOffset,
     undefined,
   );
 }
 
-const visitorDeserialize = {
+const visitorDecode = {
   typedef: (
     self: IdlTypeFullTypedef,
     data: DataView,
     dataOffset: number,
   ): [number, JsonValue] => {
     return withContext(
-      `Deserialize: Typedef: ${self.name} (offset: ${dataOffset})`,
-      () => idlTypeFullDeserialize(self.content, data, dataOffset),
+      `Decode: Typedef: ${self.name} (offset: ${dataOffset})`,
+      () => idlTypeFullDecode(self.content, data, dataOffset),
     );
   },
   option: (
@@ -58,7 +55,7 @@ const visitorDeserialize = {
     data: DataView,
     dataOffset: number,
   ): [number, JsonValue] => {
-    let [dataSize, dataPrefix] = idlTypePrefixDeserialize(
+    let [dataSize, dataPrefix] = idlTypePrefixDecode(
       self.prefix,
       data,
       dataOffset,
@@ -67,7 +64,7 @@ const visitorDeserialize = {
       return [dataSize, null];
     }
     const dataContentOffset = dataOffset + dataSize;
-    const [dataContentSize, dataContent] = idlTypeFullDeserialize(
+    const [dataContentSize, dataContent] = idlTypeFullDecode(
       self.content,
       data,
       dataContentOffset,
@@ -80,7 +77,7 @@ const visitorDeserialize = {
     data: DataView,
     dataOffset: number,
   ): [number, JsonValue] => {
-    let [dataSize, dataPrefix] = idlTypePrefixDeserialize(
+    let [dataSize, dataPrefix] = idlTypePrefixDecode(
       self.prefix,
       data,
       dataOffset,
@@ -89,7 +86,7 @@ const visitorDeserialize = {
     const dataItems = [];
     for (let i = 0; i < dataLength; i++) {
       const dataItemOffset = dataOffset + dataSize;
-      const [dataItemSize, dataItem] = idlTypeFullDeserialize(
+      const [dataItemSize, dataItem] = idlTypeFullDecode(
         self.items,
         data,
         dataItemOffset,
@@ -108,7 +105,7 @@ const visitorDeserialize = {
     const dataItems = [];
     for (let i = 0; i < self.length; i++) {
       const dataItemOffset = dataOffset + dataSize;
-      const [dataItemSize, dataItem] = idlTypeFullDeserialize(
+      const [dataItemSize, dataItem] = idlTypeFullDecode(
         self.items,
         data,
         dataItemOffset,
@@ -123,7 +120,7 @@ const visitorDeserialize = {
     data: DataView,
     dataOffset: number,
   ): [number, JsonValue] => {
-    let [dataSize, dataPrefix] = idlTypePrefixDeserialize(
+    let [dataSize, dataPrefix] = idlTypePrefixDecode(
       self.prefix,
       data,
       dataOffset,
@@ -140,7 +137,7 @@ const visitorDeserialize = {
     data: DataView,
     dataOffset: number,
   ): [number, JsonValue] => {
-    return idlTypeFullFieldsDeserialize(self.fields, data, dataOffset);
+    return idlTypeFullFieldsDecode(self.fields, data, dataOffset);
   },
   enum: (
     self: IdlTypeFullEnum,
@@ -156,7 +153,7 @@ const visitorDeserialize = {
       enumMask |= variant.code;
       codes.push(variant.code);
     }
-    let [dataSize, dataPrefix] = idlTypePrefixDeserialize(
+    let [dataSize, dataPrefix] = idlTypePrefixDecode(
       self.prefix,
       data,
       dataOffset,
@@ -168,20 +165,16 @@ const visitorDeserialize = {
           return [dataSize, variant.name];
         }
         const [dataVariantSize, dataVariant] = withContext(
-          `Deserialize: Enum Variant: ${variant.name} (offset: ${dataVariantOffset})`,
+          `Decode: Enum Variant: ${variant.name} (offset: ${dataVariantOffset})`,
           () =>
-            idlTypeFullFieldsDeserialize(
-              variant.fields,
-              data,
-              dataVariantOffset,
-            ),
+            idlTypeFullFieldsDecode(variant.fields, data, dataVariantOffset),
         );
         dataSize += dataVariantSize;
         return [dataSize, { [variant.name]: dataVariant }];
       }
     }
     throw new Error(
-      `Deserialize: Unknown enum code: ${dataPrefix} (offset: ${dataOffset})`,
+      `Decode: Unknown enum code: ${dataPrefix} (offset: ${dataOffset})`,
     );
   },
   padded: (
@@ -191,7 +184,7 @@ const visitorDeserialize = {
   ): [number, JsonValue] => {
     let dataSize = self.before ?? 0;
     const dataContentOffset = dataOffset + dataSize;
-    const [dataContentSize, dataContent] = idlTypeFullDeserialize(
+    const [dataContentSize, dataContent] = idlTypeFullDecode(
       self.content,
       data,
       dataContentOffset,
@@ -210,7 +203,7 @@ const visitorDeserialize = {
       const found = data.getUint8(dataOffset + index);
       if (found !== expected) {
         throw new Error(
-          `Deserialize: Expected blob byte ${expected} at index ${index} (found: ${found})`,
+          `Decode: Expected blob byte ${expected} at index ${index} (found: ${found})`,
         );
       }
     }
@@ -221,11 +214,11 @@ const visitorDeserialize = {
     data: DataView,
     dataOffset: number,
   ): [number, JsonValue] => {
-    return idlTypePrimitiveDeserialize(self, data, dataOffset);
+    return idlTypePrimitiveDecode(self, data, dataOffset);
   },
 };
 
-const visitorFieldsDeserialize = {
+const visitorFieldsDecode = {
   nothing: (
     _self: null,
     _data: DataView,
@@ -243,8 +236,8 @@ const visitorFieldsDeserialize = {
     for (const field of self) {
       const dataFieldOffset = dataOffset + dataSize;
       const [dataFieldSize, dataField] = withContext(
-        `Deserialize: Field: ${field.name} (offset: ${dataFieldOffset})`,
-        () => idlTypeFullDeserialize(field.content, data, dataFieldOffset),
+        `Decode: Field: ${field.name} (offset: ${dataFieldOffset})`,
+        () => idlTypeFullDecode(field.content, data, dataFieldOffset),
       );
       dataSize += dataFieldSize;
       dataFields[field.name] = dataField;
@@ -261,8 +254,8 @@ const visitorFieldsDeserialize = {
     for (const field of self) {
       const dataFieldOffset = dataOffset + dataSize;
       const [dataFieldSize, dataField] = withContext(
-        `Deserialize: Field: ${field.position} (offset: ${dataFieldOffset})`,
-        () => idlTypeFullDeserialize(field.content, data, dataFieldOffset),
+        `Decode: Field: ${field.position} (offset: ${dataFieldOffset})`,
+        () => idlTypeFullDecode(field.content, data, dataFieldOffset),
       );
       dataSize += dataFieldSize;
       dataFields.push(dataField);

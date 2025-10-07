@@ -19,7 +19,7 @@ export function idlOnchainAnchorAddress(programAddress: Pubkey): Pubkey {
   return pubkeyCreateFromSeed(basePdaAddress, "anchor:idl", programAddress);
 }
 
-export function idlOnchainAnchorDeserialize(
+export function idlOnchainAnchorDecode(
   anchorStoreData: Uint8Array,
 ): IdlProgram {
   const onchainAnchorContent = onchainAnchorJsonDecoder(

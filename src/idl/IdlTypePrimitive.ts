@@ -84,28 +84,25 @@ export class IdlTypePrimitive {
   }
 }
 
-export function idlTypePrimitiveSerialize(
+export function idlTypePrimitiveEncode(
   primitive: IdlTypePrimitive,
   value: JsonValue,
   blobs: Array<Uint8Array>,
 ) {
   const blob = new Uint8Array(primitive.size);
-  primitive.traverse(visitorSerialize, blob, value);
+  primitive.traverse(visitorEncode, blob, value);
   blobs.push(blob);
 }
 
-export function idlTypePrimitiveDeserialize(
+export function idlTypePrimitiveDecode(
   primitive: IdlTypePrimitive,
   data: DataView,
   dataOffset: number,
 ): [number, JsonValue] {
-  return [
-    primitive.size,
-    primitive.traverse(visitorDeserialize, data, dataOffset),
-  ];
+  return [primitive.size, primitive.traverse(visitorDecode, data, dataOffset)];
 }
 
-const visitorSerialize = {
+const visitorEncode = {
   u8: (blob: Uint8Array, value: JsonValue) => {
     const num = jsonTypeInteger.decoder(value);
     blob[0] = Number(num);
@@ -181,7 +178,7 @@ const visitorSerialize = {
   },
 };
 
-const visitorDeserialize = {
+const visitorDecode = {
   u8: (data: DataView, dataOffset: number): JsonValue => {
     return data.getUint8(dataOffset);
   },

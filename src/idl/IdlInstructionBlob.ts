@@ -19,7 +19,7 @@ import { IdlTypeFlat } from "./IdlTypeFlat";
 import { idlTypeFlatHydrate } from "./IdlTypeFlatHydrate";
 import { idlTypeFlatParse } from "./IdlTypeFlatParse";
 import { IdlTypeFull, IdlTypeFullFields } from "./IdlTypeFull";
-import { idlTypeFullSerialize } from "./IdlTypeFullSerialize";
+import { idlTypeFullEncode } from "./IdlTypeFullEncode";
 import { idlUtilsFlattenBlobs, idlUtilsInferValueTypeFlat } from "./IdlUtils";
 
 export type IdlInstructionBlobContext = {
@@ -120,7 +120,7 @@ export function idlInstructionBlobParseConst(
     typedefsIdls,
   );
   const blobs = new Array<Uint8Array>();
-  idlTypeFullSerialize(typeFull, instructionBlobValue, blobs, false);
+  idlTypeFullEncode(typeFull, instructionBlobValue, blobs, false);
   return IdlInstructionBlob.const({
     bytes: idlUtilsFlattenBlobs(blobs),
   });
@@ -212,7 +212,7 @@ const computeVisitor = {
   arg: (self: IdlInstructionBlobArg, context: IdlInstructionBlobContext) => {
     const value = idlPathGetJsonValue(self.path, context.instructionPayload);
     const blobs = new Array<Uint8Array>();
-    idlTypeFullSerialize(self.typeFull, value, blobs, false);
+    idlTypeFullEncode(self.typeFull, value, blobs, false);
     return idlUtilsFlattenBlobs(blobs);
   },
   account: (
@@ -257,7 +257,7 @@ const computeVisitor = {
     const value = idlPathGetJsonValue(contentPath, instructionAccountState);
     const blobs = new Array<Uint8Array>();
     if (self.typeFull !== undefined) {
-      idlTypeFullSerialize(self.typeFull, value, blobs, false);
+      idlTypeFullEncode(self.typeFull, value, blobs, false);
       return idlUtilsFlattenBlobs(blobs);
     }
     const instructionAccountContentTypeFull =
@@ -271,7 +271,7 @@ const computeVisitor = {
       contentPath,
       instructionAccountContentTypeFull,
     );
-    idlTypeFullSerialize(typeFull, value, blobs, false);
+    idlTypeFullEncode(typeFull, value, blobs, false);
     return idlUtilsFlattenBlobs(blobs);
   },
 };

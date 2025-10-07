@@ -24,40 +24,37 @@ import {
   IdlTypeFullTypedef,
   IdlTypeFullVec,
 } from "./IdlTypeFull";
-import { idlTypePrefixSerialize } from "./IdlTypePrefix";
-import {
-  IdlTypePrimitive,
-  idlTypePrimitiveSerialize,
-} from "./IdlTypePrimitive";
+import { idlTypePrefixEncode } from "./IdlTypePrefix";
+import { IdlTypePrimitive, idlTypePrimitiveEncode } from "./IdlTypePrimitive";
 import { idlUtilsBytesJsonType } from "./IdlUtils";
 
-export function idlTypeFullSerialize(
+export function idlTypeFullEncode(
   typeFull: IdlTypeFull,
   value: JsonValue,
   blobs: Array<Uint8Array>,
   prefixed: boolean,
 ) {
-  typeFull.traverse(visitorSerialize, value, blobs, prefixed);
+  typeFull.traverse(visitorEncode, value, blobs, prefixed);
 }
 
-export function idlTypeFullFieldsSerialize(
+export function idlTypeFullFieldsEncode(
   typeFullFields: IdlTypeFullFields,
   value: JsonValue,
   blobs: Array<Uint8Array>,
   prefixed: boolean,
 ) {
-  typeFullFields.traverse(visitorFieldsSerialize, value, blobs, prefixed);
+  typeFullFields.traverse(visitorFieldsEncode, value, blobs, prefixed);
 }
 
-const visitorSerialize = {
+const visitorEncode = {
   typedef: (
     self: IdlTypeFullTypedef,
     value: JsonValue,
     blobs: Array<Uint8Array>,
     prefixed: boolean,
   ) => {
-    withContext(`Serialize: Typedef: ${self.name}`, () => {
-      return idlTypeFullSerialize(self.content, value, blobs, prefixed);
+    withContext(`Encode: Typedef: ${self.name}`, () => {
+      return idlTypeFullEncode(self.content, value, blobs, prefixed);
     });
   },
   option: (
@@ -67,11 +64,11 @@ const visitorSerialize = {
     prefixed: boolean,
   ) => {
     if (value === null || value === undefined) {
-      idlTypePrefixSerialize(self.prefix, 0n, blobs);
+      idlTypePrefixEncode(self.prefix, 0n, blobs);
       return;
     }
-    idlTypePrefixSerialize(self.prefix, 1n, blobs);
-    idlTypeFullSerialize(self.content, value, blobs, prefixed);
+    idlTypePrefixEncode(self.prefix, 1n, blobs);
+    idlTypeFullEncode(self.content, value, blobs, prefixed);
   },
   vec: (
     self: IdlTypeFullVec,
@@ -82,17 +79,17 @@ const visitorSerialize = {
     if (self.items.isPrimitive(IdlTypePrimitive.u8)) {
       const bytes = idlUtilsBytesJsonType.decoder(value);
       if (prefixed) {
-        idlTypePrefixSerialize(self.prefix, BigInt(bytes.length), blobs);
+        idlTypePrefixEncode(self.prefix, BigInt(bytes.length), blobs);
       }
       blobs.push(bytes);
       return;
     }
     const array = jsonTypeArrayRaw.decoder(value);
     if (prefixed) {
-      idlTypePrefixSerialize(self.prefix, BigInt(array.length), blobs);
+      idlTypePrefixEncode(self.prefix, BigInt(array.length), blobs);
     }
     for (const item of array) {
-      idlTypeFullSerialize(self.items, item, blobs, prefixed);
+      idlTypeFullEncode(self.items, item, blobs, prefixed);
     }
   },
   array: (
@@ -118,7 +115,7 @@ const visitorSerialize = {
       );
     }
     for (const item of array) {
-      idlTypeFullSerialize(self.items, item, blobs, prefixed);
+      idlTypeFullEncode(self.items, item, blobs, prefixed);
     }
   },
   string: (
@@ -130,7 +127,7 @@ const visitorSerialize = {
     const string = jsonTypeString.decoder(value);
     const bytes = new TextEncoder().encode(string);
     if (prefixed) {
-      idlTypePrefixSerialize(self.prefix, BigInt(bytes.length), blobs);
+      idlTypePrefixEncode(self.prefix, BigInt(bytes.length), blobs);
     }
     blobs.push(bytes);
   },
@@ -140,7 +137,7 @@ const visitorSerialize = {
     blobs: Array<Uint8Array>,
     prefixed: boolean,
   ) => {
-    idlTypeFullFieldsSerialize(self.fields, value, blobs, prefixed);
+    idlTypeFullFieldsEncode(self.fields, value, blobs, prefixed);
   },
   enum: (
     self: IdlTypeFullEnum,
@@ -154,13 +151,13 @@ const visitorSerialize = {
       }
       return;
     }
-    function serializeEnumVariant(
+    function enumVariantEncode(
       variant: IdlTypeFullEnumVariant,
       value: JsonValue,
     ) {
-      withContext(`Serialize: Enum Variant: ${variant.name}`, () => {
-        idlTypePrefixSerialize(self.prefix, variant.code, blobs);
-        idlTypeFullFieldsSerialize(variant.fields, value, blobs, prefixed);
+      withContext(`Encode: Enum Variant: ${variant.name}`, () => {
+        idlTypePrefixEncode(self.prefix, variant.code, blobs);
+        idlTypeFullFieldsEncode(variant.fields, value, blobs, prefixed);
       });
     }
     const number = jsonAsNumber(value);
@@ -168,7 +165,7 @@ const visitorSerialize = {
       const code = BigInt(number);
       for (const variant of self.variants) {
         if (variant.code === code) {
-          return serializeEnumVariant(variant, undefined);
+          return enumVariantEncode(variant, undefined);
         }
       }
       throw new Error(`Could not find enum variant with code: ${value}`);
@@ -177,7 +174,7 @@ const visitorSerialize = {
     if (string !== undefined) {
       for (const variant of self.variants) {
         if (variant.name === string) {
-          return serializeEnumVariant(variant, undefined);
+          return enumVariantEncode(variant, undefined);
         }
       }
       throw new Error(`Could not find enum variant with name: ${value}`);
@@ -186,7 +183,7 @@ const visitorSerialize = {
     if (object !== undefined) {
       for (const variant of self.variants) {
         if (object.hasOwnProperty(variant.name)) {
-          return serializeEnumVariant(variant, object[variant.name]);
+          return enumVariantEncode(variant, object[variant.name]);
         }
       }
       throw new Error("Could not guess enum variant from object key");
@@ -204,7 +201,7 @@ const visitorSerialize = {
     }
     let contentSize = 0;
     const contentBlobs = new Array<Uint8Array>();
-    idlTypeFullSerialize(self.content, value, contentBlobs, prefixed);
+    idlTypeFullEncode(self.content, value, contentBlobs, prefixed);
     for (const contentBlob of contentBlobs) {
       blobs.push(contentBlob);
       contentSize += contentBlob.length;
@@ -233,11 +230,11 @@ const visitorSerialize = {
     blobs: Array<Uint8Array>,
     _prefixed: boolean,
   ) => {
-    idlTypePrimitiveSerialize(self, value, blobs);
+    idlTypePrimitiveEncode(self, value, blobs);
   },
 };
 
-const visitorFieldsSerialize = {
+const visitorFieldsEncode = {
   nothing: (
     _self: null,
     value: JsonValue,
@@ -257,13 +254,8 @@ const visitorFieldsSerialize = {
   ) => {
     const object = jsonTypeObjectRaw.decoder(value);
     for (const field of self) {
-      withContext(`Serialize: Field: ${field.name}`, () => {
-        idlTypeFullSerialize(
-          field.content,
-          object[field.name],
-          blobs,
-          prefixed,
-        );
+      withContext(`Encode: Field: ${field.name}`, () => {
+        idlTypeFullEncode(field.content, object[field.name], blobs, prefixed);
       });
     }
   },
@@ -275,8 +267,8 @@ const visitorFieldsSerialize = {
   ) => {
     const array = jsonTypeArrayRaw.decoder(value);
     for (const field of self) {
-      withContext(`Serialize: Field: ${field.position}`, () => {
-        idlTypeFullSerialize(
+      withContext(`Encode: Field: ${field.position}`, () => {
+        idlTypeFullEncode(
           field.content,
           array[field.position],
           blobs,

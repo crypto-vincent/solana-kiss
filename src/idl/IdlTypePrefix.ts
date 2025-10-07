@@ -44,25 +44,25 @@ export class IdlTypePrefix {
   }
 }
 
-export function idlTypePrefixSerialize(
+export function idlTypePrefixEncode(
   prefix: IdlTypePrefix,
   value: bigint,
   blobs: Array<Uint8Array>,
 ) {
   const blob = new Uint8Array(prefix.size);
-  prefix.traverse(visitorSerialize, blob, value);
+  prefix.traverse(visitorEncode, blob, value);
   blobs.push(blob);
 }
 
-export function idlTypePrefixDeserialize(
+export function idlTypePrefixDecode(
   prefix: IdlTypePrefix,
   data: DataView,
   dataOffset: number,
 ): [number, bigint] {
-  return [prefix.size, prefix.traverse(visitorDeserialize, data, dataOffset)];
+  return [prefix.size, prefix.traverse(visitorDecode, data, dataOffset)];
 }
 
-const visitorSerialize = {
+const visitorEncode = {
   u8: (blob: Uint8Array, value: bigint) => {
     blob[0] = Number(value);
   },
@@ -85,7 +85,7 @@ const visitorSerialize = {
   },
 };
 
-const visitorDeserialize = {
+const visitorDecode = {
   u8: (data: DataView, dataOffset: number): bigint => {
     return BigInt(data.getUint8(dataOffset));
   },

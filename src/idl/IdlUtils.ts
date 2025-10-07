@@ -19,7 +19,7 @@ import { sha256Hash } from "../data/Sha256";
 import { IdlTypeFlat } from "./IdlTypeFlat";
 import { idlTypeFlatHydrate } from "./IdlTypeFlatHydrate";
 import { idlTypeFlatParse } from "./IdlTypeFlatParse";
-import { idlTypeFullSerialize } from "./IdlTypeFullSerialize";
+import { idlTypeFullEncode } from "./IdlTypeFullEncode";
 
 export const idlUtilsBytesJsonType = {
   decoder: jsonDecoderByKind({
@@ -47,12 +47,7 @@ export const idlUtilsBytesJsonType = {
         const typeFlat = info.type ?? idlUtilsInferValueTypeFlat(info.value);
         const typeFull = idlTypeFlatHydrate(typeFlat, new Map(), new Map());
         const blobs = new Array<Uint8Array>();
-        idlTypeFullSerialize(
-          typeFull,
-          info.value,
-          blobs,
-          info.prefixed === true,
-        );
+        idlTypeFullEncode(typeFull, info.value, blobs, info.prefixed === true);
         return idlUtilsFlattenBlobs(blobs);
       },
     ),

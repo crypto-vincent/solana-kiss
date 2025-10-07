@@ -12,8 +12,8 @@ import {
   idlTypeFlatParseIsPossible,
 } from "./IdlTypeFlatParse";
 import { IdlTypeFull } from "./IdlTypeFull";
-import { idlTypeFullDeserialize } from "./IdlTypeFullDeserialize";
-import { idlTypeFullSerialize } from "./IdlTypeFullSerialize";
+import { idlTypeFullDecode } from "./IdlTypeFullDecode";
+import { idlTypeFullEncode } from "./IdlTypeFullEncode";
 import {
   idlUtilsBytesJsonType,
   idlUtilsDiscriminator,
@@ -35,7 +35,7 @@ export function idlEventEncode(
 ): Uint8Array {
   const blobs = new Array<Uint8Array>();
   blobs.push(eventIdl.discriminator);
-  idlTypeFullSerialize(eventIdl.infoTypeFull, eventPayload, blobs, true);
+  idlTypeFullEncode(eventIdl.infoTypeFull, eventPayload, blobs, true);
   return idlUtilsFlattenBlobs(blobs);
 }
 
@@ -44,7 +44,7 @@ export function idlEventDecode(
   eventData: Uint8Array,
 ): JsonValue {
   idlEventCheck(eventIdl, eventData);
-  const [, eventPayload] = idlTypeFullDeserialize(
+  const [, eventPayload] = idlTypeFullDecode(
     eventIdl.infoTypeFull,
     new DataView(eventData.buffer),
     eventIdl.discriminator.length,

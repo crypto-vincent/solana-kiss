@@ -14,8 +14,8 @@ import {
   idlTypeFlatParseIsPossible,
 } from "./IdlTypeFlatParse";
 import { IdlTypeFull } from "./IdlTypeFull";
-import { idlTypeFullDeserialize } from "./IdlTypeFullDeserialize";
-import { idlTypeFullSerialize } from "./IdlTypeFullSerialize";
+import { idlTypeFullDecode } from "./IdlTypeFullDecode";
+import { idlTypeFullEncode } from "./IdlTypeFullEncode";
 import {
   idlUtilsBytesJsonType,
   idlUtilsDiscriminator,
@@ -51,7 +51,7 @@ export function idlAccountEncode(
 ): Uint8Array {
   const blobs = new Array<Uint8Array>();
   blobs.push(accountIdl.discriminator);
-  idlTypeFullSerialize(accountIdl.contentTypeFull, accountState, blobs, true);
+  idlTypeFullEncode(accountIdl.contentTypeFull, accountState, blobs, true);
   return idlUtilsFlattenBlobs(blobs);
 }
 
@@ -60,7 +60,7 @@ export function idlAccountDecode(
   accountData: Uint8Array,
 ): JsonValue {
   idlAccountCheck(accountIdl, accountData);
-  const [, accountState] = idlTypeFullDeserialize(
+  const [, accountState] = idlTypeFullDecode(
     accountIdl.contentTypeFull,
     new DataView(accountData.buffer),
     accountIdl.discriminator.length,
