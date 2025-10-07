@@ -1,0 +1,39 @@
+{
+  "context": { "apiVersion": "3.0.2", "slot": 412853857 },
+  "value": {
+    "accounts": [
+      [
+        {
+          "data": [
+            "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
+            "base64"
+          ],
+          "executable": false,
+          "lamports": 1183200,
+          "owner": "Dummy1Lt6vKTjNUWvktsufk3aUS9yDspXnzgr4TAe3y",
+          "rentEpoch": 18446744073709552000,
+          "space": 42
+        }
+      ]
+    ],
+    "err": null,
+    "fee": 10000,
+    "innerInstructions": [],
+    "loadedAccountsDataSize": 14,
+    "loadedAddresses": { "readonly": [], "writable": [] },
+    "logs": [
+      "Program 11111111111111111111111111111111 invoke [1]",
+      "Program 11111111111111111111111111111111 success"
+    ],
+    "postBalances": [4958474640, 1183200, 1],
+    "postTokenBalances": [],
+    "preBalances": [4959667840, 0, 1],
+    "preTokenBalances": [],
+    "replacementBlockhash": {
+      "blockhash": "bm3RAYYTW8c5RxzBXxCcMpLAyMvsVw18iEP6bT9vTDQ",
+      "lastValidBlockHeight": 400792698
+    },
+    "returnData": null,
+    "unitsConsumed": 150
+  }
+}

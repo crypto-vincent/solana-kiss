@@ -1,6 +1,13 @@
 import { BlockSlot } from "./Block";
 import { Instruction } from "./Instruction";
-import { JsonValue } from "./Json";
+import {
+  jsonDecoderArray,
+  jsonDecoderObject,
+  jsonDecoderOptional,
+  jsonTypePubkey,
+  jsonTypeString,
+  JsonValue,
+} from "./Json";
 import { Message } from "./Message";
 
 // TODO - should add phantom integration (maybe different package?)
@@ -23,3 +30,14 @@ export type TransactionInvocation = {
   instruction: Instruction;
   invocations: Array<TransactionInvocation>;
 };
+
+export const transactionLoadedAddressesJsonDecoder = jsonDecoderOptional(
+  jsonDecoderObject((key) => key, {
+    writable: jsonDecoderArray(jsonTypePubkey.decoder),
+    readonly: jsonDecoderArray(jsonTypePubkey.decoder),
+  }),
+);
+
+export const transactionLogsMessagesJsonDecoder = jsonDecoderOptional(
+  jsonDecoderArray(jsonTypeString.decoder),
+);

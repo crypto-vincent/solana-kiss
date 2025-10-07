@@ -4,6 +4,7 @@ import {
   jsonDecoderObject,
   jsonTypeFloating,
   jsonTypeInteger,
+  jsonTypeNumber,
   JsonValue,
 } from "../src";
 
@@ -13,6 +14,14 @@ it("run", async () => {
     decoder: JsonDecoder<any>;
     decoded: any;
   }> = [
+    { encoded: null, decoder: jsonTypeNumber.decoder, decoded: NaN },
+    { encoded: "NaN", decoder: jsonTypeNumber.decoder, decoded: NaN },
+    { encoded: "Infinity", decoder: jsonTypeNumber.decoder, decoded: Infinity },
+    {
+      encoded: "-Infinity",
+      decoder: jsonTypeNumber.decoder,
+      decoded: -Infinity,
+    },
     { encoded: 42, decoder: jsonTypeInteger.decoder, decoded: 42n },
     { encoded: "-42", decoder: jsonTypeInteger.decoder, decoded: -42n },
     { encoded: "0xff", decoder: jsonTypeInteger.decoder, decoded: 255n },

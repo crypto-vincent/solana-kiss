@@ -1,5 +1,10 @@
 import { base58Decode } from "../data/Base58";
-import { Instruction, InstructionInput } from "../data/Instruction";
+import {
+  Instruction,
+  InstructionInput,
+  compiledInstructionsJsonDecoder,
+  innerInstructionsJsonDecoder,
+} from "../data/Instruction";
 import {
   jsonDecoderArray,
   jsonDecoderNullable,
@@ -10,12 +15,16 @@ import {
   jsonTypeNumber,
   jsonTypePubkey,
   jsonTypeSignature,
-  jsonTypeString,
   jsonTypeValue,
 } from "../data/Json";
 import { Pubkey } from "../data/Pubkey";
 import { Signature, signatureToBase58 } from "../data/Signature";
-import { Transaction, TransactionInvocation } from "../data/Transaction";
+import {
+  Transaction,
+  TransactionInvocation,
+  transactionLoadedAddressesJsonDecoder,
+  transactionLogsMessagesJsonDecoder,
+} from "../data/Transaction";
 import { RpcHttp } from "./RpcHttp";
 
 export async function rpcHttpGetTransaction(
@@ -218,21 +227,6 @@ function decompileTransactionInstruction(
   };
 }
 
-const instructionJsonDecoder = jsonDecoderObject(
-  {
-    stackHeight: "stackHeight",
-    programIndex: "programIdIndex",
-    accountsIndexes: "accounts",
-    dataBase58: "data",
-  },
-  {
-    stackHeight: jsonTypeNumber.decoder,
-    programIndex: jsonTypeNumber.decoder,
-    accountsIndexes: jsonDecoderArray(jsonTypeNumber.decoder),
-    dataBase58: jsonTypeString.decoder,
-  },
-);
-
 const resultJsonDecoder = jsonDecoderOptional(
   jsonDecoderObject((key) => key, {
     blockTime: jsonDecoderOptional(jsonTypeNumber.decoder),
@@ -240,23 +234,9 @@ const resultJsonDecoder = jsonDecoderOptional(
       computeUnitsConsumed: jsonTypeNumber.decoder,
       err: jsonDecoderNullable(jsonTypeValue.decoder),
       fee: jsonTypeNumber.decoder,
-      innerInstructions: jsonDecoderOptional(
-        jsonDecoderArray(
-          jsonDecoderObject((key) => key, {
-            index: jsonTypeNumber.decoder,
-            instructions: jsonDecoderArray(instructionJsonDecoder),
-          }),
-        ),
-      ),
-      loadedAddresses: jsonDecoderOptional(
-        jsonDecoderObject((key) => key, {
-          writable: jsonDecoderArray(jsonTypePubkey.decoder),
-          readonly: jsonDecoderArray(jsonTypePubkey.decoder),
-        }),
-      ),
-      logMessages: jsonDecoderOptional(
-        jsonDecoderArray(jsonTypeString.decoder),
-      ),
+      innerInstructions: innerInstructionsJsonDecoder,
+      loadedAddresses: transactionLoadedAddressesJsonDecoder,
+      logMessages: transactionLogsMessagesJsonDecoder,
     }),
     slot: jsonTypeBlockSlot.decoder,
     transaction: jsonDecoderObject((key) => key, {
@@ -276,7 +256,7 @@ const resultJsonDecoder = jsonDecoderOptional(
           numReadonlyUnsignedAccounts: jsonTypeNumber.decoder,
           numRequiredSignatures: jsonTypeNumber.decoder,
         }),
-        instructions: jsonDecoderArray(instructionJsonDecoder),
+        instructions: compiledInstructionsJsonDecoder,
         recentBlockhash: jsonTypeBlockHash.decoder,
       }),
       signatures: jsonDecoderArray(jsonTypeSignature.decoder),

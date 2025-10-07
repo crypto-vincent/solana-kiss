@@ -295,6 +295,19 @@ export const jsonTypeBoolean: JsonType<boolean> = {
 };
 export const jsonTypeNumber: JsonType<number> = {
   decoder: (encoded: JsonValue): number => {
+    if (encoded === null) {
+      return NaN;
+    }
+    const specialCase = jsonAsString(encoded);
+    if (specialCase === "Infinity") {
+      return Infinity;
+    }
+    if (specialCase === "-Infinity") {
+      return -Infinity;
+    }
+    if (specialCase === "NaN") {
+      return NaN;
+    }
     const decoded = jsonAsNumber(encoded);
     if (decoded === undefined) {
       throw new Error(
@@ -304,6 +317,15 @@ export const jsonTypeNumber: JsonType<number> = {
     return decoded;
   },
   encoder: (decoded: number): JsonValue => {
+    if (decoded === Infinity) {
+      return "Infinity";
+    }
+    if (decoded === -Infinity) {
+      return "-Infinity";
+    }
+    if (isNaN(decoded)) {
+      return "NaN";
+    }
     return decoded;
   },
 };

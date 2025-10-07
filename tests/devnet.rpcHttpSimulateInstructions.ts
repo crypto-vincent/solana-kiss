@@ -1,12 +1,15 @@
 import { it } from "@jest/globals";
 import {
+  idlInstructionAddressesFind,
   idlInstructionEncode,
-  idlProgramParse,
-  lamportsRentExemptionMinimumForSpace,
-  pubkeyDefault,
-  pubkeyNewDummy,
-  pubkeyToBase58,
+  idlStoreAnchorFind,
+  idlStoreAnchorParse,
+  lamportsFeePerSigner,
+  pubkeyFindPdaAddress,
+  pubkeyFromBase58,
   rpcHttpFromUrl,
+  rpcHttpGetAccountWithData,
+  rpcHttpGetLatestBlockHash,
   rpcHttpSimulateInstructions,
   signerFromSecret,
   signerGenerate,
@@ -16,33 +19,74 @@ it("run", async () => {
   const rpcHttp = rpcHttpFromUrl("https://api.devnet.solana.com", {
     commitment: "confirmed",
   });
-  const programAddress = pubkeyDefault;
-  const payerSigner = await signerFromSecret(secret);
-  const ownedSigner = await signerGenerate();
-  const ownerAddress = pubkeyNewDummy();
-  //const recentBlockHash = await rpcHttpGetLatestBlockHash(rpcHttp);
-  const requestedSpace = 42;
-  const transferLamports = lamportsRentExemptionMinimumForSpace(requestedSpace);
-  const instruction = idlInstructionEncode(
-    programIdl.instructions.get("create")!,
-    programAddress,
-    new Map([
-      ["payer", payerSigner.address],
-      ["owned", ownedSigner.address],
-    ]),
-    {
-      lamports: String(transferLamports),
-      space: requestedSpace,
-      owner: pubkeyToBase58(ownerAddress),
-    },
+  const programAddress = pubkeyFromBase58(
+    "UCNcQRtrbGmvuLKA3Jv719Cc6DS4r661ZRpyZduxu2j",
   );
-  const result = await rpcHttpSimulateInstructions(
+  const programIdl = idlStoreAnchorParse(
+    (
+      await rpcHttpGetAccountWithData(
+        rpcHttp,
+        idlStoreAnchorFind(programAddress),
+      )
+    ).data,
+  );
+  const instructionIdl = programIdl.instructions.get("pledge_create")!;
+  const payerSigner = await signerFromSecret(secret);
+  const userSigner = await signerGenerate();
+  const campaignAddress = pubkeyFindPdaAddress(programAddress, [
+    new TextEncoder().encode("Campaign"),
+    new Uint8Array([0, 0, 0, 0, 0, 0, 0, 0]),
+  ]);
+  const instructionPayload = { params: null };
+  const instructionAddresses = idlInstructionAddressesFind(instructionIdl, {
+    instructionProgramAddress: programAddress,
+    instructionAddresses: new Map([
+      ["payer", payerSigner.address],
+      ["user", userSigner.address],
+      ["campaign", campaignAddress],
+    ]),
+    instructionPayload,
+  });
+  const instruction = idlInstructionEncode(
+    instructionIdl,
+    programAddress,
+    instructionAddresses,
+    instructionPayload,
+  );
+  const resultNoVerify = await rpcHttpSimulateInstructions(
     rpcHttp,
     [instruction],
     { payerAddress: payerSigner.address },
-    new Set([ownedSigner.address]),
   );
-  console.log(result);
+  expect(resultNoVerify.message.payerAddress).toStrictEqual(
+    payerSigner.address,
+  );
+  expect(resultNoVerify.error).toStrictEqual(null);
+  expect(resultNoVerify.logs?.length).toStrictEqual(6);
+  expect(resultNoVerify.chargedFeesLamports).toStrictEqual(
+    lamportsFeePerSigner * 2n,
+  );
+  const recentBlockHash = await rpcHttpGetLatestBlockHash(rpcHttp);
+  const resultWithVerify = await rpcHttpSimulateInstructions(
+    rpcHttp,
+    [instruction],
+    {
+      payerSigner,
+      extraSigners: [userSigner],
+      recentBlockHash,
+    },
+  );
+  expect(resultWithVerify.message.payerAddress).toStrictEqual(
+    payerSigner.address,
+  );
+  expect(resultWithVerify.message.recentBlockHash).toStrictEqual(
+    recentBlockHash,
+  );
+  expect(resultWithVerify.error).toStrictEqual(null);
+  expect(resultWithVerify.logs?.length).toStrictEqual(6);
+  expect(resultWithVerify.chargedFeesLamports).toStrictEqual(
+    lamportsFeePerSigner * 2n,
+  );
 });
 
 const secret = new Uint8Array([
@@ -51,20 +95,3 @@ const secret = new Uint8Array([
   85, 215, 5, 230, 110, 192, 255, 29, 27, 96, 27, 203, 56, 119, 189, 226, 99,
   13, 150, 68, 70, 138, 190, 182, 126, 125, 69, 25, 66, 190, 239,
 ]);
-
-const programIdl = idlProgramParse({
-  instructions: {
-    create: {
-      discriminator: { value: 0, type: "u32" },
-      accounts: [
-        { name: "payer", signing: true, writable: true },
-        { name: "owned", signing: true, writable: true },
-      ],
-      args: [
-        { name: "lamports", type: "u64" },
-        { name: "space", type: "u64" },
-        { name: "owner", type: "pubkey" },
-      ],
-    },
-  },
-});

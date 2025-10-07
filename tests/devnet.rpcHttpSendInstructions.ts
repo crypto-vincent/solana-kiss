@@ -22,7 +22,6 @@ it("run", async () => {
   });
   const programAddress = pubkeyDefault;
   const payerSigner = await signerFromSecret(secret);
-  console.log(payerSigner.address);
   const ownedSigner = await signerGenerate();
   const ownerAddress = pubkeyNewDummy();
   const recentBlockHash = await rpcHttpGetLatestBlockHash(rpcHttp);
