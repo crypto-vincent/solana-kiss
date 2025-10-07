@@ -1,5 +1,6 @@
 import { base58Decode, base58Encode } from "./Base58";
 import { sha256Hash } from "./Sha256";
+import { Signature, signatureToBytes } from "./Signature";
 
 export type Pubkey =
   | (string & { readonly __brand: unique symbol })
@@ -109,6 +110,39 @@ export function pubkeyCreateFromSeed(
       pubkeyToBytes(ownerAddress),
     ]),
   );
+}
+
+export async function pubkeyToVerifier(pubkey: Pubkey) {
+  let index = 0;
+  const spki = new Uint8Array(44);
+  spki[index++] = 0x30;
+  spki[index++] = 0x2a; // SEQUENCE, len 42
+  spki[index++] = 0x30;
+  spki[index++] = 0x05; // SEQUENCE, len 5
+  spki[index++] = 0x06;
+  spki[index++] = 0x03; // OID, len 3
+  spki[index++] = 0x2b;
+  spki[index++] = 0x65;
+  spki[index++] = 0x70; // 1.3.101.112 (Ed25519)
+  spki[index++] = 0x03;
+  spki[index++] = 0x21;
+  spki[index++] = 0x00; // BIT STRING, len 33, 0 unused bits
+  spki.set(pubkeyToBytes(pubkey), 12);
+  const cryptoKey = await crypto.subtle.importKey(
+    "spki",
+    spki as BufferSource,
+    { name: "Ed25519" },
+    true,
+    ["verify"],
+  );
+  return async (signature: Signature, message: Uint8Array) => {
+    return await crypto.subtle.verify(
+      "Ed25519",
+      cryptoKey,
+      signatureToBytes(signature) as BufferSource,
+      message as BufferSource,
+    );
+  };
 }
 
 export function pubkeyIsOnCurve(address: Pubkey): boolean {

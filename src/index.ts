@@ -5,7 +5,6 @@ export * from "./data/Block";
 export * from "./data/Casing";
 export * from "./data/Instruction";
 export * from "./data/Json";
-export * from "./data/Keypair";
 export * from "./data/Lamports";
 export * from "./data/Message";
 export * from "./data/Pubkey";

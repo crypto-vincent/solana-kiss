@@ -1,6 +1,6 @@
 import { expect, it } from "@jest/globals";
 import { Keypair } from "@solana/web3.js";
-import { keypairFromSecret } from "../src";
+import { signerFromSecret } from "../src";
 
 const secret = new Uint8Array([
   96, 11, 209, 132, 49, 92, 144, 135, 105, 211, 34, 171, 125, 156, 217, 148, 65,
@@ -11,8 +11,8 @@ const secret = new Uint8Array([
 
 it("run", async () => {
   const referenceKeypair = Keypair.fromSecretKey(secret);
-  const currentKeypair = await keypairFromSecret(secret);
-  expect(currentKeypair.pubkey).toStrictEqual(
+  const currentKeypair = await signerFromSecret(secret);
+  expect(currentKeypair.address).toStrictEqual(
     referenceKeypair.publicKey.toBase58(),
   );
   for (let counter = 0; counter < 10; counter++) {
@@ -23,10 +23,10 @@ it("run", async () => {
     const referenceBrokenKeypair = Keypair.fromSecretKey(randomized, {
       skipValidation: true,
     });
-    const currentBrokenKeypair = await keypairFromSecret(randomized, {
+    const currentBrokenKeypair = await signerFromSecret(randomized, {
       skipValidation: true,
     });
-    expect(currentBrokenKeypair.pubkey).toStrictEqual(
+    expect(currentBrokenKeypair.address).toStrictEqual(
       referenceBrokenKeypair.publicKey.toBase58(),
     );
   }
