@@ -20,9 +20,9 @@ export * from "./idl/IdlInstruction";
 export * from "./idl/IdlInstructionAccount";
 export * from "./idl/IdlInstructionBlob";
 export * from "./idl/IdlMetadata";
+export * from "./idl/IdlOnchain";
 export * from "./idl/IdlPath"; // TODO - generic json path utils later ?
 export * from "./idl/IdlProgram";
-export * from "./idl/IdlStore";
 export * from "./idl/IdlTypedef";
 export * from "./idl/IdlTypeFlat";
 export * from "./idl/IdlTypeFlatHydrate";

@@ -74,7 +74,7 @@ export function idlInstructionAccountFind(
 export function idlInstructionAccountParse(
   instructionAccountValue: JsonValue,
   instructionArgsTypeFullFields: IdlTypeFullFields,
-  typedefsIdls: Map<string, IdlTypedef>,
+  typedefsIdls?: Map<string, IdlTypedef>,
 ): IdlInstructionAccount {
   const info = infoJsonDecoder(instructionAccountValue);
   const pda = withContext(`Idl: Instruction Account: Pda: ${info.name}`, () => {

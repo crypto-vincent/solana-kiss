@@ -2,8 +2,8 @@ import { it } from "@jest/globals";
 import {
   idlInstructionAddressesFind,
   idlInstructionEncode,
-  idlStoreAnchorFind,
-  idlStoreAnchorParse,
+  idlOnchainAnchorAddress,
+  idlOnchainAnchorDeserialize,
   lamportsFeePerSigner,
   pubkeyFindPdaAddress,
   pubkeyFromBase58,
@@ -22,14 +22,11 @@ it("run", async () => {
   const programAddress = pubkeyFromBase58(
     "UCNcQRtrbGmvuLKA3Jv719Cc6DS4r661ZRpyZduxu2j",
   );
-  const programIdl = idlStoreAnchorParse(
-    (
-      await rpcHttpGetAccountWithData(
-        rpcHttp,
-        idlStoreAnchorFind(programAddress),
-      )
-    ).data,
+  const programOnchainAnchorInfo = await rpcHttpGetAccountWithData(
+    rpcHttp,
+    idlOnchainAnchorAddress(programAddress),
   );
+  const programIdl = idlOnchainAnchorDeserialize(programOnchainAnchorInfo.data);
   const instructionIdl = programIdl.instructions.get("pledge_create")!;
   const payerSigner = await signerFromSecret(secret);
   const userSigner = await signerGenerate();

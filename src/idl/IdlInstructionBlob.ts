@@ -86,7 +86,7 @@ export class IdlInstructionBlob {
 export function idlInstructionBlobParse(
   instructionBlobValue: JsonValue,
   instructionArgsTypeFullFields: IdlTypeFullFields,
-  typedefsIdls: Map<string, IdlTypedef>,
+  typedefsIdls?: Map<string, IdlTypedef>,
 ): IdlInstructionBlob {
   const info = infoJsonDecoder(instructionBlobValue);
   if (info.value !== undefined || info.kind === "const") {
@@ -112,7 +112,7 @@ export function idlInstructionBlobParse(
 export function idlInstructionBlobParseConst(
   instructionBlobValue: JsonValue,
   instructionBlobType: IdlTypeFlat | undefined,
-  typedefsIdls: Map<string, IdlTypedef>,
+  typedefsIdls?: Map<string, IdlTypedef>,
 ): IdlInstructionBlob {
   const typeFull = idlTypeFlatHydrate(
     instructionBlobType ?? idlUtilsInferValueTypeFlat(instructionBlobValue),
@@ -130,7 +130,7 @@ export function idlInstructionBlobParseArg(
   instructionBlobPath: string,
   instructionBlobType: IdlTypeFlat | undefined,
   instructionArgsTypeFullFields: IdlTypeFullFields,
-  typedefsIdls: Map<string, IdlTypedef>,
+  typedefsIdls?: Map<string, IdlTypedef>,
 ): IdlInstructionBlob {
   const path = idlPathParse(instructionBlobPath);
   if (instructionBlobType === undefined) {
@@ -151,7 +151,7 @@ export function idlInstructionBlobParseArg(
 export function idlInstructionBlobParseAccount(
   instructionBlobPath: string,
   instructionBlobType: IdlTypeFlat | undefined,
-  typedefsIdls: Map<string, IdlTypedef>,
+  typedefsIdls?: Map<string, IdlTypedef>,
 ): IdlInstructionBlob {
   const path = idlPathParse(instructionBlobPath);
   if (instructionBlobType === undefined) {

@@ -59,7 +59,7 @@ export function idlEventCheck(eventIdl: IdlEvent, eventData: Uint8Array): void {
 export function idlEventParse(
   eventName: string,
   eventValue: JsonValue,
-  typedefsIdls: Map<string, IdlTypedef>,
+  typedefsIdls?: Map<string, IdlTypedef>,
 ): IdlEvent {
   const info = infoJsonDecoder(eventValue);
   const infoTypeFlat = idlTypeFlatParseIsPossible(eventValue)

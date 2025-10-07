@@ -262,7 +262,7 @@ export function idlInstructionAddressesFind(
 export function idlInstructionParse(
   instructionName: string,
   instructionValue: JsonValue,
-  typedefsIdls: Map<string, IdlTypedef>,
+  typedefsIdls?: Map<string, IdlTypedef>,
 ): IdlInstruction {
   const info = infoJsonDecoder(instructionValue);
   const argsTypeFlatFields = info.args ?? IdlTypeFlatFields.nothing();

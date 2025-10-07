@@ -1,7 +1,7 @@
 import { expect, it } from "@jest/globals";
 import {
   idlInstructionEncode,
-  idlProgramParse,
+  idlInstructionParse,
   lamportsFeePerSigner,
   lamportsRentExemptionMinimumForSpace,
   pubkeyDefault,
@@ -28,7 +28,7 @@ it("run", async () => {
   const requestedSpace = 42;
   const transferLamports = lamportsRentExemptionMinimumForSpace(requestedSpace);
   const instruction = idlInstructionEncode(
-    programIdl.instructions.get("create")!,
+    instructionIdl,
     programAddress,
     new Map([
       ["payer", payerSigner.address],
@@ -69,19 +69,15 @@ const secret = new Uint8Array([
   13, 150, 68, 70, 138, 190, 182, 126, 125, 69, 25, 66, 190, 239,
 ]);
 
-const programIdl = idlProgramParse({
-  instructions: {
-    create: {
-      discriminator: { value: 0, type: "u32" },
-      accounts: [
-        { name: "payer", signing: true, writable: true },
-        { name: "owned", signing: true, writable: true },
-      ],
-      args: [
-        { name: "lamports", type: "u64" },
-        { name: "space", type: "u64" },
-        { name: "owner", type: "pubkey" },
-      ],
-    },
-  },
+const instructionIdl = idlInstructionParse("create", {
+  discriminator: { value: 0, type: "u32" },
+  accounts: [
+    { name: "payer", signing: true, writable: true },
+    { name: "owned", signing: true, writable: true },
+  ],
+  args: [
+    { name: "lamports", type: "u64" },
+    { name: "space", type: "u64" },
+    { name: "owner", type: "pubkey" },
+  ],
 });
