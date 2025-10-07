@@ -25,7 +25,7 @@ import { IdlTypeFull, IdlTypeFullFields } from "./IdlTypeFull";
 import { idlTypeFullFieldsDecode } from "./IdlTypeFullDecode";
 import { idlTypeFullFieldsEncode } from "./IdlTypeFullEncode";
 import {
-  idlUtilsBytesJsonType,
+  idlUtilsBytesJsonDecoder,
   idlUtilsDiscriminator,
   idlUtilsExpectBlobAt,
   idlUtilsFlattenBlobs,
@@ -299,7 +299,7 @@ export function idlInstructionParse(
 
 const infoJsonDecoder = jsonDecoderObject((key) => key, {
   docs: jsonTypeValue.decoder,
-  discriminator: jsonDecoderOptional(idlUtilsBytesJsonType.decoder),
+  discriminator: jsonDecoderOptional(idlUtilsBytesJsonDecoder),
   args: jsonDecoderOptional(idlTypeFlatFieldsParse),
   returns: jsonDecoderOptional(idlTypeFlatParse),
   accounts: jsonDecoderOptional(jsonTypeArrayRaw.decoder),

@@ -17,7 +17,7 @@ import { IdlTypeFull } from "./IdlTypeFull";
 import { idlTypeFullDecode } from "./IdlTypeFullDecode";
 import { idlTypeFullEncode } from "./IdlTypeFullEncode";
 import {
-  idlUtilsBytesJsonType,
+  idlUtilsBytesJsonDecoder,
   idlUtilsDiscriminator,
   idlUtilsExpectBlobAt,
   idlUtilsFlattenBlobs,
@@ -118,9 +118,9 @@ const infoJsonDecoder = jsonDecoderObject((key) => key, {
     jsonDecoderArray(
       jsonDecoderObject((key) => key, {
         offset: jsonTypeNumber.decoder,
-        bytes: idlUtilsBytesJsonType.decoder,
+        bytes: idlUtilsBytesJsonDecoder,
       }),
     ),
   ),
-  discriminator: jsonDecoderOptional(idlUtilsBytesJsonType.decoder),
+  discriminator: jsonDecoderOptional(idlUtilsBytesJsonDecoder),
 });

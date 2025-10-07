@@ -26,7 +26,7 @@ import {
 } from "./IdlTypeFull";
 import { idlTypePrefixEncode } from "./IdlTypePrefix";
 import { IdlTypePrimitive, idlTypePrimitiveEncode } from "./IdlTypePrimitive";
-import { idlUtilsBytesJsonType } from "./IdlUtils";
+import { idlUtilsBytesJsonDecoder } from "./IdlUtils";
 
 export function idlTypeFullEncode(
   typeFull: IdlTypeFull,
@@ -77,7 +77,7 @@ const visitorEncode = {
     prefixed: boolean,
   ) => {
     if (self.items.isPrimitive(IdlTypePrimitive.u8)) {
-      const bytes = idlUtilsBytesJsonType.decoder(value);
+      const bytes = idlUtilsBytesJsonDecoder(value);
       if (prefixed) {
         idlTypePrefixEncode(self.prefix, BigInt(bytes.length), blobs);
       }
@@ -99,7 +99,7 @@ const visitorEncode = {
     prefixed: boolean,
   ) => {
     if (self.items.isPrimitive(IdlTypePrimitive.u8)) {
-      const bytes = idlUtilsBytesJsonType.decoder(value);
+      const bytes = idlUtilsBytesJsonDecoder(value);
       if (bytes.length != self.length) {
         throw new Error(
           `Expected an array of size: ${self.length}, found: ${bytes.length}`,
