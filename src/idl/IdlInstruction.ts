@@ -297,7 +297,7 @@ export function idlInstructionParse(
   };
 }
 
-const infoJsonDecoder = jsonDecoderObject((key) => key, {
+const infoJsonDecoder = jsonDecoderObject({
   docs: jsonTypeValue.decoder,
   discriminator: jsonDecoderOptional(idlUtilsBytesJsonDecoder),
   args: jsonDecoderOptional(idlTypeFlatFieldsParse),

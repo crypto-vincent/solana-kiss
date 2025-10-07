@@ -109,7 +109,7 @@ export function idlInstructionAccountParse(
   };
 }
 
-const infoJsonDecoder = jsonDecoderObject((key) => key, {
+const infoJsonDecoder = jsonDecoderObject({
   name: jsonTypeString.decoder,
   docs: jsonTypeValue.decoder,
   signer: jsonDecoderOptional(jsonTypeBoolean.decoder),
@@ -121,7 +121,7 @@ const infoJsonDecoder = jsonDecoderObject((key) => key, {
   isOptional: jsonDecoderOptional(jsonTypeBoolean.decoder),
   address: jsonDecoderOptional(jsonTypePubkey.decoder),
   pda: jsonDecoderOptional(
-    jsonDecoderObject((key) => key, {
+    jsonDecoderObject({
       seeds: jsonDecoderOptional(jsonDecoderArray(jsonTypeValue.decoder)),
       program: jsonDecoderOptional(jsonTypeValue.decoder),
     }),

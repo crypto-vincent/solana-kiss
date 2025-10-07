@@ -34,20 +34,20 @@ export function idlTypedefParse(
   };
 }
 
-const infoJsonDecoder = jsonDecoderObject((key) => key, {
+const infoJsonDecoder = jsonDecoderObject({
   docs: jsonTypeValue.decoder,
   serialization: jsonDecoderOptional(jsonTypeString.decoder),
   repr: jsonDecoderOptional(
     jsonDecoderByKind({
       string: (string: string) => ({ kind: string }),
-      object: jsonDecoderObject((key) => key, { kind: jsonTypeString.decoder }),
+      object: jsonDecoderObject({ kind: jsonTypeString.decoder }),
     }),
   ),
   generics: jsonDecoderOptional(
     jsonDecoderArray(
       jsonDecoderByKind({
         string: (string: string) => ({ name: string }),
-        object: jsonDecoderObject((key) => key, {
+        object: jsonDecoderObject({
           name: jsonTypeString.decoder,
         }),
       }),

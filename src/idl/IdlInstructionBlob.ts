@@ -171,7 +171,7 @@ const infoJsonDecoder = jsonDecoderByKind<{
   kind: string | undefined;
   path: string | undefined;
 }>({
-  object: jsonDecoderObject((key) => key, {
+  object: jsonDecoderObject({
     value: jsonTypeValue.decoder,
     type: jsonDecoderOptional(idlTypeFlatParse),
     kind: jsonDecoderOptional(jsonTypeString.decoder),

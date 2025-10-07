@@ -12,6 +12,6 @@ export async function rpcHttpGetAccountLamports(
   return BigInt(result.value);
 }
 
-const resultJsonDecoder = jsonDecoderObject((key) => key, {
+const resultJsonDecoder = jsonDecoderObject({
   value: jsonTypeNumber.decoder,
 });

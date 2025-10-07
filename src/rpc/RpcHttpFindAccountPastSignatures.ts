@@ -49,5 +49,5 @@ export async function rpcHttpFindAccountPastSignatures(
 }
 
 const resultJsonDecoder = jsonDecoderArray(
-  jsonDecoderObject((key) => key, { signature: jsonTypeSignature.decoder }),
+  jsonDecoderObject({ signature: jsonTypeSignature.decoder }),
 );

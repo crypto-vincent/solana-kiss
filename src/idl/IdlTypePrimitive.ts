@@ -5,7 +5,7 @@ import {
   jsonTypeNumber,
   jsonTypePubkey,
 } from "../data/Json";
-import { pubkeyFromBytes, pubkeyToBase58, pubkeyToBytes } from "../data/Pubkey";
+import { pubkeyFromBytes, pubkeyToBytes } from "../data/Pubkey";
 
 export class IdlTypePrimitive {
   public static readonly u8 = new IdlTypePrimitive("u8", 1, 1);
@@ -167,11 +167,7 @@ const visitorEncode = {
     data.setFloat64(0, num, true);
   },
   bool: (blob: Uint8Array, value: JsonValue) => {
-    if (jsonTypeBoolean.decoder(value)) {
-      blob[0] = 1;
-    } else {
-      blob[0] = 0;
-    }
+    blob[0] = jsonTypeBoolean.decoder(value) ? 1 : 0;
   },
   pubkey: (blob: Uint8Array, value: JsonValue) => {
     blob.set(pubkeyToBytes(jsonTypePubkey.decoder(value)));
@@ -223,8 +219,7 @@ const visitorDecode = {
     return data.getUint8(dataOffset) != 0;
   },
   pubkey: (data: DataView, dataOffset: number): JsonValue => {
-    return pubkeyToBase58(
-      pubkeyFromBytes(new Uint8Array(data.buffer, dataOffset, 32)),
-    );
+    const bytes = new Uint8Array(data.buffer, dataOffset, 32);
+    return jsonTypePubkey.encoder(pubkeyFromBytes(bytes));
   },
 };

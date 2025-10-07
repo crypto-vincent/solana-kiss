@@ -27,7 +27,7 @@ export async function rpcHttpGetBlock(rpcHttp: RpcHttp, blockSlot: BlockSlot) {
   };
 }
 
-const resultJsonDecoder = jsonDecoderObject((key) => key, {
+const resultJsonDecoder = jsonDecoderObject({
   blockHeight: jsonDecoderNullable(jsonTypeNumber.decoder),
   blockTime: jsonDecoderNullable(jsonTypeNumber.decoder),
   blockhash: jsonTypeBlockHash.decoder,

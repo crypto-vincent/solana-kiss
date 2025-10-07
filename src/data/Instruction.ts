@@ -23,23 +23,23 @@ export type InstructionInput = {
 export const compiledInstructionsJsonDecoder = jsonDecoderArray(
   jsonDecoderObject(
     {
-      stackHeight: "stackHeight",
-      programIndex: "programIdIndex",
-      accountsIndexes: "accounts",
-      dataBase58: "data",
-    },
-    {
       stackHeight: jsonTypeNumber.decoder,
       programIndex: jsonTypeNumber.decoder,
       accountsIndexes: jsonDecoderArray(jsonTypeNumber.decoder),
       dataBase58: jsonTypeString.decoder,
+    },
+    {
+      stackHeight: "stackHeight",
+      programIndex: "programIdIndex",
+      accountsIndexes: "accounts",
+      dataBase58: "data",
     },
   ),
 );
 
 export const innerInstructionsJsonDecoder = jsonDecoderOptional(
   jsonDecoderArray(
-    jsonDecoderObject((key) => key, {
+    jsonDecoderObject({
       index: jsonTypeNumber.decoder,
       instructions: compiledInstructionsJsonDecoder,
     }),

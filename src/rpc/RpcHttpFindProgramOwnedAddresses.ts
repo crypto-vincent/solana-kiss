@@ -50,7 +50,7 @@ export async function rpcHttpFindProgramOwnedAddresses(
 }
 
 const resultJsonDecoder = jsonDecoderArray(
-  jsonDecoderObject((key) => key, {
+  jsonDecoderObject({
     pubkey: jsonTypePubkey.decoder,
   }),
 );

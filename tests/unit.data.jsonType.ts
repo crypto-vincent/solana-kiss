@@ -36,29 +36,29 @@ it("run", async () => {
   }> = [
     {
       encoded: { helloWorld: 42 },
-      type: jsonTypeObject((key) => key, { helloWorld: jsonTypeNumber }),
+      type: jsonTypeObject({ helloWorld: jsonTypeNumber }),
       decoded: { helloWorld: 42 },
     },
     {
       encoded: { helloWorld: 42 },
-      type: jsonTypeObject({}, { helloWorld: jsonTypeNumber }),
+      type: jsonTypeObject({ helloWorld: jsonTypeNumber }, {}),
       decoded: { helloWorld: 42 },
     },
     {
       encoded: { hello_world: 42 },
-      type: jsonTypeObject(casingCamelToSnake, { helloWorld: jsonTypeNumber }),
+      type: jsonTypeObject({ helloWorld: jsonTypeNumber }, casingCamelToSnake),
       decoded: { helloWorld: 42 },
     },
     {
       encoded: { helloWorld: 42 },
-      type: jsonTypeObject(casingSnakeToCamel, { hello_world: jsonTypeNumber }),
+      type: jsonTypeObject({ hello_world: jsonTypeNumber }, casingSnakeToCamel),
       decoded: { hello_world: 42 },
     },
     {
       encoded: { encoded_key: 42 },
       type: jsonTypeObject(
-        { decodedKey: "encoded_key" },
         { decodedKey: jsonTypeNumber },
+        { decodedKey: "encoded_key" },
       ),
       decoded: { decodedKey: 42 },
     },
@@ -74,7 +74,7 @@ it("run", async () => {
     },
     {
       encoded: { const: 42, nullables: [null, true, false, null] },
-      type: jsonTypeObject((key) => key, {
+      type: jsonTypeObject({
         const: jsonTypeConst(42),
         nullables: jsonTypeArray(jsonTypeNullable(jsonTypeBoolean)),
       }),
@@ -96,7 +96,7 @@ it("run", async () => {
         blockHash: blockHash.toString(),
         blockSlot: 42,
       },
-      type: jsonTypeObject((key) => key, {
+      type: jsonTypeObject({
         datetime: jsonTypeDateTime,
         pubkey: jsonTypePubkey,
         signature: jsonTypeSignature,
@@ -113,7 +113,7 @@ it("run", async () => {
     },
     {
       encoded: { integer1: "-42", integer2: "4242424242424242424242424242" },
-      type: jsonTypeObject((key) => key, {
+      type: jsonTypeObject({
         integer1: jsonTypeInteger,
         integer2: jsonTypeInteger,
       }),
@@ -121,9 +121,9 @@ it("run", async () => {
     },
     {
       encoded: { outer: { inner: { value: 42 } } },
-      type: jsonTypeObject((key) => key, {
-        outer: jsonTypeObject((key) => key, {
-          inner: jsonTypeObject((key) => key, { value: jsonTypeNumber }),
+      type: jsonTypeObject({
+        outer: jsonTypeObject({
+          inner: jsonTypeObject({ value: jsonTypeNumber }),
         }),
       }),
       decoded: { outer: { inner: { value: 42 } } },

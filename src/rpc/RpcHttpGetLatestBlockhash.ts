@@ -13,11 +13,11 @@ export async function rpcHttpGetLatestBlockHash(
   return result.value.blockhash;
 }
 
-const resultJsonDecoder = jsonDecoderObject((key) => key, {
-  context: jsonDecoderObject((key) => key, {
+const resultJsonDecoder = jsonDecoderObject({
+  context: jsonDecoderObject({
     slot: jsonTypeNumber.decoder,
   }),
-  value: jsonDecoderObject((key) => key, {
+  value: jsonDecoderObject({
     blockhash: jsonTypeBlockHash.decoder,
     lastValidBlockHeight: jsonTypeNumber.decoder,
   }),

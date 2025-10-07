@@ -26,7 +26,7 @@ export const idlUtilsBytesJsonDecoder = jsonDecoderByKind({
   string: jsonTypeBytesUtf8.decoder,
   array: jsonTypeBytesArray.decoder,
   object: jsonDecoderTransform(
-    jsonDecoderObject((key) => key, {
+    jsonDecoderObject({
       base16: jsonDecoderOptional(jsonTypeBytesBase16.decoder),
       base58: jsonDecoderOptional(jsonTypeBytesBase58.decoder),
       base64: jsonDecoderOptional(jsonTypeBytesBase64.decoder),

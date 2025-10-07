@@ -47,9 +47,9 @@ export async function rpcHttpGetAccountWithData(
   return { executable, lamports, owner, data };
 }
 
-const resultJsonDecoder = jsonDecoderObject((key) => key, {
+const resultJsonDecoder = jsonDecoderObject({
   value: jsonDecoderOptional(
-    jsonDecoderObject((key) => key, {
+    jsonDecoderObject({
       executable: jsonTypeBoolean.decoder,
       lamports: jsonTypeNumber.decoder,
       owner: jsonTypePubkey.decoder,

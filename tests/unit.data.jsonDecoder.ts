@@ -31,8 +31,8 @@ it("run", async () => {
     { encoded: "0b1_1", decoder: jsonTypeInteger.decoder, decoded: 3n },
     {
       encoded: { outer: { inner: 42 } },
-      decoder: jsonDecoderObject((key) => key, {
-        outer: jsonDecoderObject((key) => key, {
+      decoder: jsonDecoderObject({
+        outer: jsonDecoderObject({
           inner: jsonTypeInteger.decoder,
         }),
       }),
@@ -42,10 +42,7 @@ it("run", async () => {
       encoded: 42,
       decoder: jsonDecoderTransform(
         jsonDecoderParallel([jsonTypeNumber.decoder, jsonTypeInteger.decoder]),
-        ([num, int]) => ({
-          num,
-          int,
-        }),
+        ([num, int]) => ({ num, int }),
       ),
       decoded: { num: 42, int: 42n },
     },

@@ -111,12 +111,12 @@ export function idlAccountParse(
   };
 }
 
-const infoJsonDecoder = jsonDecoderObject((key) => key, {
+const infoJsonDecoder = jsonDecoderObject({
   docs: jsonTypeValue.decoder,
   space: jsonDecoderOptional(jsonTypeNumber.decoder),
   blobs: jsonDecoderOptional(
     jsonDecoderArray(
-      jsonDecoderObject((key) => key, {
+      jsonDecoderObject({
         offset: jsonTypeNumber.decoder,
         bytes: idlUtilsBytesJsonDecoder,
       }),

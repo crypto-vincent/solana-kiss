@@ -38,7 +38,7 @@ export const infoJsonDecoder = jsonDecoderByKind<{
     code: number,
     msg: undefined,
   }),
-  object: jsonDecoderObject((key) => key, {
+  object: jsonDecoderObject({
     docs: jsonTypeValue.decoder,
     code: jsonTypeNumber.decoder,
     msg: jsonDecoderOptional(jsonTypeString.decoder),

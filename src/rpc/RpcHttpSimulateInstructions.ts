@@ -143,11 +143,11 @@ function signerFaked(address: Pubkey): Signer {
   };
 }
 
-const resultJsonDecoder = jsonDecoderObject((key) => key, {
-  context: jsonDecoderObject((key) => key, {
+const resultJsonDecoder = jsonDecoderObject({
+  context: jsonDecoderObject({
     slot: jsonTypeBlockSlot.decoder,
   }),
-  value: jsonDecoderObject((key) => key, {
+  value: jsonDecoderObject({
     unitsConsumed: jsonTypeNumber.decoder,
     err: jsonTypeValue.decoder,
     fee: jsonTypeNumber.decoder,
@@ -157,7 +157,7 @@ const resultJsonDecoder = jsonDecoderObject((key) => key, {
     accounts: jsonDecoderOptional(
       jsonDecoderArray(
         jsonDecoderOptional(
-          jsonDecoderObject((key) => key, {
+          jsonDecoderObject({
             data: jsonDecoderArrayToObject({
               bytes: jsonTypeBytesBase64.decoder,
               encoding: jsonDecoderConst("base64"),

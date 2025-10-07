@@ -144,11 +144,11 @@ export function rpcHttpWithRetryOnError(
 
 let uniqueRequestId = 1;
 
-const responseJsonDecoder = jsonDecoderObject((key) => key, {
+const responseJsonDecoder = jsonDecoderObject({
   jsonrpc: jsonTypeString.decoder,
   id: jsonTypeNumber.decoder,
   error: jsonDecoderOptional(
-    jsonDecoderObject((key) => key, {
+    jsonDecoderObject({
       code: jsonTypeNumber.decoder,
       message: jsonTypeString.decoder,
     }),

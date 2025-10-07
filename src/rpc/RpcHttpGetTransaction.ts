@@ -228,9 +228,9 @@ function decompileTransactionInstruction(
 }
 
 const resultJsonDecoder = jsonDecoderOptional(
-  jsonDecoderObject((key) => key, {
+  jsonDecoderObject({
     blockTime: jsonDecoderOptional(jsonTypeNumber.decoder),
-    meta: jsonDecoderObject((key) => key, {
+    meta: jsonDecoderObject({
       computeUnitsConsumed: jsonTypeNumber.decoder,
       err: jsonDecoderNullable(jsonTypeValue.decoder),
       fee: jsonTypeNumber.decoder,
@@ -239,19 +239,19 @@ const resultJsonDecoder = jsonDecoderOptional(
       logMessages: transactionLogsMessagesJsonDecoder,
     }),
     slot: jsonTypeBlockSlot.decoder,
-    transaction: jsonDecoderObject((key) => key, {
-      message: jsonDecoderObject((key) => key, {
+    transaction: jsonDecoderObject({
+      message: jsonDecoderObject({
         accountKeys: jsonDecoderArray(jsonTypePubkey.decoder),
         addressTableLookups: jsonDecoderOptional(
           jsonDecoderArray(
-            jsonDecoderObject((key) => key, {
+            jsonDecoderObject({
               accountKey: jsonTypePubkey.decoder,
               readonlyIndexes: jsonDecoderArray(jsonTypeNumber.decoder),
               writableIndexes: jsonDecoderArray(jsonTypeNumber.decoder),
             }),
           ),
         ),
-        header: jsonDecoderObject((key) => key, {
+        header: jsonDecoderObject({
           numReadonlySignedAccounts: jsonTypeNumber.decoder,
           numReadonlyUnsignedAccounts: jsonTypeNumber.decoder,
           numRequiredSignatures: jsonTypeNumber.decoder,

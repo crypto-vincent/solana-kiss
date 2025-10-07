@@ -1,5 +1,4 @@
 import { inflate } from "uzip";
-import { casingCamelToSnake } from "../data/Casing";
 import {
   JsonValue,
   jsonDecoderObject,
@@ -39,7 +38,13 @@ const onchainAnchorIdl = idlAccountParse("Idl", {
     { name: "deflated_json", type: { vec32: "u8" } },
   ],
 });
-const onchainAnchorJsonDecoder = jsonDecoderObject(casingCamelToSnake, {
-  authority: jsonTypePubkey.decoder,
-  deflatedJson: jsonTypeBytesArray.decoder,
-});
+const onchainAnchorJsonDecoder = jsonDecoderObject(
+  {
+    authority: jsonTypePubkey.decoder,
+    deflatedJson: jsonTypeBytesArray.decoder,
+  },
+  {
+    authority: "authority",
+    deflatedJson: "deflated_json",
+  },
+);

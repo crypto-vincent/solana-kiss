@@ -31,7 +31,7 @@ export function idlMetadataParse(value: JsonValue): IdlMetadata {
 }
 
 const infoJsonDecoder = jsonDecoderOptional(
-  jsonDecoderObject((key) => key, {
+  jsonDecoderObject({
     name: jsonDecoderOptional(jsonTypeString.decoder),
     docs: jsonDecoderOptional(jsonTypeValue.decoder),
     description: jsonDecoderOptional(jsonTypeString.decoder),

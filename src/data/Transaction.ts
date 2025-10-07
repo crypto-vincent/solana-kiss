@@ -32,7 +32,7 @@ export type TransactionInvocation = {
 };
 
 export const transactionLoadedAddressesJsonDecoder = jsonDecoderOptional(
-  jsonDecoderObject((key) => key, {
+  jsonDecoderObject({
     writable: jsonDecoderArray(jsonTypePubkey.decoder),
     readonly: jsonDecoderArray(jsonTypePubkey.decoder),
   }),
