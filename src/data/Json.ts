@@ -209,12 +209,14 @@ export function jsonIsDeepSubset(
 }
 export function jsonGetAtPath(
   value: JsonValue,
-  path: string,
+  path: string | Array<string | number>,
   options?: {
     failOnMissing?: boolean;
   },
 ): JsonValue {
-  const tokens = path.replace(/\[(\w+)\]/g, ".$1").split(".");
+  const tokens = Array.isArray(path)
+    ? path
+    : path.replace(/\[(\w+)\]/g, ".$1").split(".");
   let currentValue = value;
   for (let tokenIndex = 0; tokenIndex < tokens.length; tokenIndex++) {
     const token = tokens[tokenIndex]!;
@@ -237,6 +239,8 @@ export function jsonGetAtPath(
       throw new Error(
         `JSON: Expected an object or array at path "${pathSoFar}" (found: ${jsonPreview(currentValue)})`,
       );
+    } else {
+      break;
     }
   }
   return currentValue;
