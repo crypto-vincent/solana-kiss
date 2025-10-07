@@ -31,6 +31,7 @@ export async function keypairFromSecret(
     false,
     ["sign"],
   );
+  // TODO - we should have "pubkeyVerify" instead of this
   const publicKey = await crypto.subtle.importKey(
     "spki",
     spkiFromEd25519(secret.slice(32, 64)) as BufferSource,

@@ -13,6 +13,7 @@ export type Instruction = {
   data: Uint8Array;
 };
 
+// TODO - naming transaction input is used in other places, should we rename this ?
 export type InstructionInput = {
   address: Pubkey;
   signing: boolean;

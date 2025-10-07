@@ -16,9 +16,7 @@ export type RpcHttp = (
 
 export function rpcHttpFromUrl(
   url: string,
-  context?: {
-    commitment?: "confirmed" | "finalized"; // TODO - should this stay an object?
-  },
+  context?: { commitment?: "confirmed" | "finalized" },
   customFetch?: (
     url: string,
     request: {
@@ -26,8 +24,13 @@ export function rpcHttpFromUrl(
       method: string;
       body: string;
     },
-  ) => Promise<{ json: () => Promise<JsonValue> }>,
+  ) => Promise<JsonValue>,
 ): RpcHttp {
+  const fetcher =
+    customFetch ??
+    (async (url, request) => {
+      return (await fetch(url, request)).json();
+    });
   return async function (methodName, params, config) {
     const contextCommitment = context?.commitment;
     if (contextCommitment !== undefined) {
@@ -38,7 +41,7 @@ export function rpcHttpFromUrl(
       };
     }
     const requestId = uniqueRequestId++;
-    const responseRaw = await (customFetch ?? fetch)(url, {
+    const responseJson = await fetcher(url, {
       headers: { "Content-Type": "application/json" },
       method: "POST",
       body: JSON.stringify({
@@ -48,7 +51,6 @@ export function rpcHttpFromUrl(
         params: [...params, config],
       }),
     });
-    const responseJson = await responseRaw.json();
     const responseInfo = responseJsonDecoder(responseJson);
     const responseError = responseInfo.error;
     if (responseError !== undefined) {
