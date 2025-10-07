@@ -8,6 +8,7 @@ import {
   pubkeyToBase58,
   pubkeyToBytes,
 } from "../src";
+import { utf8Encode } from "../src/data/Utf8";
 
 const tokenProgramAddress = pubkeyFromBase58(
   "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA",
@@ -39,7 +40,7 @@ it("run", () => {
   ]);
   const campaignIndex = 42;
   const campaignAddress = pubkeyFindPdaAddress(programAddress, [
-    new TextEncoder().encode("Campaign"),
+    utf8Encode("Campaign"),
     new Uint8Array([campaignIndex, 0, 0, 0, 0, 0, 0, 0]),
   ]);
   const campaignCollateralAddress = pubkeyFindPdaAddress(ataProgramAddress, [
@@ -48,7 +49,7 @@ it("run", () => {
     pubkeyToBytes(collateralMintAddress),
   ]);
   const pledgeAddress = pubkeyFindPdaAddress(programAddress, [
-    new TextEncoder().encode("Pledge"),
+    utf8Encode("Pledge"),
     pubkeyToBytes(campaignAddress),
     pubkeyToBytes(userAddress),
   ]);

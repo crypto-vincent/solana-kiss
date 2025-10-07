@@ -4,7 +4,7 @@ import {
   jsonDecoderByKind,
   jsonDecoderObject,
   jsonDecoderOptional,
-  jsonDecoderRemap,
+  jsonDecoderTransform,
   jsonPreview,
   jsonTypeBoolean,
   jsonTypeBytesArray,
@@ -16,6 +16,7 @@ import {
   JsonValue,
 } from "../data/Json";
 import { sha256Hash } from "../data/Sha256";
+import { utf8Encode } from "../data/Utf8";
 import { IdlTypeFlat } from "./IdlTypeFlat";
 import { idlTypeFlatHydrate } from "./IdlTypeFlatHydrate";
 import { idlTypeFlatParse } from "./IdlTypeFlatParse";
@@ -24,7 +25,7 @@ import { idlTypeFullEncode } from "./IdlTypeFullEncode";
 export const idlUtilsBytesJsonDecoder = jsonDecoderByKind({
   string: jsonTypeBytesUtf8.decoder,
   array: jsonTypeBytesArray.decoder,
-  object: jsonDecoderRemap(
+  object: jsonDecoderTransform(
     jsonDecoderObject((key) => key, {
       base16: jsonDecoderOptional(jsonTypeBytesBase16.decoder),
       base58: jsonDecoderOptional(jsonTypeBytesBase58.decoder),
@@ -90,16 +91,19 @@ export function idlUtilsExpectBlobAt(
 }
 
 export function idlUtilsFlattenBlobs(blobs: Array<Uint8Array>): Uint8Array {
-  const totalLength = blobs.reduce((sum, arr) => sum + arr.length, 0);
-  const bytes = new Uint8Array(totalLength);
+  let length = 0;
+  for (const blob of blobs) {
+    length += blob.length;
+  }
+  const bytes = new Uint8Array(length);
   let offset = 0;
-  for (const arr of blobs) {
-    bytes.set(arr, offset);
-    offset += arr.length;
+  for (const blob of blobs) {
+    bytes.set(blob, offset);
+    offset += blob.length;
   }
   return bytes;
 }
 
 export function idlUtilsDiscriminator(name: string): Uint8Array {
-  return sha256Hash([new TextEncoder().encode(name)]).slice(0, 8);
+  return sha256Hash([utf8Encode(name)]).slice(0, 8);
 }

@@ -1,5 +1,6 @@
 import { expect, it } from "@jest/globals";
 import { base64Decode, base64Encode } from "../src";
+import { utf8Encode } from "../src/data/Utf8";
 
 function referenceImplementation(data: Uint8Array): string {
   return btoa(String.fromCharCode(...data));
@@ -36,7 +37,7 @@ it("run", async () => {
   for (const test of tests) {
     const bytes = test.bytes
       ? new Uint8Array(test.bytes)
-      : new TextEncoder().encode(test.utf8);
+      : utf8Encode(test.utf8);
     const encoded = base64Encode(bytes);
     const decoded = base64Decode(encoded);
     const expected = referenceImplementation(bytes);

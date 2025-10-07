@@ -1,6 +1,7 @@
 import { expect, it } from "@jest/globals";
 import bs58 from "bs58";
 import { base58Decode, base58Encode } from "../src";
+import { utf8Encode } from "../src/data/Utf8";
 
 function referenceImplementation(data: Uint8Array): string {
   return bs58.encode(data);
@@ -37,7 +38,7 @@ it("run", async () => {
   for (const test of tests) {
     const bytes = test.bytes
       ? new Uint8Array(test.bytes)
-      : new TextEncoder().encode(test.utf8);
+      : utf8Encode(test.utf8);
     const encoded = base58Encode(bytes);
     const decoded = base58Decode(encoded);
     const expected = referenceImplementation(bytes);

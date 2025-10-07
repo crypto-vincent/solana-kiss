@@ -7,6 +7,7 @@ import {
   jsonTypeString,
   JsonValue,
 } from "../data/Json";
+import { utf8Encode } from "../data/Utf8";
 import { withContext } from "../data/Utils";
 import {
   IdlTypeFull,
@@ -124,8 +125,7 @@ const visitorEncode = {
     blobs: Array<Uint8Array>,
     prefixed: boolean,
   ) => {
-    const string = jsonTypeString.decoder(value);
-    const bytes = new TextEncoder().encode(string);
+    const bytes = utf8Encode(jsonTypeString.decoder(value));
     if (prefixed) {
       idlTypePrefixEncode(self.prefix, BigInt(bytes.length), blobs);
     }

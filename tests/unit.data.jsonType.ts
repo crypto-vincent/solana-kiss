@@ -3,8 +3,6 @@ import {
   blockHashFromBytes,
   blockSlotFromNumber,
   casingCamelToSnake,
-  casingKeyedCamelToSnake,
-  casingKeyedSnakeToCamel,
   casingSnakeToCamel,
   JsonType,
   jsonTypeArray,
@@ -21,7 +19,6 @@ import {
   jsonTypeObjectToMap,
   jsonTypeOptional,
   jsonTypePubkey,
-  jsonTypeRemap,
   jsonTypeSignature,
   jsonTypeString,
   JsonValue,
@@ -64,15 +61,6 @@ it("run", async () => {
         { decodedKey: jsonTypeNumber },
       ),
       decoded: { decodedKey: 42 },
-    },
-    {
-      encoded: { my_value_v1: 42 },
-      type: jsonTypeRemap(
-        jsonTypeObject(casingCamelToSnake, { myValueV1: jsonTypeNumber }),
-        casingKeyedCamelToSnake,
-        casingKeyedSnakeToCamel,
-      ),
-      decoded: { my_value_v1: 42 },
     },
     {
       encoded: [42, 43],

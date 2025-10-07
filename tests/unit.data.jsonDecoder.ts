@@ -1,8 +1,11 @@
 import { expect, it } from "@jest/globals";
 import {
   JsonDecoder,
+  jsonDecoderByKind,
   jsonDecoderObject,
-  jsonTypeFloating,
+  jsonDecoderObjectToMap,
+  jsonDecoderParallel,
+  jsonDecoderTransform,
   jsonTypeInteger,
   jsonTypeNumber,
   JsonValue,
@@ -15,7 +18,6 @@ it("run", async () => {
     decoded: any;
   }> = [
     { encoded: null, decoder: jsonTypeNumber.decoder, decoded: NaN },
-    { encoded: "NaN", decoder: jsonTypeNumber.decoder, decoded: NaN },
     { encoded: "Infinity", decoder: jsonTypeNumber.decoder, decoded: Infinity },
     {
       encoded: "-Infinity",
@@ -27,9 +29,6 @@ it("run", async () => {
     { encoded: "0xff", decoder: jsonTypeInteger.decoder, decoded: 255n },
     { encoded: "0xf_f", decoder: jsonTypeInteger.decoder, decoded: 255n },
     { encoded: "0b1_1", decoder: jsonTypeInteger.decoder, decoded: 3n },
-    { encoded: 0.33, decoder: jsonTypeFloating.decoder, decoded: 0.33 },
-    { encoded: "0.33", decoder: jsonTypeFloating.decoder, decoded: 0.33 },
-    { encoded: "3.3e-1", decoder: jsonTypeFloating.decoder, decoded: 0.33 },
     {
       encoded: { outer: { inner: 42 } },
       decoder: jsonDecoderObject((key) => key, {
@@ -38,6 +37,33 @@ it("run", async () => {
         }),
       }),
       decoded: { outer: { inner: 42n } },
+    },
+    {
+      encoded: 42,
+      decoder: jsonDecoderTransform(
+        jsonDecoderParallel([jsonTypeNumber.decoder, jsonTypeInteger.decoder]),
+        ([num, int]) => ({
+          num,
+          int,
+        }),
+      ),
+      decoded: { num: 42, int: 42n },
+    },
+    {
+      encoded: { a: null, b: 42, c: "hello" },
+      decoder: jsonDecoderObjectToMap({
+        keyDecoder: (name) => `key:${name}`,
+        valueDecoder: jsonDecoderByKind({
+          null: () => "null",
+          number: (number: number) => `number:${number}`,
+          string: (string: string) => `string:${string}`,
+        }),
+      }),
+      decoded: new Map<string, string>([
+        ["key:a", "null"],
+        ["key:b", "number:42"],
+        ["key:c", "string:hello"],
+      ]),
     },
   ];
   for (const test of tests) {

@@ -7,6 +7,7 @@ import {
   pubkeyToBase58,
   pubkeyToBytes,
 } from "../src";
+import { utf8Encode } from "../src/data/Utf8";
 
 it("run", () => {
   // Parse IDL from file JSON directly
@@ -23,18 +24,18 @@ it("run", () => {
   // Expected accounts addresses
   const globalMarketSeed = "abcd";
   const globalMarketStateAddress = pubkeyFindPdaAddress(programAddress, [
-    new TextEncoder().encode(globalMarketSeed),
+    utf8Encode(globalMarketSeed),
   ]);
   const marketAdminsAddress = pubkeyFindPdaAddress(programAddress, [
     pubkeyToBytes(globalMarketStateAddress),
-    new TextEncoder().encode("admins"),
+    utf8Encode("admins"),
   ]);
   const programStateAddresss = pubkeyFindPdaAddress(programAddress, [
-    new TextEncoder().encode("program-state"),
+    utf8Encode("program-state"),
   ]);
   const lpTokenMintAddress = pubkeyFindPdaAddress(programAddress, [
     pubkeyToBytes(globalMarketStateAddress),
-    new TextEncoder().encode("lp-token-mint"),
+    utf8Encode("lp-token-mint"),
   ]);
   const signingAuthorityAddress = pubkeyFindPdaAddress(programAddress, [
     pubkeyToBytes(globalMarketStateAddress),
@@ -44,17 +45,17 @@ it("run", () => {
     pubkeyToBytes(globalMarketStateAddress),
     pubkeyToBytes(borrowerAddress),
     new Uint8Array([dealNumber, 0]),
-    new TextEncoder().encode("deal-info"),
+    utf8Encode("deal-info"),
   ]);
   const dealTranchesAddress = pubkeyFindPdaAddress(programAddress, [
     pubkeyToBytes(globalMarketStateAddress),
     pubkeyToBytes(dealAddress),
-    new TextEncoder().encode("tranches"),
+    utf8Encode("tranches"),
   ]);
   const repaymentScheduleAddress = pubkeyFindPdaAddress(programAddress, [
     pubkeyToBytes(globalMarketStateAddress),
     pubkeyToBytes(dealAddress),
-    new TextEncoder().encode("repayment-schedule"),
+    utf8Encode("repayment-schedule"),
   ]);
   // Generate all missing IX accounts with just the minimum information
   const initializeMarketAddresses = idlInstructionAddressesFind(

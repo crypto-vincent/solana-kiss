@@ -1,5 +1,6 @@
 import { expect, it } from "@jest/globals";
 import { pubkeyFindPdaAddress, pubkeyNewDummy, pubkeyToBytes } from "../src";
+import { utf8Encode } from "../src/data/Utf8";
 import { idlInstructionAddressesFind } from "../src/idl/IdlInstruction";
 import { idlProgramParse } from "../src/idl/IdlProgram";
 
@@ -118,10 +119,7 @@ it("run", () => {
     pdaSeedsConstBytes,
   );
   // Pdas based off of const string seeds
-  const pdaSeedsConstString = [
-    new TextEncoder().encode("hello"),
-    new TextEncoder().encode("world"),
-  ];
+  const pdaSeedsConstString = [utf8Encode("hello"), utf8Encode("world")];
   const pdaConstString1 = pubkeyFindPdaAddress(
     programAddress1,
     pdaSeedsConstString,

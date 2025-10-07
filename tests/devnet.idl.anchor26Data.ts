@@ -15,6 +15,7 @@ import {
   rpcHttpFromUrl,
   rpcHttpGetAccountWithData,
 } from "../src";
+import { utf8Encode } from "../src/data/Utf8";
 
 it("run", async () => {
   // Create the endpoint
@@ -27,7 +28,7 @@ it("run", async () => {
   const programIdl = idlProgramParse(require("./fixtures/idl_anchor_26.json"));
   // Read the global market state content using the IDL
   const globalMarketStateAddress = pubkeyFindPdaAddress(programAddress, [
-    new TextEncoder().encode("credix-marketplace"),
+    utf8Encode("credix-marketplace"),
   ]);
   await assertAccountInfo(
     rpcHttp,
@@ -39,7 +40,7 @@ it("run", async () => {
   );
   // Read the program state content using the IDL
   const programStateAddress = pubkeyFindPdaAddress(programAddress, [
-    new TextEncoder().encode("program-state"),
+    utf8Encode("program-state"),
   ]);
   await assertAccountInfo(
     rpcHttp,
@@ -52,7 +53,7 @@ it("run", async () => {
   // Read the market admins content using the IDL
   const marketAdminsAddress = pubkeyFindPdaAddress(programAddress, [
     pubkeyToBytes(globalMarketStateAddress),
-    new TextEncoder().encode("admins"),
+    utf8Encode("admins"),
   ]);
   await assertAccountInfo(
     rpcHttp,

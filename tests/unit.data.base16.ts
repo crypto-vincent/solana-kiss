@@ -1,5 +1,6 @@
 import { expect, it } from "@jest/globals";
 import { base16Decode, base16Encode } from "../src";
+import { utf8Encode } from "../src/data/Utf8";
 
 function referenceImplementation(data: Uint8Array): string {
   const hex = "0123456789ABCDEF";
@@ -43,7 +44,7 @@ it("run", async () => {
   for (const test of tests) {
     const bytes = test.bytes
       ? new Uint8Array(test.bytes)
-      : new TextEncoder().encode(test.utf8);
+      : utf8Encode(test.utf8);
     const encoded = base16Encode(bytes);
     const decoded = base16Decode(
       Math.random() < 0.5 ? encoded.toLowerCase() : encoded.toUpperCase(),

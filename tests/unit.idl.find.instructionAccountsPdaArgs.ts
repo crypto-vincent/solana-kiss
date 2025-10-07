@@ -1,5 +1,6 @@
 import { expect, it } from "@jest/globals";
 import { pubkeyFindPdaAddress, pubkeyNewDummy } from "../src";
+import { utf8Encode } from "../src/data/Utf8";
 import { idlInstructionAddressesFind } from "../src/idl/IdlInstruction";
 import { idlProgramParse } from "../src/idl/IdlProgram";
 
@@ -57,7 +58,7 @@ it("run", () => {
     Uint8Array.from([80, 0, 0, 0, 0, 0, 0, 0]),
     Uint8Array.from([11, 12]),
     Uint8Array.from([21, 22, 23]),
-    new TextEncoder().encode("hello"),
+    utf8Encode("hello"),
     Uint8Array.from([111]),
     Uint8Array.from([222, 0]),
     Uint8Array.from([222]),

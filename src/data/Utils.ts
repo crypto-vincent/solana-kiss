@@ -7,3 +7,5 @@ export function withContext<T>(message: string, fn: () => T): T {
     );
   }
 }
+
+// TODO - error stacking util

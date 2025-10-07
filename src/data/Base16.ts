@@ -1,3 +1,5 @@
+import { utf8Decode } from "./Utf8";
+
 const alphabetLower = "0123456789abcdef";
 const alphabetUpper = "0123456789ABCDEF";
 
@@ -13,8 +15,6 @@ for (let digit = 0; digit < alphabetUpper.length; digit++) {
   codeToDigit[alphabetUpper.charCodeAt(digit)!] = digit;
 }
 
-const codeDecoder = new TextDecoder();
-
 export function base16Encode(decoded: Uint8Array): string {
   const codes = new Uint8Array(decoded.length * 2);
   let codeIndex = 0;
@@ -22,7 +22,7 @@ export function base16Encode(decoded: Uint8Array): string {
     codes[codeIndex++] = digitToCode[byte >> 4]!;
     codes[codeIndex++] = digitToCode[byte & 0x0f]!;
   }
-  return codeDecoder.decode(codes);
+  return utf8Decode(codes);
 }
 
 export function base16Decode(encoded: string): Uint8Array {

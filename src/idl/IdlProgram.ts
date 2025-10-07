@@ -3,8 +3,12 @@ import { Instruction } from "../data/Instruction";
 import {
   JsonObject,
   JsonValue,
+  jsonDecoderArray,
   jsonDecoderByKind,
+  jsonDecoderObjectKey,
   jsonDecoderObjectToMap,
+  jsonDecoderParallel,
+  jsonDecoderTransform,
   jsonTypeObjectRaw,
   jsonTypeString,
   jsonTypeValue,
@@ -153,15 +157,19 @@ function parseScopedNamedValues<T, P>(
 
 const collectionJsonDecoder = jsonDecoderByKind({
   undefined: () => new Map<string, JsonValue>(),
-  object: jsonDecoderObjectToMap((key) => key, jsonTypeValue.decoder),
-  array: (array: Array<JsonValue>) => {
-    const map = new Map<string, JsonValue>();
-    // TODO - is this an example of a merged decoder?
-    for (const itemValue of array) {
-      const itemObject = jsonTypeObjectRaw.decoder(itemValue);
-      const itemName = jsonTypeString.decoder(itemObject["name"]);
-      map.set(itemName, itemValue);
-    }
-    return map;
-  },
+  object: jsonDecoderObjectToMap({
+    keyDecoder: (name) => name,
+    valueDecoder: jsonTypeValue.decoder,
+  }),
+  array: jsonDecoderTransform(
+    jsonDecoderArray(
+      jsonDecoderParallel([
+        jsonDecoderObjectKey("name", jsonTypeString.decoder),
+        jsonTypeValue.decoder,
+      ]),
+    ),
+    (entries) => {
+      return new Map<string, JsonValue>(entries);
+    },
+  ),
 });

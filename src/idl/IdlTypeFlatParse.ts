@@ -13,7 +13,7 @@ import {
   jsonDecoderObject,
   jsonDecoderObjectToMap,
   jsonDecoderOptional,
-  jsonDecoderRemap,
+  jsonDecoderTransform,
   jsonTypeInteger,
   jsonTypeNumber,
   jsonTypeString,
@@ -70,7 +70,7 @@ export function idlTypeFlatParseIsPossible(value: JsonValue): boolean {
     object.hasOwnProperty("variants64") ||
     object.hasOwnProperty("variants128") ||
     object.hasOwnProperty("padded") ||
-    object.hasOwnProperty("blob") ||
+    object.hasOwnProperty("blob") || // TODO - blob and padded could be merged
     object.hasOwnProperty("value")
   ) {
     return true;
@@ -86,7 +86,7 @@ export function idlTypeFlatFieldsParse(value: JsonValue): IdlTypeFlatFields {
   return fieldsJsonDecoder(value);
 }
 
-const arrayJsonDecoder = jsonDecoderRemap(
+const arrayJsonDecoder = jsonDecoderTransform(
   jsonDecoderArrayToObject({
     items: idlTypeFlatParse,
     length: jsonDecoderOptional(idlTypeFlatParse),
@@ -124,7 +124,7 @@ function fieldsItemJsonDecoder(value: JsonValue) {
 const fieldsJsonDecoder = jsonDecoderByKind({
   undefined: () => IdlTypeFlatFields.nothing(),
   null: () => IdlTypeFlatFields.nothing(),
-  array: jsonDecoderRemap(
+  array: jsonDecoderTransform(
     jsonDecoderArray(fieldsItemJsonDecoder),
     (fieldsInfos) => {
       if (fieldsInfos.length === 0) {
@@ -201,7 +201,7 @@ const variantsObjectValueJsonDecoder = jsonDecoderByKind<{
   }),
 });
 const variantsJsonDecoder = jsonDecoderByKind({
-  array: jsonDecoderRemap(
+  array: jsonDecoderTransform(
     jsonDecoderArray(variantsArrayItemJsonDecoder),
     (variantsArray) =>
       variantsArray.map((variantInfo, variantIndex) => {
@@ -214,8 +214,11 @@ const variantsJsonDecoder = jsonDecoderByKind({
         };
       }),
   ),
-  object: jsonDecoderRemap(
-    jsonDecoderObjectToMap((key) => key, variantsObjectValueJsonDecoder),
+  object: jsonDecoderTransform(
+    jsonDecoderObjectToMap({
+      keyDecoder: (key) => key,
+      valueDecoder: variantsObjectValueJsonDecoder,
+    }),
     (variantsMap) => {
       const variants = new Array<IdlTypeFlatEnumVariant>();
       for (const [variantName, variantInfo] of variantsMap) {
@@ -231,7 +234,7 @@ const variantsJsonDecoder = jsonDecoderByKind({
   ),
 });
 
-const objectDefinedJsonDecoder = jsonDecoderRemap(
+const objectDefinedJsonDecoder = jsonDecoderTransform(
   jsonDecoderByKind({
     string: (string: string) => ({
       name: string,
@@ -255,13 +258,13 @@ function objectGenericJsonDecoder(value: JsonValue): IdlTypeFlat {
 }
 
 function objectOptionJsonDecoder(prefix: IdlTypePrefix) {
-  return jsonDecoderRemap(idlTypeFlatParse, (content) =>
+  return jsonDecoderTransform(idlTypeFlatParse, (content) =>
     IdlTypeFlat.option({ prefix, content }),
   );
 }
 
 function objectVecJsonDecoder(prefix: IdlTypePrefix) {
-  return jsonDecoderRemap(idlTypeFlatParse, (items) =>
+  return jsonDecoderTransform(idlTypeFlatParse, (items) =>
     IdlTypeFlat.vec({ prefix, items }),
   );
 }
@@ -272,7 +275,7 @@ function objectStructJsonDecoder(value: JsonValue): IdlTypeFlat {
 }
 
 function objectVariantsJsonDecoder(prefix: IdlTypePrefix) {
-  return jsonDecoderRemap(variantsJsonDecoder, (variants) =>
+  return jsonDecoderTransform(variantsJsonDecoder, (variants) =>
     IdlTypeFlat.enum({ prefix, variants }),
   );
 }

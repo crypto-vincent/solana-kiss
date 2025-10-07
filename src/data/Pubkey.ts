@@ -1,6 +1,7 @@
 import { base58Decode, base58Encode } from "./Base58";
 import { sha256Hash } from "./Sha256";
 import { Signature, signatureToBytes } from "./Signature";
+import { utf8Encode } from "./Utf8";
 
 export type Pubkey =
   | (string & { readonly __brand: unique symbol })
@@ -106,7 +107,7 @@ export function pubkeyCreateFromSeed(
   return pubkeyFromBytes(
     sha256Hash([
       pubkeyToBytes(signerAddress),
-      new TextEncoder().encode(seedUtf8),
+      utf8Encode(seedUtf8),
       pubkeyToBytes(ownerAddress),
     ]),
   );
@@ -204,7 +205,7 @@ function inv(value: bigint) {
   return pow(value, fieldModulusP - 2n);
 }
 
-const pdaMarker = new TextEncoder().encode("ProgramDerivedAddress");
+const pdaMarker = utf8Encode("ProgramDerivedAddress");
 
 function pubkeyBytesCheck(bytes: Uint8Array) {
   if (bytes.length !== 32) {

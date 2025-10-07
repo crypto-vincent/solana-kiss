@@ -8,6 +8,7 @@ import {
   pubkeyNewDummy,
   pubkeyToBytes,
 } from "../src";
+import { utf8Encode } from "../src/data/Utf8";
 import {
   idlInstructionAddressesFind,
   idlInstructionEncode,
@@ -32,7 +33,7 @@ it("run", () => {
   const collateralMintAddress = pubkeyNewDummy();
   const redeemableMintAddress = pubkeyNewDummy();
   const campaignAddress = pubkeyFindPdaAddress(programAddress, [
-    new TextEncoder().encode("Campaign"),
+    utf8Encode("Campaign"),
     new Uint8Array([11, 0, 0, 0, 0, 0, 0, 0]),
   ]);
   // Prepare instruction payload

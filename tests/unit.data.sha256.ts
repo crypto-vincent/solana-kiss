@@ -1,5 +1,6 @@
 import { expect, it } from "@jest/globals";
 import { base16Encode, sha256Hash } from "../src";
+import { utf8Encode } from "../src/data/Utf8";
 
 async function referenceImplementation(data: Uint8Array): Promise<Uint8Array> {
   if (globalThis.crypto?.subtle !== undefined) {
@@ -44,7 +45,7 @@ it("run", async () => {
   for (const test of tests) {
     const bytes = test.bytes
       ? new Uint8Array(test.bytes)
-      : new TextEncoder().encode(test.utf8);
+      : utf8Encode(test.utf8);
     const found = base16Encode(sha256Hash([bytes]));
     const expected = base16Encode(await referenceImplementation(bytes));
     expect(found).toStrictEqual(expected);

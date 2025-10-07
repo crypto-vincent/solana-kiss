@@ -14,6 +14,7 @@ import {
   signerFromSecret,
   signerGenerate,
 } from "../src";
+import { utf8Encode } from "../src/data/Utf8";
 
 it("run", async () => {
   const rpcHttp = rpcHttpFromUrl("https://api.devnet.solana.com", {
@@ -31,7 +32,7 @@ it("run", async () => {
   const payerSigner = await signerFromSecret(secret);
   const userSigner = await signerGenerate();
   const campaignAddress = pubkeyFindPdaAddress(programAddress, [
-    new TextEncoder().encode("Campaign"),
+    utf8Encode("Campaign"),
     new Uint8Array([0, 0, 0, 0, 0, 0, 0, 0]),
   ]);
   const instructionPayload = { params: null };

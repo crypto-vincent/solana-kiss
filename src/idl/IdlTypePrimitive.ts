@@ -1,8 +1,8 @@
 import {
   JsonValue,
   jsonTypeBoolean,
-  jsonTypeFloating,
   jsonTypeInteger,
+  jsonTypeNumber,
   jsonTypePubkey,
 } from "../data/Json";
 import { pubkeyFromBytes, pubkeyToBase58, pubkeyToBytes } from "../data/Pubkey";
@@ -157,12 +157,12 @@ const visitorEncode = {
     data.setBigInt64(8, high, true);
   },
   f32: (blob: Uint8Array, value: JsonValue) => {
-    const num = jsonTypeFloating.decoder(value);
+    const num = jsonTypeNumber.decoder(value);
     const data = new DataView(blob.buffer);
     data.setFloat32(0, num, true);
   },
   f64: (blob: Uint8Array, value: JsonValue) => {
-    const num = jsonTypeFloating.decoder(value);
+    const num = jsonTypeNumber.decoder(value);
     const data = new DataView(blob.buffer);
     data.setFloat64(0, num, true);
   },

@@ -1,3 +1,5 @@
+import { utf8Decode } from "./Utf8";
+
 const alphabet =
   "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
 
@@ -11,7 +13,6 @@ for (let digit = 0; digit < alphabet.length; digit++) {
 }
 
 const codePadding = "=".charCodeAt(0);
-const codeDecoder = new TextDecoder();
 
 export function base64Encode(decoded: Uint8Array): string {
   const chunks = decoded.length / 3;
@@ -50,7 +51,7 @@ export function base64Encode(decoded: Uint8Array): string {
       codes[codeIndex++] = codePadding;
     }
   }
-  return codeDecoder.decode(codes);
+  return utf8Decode(codes);
 }
 
 export function base64Decode(encoded: string): Uint8Array {

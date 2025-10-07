@@ -11,6 +11,7 @@ import {
   pubkeyCreateFromSeed,
   pubkeyFindPdaAddress,
 } from "../data/Pubkey";
+import { utf8Decode } from "../data/Utf8";
 import { idlAccountDecode, idlAccountParse } from "./IdlAccount";
 import { IdlProgram, idlProgramParse } from "./IdlProgram";
 
@@ -26,7 +27,7 @@ export function idlOnchainAnchorDecode(
     idlAccountDecode(onchainAnchorIdl, anchorStoreData),
   );
   const onchainAnchorBytes = inflate(onchainAnchorContent.deflatedJson);
-  const onchainAnchorJson = new TextDecoder().decode(onchainAnchorBytes);
+  const onchainAnchorJson = utf8Decode(onchainAnchorBytes);
   return idlProgramParse(JSON.parse(onchainAnchorJson) as JsonValue);
 }
 

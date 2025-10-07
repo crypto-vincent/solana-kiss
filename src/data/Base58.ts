@@ -1,3 +1,5 @@
+import { utf8Decode } from "./Utf8";
+
 const alphabet = "123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz";
 
 const digitToCode = new Uint8Array(alphabet.length);
@@ -10,7 +12,6 @@ for (let digit = 0; digit < alphabet.length; digit++) {
 }
 
 const codePadding = "1".charCodeAt(0);
-const codeDecoder = new TextDecoder();
 
 export function base58Encode(decoded: Uint8Array): string {
   if (decoded.length === 0) {
@@ -41,7 +42,7 @@ export function base58Encode(decoded: Uint8Array): string {
   for (let digitIndex = digits.length - 1; digitIndex >= 0; digitIndex--) {
     codes[codeIndex++] = digitToCode[digits[digitIndex]!]!;
   }
-  return codeDecoder.decode(codes);
+  return utf8Decode(codes);
 }
 
 export function base58Decode(encoded: string): Uint8Array {
