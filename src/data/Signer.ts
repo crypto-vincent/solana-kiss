@@ -25,28 +25,28 @@ export async function signerFromSecret(
       `Signer: Expected a secret of 64 bytes (found ${secret.length})`,
     );
   }
-  let index = 0;
-  const pkcs8 = new Uint8Array(48);
-  pkcs8[index++] = 0x30;
-  pkcs8[index++] = 0x2e; // SEQ len=46
-  pkcs8[index++] = 0x02;
-  pkcs8[index++] = 0x01;
-  pkcs8[index++] = 0x00; // INT 0
-  pkcs8[index++] = 0x30;
-  pkcs8[index++] = 0x05; // SEQ len=5
-  pkcs8[index++] = 0x06;
-  pkcs8[index++] = 0x03;
-  pkcs8[index++] = 0x2b;
-  pkcs8[index++] = 0x65;
-  pkcs8[index++] = 0x70; // OID 1.3.101.112 (Ed25519)
-  pkcs8[index++] = 0x04;
-  pkcs8[index++] = 0x22; // OCTET STRING len=34
-  pkcs8[index++] = 0x04;
-  pkcs8[index++] = 0x20; //   inner OCTET STRING len=32
-  pkcs8.set(secret.slice(0, 32), 16);
+  const pkcs8Bytes = new Uint8Array([
+    0x30,
+    0x2e,
+    0x02,
+    0x01,
+    0x00,
+    0x30,
+    0x05,
+    0x06,
+    0x03,
+    0x2b,
+    0x65,
+    0x70,
+    0x04,
+    0x22,
+    0x04,
+    0x20,
+    ...secret.slice(0, 32),
+  ]);
   const cryptoKey = await crypto.subtle.importKey(
     "pkcs8",
-    pkcs8,
+    pkcs8Bytes,
     { name: "Ed25519" },
     false,
     ["sign"],
@@ -57,8 +57,9 @@ export async function signerFromSecret(
     return signer;
   }
   const message = new Uint8Array([1, 2, 3, 4, 5]);
+  const signature = await signer.sign(message);
   const verifier = await pubkeyToVerifier(address);
-  if (!(await verifier(await signer.sign(message), message))) {
+  if (!(await verifier(signature, message))) {
     throw new Error(`Signer: Secret public blob and private blob mismatch`);
   }
   return signer;

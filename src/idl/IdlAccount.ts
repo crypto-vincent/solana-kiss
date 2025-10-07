@@ -33,6 +33,7 @@ export type IdlAccount = {
   contentTypeFull: IdlTypeFull;
 };
 
+// TODO - handle unknown in a better way maybe in a higher level tool/service
 export const idlAccountUnknown: IdlAccount = {
   name: "Unknown",
   docs: undefined,
