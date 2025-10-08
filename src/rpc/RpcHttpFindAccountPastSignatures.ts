@@ -1,7 +1,7 @@
 import {
+  jsonCodecSignature,
   jsonDecoderArray,
   jsonDecoderObject,
-  jsonTypeSignature,
 } from "../data/Json";
 import { Pubkey, pubkeyToBase58 } from "../data/Pubkey";
 import { Signature, signatureToBase58 } from "../data/Signature";
@@ -49,5 +49,5 @@ export async function rpcHttpFindAccountPastSignatures(
 }
 
 const resultJsonDecoder = jsonDecoderArray(
-  jsonDecoderObject({ signature: jsonTypeSignature.decoder }),
+  jsonDecoderObject({ signature: jsonCodecSignature.decoder }),
 );

@@ -1,11 +1,11 @@
 import { BlockSlot } from "./Block";
 import { Instruction } from "./Instruction";
 import {
+  jsonCodecPubkey,
+  jsonCodecString,
   jsonDecoderArray,
   jsonDecoderObject,
   jsonDecoderOptional,
-  jsonTypePubkey,
-  jsonTypeString,
   JsonValue,
 } from "./Json";
 import { Message } from "./Message";
@@ -33,11 +33,11 @@ export type TransactionInvocation = {
 
 export const transactionLoadedAddressesJsonDecoder = jsonDecoderOptional(
   jsonDecoderObject({
-    writable: jsonDecoderArray(jsonTypePubkey.decoder),
-    readonly: jsonDecoderArray(jsonTypePubkey.decoder),
+    writable: jsonDecoderArray(jsonCodecPubkey.decoder),
+    readonly: jsonDecoderArray(jsonCodecPubkey.decoder),
   }),
 );
 
 export const transactionLogsMessagesJsonDecoder = jsonDecoderOptional(
-  jsonDecoderArray(jsonTypeString.decoder),
+  jsonDecoderArray(jsonCodecString.decoder),
 );

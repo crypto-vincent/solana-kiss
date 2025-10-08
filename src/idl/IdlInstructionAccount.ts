@@ -1,16 +1,17 @@
-import { casingCamelToSnake } from "../data/Casing";
+import { casingConvertToSnake } from "../data/Casing";
 import {
+  jsonCodecBoolean,
+  jsonCodecPubkey,
+  jsonCodecString,
+  jsonCodecValue,
   jsonDecoderArray,
   jsonDecoderObject,
   jsonDecoderOptional,
-  jsonTypeBoolean,
-  jsonTypePubkey,
-  jsonTypeString,
-  jsonTypeValue,
   JsonValue,
 } from "../data/Json";
 import { Pubkey, pubkeyFindPdaAddress, pubkeyFromBytes } from "../data/Pubkey";
 import { withContext } from "../data/Utils";
+import { IdlDocs, idlDocsParse } from "./IdlDocs";
 import {
   IdlInstructionBlob,
   idlInstructionBlobCompute,
@@ -22,7 +23,7 @@ import { IdlTypeFullFields } from "./IdlTypeFull";
 
 export type IdlInstructionAccount = {
   name: string;
-  docs: any;
+  docs: IdlDocs;
   writable: boolean;
   signer: boolean;
   optional: boolean;
@@ -76,54 +77,57 @@ export function idlInstructionAccountParse(
   instructionArgsTypeFullFields: IdlTypeFullFields,
   typedefsIdls?: Map<string, IdlTypedef>,
 ): IdlInstructionAccount {
-  const info = infoJsonDecoder(instructionAccountValue);
-  const pda = withContext(`Idl: Instruction Account: Pda: ${info.name}`, () => {
-    if (info.pda === undefined) {
-      return undefined;
-    }
-    const seeds = (info.pda.seeds ?? []).map((seedValue) =>
-      idlInstructionBlobParse(
-        seedValue,
-        instructionArgsTypeFullFields,
-        typedefsIdls,
-      ),
-    );
-    let program: IdlInstructionBlob | undefined = undefined;
-    if (info.pda.program !== undefined) {
-      program = idlInstructionBlobParse(
-        info.pda.program,
-        instructionArgsTypeFullFields,
-        typedefsIdls,
+  const decoded = jsonDecoder(instructionAccountValue);
+  const pda = withContext(
+    `Idl: Instruction Account: Pda: ${decoded.name}`,
+    () => {
+      if (decoded.pda === undefined) {
+        return undefined;
+      }
+      const seeds = (decoded.pda.seeds ?? []).map((seedValue) =>
+        idlInstructionBlobParse(
+          seedValue,
+          instructionArgsTypeFullFields,
+          typedefsIdls,
+        ),
       );
-    }
-    return { seeds, program };
-  });
+      let program: IdlInstructionBlob | undefined = undefined;
+      if (decoded.pda.program !== undefined) {
+        program = idlInstructionBlobParse(
+          decoded.pda.program,
+          instructionArgsTypeFullFields,
+          typedefsIdls,
+        );
+      }
+      return { seeds, program };
+    },
+  );
   return {
-    name: casingCamelToSnake(info.name),
-    docs: info.docs,
-    writable: info.writable ?? info.isMut ?? false,
-    signer: info.signer ?? info.isSigner ?? info.signing ?? false,
-    optional: info.optional ?? info.isOptional ?? false,
-    address: info.address,
+    name: casingConvertToSnake(decoded.name),
+    docs: decoded.docs,
+    writable: decoded.writable ?? decoded.isMut ?? false,
+    signer: decoded.signer ?? decoded.isSigner ?? decoded.signing ?? false,
+    optional: decoded.optional ?? decoded.isOptional ?? false,
+    address: decoded.address,
     pda,
   };
 }
 
-const infoJsonDecoder = jsonDecoderObject({
-  name: jsonTypeString.decoder,
-  docs: jsonTypeValue.decoder,
-  signer: jsonDecoderOptional(jsonTypeBoolean.decoder),
-  isSigner: jsonDecoderOptional(jsonTypeBoolean.decoder),
-  signing: jsonDecoderOptional(jsonTypeBoolean.decoder),
-  writable: jsonDecoderOptional(jsonTypeBoolean.decoder),
-  isMut: jsonDecoderOptional(jsonTypeBoolean.decoder),
-  optional: jsonDecoderOptional(jsonTypeBoolean.decoder),
-  isOptional: jsonDecoderOptional(jsonTypeBoolean.decoder),
-  address: jsonDecoderOptional(jsonTypePubkey.decoder),
+const jsonDecoder = jsonDecoderObject({
+  name: jsonCodecString.decoder,
+  docs: idlDocsParse,
+  signer: jsonDecoderOptional(jsonCodecBoolean.decoder),
+  isSigner: jsonDecoderOptional(jsonCodecBoolean.decoder),
+  signing: jsonDecoderOptional(jsonCodecBoolean.decoder),
+  writable: jsonDecoderOptional(jsonCodecBoolean.decoder),
+  isMut: jsonDecoderOptional(jsonCodecBoolean.decoder),
+  optional: jsonDecoderOptional(jsonCodecBoolean.decoder),
+  isOptional: jsonDecoderOptional(jsonCodecBoolean.decoder),
+  address: jsonDecoderOptional(jsonCodecPubkey.decoder),
   pda: jsonDecoderOptional(
     jsonDecoderObject({
-      seeds: jsonDecoderOptional(jsonDecoderArray(jsonTypeValue.decoder)),
-      program: jsonDecoderOptional(jsonTypeValue.decoder),
+      seeds: jsonDecoderOptional(jsonDecoderArray(jsonCodecValue.decoder)),
+      program: jsonDecoderOptional(jsonCodecValue.decoder),
     }),
   ),
 });

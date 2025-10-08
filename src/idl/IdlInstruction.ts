@@ -1,13 +1,13 @@
 import { Instruction, InstructionInput } from "../data/Instruction";
 import {
   JsonValue,
+  jsonCodecArrayRaw,
   jsonDecoderObject,
   jsonDecoderOptional,
-  jsonTypeArrayRaw,
-  jsonTypeValue,
 } from "../data/Json";
 import { Pubkey } from "../data/Pubkey";
 import { withContext } from "../data/Utils";
+import { IdlDocs, idlDocsParse } from "./IdlDocs";
 import {
   IdlInstructionAccount,
   idlInstructionAccountFind,
@@ -33,7 +33,7 @@ import {
 
 export type IdlInstruction = {
   name: string;
-  docs: any;
+  docs: IdlDocs;
   discriminator: Uint8Array;
   accounts: Array<IdlInstructionAccount>;
   argsTypeFlatFields: IdlTypeFlatFields;
@@ -264,20 +264,20 @@ export function idlInstructionParse(
   instructionValue: JsonValue,
   typedefsIdls?: Map<string, IdlTypedef>,
 ): IdlInstruction {
-  const info = infoJsonDecoder(instructionValue);
-  const argsTypeFlatFields = info.args ?? IdlTypeFlatFields.nothing();
+  const decoded = jsonDecoder(instructionValue);
+  const argsTypeFlatFields = decoded.args ?? IdlTypeFlatFields.nothing();
   const argsTypeFullFields = idlTypeFlatFieldsHydrate(
     argsTypeFlatFields,
     new Map(),
     typedefsIdls,
   );
-  const returnTypeFlat = info.returns ?? IdlTypeFlat.structNothing();
+  const returnTypeFlat = decoded.returns ?? IdlTypeFlat.structNothing();
   const returnTypeFull = idlTypeFlatHydrate(
     returnTypeFlat,
     new Map(),
     typedefsIdls,
   );
-  const accounts = (info.accounts ?? []).map((instructionAccount) => {
+  const accounts = (decoded.accounts ?? []).map((instructionAccount) => {
     return idlInstructionAccountParse(
       instructionAccount,
       argsTypeFullFields,
@@ -286,9 +286,10 @@ export function idlInstructionParse(
   });
   return {
     name: instructionName,
-    docs: info.docs,
+    docs: decoded.docs,
     discriminator:
-      info.discriminator ?? idlUtilsDiscriminator(`global:${instructionName}`),
+      decoded.discriminator ??
+      idlUtilsDiscriminator(`global:${instructionName}`),
     accounts,
     argsTypeFlatFields,
     argsTypeFullFields,
@@ -297,10 +298,10 @@ export function idlInstructionParse(
   };
 }
 
-const infoJsonDecoder = jsonDecoderObject({
-  docs: jsonTypeValue.decoder,
+const jsonDecoder = jsonDecoderObject({
+  docs: idlDocsParse,
   discriminator: jsonDecoderOptional(idlUtilsBytesJsonDecoder),
   args: jsonDecoderOptional(idlTypeFlatFieldsParse),
   returns: jsonDecoderOptional(idlTypeFlatParse),
-  accounts: jsonDecoderOptional(jsonTypeArrayRaw.decoder),
+  accounts: jsonDecoderOptional(jsonCodecArrayRaw.decoder),
 });

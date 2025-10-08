@@ -1,17 +1,17 @@
-import { casingCamelToSnake } from "../data/Casing";
+import { casingConvertToSnake } from "../data/Casing";
 import { Instruction } from "../data/Instruction";
 import {
   JsonObject,
   JsonValue,
+  jsonCodecObjectRaw,
+  jsonCodecString,
+  jsonCodecValue,
   jsonDecoderArray,
   jsonDecoderByKind,
+  jsonDecoderForked,
   jsonDecoderObjectKey,
   jsonDecoderObjectToMap,
-  jsonDecoderSplit,
   jsonDecoderTransform,
-  jsonTypeObjectRaw,
-  jsonTypeString,
-  jsonTypeValue,
 } from "../data/Json";
 import { withContext } from "../data/Utils";
 import { IdlAccount, idlAccountCheck, idlAccountParse } from "./IdlAccount";
@@ -88,7 +88,7 @@ export function idlProgramGuessError(
 }
 
 export function idlProgramParse(programValue: JsonValue): IdlProgram {
-  const programObject = jsonTypeObjectRaw.decoder(programValue);
+  const programObject = jsonCodecObjectRaw.decoder(programValue);
   const metadata = {
     ...idlMetadataParse(programObject),
     ...idlMetadataParse(programObject["metadata"]),
@@ -143,7 +143,7 @@ function parseScopedNamedValues<Content, Param>(
   for (const [name, value] of collection) {
     let itemName = name;
     if (convertNameToSnakeCase) {
-      itemName = casingCamelToSnake(name);
+      itemName = casingConvertToSnake(name);
     }
     values.set(
       itemName,
@@ -159,13 +159,13 @@ const collectionJsonDecoder = jsonDecoderByKind({
   undefined: () => new Map<string, JsonValue>(),
   object: jsonDecoderObjectToMap({
     keyDecoder: (name) => name,
-    valueDecoder: jsonTypeValue.decoder,
+    valueDecoder: jsonCodecValue.decoder,
   }),
   array: jsonDecoderTransform(
     jsonDecoderArray(
-      jsonDecoderSplit([
-        jsonDecoderObjectKey("name", jsonTypeString.decoder),
-        jsonTypeValue.decoder,
+      jsonDecoderForked([
+        jsonDecoderObjectKey("name", jsonCodecString.decoder),
+        jsonCodecValue.decoder,
       ]),
     ),
     (entries) => {

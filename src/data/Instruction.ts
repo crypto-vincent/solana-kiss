@@ -1,9 +1,9 @@
 import {
+  jsonCodecNumber,
+  jsonCodecString,
   jsonDecoderArray,
   jsonDecoderObject,
   jsonDecoderOptional,
-  jsonTypeNumber,
-  jsonTypeString,
 } from "./Json";
 import { Pubkey } from "./Pubkey";
 
@@ -23,10 +23,10 @@ export type InstructionInput = {
 export const compiledInstructionsJsonDecoder = jsonDecoderArray(
   jsonDecoderObject(
     {
-      stackHeight: jsonTypeNumber.decoder,
-      programIndex: jsonTypeNumber.decoder,
-      accountsIndexes: jsonDecoderArray(jsonTypeNumber.decoder),
-      dataBase58: jsonTypeString.decoder,
+      stackHeight: jsonCodecNumber.decoder,
+      programIndex: jsonCodecNumber.decoder,
+      accountsIndexes: jsonDecoderArray(jsonCodecNumber.decoder),
+      dataBase58: jsonCodecString.decoder,
     },
     {
       stackHeight: "stackHeight",
@@ -40,7 +40,7 @@ export const compiledInstructionsJsonDecoder = jsonDecoderArray(
 export const innerInstructionsJsonDecoder = jsonDecoderOptional(
   jsonDecoderArray(
     jsonDecoderObject({
-      index: jsonTypeNumber.decoder,
+      index: jsonCodecNumber.decoder,
       instructions: compiledInstructionsJsonDecoder,
     }),
   ),

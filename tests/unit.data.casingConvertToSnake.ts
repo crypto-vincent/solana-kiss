@@ -1,5 +1,5 @@
 import { expect, it } from "@jest/globals";
-import { casingCamelToSnake } from "../src";
+import { casingConvertToSnake } from "../src";
 
 it("run", async () => {
   const tests = [
@@ -12,6 +12,6 @@ it("run", async () => {
     // TODO - is that exactly right how anchor does it ?
   ];
   for (const test of tests) {
-    expect(casingCamelToSnake(test.camelCase)).toStrictEqual(test.snakeCase);
+    expect(casingConvertToSnake(test.camelCase)).toStrictEqual(test.snakeCase);
   }
 });

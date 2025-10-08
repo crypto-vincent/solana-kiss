@@ -1,9 +1,9 @@
 import {
+  jsonCodecBoolean,
+  jsonCodecNumber,
+  jsonCodecPubkey,
   jsonDecoderObject,
   jsonDecoderOptional,
-  jsonTypeBoolean,
-  jsonTypeNumber,
-  jsonTypePubkey,
 } from "../data/Json";
 import { Pubkey, pubkeyDefault, pubkeyToBase58 } from "../data/Pubkey";
 import { RpcHttp } from "./RpcHttp";
@@ -42,10 +42,10 @@ export async function rpcHttpGetAccountMetadata(
 const resultJsonDecoder = jsonDecoderObject({
   value: jsonDecoderOptional(
     jsonDecoderObject({
-      executable: jsonTypeBoolean.decoder,
-      lamports: jsonTypeNumber.decoder,
-      owner: jsonTypePubkey.decoder,
-      space: jsonTypeNumber.decoder,
+      executable: jsonCodecBoolean.decoder,
+      lamports: jsonCodecNumber.decoder,
+      owner: jsonCodecPubkey.decoder,
+      space: jsonCodecNumber.decoder,
     }),
   ),
 });

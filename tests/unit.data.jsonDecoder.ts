@@ -1,13 +1,13 @@
 import { expect, it } from "@jest/globals";
 import {
+  jsonCodecInteger,
+  jsonCodecNumber,
   JsonDecoder,
   jsonDecoderByKind,
+  jsonDecoderForked,
   jsonDecoderObject,
   jsonDecoderObjectToMap,
-  jsonDecoderSplit,
   jsonDecoderTransform,
-  jsonTypeInteger,
-  jsonTypeNumber,
   JsonValue,
 } from "../src";
 
@@ -17,23 +17,27 @@ it("run", async () => {
     decoder: JsonDecoder<any>;
     decoded: any;
   }> = [
-    { encoded: null, decoder: jsonTypeNumber.decoder, decoded: NaN },
-    { encoded: "Infinity", decoder: jsonTypeNumber.decoder, decoded: Infinity },
+    { encoded: null, decoder: jsonCodecNumber.decoder, decoded: NaN },
+    {
+      encoded: "Infinity",
+      decoder: jsonCodecNumber.decoder,
+      decoded: Infinity,
+    },
     {
       encoded: "-Infinity",
-      decoder: jsonTypeNumber.decoder,
+      decoder: jsonCodecNumber.decoder,
       decoded: -Infinity,
     },
-    { encoded: 42, decoder: jsonTypeInteger.decoder, decoded: 42n },
-    { encoded: "-42", decoder: jsonTypeInteger.decoder, decoded: -42n },
-    { encoded: "0xff", decoder: jsonTypeInteger.decoder, decoded: 255n },
-    { encoded: "0xf_f", decoder: jsonTypeInteger.decoder, decoded: 255n },
-    { encoded: "0b1_1", decoder: jsonTypeInteger.decoder, decoded: 3n },
+    { encoded: 42, decoder: jsonCodecInteger.decoder, decoded: 42n },
+    { encoded: "-42", decoder: jsonCodecInteger.decoder, decoded: -42n },
+    { encoded: "0xff", decoder: jsonCodecInteger.decoder, decoded: 255n },
+    { encoded: "0xf_f", decoder: jsonCodecInteger.decoder, decoded: 255n },
+    { encoded: "0b1_1", decoder: jsonCodecInteger.decoder, decoded: 3n },
     {
       encoded: { outer: { inner: 42 } },
       decoder: jsonDecoderObject({
         outer: jsonDecoderObject({
-          inner: jsonTypeInteger.decoder,
+          inner: jsonCodecInteger.decoder,
         }),
       }),
       decoded: { outer: { inner: 42n } },
@@ -41,7 +45,7 @@ it("run", async () => {
     {
       encoded: 42,
       decoder: jsonDecoderTransform(
-        jsonDecoderSplit([jsonTypeNumber.decoder, jsonTypeInteger.decoder]),
+        jsonDecoderForked([jsonCodecNumber.decoder, jsonCodecInteger.decoder]),
         ([num, int]) => ({ num, int }),
       ),
       decoded: { num: 42, int: 42n },
@@ -52,11 +56,11 @@ it("run", async () => {
         keyDecoder: (name) => `key:${name}`,
         valueDecoder: jsonDecoderByKind({
           null: () => "null",
-          number: (number: number) => `number:${number}`,
-          string: (string: string) => `string:${string}`,
+          number: (number) => `number:${number}`,
+          string: (string) => `string:${string}`,
         }),
       }),
-      decoded: new Map<string, string>([
+      decoded: new Map([
         ["key:a", "null"],
         ["key:b", "number:42"],
         ["key:c", "string:hello"],

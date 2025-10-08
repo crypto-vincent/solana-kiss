@@ -1,12 +1,12 @@
 import { BlockSlot, blockSlotToNumber } from "../data/Block";
 import {
+  jsonCodecBlockHash,
+  jsonCodecBlockSlot,
+  jsonCodecNumber,
+  jsonCodecSignature,
   jsonDecoderArray,
   jsonDecoderNullable,
   jsonDecoderObject,
-  jsonTypeBlockHash,
-  jsonTypeBlockSlot,
-  jsonTypeNumber,
-  jsonTypeSignature,
 } from "../data/Json";
 import { RpcHttp } from "./RpcHttp";
 
@@ -28,10 +28,10 @@ export async function rpcHttpGetBlock(rpcHttp: RpcHttp, blockSlot: BlockSlot) {
 }
 
 const resultJsonDecoder = jsonDecoderObject({
-  blockHeight: jsonDecoderNullable(jsonTypeNumber.decoder),
-  blockTime: jsonDecoderNullable(jsonTypeNumber.decoder),
-  blockhash: jsonTypeBlockHash.decoder,
-  parentSlot: jsonTypeBlockSlot.decoder,
-  previousBlockhash: jsonTypeBlockHash.decoder,
-  signatures: jsonDecoderArray(jsonTypeSignature.decoder),
+  blockHeight: jsonDecoderNullable(jsonCodecNumber.decoder),
+  blockTime: jsonDecoderNullable(jsonCodecNumber.decoder),
+  blockhash: jsonCodecBlockHash.decoder,
+  parentSlot: jsonCodecBlockSlot.decoder,
+  previousBlockhash: jsonCodecBlockHash.decoder,
+  signatures: jsonDecoderArray(jsonCodecSignature.decoder),
 });

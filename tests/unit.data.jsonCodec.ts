@@ -2,25 +2,25 @@ import { expect, it } from "@jest/globals";
 import {
   blockHashFromBytes,
   blockSlotFromNumber,
-  casingCamelToSnake,
-  casingSnakeToCamel,
-  JsonType,
-  jsonTypeArray,
-  jsonTypeBlockHash,
-  jsonTypeBlockSlot,
-  jsonTypeBoolean,
-  jsonTypeConst,
-  jsonTypeDateTime,
-  jsonTypeInteger,
-  jsonTypeNullable,
-  jsonTypeNumber,
-  jsonTypeObject,
-  jsonTypeObjectKey,
-  jsonTypeObjectToMap,
-  jsonTypeOptional,
-  jsonTypePubkey,
-  jsonTypeSignature,
-  jsonTypeString,
+  casingConvertToCamel,
+  casingConvertToSnake,
+  JsonCodec,
+  jsonCodecArray,
+  jsonCodecBlockHash,
+  jsonCodecBlockSlot,
+  jsonCodecBoolean,
+  jsonCodecConst,
+  jsonCodecDateTime,
+  jsonCodecInteger,
+  jsonCodecNullable,
+  jsonCodecNumber,
+  jsonCodecObject,
+  jsonCodecObjectKey,
+  jsonCodecObjectToMap,
+  jsonCodecOptional,
+  jsonCodecPubkey,
+  jsonCodecSignature,
+  jsonCodecString,
   JsonValue,
   pubkeyFromBase58,
   pubkeyNewDummy,
@@ -31,60 +31,66 @@ import {
 it("run", async () => {
   const tests: Array<{
     encoded: JsonValue;
-    type: JsonType<any>;
+    codec: JsonCodec<any>;
     decoded: any;
   }> = [
     {
       encoded: { helloWorld: 42 },
-      type: jsonTypeObject({ helloWorld: jsonTypeNumber }),
+      codec: jsonCodecObject({ helloWorld: jsonCodecNumber }),
       decoded: { helloWorld: 42 },
     },
     {
       encoded: { helloWorld: 42 },
-      type: jsonTypeObject({ helloWorld: jsonTypeNumber }, {}),
+      codec: jsonCodecObject({ helloWorld: jsonCodecNumber }, {}),
       decoded: { helloWorld: 42 },
     },
     {
       encoded: { hello_world: 42 },
-      type: jsonTypeObject({ helloWorld: jsonTypeNumber }, casingCamelToSnake),
+      codec: jsonCodecObject(
+        { helloWorld: jsonCodecNumber },
+        casingConvertToSnake,
+      ),
       decoded: { helloWorld: 42 },
     },
     {
       encoded: { helloWorld: 42 },
-      type: jsonTypeObject({ hello_world: jsonTypeNumber }, casingSnakeToCamel),
+      codec: jsonCodecObject(
+        { hello_world: jsonCodecNumber },
+        casingConvertToCamel,
+      ),
       decoded: { hello_world: 42 },
     },
     {
       encoded: { encoded_key: 42 },
-      type: jsonTypeObject(
-        { decodedKey: jsonTypeNumber },
+      codec: jsonCodecObject(
+        { decodedKey: jsonCodecNumber },
         { decodedKey: "encoded_key" },
       ),
       decoded: { decodedKey: 42 },
     },
     {
       encoded: [42, 43],
-      type: jsonTypeArray(jsonTypeNumber),
+      codec: jsonCodecArray(jsonCodecNumber),
       decoded: [42, 43],
     },
     {
       encoded: [undefined, "Hello", undefined],
-      type: jsonTypeArray(jsonTypeOptional(jsonTypeString)),
+      codec: jsonCodecArray(jsonCodecOptional(jsonCodecString)),
       decoded: [undefined, "Hello", undefined],
     },
     {
       encoded: { const: 42, nullables: [null, true, false, null] },
-      type: jsonTypeObject({
-        const: jsonTypeConst(42),
-        nullables: jsonTypeArray(jsonTypeNullable(jsonTypeBoolean)),
+      codec: jsonCodecObject({
+        const: jsonCodecConst(42),
+        nullables: jsonCodecArray(jsonCodecNullable(jsonCodecBoolean)),
       }),
       decoded: { const: 42, nullables: [null, true, false, null] },
     },
     {
       encoded: { keyed: { value: "Hello" } },
-      type: jsonTypeObjectKey(
+      codec: jsonCodecObjectKey(
         "keyed",
-        jsonTypeObjectKey("value", jsonTypeString),
+        jsonCodecObjectKey("value", jsonCodecString),
       ),
       decoded: "Hello",
     },
@@ -96,12 +102,12 @@ it("run", async () => {
         blockHash: blockHash.toString(),
         blockSlot: 42,
       },
-      type: jsonTypeObject({
-        datetime: jsonTypeDateTime,
-        pubkey: jsonTypePubkey,
-        signature: jsonTypeSignature,
-        blockHash: jsonTypeBlockHash,
-        blockSlot: jsonTypeBlockSlot,
+      codec: jsonCodecObject({
+        datetime: jsonCodecDateTime,
+        pubkey: jsonCodecPubkey,
+        signature: jsonCodecSignature,
+        blockHash: jsonCodecBlockHash,
+        blockSlot: jsonCodecBlockSlot,
       }),
       decoded: {
         datetime: now,
@@ -113,36 +119,36 @@ it("run", async () => {
     },
     {
       encoded: { integer1: "-42", integer2: "4242424242424242424242424242" },
-      type: jsonTypeObject({
-        integer1: jsonTypeInteger,
-        integer2: jsonTypeInteger,
+      codec: jsonCodecObject({
+        integer1: jsonCodecInteger,
+        integer2: jsonCodecInteger,
       }),
       decoded: { integer1: -42n, integer2: 4242424242424242424242424242n },
     },
     {
       encoded: { outer: { inner: { value: 42 } } },
-      type: jsonTypeObject({
-        outer: jsonTypeObject({
-          inner: jsonTypeObject({ value: jsonTypeNumber }),
+      codec: jsonCodecObject({
+        outer: jsonCodecObject({
+          inner: jsonCodecObject({ value: jsonCodecNumber }),
         }),
       }),
       decoded: { outer: { inner: { value: 42 } } },
     },
     {
       encoded: { [address.toString()]: 42 },
-      type: jsonTypeObjectToMap(
+      codec: jsonCodecObjectToMap(
         {
           keyEncoder: pubkeyToBase58,
           keyDecoder: pubkeyFromBase58,
         },
-        jsonTypeNumber,
+        jsonCodecNumber,
       ),
       decoded: new Map([[address, 42]]),
     },
   ];
   for (const test of tests) {
-    expect(test.type.decoder(test.encoded)).toStrictEqual(test.decoded);
-    expect(test.type.encoder(test.decoded)).toStrictEqual(test.encoded);
+    expect(test.codec.decoder(test.encoded)).toStrictEqual(test.decoded);
+    expect(test.codec.encoder(test.decoded)).toStrictEqual(test.encoded);
   }
 });
 

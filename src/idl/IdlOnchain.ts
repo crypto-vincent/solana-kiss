@@ -1,9 +1,9 @@
 import { inflate } from "uzip";
 import {
   JsonValue,
+  jsonCodecBytesArray,
+  jsonCodecPubkey,
   jsonDecoderObject,
-  jsonTypeBytesArray,
-  jsonTypePubkey,
 } from "../data/Json";
 import {
   Pubkey,
@@ -40,8 +40,8 @@ const onchainAnchorIdl = idlAccountParse("Idl", {
 });
 const onchainAnchorJsonDecoder = jsonDecoderObject(
   {
-    authority: jsonTypePubkey.decoder,
-    deflatedJson: jsonTypeBytesArray.decoder,
+    authority: jsonCodecPubkey.decoder,
+    deflatedJson: jsonCodecBytesArray.decoder,
   },
   {
     authority: "authority",

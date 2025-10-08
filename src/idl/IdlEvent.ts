@@ -2,8 +2,8 @@ import {
   JsonValue,
   jsonDecoderObject,
   jsonDecoderOptional,
-  jsonTypeValue,
 } from "../data/Json";
+import { IdlDocs, idlDocsParse } from "./IdlDocs";
 import { IdlTypedef } from "./IdlTypedef";
 import { IdlTypeFlat } from "./IdlTypeFlat";
 import { idlTypeFlatHydrate } from "./IdlTypeFlatHydrate";
@@ -23,7 +23,7 @@ import {
 
 export type IdlEvent = {
   name: string;
-  docs: JsonValue;
+  docs: IdlDocs;
   discriminator: Uint8Array;
   infoTypeFlat: IdlTypeFlat;
   infoTypeFull: IdlTypeFull;
@@ -44,7 +44,7 @@ export function idlEventDecode(
   eventData: Uint8Array,
 ): JsonValue {
   idlEventCheck(eventIdl, eventData);
-  const [, eventPayload] = idlTypeFullDecode(
+  const [_, eventPayload] = idlTypeFullDecode(
     eventIdl.infoTypeFull,
     new DataView(eventData.buffer),
     eventIdl.discriminator.length,
@@ -61,7 +61,7 @@ export function idlEventParse(
   eventValue: JsonValue,
   typedefsIdls?: Map<string, IdlTypedef>,
 ): IdlEvent {
-  const info = infoJsonDecoder(eventValue);
+  const decoded = jsonDecoder(eventValue);
   const infoTypeFlat = idlTypeFlatParseIsPossible(eventValue)
     ? idlTypeFlatParse(eventValue)
     : idlTypeFlatParse(eventName);
@@ -72,15 +72,15 @@ export function idlEventParse(
   );
   return {
     name: eventName,
-    docs: info.docs,
+    docs: decoded.docs,
     discriminator:
-      info.discriminator ?? idlUtilsDiscriminator(`event:${eventName}`),
+      decoded.discriminator ?? idlUtilsDiscriminator(`event:${eventName}`),
     infoTypeFlat,
     infoTypeFull,
   };
 }
 
-const infoJsonDecoder = jsonDecoderObject({
-  docs: jsonTypeValue.decoder,
+const jsonDecoder = jsonDecoderObject({
+  docs: idlDocsParse,
   discriminator: jsonDecoderOptional(idlUtilsBytesJsonDecoder),
 });

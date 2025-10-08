@@ -2,17 +2,17 @@ import { base64Encode } from "../data/Base64";
 import { BlockHash, blockHashFromBytes } from "../data/Block";
 import { innerInstructionsJsonDecoder, Instruction } from "../data/Instruction";
 import {
+  jsonCodecBlockSlot,
+  jsonCodecBoolean,
+  jsonCodecBytesBase64,
+  jsonCodecNumber,
+  jsonCodecPubkey,
+  jsonCodecValue,
   jsonDecoderArray,
   jsonDecoderArrayToObject,
   jsonDecoderConst,
   jsonDecoderObject,
   jsonDecoderOptional,
-  jsonTypeBlockSlot,
-  jsonTypeBoolean,
-  jsonTypeBytesBase64,
-  jsonTypeNumber,
-  jsonTypePubkey,
-  jsonTypeValue,
 } from "../data/Json";
 import { messageCompile, messageSign } from "../data/Message";
 import { Pubkey, pubkeyToBase58 } from "../data/Pubkey";
@@ -145,12 +145,12 @@ function signerFaked(address: Pubkey): Signer {
 
 const resultJsonDecoder = jsonDecoderObject({
   context: jsonDecoderObject({
-    slot: jsonTypeBlockSlot.decoder,
+    slot: jsonCodecBlockSlot.decoder,
   }),
   value: jsonDecoderObject({
-    unitsConsumed: jsonTypeNumber.decoder,
-    err: jsonTypeValue.decoder,
-    fee: jsonTypeNumber.decoder,
+    unitsConsumed: jsonCodecNumber.decoder,
+    err: jsonCodecValue.decoder,
+    fee: jsonCodecNumber.decoder,
     innerInstructions: innerInstructionsJsonDecoder,
     loadedAddresses: transactionLoadedAddressesJsonDecoder,
     logs: transactionLogsMessagesJsonDecoder,
@@ -159,12 +159,12 @@ const resultJsonDecoder = jsonDecoderObject({
         jsonDecoderOptional(
           jsonDecoderObject({
             data: jsonDecoderArrayToObject({
-              bytes: jsonTypeBytesBase64.decoder,
+              bytes: jsonCodecBytesBase64.decoder,
               encoding: jsonDecoderConst("base64"),
             }),
-            executable: jsonTypeBoolean.decoder,
-            lamports: jsonTypeNumber.decoder,
-            owner: jsonTypePubkey.decoder,
+            executable: jsonCodecBoolean.decoder,
+            lamports: jsonCodecNumber.decoder,
+            owner: jsonCodecPubkey.decoder,
           }),
         ),
       ),

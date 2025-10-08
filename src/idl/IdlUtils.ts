@@ -1,18 +1,18 @@
 import {
   jsonAsArray,
   jsonAsString,
+  jsonCodecBoolean,
+  jsonCodecBytesArray,
+  jsonCodecBytesBase16,
+  jsonCodecBytesBase58,
+  jsonCodecBytesBase64,
+  jsonCodecBytesUtf8,
+  jsonCodecValue,
   jsonDecoderByKind,
   jsonDecoderObject,
   jsonDecoderOptional,
   jsonDecoderTransform,
   jsonPreview,
-  jsonTypeBoolean,
-  jsonTypeBytesArray,
-  jsonTypeBytesBase16,
-  jsonTypeBytesBase58,
-  jsonTypeBytesBase64,
-  jsonTypeBytesUtf8,
-  jsonTypeValue,
   JsonValue,
 } from "../data/Json";
 import { sha256Hash } from "../data/Sha256";
@@ -23,16 +23,16 @@ import { idlTypeFlatParse } from "./IdlTypeFlatParse";
 import { idlTypeFullEncode } from "./IdlTypeFullEncode";
 
 export const idlUtilsBytesJsonDecoder = jsonDecoderByKind({
-  string: jsonTypeBytesUtf8.decoder,
-  array: jsonTypeBytesArray.decoder,
+  string: jsonCodecBytesUtf8.decoder,
+  array: jsonCodecBytesArray.decoder,
   object: jsonDecoderTransform(
     jsonDecoderObject({
-      base16: jsonDecoderOptional(jsonTypeBytesBase16.decoder),
-      base58: jsonDecoderOptional(jsonTypeBytesBase58.decoder),
-      base64: jsonDecoderOptional(jsonTypeBytesBase64.decoder),
-      value: jsonTypeValue.decoder,
+      base16: jsonDecoderOptional(jsonCodecBytesBase16.decoder),
+      base58: jsonDecoderOptional(jsonCodecBytesBase58.decoder),
+      base64: jsonDecoderOptional(jsonCodecBytesBase64.decoder),
+      value: jsonCodecValue.decoder,
       type: jsonDecoderOptional(idlTypeFlatParse),
-      prefixed: jsonDecoderOptional(jsonTypeBoolean.decoder),
+      prefixed: jsonDecoderOptional(jsonCodecBoolean.decoder),
     }),
     (info) => {
       if (info.base16 !== undefined) {

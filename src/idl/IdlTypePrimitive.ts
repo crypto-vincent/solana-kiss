@@ -1,9 +1,9 @@
 import {
   JsonValue,
-  jsonTypeBoolean,
-  jsonTypeInteger,
-  jsonTypeNumber,
-  jsonTypePubkey,
+  jsonCodecBoolean,
+  jsonCodecInteger,
+  jsonCodecNumber,
+  jsonCodecPubkey,
 } from "../data/Json";
 import { pubkeyFromBytes, pubkeyToBytes } from "../data/Pubkey";
 
@@ -104,52 +104,52 @@ export function idlTypePrimitiveDecode(
 
 const visitorEncode = {
   u8: (blob: Uint8Array, value: JsonValue) => {
-    const num = jsonTypeInteger.decoder(value);
+    const num = jsonCodecInteger.decoder(value);
     blob[0] = Number(num);
   },
   u16: (blob: Uint8Array, value: JsonValue) => {
-    const num = jsonTypeInteger.decoder(value);
+    const num = jsonCodecInteger.decoder(value);
     const data = new DataView(blob.buffer);
     data.setUint16(0, Number(num), true);
   },
   u32: (blob: Uint8Array, value: JsonValue) => {
-    const num = jsonTypeInteger.decoder(value);
+    const num = jsonCodecInteger.decoder(value);
     const data = new DataView(blob.buffer);
     data.setUint32(0, Number(num), true);
   },
   u64: (blob: Uint8Array, value: JsonValue) => {
-    const num = jsonTypeInteger.decoder(value);
+    const num = jsonCodecInteger.decoder(value);
     const data = new DataView(blob.buffer);
     data.setBigUint64(0, num, true);
   },
   u128: (blob: Uint8Array, value: JsonValue) => {
-    const num = jsonTypeInteger.decoder(value);
+    const num = jsonCodecInteger.decoder(value);
     const data = new DataView(blob.buffer);
     data.setBigUint64(0, num, true);
     data.setBigUint64(8, num >> 64n, true);
   },
   i8: (blob: Uint8Array, value: JsonValue) => {
-    const num = jsonTypeInteger.decoder(value);
+    const num = jsonCodecInteger.decoder(value);
     const data = new DataView(blob.buffer);
     data.setInt8(0, Number(num));
   },
   i16: (blob: Uint8Array, value: JsonValue) => {
-    const num = jsonTypeInteger.decoder(value);
+    const num = jsonCodecInteger.decoder(value);
     const data = new DataView(blob.buffer);
     data.setInt16(0, Number(num), true);
   },
   i32: (blob: Uint8Array, value: JsonValue) => {
-    const num = jsonTypeInteger.decoder(value);
+    const num = jsonCodecInteger.decoder(value);
     const data = new DataView(blob.buffer);
     data.setInt32(0, Number(num), true);
   },
   i64: (blob: Uint8Array, value: JsonValue) => {
-    const num = jsonTypeInteger.decoder(value);
+    const num = jsonCodecInteger.decoder(value);
     const data = new DataView(blob.buffer);
     data.setBigInt64(0, num, true);
   },
   i128: (blob: Uint8Array, value: JsonValue) => {
-    const num = jsonTypeInteger.decoder(value);
+    const num = jsonCodecInteger.decoder(value);
     const low = BigInt.asIntN(64, num);
     const high = BigInt.asIntN(64, num >> 64n);
     const data = new DataView(blob.buffer);
@@ -157,20 +157,20 @@ const visitorEncode = {
     data.setBigInt64(8, high, true);
   },
   f32: (blob: Uint8Array, value: JsonValue) => {
-    const num = jsonTypeNumber.decoder(value);
+    const num = jsonCodecNumber.decoder(value);
     const data = new DataView(blob.buffer);
     data.setFloat32(0, num, true);
   },
   f64: (blob: Uint8Array, value: JsonValue) => {
-    const num = jsonTypeNumber.decoder(value);
+    const num = jsonCodecNumber.decoder(value);
     const data = new DataView(blob.buffer);
     data.setFloat64(0, num, true);
   },
   bool: (blob: Uint8Array, value: JsonValue) => {
-    blob[0] = jsonTypeBoolean.decoder(value) ? 1 : 0;
+    blob[0] = jsonCodecBoolean.decoder(value) ? 1 : 0;
   },
   pubkey: (blob: Uint8Array, value: JsonValue) => {
-    blob.set(pubkeyToBytes(jsonTypePubkey.decoder(value)));
+    blob.set(pubkeyToBytes(jsonCodecPubkey.decoder(value)));
   },
 };
 
@@ -220,6 +220,6 @@ const visitorDecode = {
   },
   pubkey: (data: DataView, dataOffset: number): JsonValue => {
     const bytes = new Uint8Array(data.buffer, dataOffset, 32);
-    return jsonTypePubkey.encoder(pubkeyFromBytes(bytes));
+    return jsonCodecPubkey.encoder(pubkeyFromBytes(bytes));
   },
 };

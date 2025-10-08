@@ -1,11 +1,11 @@
 import {
   JsonObject,
   JsonValue,
+  jsonCodecNumber,
+  jsonCodecString,
+  jsonCodecValue,
   jsonDecoderObject,
   jsonDecoderOptional,
-  jsonTypeNumber,
-  jsonTypeString,
-  jsonTypeValue,
 } from "../data/Json";
 
 export type RpcHttp = (
@@ -145,13 +145,13 @@ export function rpcHttpWithRetryOnError(
 let uniqueRequestId = 1;
 
 const responseJsonDecoder = jsonDecoderObject({
-  jsonrpc: jsonTypeString.decoder,
-  id: jsonTypeNumber.decoder,
+  jsonrpc: jsonCodecString.decoder,
+  id: jsonCodecNumber.decoder,
   error: jsonDecoderOptional(
     jsonDecoderObject({
-      code: jsonTypeNumber.decoder,
-      message: jsonTypeString.decoder,
+      code: jsonCodecNumber.decoder,
+      message: jsonCodecString.decoder,
     }),
   ),
-  result: jsonDecoderOptional(jsonTypeValue.decoder),
+  result: jsonDecoderOptional(jsonCodecValue.decoder),
 });

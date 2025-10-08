@@ -1,7 +1,7 @@
 import { base64Encode } from "../data/Base64";
 import { BlockHash } from "../data/Block";
 import { Instruction } from "../data/Instruction";
-import { jsonTypeSignature } from "../data/Json";
+import { jsonCodecSignature } from "../data/Json";
 import { messageCompile, messageSign } from "../data/Message";
 import { Signature } from "../data/Signature";
 import { Signer } from "../data/Signer";
@@ -26,7 +26,7 @@ export async function rpcHttpScheduleInstructions(
     recentBlockHash: recentBlockHash,
   });
   const messageSigned = await messageSign(messageCompiled, signers);
-  return jsonTypeSignature.decoder(
+  return jsonCodecSignature.decoder(
     await rpcHttp("sendTransaction", [base64Encode(messageSigned)], {
       skipPreflight: options?.skipPreflight,
       encoding: "base64",

@@ -5,7 +5,7 @@ import {
   IdlProgram,
   idlProgramGuessAccount,
   idlProgramParse,
-  jsonTypeObjectRaw,
+  jsonCodecObjectRaw,
   JsonValue,
   Pubkey,
   pubkeyFindPdaAddress,
@@ -96,6 +96,6 @@ async function assertAccountInfo(
   const accountState = idlAccountDecode(accountIdl, accountInfo.data);
   expect(accountIdl.name).toStrictEqual(accountName);
   expect(
-    jsonTypeObjectRaw.decoder(accountState)[accountStateKey],
+    jsonCodecObjectRaw.decoder(accountState)[accountStateKey],
   ).toStrictEqual(accountStateValue);
 }

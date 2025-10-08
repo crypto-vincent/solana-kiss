@@ -1,11 +1,11 @@
 import {
   JsonValue,
+  jsonCodecNumber,
   jsonDecoderArray,
   jsonDecoderObject,
   jsonDecoderOptional,
-  jsonTypeNumber,
-  jsonTypeValue,
 } from "../data/Json";
+import { IdlDocs, idlDocsParse } from "./IdlDocs";
 import { IdlTypedef } from "./IdlTypedef";
 import { IdlTypeFlat } from "./IdlTypeFlat";
 import { idlTypeFlatHydrate } from "./IdlTypeFlatHydrate";
@@ -25,7 +25,7 @@ import {
 
 export type IdlAccount = {
   name: string;
-  docs: JsonValue;
+  docs: IdlDocs;
   space: number | undefined;
   blobs: Array<{ offset: number; bytes: Uint8Array }>;
   discriminator: Uint8Array;
@@ -78,7 +78,7 @@ export function idlAccountParse(
   accountValue: JsonValue,
   typedefsIdls?: Map<string, IdlTypedef>,
 ): IdlAccount {
-  const info = infoJsonDecoder(accountValue);
+  const decoded = jsonDecoder(accountValue);
   const contentTypeFlat = idlTypeFlatParseIsPossible(accountValue)
     ? idlTypeFlatParse(accountValue)
     : idlTypeFlatParse(accountName);
@@ -89,23 +89,23 @@ export function idlAccountParse(
   );
   return {
     name: accountName,
-    docs: info.docs,
-    space: info.space,
-    blobs: info.blobs ?? [],
+    docs: decoded.docs,
+    space: decoded.space,
+    blobs: decoded.blobs ?? [],
     discriminator:
-      info.discriminator ?? idlUtilsDiscriminator(`account:${accountName}`),
+      decoded.discriminator ?? idlUtilsDiscriminator(`account:${accountName}`),
     contentTypeFlat,
     contentTypeFull,
   };
 }
 
-const infoJsonDecoder = jsonDecoderObject({
-  docs: jsonTypeValue.decoder,
-  space: jsonDecoderOptional(jsonTypeNumber.decoder),
+const jsonDecoder = jsonDecoderObject({
+  docs: idlDocsParse,
+  space: jsonDecoderOptional(jsonCodecNumber.decoder),
   blobs: jsonDecoderOptional(
     jsonDecoderArray(
       jsonDecoderObject({
-        offset: jsonTypeNumber.decoder,
+        offset: jsonCodecNumber.decoder,
         bytes: idlUtilsBytesJsonDecoder,
       }),
     ),

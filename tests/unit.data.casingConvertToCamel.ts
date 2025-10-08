@@ -1,5 +1,5 @@
 import { expect, it } from "@jest/globals";
-import { casingSnakeToCamel } from "../src";
+import { casingConvertToCamel } from "../src";
 
 it("run", async () => {
   const tests = [
@@ -9,6 +9,6 @@ it("run", async () => {
     { snakeCase: "a1_test", camelCase: "a1Test" },
   ];
   for (const test of tests) {
-    expect(casingSnakeToCamel(test.snakeCase)).toStrictEqual(test.camelCase);
+    expect(casingConvertToCamel(test.snakeCase)).toStrictEqual(test.camelCase);
   }
 });

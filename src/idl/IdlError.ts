@@ -1,16 +1,16 @@
 import {
   JsonValue,
+  jsonCodecNumber,
+  jsonCodecString,
   jsonDecoderByKind,
   jsonDecoderObject,
   jsonDecoderOptional,
-  jsonTypeNumber,
-  jsonTypeString,
-  jsonTypeValue,
 } from "../data/Json";
+import { IdlDocs, idlDocsParse } from "./IdlDocs";
 
 export type IdlError = {
   name: string;
-  docs: any;
+  docs: IdlDocs;
   code: number;
   msg: string | undefined;
 };
@@ -19,17 +19,17 @@ export function idlErrorParse(
   errorName: string,
   errorValue: JsonValue,
 ): IdlError {
-  const info = infoJsonDecoder(errorValue);
+  const decoded = jsonDecoder(errorValue);
   return {
     name: errorName,
-    docs: info.docs,
-    code: info.code,
-    msg: info.msg,
+    docs: decoded.docs,
+    code: decoded.code,
+    msg: decoded.msg,
   };
 }
 
-export const infoJsonDecoder = jsonDecoderByKind<{
-  docs: JsonValue;
+export const jsonDecoder = jsonDecoderByKind<{
+  docs: IdlDocs;
   code: number;
   msg: string | undefined;
 }>({
@@ -39,8 +39,8 @@ export const infoJsonDecoder = jsonDecoderByKind<{
     msg: undefined,
   }),
   object: jsonDecoderObject({
-    docs: jsonTypeValue.decoder,
-    code: jsonTypeNumber.decoder,
-    msg: jsonDecoderOptional(jsonTypeString.decoder),
+    docs: idlDocsParse,
+    code: jsonCodecNumber.decoder,
+    msg: jsonDecoderOptional(jsonCodecString.decoder),
   }),
 });

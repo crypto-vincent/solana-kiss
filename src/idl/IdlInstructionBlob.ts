@@ -1,10 +1,10 @@
 import {
   JsonValue,
+  jsonCodecString,
+  jsonCodecValue,
   jsonDecoderByKind,
   jsonDecoderObject,
   jsonDecoderOptional,
-  jsonTypeString,
-  jsonTypeValue,
 } from "../data/Json";
 import { Pubkey, pubkeyToBytes } from "../data/Pubkey";
 import {
@@ -83,30 +83,49 @@ export class IdlInstructionBlob {
   }
 }
 
+export function idlInstructionBlobCompute(
+  instructionBlobIdl: IdlInstructionBlob,
+  instructionBlobContext: IdlInstructionBlobContext,
+): Uint8Array {
+  return instructionBlobIdl.traverse(
+    computeVisitor,
+    instructionBlobContext,
+    undefined,
+  );
+}
+
 export function idlInstructionBlobParse(
   instructionBlobValue: JsonValue,
   instructionArgsTypeFullFields: IdlTypeFullFields,
   typedefsIdls?: Map<string, IdlTypedef>,
 ): IdlInstructionBlob {
-  const info = infoJsonDecoder(instructionBlobValue);
-  if (info.value !== undefined || info.kind === "const") {
-    return idlInstructionBlobParseConst(info.value, info.type, typedefsIdls);
+  const decoded = jsonDecoder(instructionBlobValue);
+  if (decoded.value !== undefined || decoded.kind === "const") {
+    return idlInstructionBlobParseConst(
+      decoded.value,
+      decoded.type,
+      typedefsIdls,
+    );
   }
-  if (info.path === undefined) {
+  if (decoded.path === undefined) {
     throw new Error(`Idl: Missing path for instruction blob`);
   }
-  if (info.kind === "arg") {
+  if (decoded.kind === "arg") {
     return idlInstructionBlobParseArg(
-      info.path,
-      info.type,
+      decoded.path,
+      decoded.type,
       instructionArgsTypeFullFields,
       typedefsIdls,
     );
   }
-  if (info.kind === undefined || info.kind === "account") {
-    return idlInstructionBlobParseAccount(info.path, info.type, typedefsIdls);
+  if (decoded.kind === undefined || decoded.kind === "account") {
+    return idlInstructionBlobParseAccount(
+      decoded.path,
+      decoded.type,
+      typedefsIdls,
+    );
   }
-  throw new Error(`Idl: Invalid instruction blob kind: ${info.kind}`);
+  throw new Error(`Idl: Invalid instruction blob kind: ${decoded.kind}`);
 }
 
 export function idlInstructionBlobParseConst(
@@ -165,17 +184,17 @@ export function idlInstructionBlobParseAccount(
   return IdlInstructionBlob.account({ path, typeFull });
 }
 
-const infoJsonDecoder = jsonDecoderByKind<{
+const jsonDecoder = jsonDecoderByKind<{
   value: JsonValue;
   type: IdlTypeFlat | undefined;
   kind: string | undefined;
   path: string | undefined;
 }>({
   object: jsonDecoderObject({
-    value: jsonTypeValue.decoder,
+    value: jsonCodecValue.decoder,
     type: jsonDecoderOptional(idlTypeFlatParse),
-    kind: jsonDecoderOptional(jsonTypeString.decoder),
-    path: jsonDecoderOptional(jsonTypeString.decoder),
+    kind: jsonDecoderOptional(jsonCodecString.decoder),
+    path: jsonDecoderOptional(jsonCodecString.decoder),
   }),
   string: (string: string) => ({
     value: string,
@@ -190,17 +209,6 @@ const infoJsonDecoder = jsonDecoderByKind<{
     path: undefined,
   }),
 });
-
-export function idlInstructionBlobCompute(
-  instructionBlobIdl: IdlInstructionBlob,
-  instructionBlobContext: IdlInstructionBlobContext,
-): Uint8Array {
-  return instructionBlobIdl.traverse(
-    computeVisitor,
-    instructionBlobContext,
-    undefined,
-  );
-}
 
 const computeVisitor = {
   const: (

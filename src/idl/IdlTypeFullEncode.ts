@@ -2,9 +2,9 @@ import {
   jsonAsNumber,
   jsonAsObject,
   jsonAsString,
-  jsonTypeArrayRaw,
-  jsonTypeObjectRaw,
-  jsonTypeString,
+  jsonCodecArrayRaw,
+  jsonCodecObjectRaw,
+  jsonCodecString,
   JsonValue,
 } from "../data/Json";
 import { utf8Encode } from "../data/Utf8";
@@ -85,7 +85,7 @@ const visitorEncode = {
       blobs.push(bytes);
       return;
     }
-    const array = jsonTypeArrayRaw.decoder(value);
+    const array = jsonCodecArrayRaw.decoder(value);
     if (prefixed) {
       idlTypePrefixEncode(self.prefix, BigInt(array.length), blobs);
     }
@@ -109,7 +109,7 @@ const visitorEncode = {
       blobs.push(bytes);
       return;
     }
-    const array = jsonTypeArrayRaw.decoder(value);
+    const array = jsonCodecArrayRaw.decoder(value);
     if (array.length != self.length) {
       throw new Error(
         `Expected an array of size: ${self.length}, found: ${array.length}`,
@@ -125,7 +125,7 @@ const visitorEncode = {
     blobs: Array<Uint8Array>,
     prefixed: boolean,
   ) => {
-    const bytes = utf8Encode(jsonTypeString.decoder(value));
+    const bytes = utf8Encode(jsonCodecString.decoder(value));
     if (prefixed) {
       idlTypePrefixEncode(self.prefix, BigInt(bytes.length), blobs);
     }
@@ -252,7 +252,7 @@ const visitorFieldsEncode = {
     blobs: Array<Uint8Array>,
     prefixed: boolean,
   ) => {
-    const object = jsonTypeObjectRaw.decoder(value);
+    const object = jsonCodecObjectRaw.decoder(value);
     for (const field of self) {
       withContext(`Encode: Field: ${field.name}`, () => {
         idlTypeFullEncode(field.content, object[field.name], blobs, prefixed);
@@ -265,7 +265,7 @@ const visitorFieldsEncode = {
     blobs: Array<Uint8Array>,
     prefixed: boolean,
   ) => {
-    const array = jsonTypeArrayRaw.decoder(value);
+    const array = jsonCodecArrayRaw.decoder(value);
     for (const field of self) {
       withContext(`Encode: Field: ${field.position}`, () => {
         idlTypeFullEncode(

@@ -1,4 +1,4 @@
-import { jsonDecoderObject, jsonTypeNumber } from "../data/Json";
+import { jsonCodecNumber, jsonDecoderObject } from "../data/Json";
 import { Pubkey, pubkeyToBase58 } from "../data/Pubkey";
 import { RpcHttp } from "./RpcHttp";
 
@@ -13,5 +13,5 @@ export async function rpcHttpGetAccountLamports(
 }
 
 const resultJsonDecoder = jsonDecoderObject({
-  value: jsonTypeNumber.decoder,
+  value: jsonCodecNumber.decoder,
 });

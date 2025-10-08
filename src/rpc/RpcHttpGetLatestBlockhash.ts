@@ -1,8 +1,8 @@
 import { BlockHash } from "../data/Block";
 import {
+  jsonCodecBlockHash,
+  jsonCodecNumber,
   jsonDecoderObject,
-  jsonTypeBlockHash,
-  jsonTypeNumber,
 } from "../data/Json";
 import { RpcHttp } from "./RpcHttp";
 
@@ -15,10 +15,10 @@ export async function rpcHttpGetLatestBlockHash(
 
 const resultJsonDecoder = jsonDecoderObject({
   context: jsonDecoderObject({
-    slot: jsonTypeNumber.decoder,
+    slot: jsonCodecNumber.decoder,
   }),
   value: jsonDecoderObject({
-    blockhash: jsonTypeBlockHash.decoder,
-    lastValidBlockHeight: jsonTypeNumber.decoder,
+    blockhash: jsonCodecBlockHash.decoder,
+    lastValidBlockHeight: jsonCodecNumber.decoder,
   }),
 });

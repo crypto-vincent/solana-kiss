@@ -1,18 +1,19 @@
 import {
   JsonValue,
+  jsonCodecString,
   jsonDecoderArray,
   jsonDecoderByKind,
   jsonDecoderObject,
+  jsonDecoderObjectKey,
   jsonDecoderOptional,
-  jsonTypeString,
-  jsonTypeValue,
 } from "../data/Json";
+import { IdlDocs, idlDocsParse } from "./IdlDocs";
 import { IdlTypeFlat } from "./IdlTypeFlat";
 import { idlTypeFlatParse } from "./IdlTypeFlatParse";
 
 export type IdlTypedef = {
   name: string;
-  docs: JsonValue;
+  docs: IdlDocs;
   serialization: string | undefined;
   repr: string | undefined;
   generics: Array<string>;
@@ -23,33 +24,31 @@ export function idlTypedefParse(
   typedefName: string,
   typedefValue: JsonValue,
 ): IdlTypedef {
-  const info = infoJsonDecoder(typedefValue);
+  const decoded = jsonDecoder(typedefValue);
   return {
     name: typedefName,
-    docs: info.docs,
-    serialization: info.serialization,
-    repr: info.repr?.kind,
-    generics: (info.generics ?? []).map((generic) => generic.name),
+    docs: decoded.docs,
+    serialization: decoded.serialization,
+    repr: decoded.repr,
+    generics: decoded.generics ?? [],
     typeFlat: idlTypeFlatParse(typedefValue),
   };
 }
 
-const infoJsonDecoder = jsonDecoderObject({
-  docs: jsonTypeValue.decoder,
-  serialization: jsonDecoderOptional(jsonTypeString.decoder),
+const jsonDecoder = jsonDecoderObject({
+  docs: idlDocsParse,
+  serialization: jsonDecoderOptional(jsonCodecString.decoder),
   repr: jsonDecoderOptional(
     jsonDecoderByKind({
-      string: (string: string) => ({ kind: string }),
-      object: jsonDecoderObject({ kind: jsonTypeString.decoder }),
+      string: (string) => string,
+      object: jsonDecoderObjectKey("kind", jsonCodecString.decoder),
     }),
   ),
   generics: jsonDecoderOptional(
     jsonDecoderArray(
       jsonDecoderByKind({
-        string: (string: string) => ({ name: string }),
-        object: jsonDecoderObject({
-          name: jsonTypeString.decoder,
-        }),
+        string: (string) => string,
+        object: jsonDecoderObjectKey("name", jsonCodecString.decoder),
       }),
     ),
   ),
