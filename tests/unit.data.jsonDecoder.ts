@@ -4,7 +4,7 @@ import {
   jsonDecoderByKind,
   jsonDecoderObject,
   jsonDecoderObjectToMap,
-  jsonDecoderParallel,
+  jsonDecoderSplit,
   jsonDecoderTransform,
   jsonTypeInteger,
   jsonTypeNumber,
@@ -41,7 +41,7 @@ it("run", async () => {
     {
       encoded: 42,
       decoder: jsonDecoderTransform(
-        jsonDecoderParallel([jsonTypeNumber.decoder, jsonTypeInteger.decoder]),
+        jsonDecoderSplit([jsonTypeNumber.decoder, jsonTypeInteger.decoder]),
         ([num, int]) => ({ num, int }),
       ),
       decoded: { num: 42, int: 42n },

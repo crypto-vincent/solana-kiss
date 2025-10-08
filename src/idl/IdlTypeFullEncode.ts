@@ -206,7 +206,7 @@ const visitorEncode = {
       blobs.push(contentBlob);
       contentSize += contentBlob.length;
     }
-    if (self.minSize && self.minSize > contentSize) {
+    if (self.minSize > contentSize) {
       blobs.push(new Uint8Array(self.minSize - contentSize));
     }
     if (self.after) {

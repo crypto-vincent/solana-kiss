@@ -22,7 +22,7 @@ it("run", async () => {
     pubkeyFromBase58("vVeH6Xd43HAScbxjVtvfwDGqBMaMvNDLsAxwM5WK1pG"),
     {
       dataBlobs: [
-        { offset: 0, bytes: expectedDiscriminatorBytes.slice(0, 4) },
+        { offset: 0, bytes: expectedDiscriminatorBytes.slice(0, 6) },
         { offset: 2, bytes: expectedDiscriminatorBytes.slice(2, 8) },
       ],
     },

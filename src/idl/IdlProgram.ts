@@ -7,7 +7,7 @@ import {
   jsonDecoderByKind,
   jsonDecoderObjectKey,
   jsonDecoderObjectToMap,
-  jsonDecoderParallel,
+  jsonDecoderSplit,
   jsonDecoderTransform,
   jsonTypeObjectRaw,
   jsonTypeString,
@@ -131,14 +131,14 @@ export function idlProgramParse(programValue: JsonValue): IdlProgram {
   return { metadata, typedefs, accounts, instructions, events, errors };
 }
 
-function parseScopedNamedValues<T, P>(
+function parseScopedNamedValues<Content, Param>(
   programObject: JsonObject,
   collectionName: string,
   convertNameToSnakeCase: boolean,
-  param: P,
-  parsingFunction: (name: string, value: JsonValue, param: P) => T,
-): Map<string, T> {
-  const values = new Map<string, T>();
+  param: Param,
+  parsingFunction: (name: string, value: JsonValue, param: Param) => Content,
+): Map<string, Content> {
+  const values = new Map<string, Content>();
   const collection = collectionJsonDecoder(programObject[collectionName]);
   for (const [name, value] of collection) {
     let itemName = name;
@@ -163,7 +163,7 @@ const collectionJsonDecoder = jsonDecoderByKind({
   }),
   array: jsonDecoderTransform(
     jsonDecoderArray(
-      jsonDecoderParallel([
+      jsonDecoderSplit([
         jsonDecoderObjectKey("name", jsonTypeString.decoder),
         jsonTypeValue.decoder,
       ]),

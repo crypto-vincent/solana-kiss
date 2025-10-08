@@ -10,7 +10,7 @@ import {
   rpcHttpFromUrl,
   rpcHttpGetAccountMetadata,
   rpcHttpGetLatestBlockHash,
-  rpcHttpSendInstructions,
+  rpcHttpScheduleInstructions,
   rpcHttpWaitForTransaction,
   signerFromSecret,
   signerGenerate,
@@ -40,7 +40,7 @@ it("run", async () => {
       owner: pubkeyToBase58(ownerAddress),
     },
   );
-  const signature = await rpcHttpSendInstructions(
+  const signature = await rpcHttpScheduleInstructions(
     rpcHttp,
     payerSigner,
     [instruction],

@@ -174,11 +174,25 @@ const visitorBytemuckC = {
       }),
     };
   },
-  padded: (_self: IdlTypeFullPadded): IdlTypeFullPod => {
-    throw new Error("Bytemuck: Repr(C): Padded is not supported");
+  padded: (self: IdlTypeFullPadded): IdlTypeFullPod => {
+    const contentPod = bytemuckC(self.content);
+    return {
+      alignment: 1,
+      size: self.before + Math.max(contentPod.size, self.minSize) + self.after,
+      value: IdlTypeFull.padded({
+        before: self.before,
+        minSize: self.minSize,
+        after: self.after,
+        content: contentPod.value,
+      }),
+    };
   },
-  blob: (_self: IdlTypeFullBlob): IdlTypeFullPod => {
-    throw new Error("Bytemuck: Repr(C): Blob is not supported");
+  blob: (self: IdlTypeFullBlob): IdlTypeFullPod => {
+    return {
+      alignment: 1,
+      size: self.bytes.length,
+      value: IdlTypeFull.blob({ bytes: self.bytes }),
+    };
   },
   primitive: (self: IdlTypePrimitive): IdlTypeFullPod => {
     return {
@@ -279,11 +293,25 @@ const visitorBytemuckRust = {
       }),
     };
   },
-  padded: (_self: IdlTypeFullPadded): IdlTypeFullPod => {
-    throw new Error("Bytemuck: Repr(Rust): Padded is not supported");
+  padded: (self: IdlTypeFullPadded): IdlTypeFullPod => {
+    const contentPod = bytemuckRust(self.content);
+    return {
+      alignment: 1,
+      size: self.before + Math.max(contentPod.size, self.minSize) + self.after,
+      value: IdlTypeFull.padded({
+        before: self.before,
+        minSize: self.minSize,
+        after: self.after,
+        content: contentPod.value,
+      }),
+    };
   },
-  blob: (_self: IdlTypeFullBlob): IdlTypeFullPod => {
-    throw new Error("Bytemuck: Repr(Rust): Blob is not supported");
+  blob: (self: IdlTypeFullBlob): IdlTypeFullPod => {
+    return {
+      alignment: 1,
+      size: self.bytes.length,
+      value: IdlTypeFull.blob({ bytes: self.bytes }),
+    };
   },
   primitive: (self: IdlTypePrimitive): IdlTypeFullPod => {
     return {

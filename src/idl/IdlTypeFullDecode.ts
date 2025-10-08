@@ -182,15 +182,15 @@ const visitorDecode = {
     data: DataView,
     dataOffset: number,
   ): [number, JsonValue] => {
-    let dataSize = self.before ?? 0;
+    let dataSize = self.before;
     const dataContentOffset = dataOffset + dataSize;
     const [dataContentSize, dataContent] = idlTypeFullDecode(
       self.content,
       data,
       dataContentOffset,
     );
-    dataSize += Math.max(dataContentSize, self.minSize ?? 0);
-    dataSize += self.after ?? 0;
+    dataSize += Math.max(dataContentSize, self.minSize);
+    dataSize += self.after;
     return [dataSize, dataContent];
   },
   blob: (

@@ -33,18 +33,6 @@ export type IdlAccount = {
   contentTypeFull: IdlTypeFull;
 };
 
-// TODO - handle unknown in a better way maybe in a higher level tool/service
-export const idlAccountUnknown: IdlAccount = {
-  name: "Unknown",
-  docs: undefined,
-  space: undefined,
-  blobs: [],
-  discriminator: new Uint8Array(),
-  contentTypeFlat: IdlTypeFlat.structNothing(),
-  contentTypeFull: IdlTypeFull.structNothing(),
-};
-
-// TODO - should this be named differently, or at least take a a jsonDecoder ?
 export function idlAccountEncode(
   accountIdl: IdlAccount,
   accountState: JsonValue,

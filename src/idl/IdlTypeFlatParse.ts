@@ -70,7 +70,7 @@ export function idlTypeFlatParseIsPossible(value: JsonValue): boolean {
     object.hasOwnProperty("variants64") ||
     object.hasOwnProperty("variants128") ||
     object.hasOwnProperty("padded") ||
-    object.hasOwnProperty("blob") || // TODO - blob and padded could be merged
+    object.hasOwnProperty("bytes") ||
     object.hasOwnProperty("value")
   ) {
     return true;
@@ -291,26 +291,23 @@ const objectPaddedInfoJsonDecoder = jsonDecoderObject(
 function objectPaddedJsonDecoder(value: JsonValue): IdlTypeFlat {
   const info = objectPaddedInfoJsonDecoder(value);
   return IdlTypeFlat.padded({
-    before: info.before,
-    minSize: info.minSize,
-    after: info.after,
+    before: info.before ?? 0,
+    minSize: info.minSize ?? 0,
+    after: info.after ?? 0,
     content: idlTypeFlatParseIsPossible(value)
       ? idlTypeFlatParse(value)
       : IdlTypeFlat.structNothing(),
   });
 }
 
-const objectBlobInfoJsonDecoder = jsonDecoderObject({
-  bytes: idlUtilsBytesJsonDecoder,
-});
 function objectBlobJsonDecoder(value: JsonValue): IdlTypeFlat {
-  const info = objectBlobInfoJsonDecoder(value);
-  return IdlTypeFlat.blob({ bytes: info.bytes });
+  const bytes = idlUtilsBytesJsonDecoder(value);
+  return IdlTypeFlat.blob({ bytes });
 }
 
 function objectConstJsonDecoder(value: JsonValue): IdlTypeFlat {
-  const literal = jsonTypeString.decoder(value);
-  return IdlTypeFlat.const({ literal: Number(literal) });
+  const literal = Number(jsonTypeString.decoder(value));
+  return IdlTypeFlat.const({ literal });
 }
 
 const objectJsonDecoder: JsonDecoder<IdlTypeFlat> = jsonDecoderAsEnum({
@@ -338,7 +335,7 @@ const objectJsonDecoder: JsonDecoder<IdlTypeFlat> = jsonDecoderAsEnum({
   variants64: objectVariantsJsonDecoder(IdlTypePrefix.u64),
   variants128: objectVariantsJsonDecoder(IdlTypePrefix.u128),
   padded: objectPaddedJsonDecoder,
-  blob: objectBlobJsonDecoder,
+  bytes: objectBlobJsonDecoder,
   value: objectConstJsonDecoder,
 });
 

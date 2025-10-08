@@ -66,7 +66,10 @@ const visitorHydrateOrConstLiteral = {
     genericsBySymbol: Map<string, IdlTypeFull | number>,
     typedefs?: Map<string, IdlTypedef>,
   ): IdlTypeFull | number => {
-    const typedef = typedefs?.get(self.name);
+    if (typedefs === undefined) {
+      throw new Error("Typedefs not available in this context");
+    }
+    const typedef = typedefs.get(self.name);
     if (typedef === undefined) {
       throw new Error(`Could not resolve typedef named: ${self.name}`);
     }

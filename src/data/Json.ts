@@ -899,8 +899,7 @@ export function jsonDecoderAsEnum<
     );
   };
 }
-
-export function jsonDecoderParallel<
+export function jsonDecoderSplit<
   Shape extends [JsonDecoder<any>, ...JsonDecoder<any>[]],
 >(
   decoders: Shape,

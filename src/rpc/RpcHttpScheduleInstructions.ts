@@ -8,7 +8,7 @@ import { Signer } from "../data/Signer";
 import { RpcHttp } from "./RpcHttp";
 
 // TODO - provide a higher level function that handle block hash and wait for confirmation
-export async function rpcHttpSendInstructions(
+export async function rpcHttpScheduleInstructions(
   rpcHttp: RpcHttp,
   payerSigner: Signer,
   instructions: Array<Instruction>,
