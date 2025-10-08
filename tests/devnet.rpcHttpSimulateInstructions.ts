@@ -51,40 +51,54 @@ it("run", async () => {
     instructionAddresses,
     instructionPayload,
   );
+  const pledgeAddress = instructionAddresses.get("pledge")!;
   const resultNoVerify = await rpcHttpSimulateInstructions(
     rpcHttp,
     [instruction],
     { payerAddress: payerSigner.address },
+    { afterAccountAddresses: new Set([pledgeAddress]) },
   );
-  expect(resultNoVerify.message.payerAddress).toStrictEqual(
+  expect(resultNoVerify.transaction.message.payerAddress).toStrictEqual(
     payerSigner.address,
   );
-  expect(resultNoVerify.error).toStrictEqual(null);
-  expect(resultNoVerify.logs?.length).toStrictEqual(6);
-  expect(resultNoVerify.chargedFeesLamports).toStrictEqual(
+  expect(resultNoVerify.transaction.error).toStrictEqual(null);
+  expect(resultNoVerify.transaction.logs?.length).toStrictEqual(6);
+  expect(resultNoVerify.transaction.chargedFeesLamports).toStrictEqual(
     lamportsFeePerSigner * 2n,
   );
+  expect(resultNoVerify.transaction.consumedComputeUnits).toBeGreaterThan(0);
+  const pledgeAccountNoVerify =
+    resultNoVerify.afterAccountsByAddress.get(pledgeAddress)!;
+  expect(pledgeAccountNoVerify.owner).toStrictEqual(programAddress);
+  expect(pledgeAccountNoVerify.lamports).toBeGreaterThan(0n);
+  expect(pledgeAccountNoVerify.data.length).toBeGreaterThan(0);
+  expect(pledgeAccountNoVerify.executable).toStrictEqual(false);
   const recentBlockHash = await rpcHttpGetLatestBlockHash(rpcHttp);
   const resultWithVerify = await rpcHttpSimulateInstructions(
     rpcHttp,
     [instruction],
-    {
-      payerSigner,
-      extraSigners: [userSigner],
-      recentBlockHash,
-    },
+    { payerSigner, extraSigners: [userSigner], recentBlockHash },
+    { afterAccountAddresses: new Set([pledgeAddress]) },
   );
-  expect(resultWithVerify.message.payerAddress).toStrictEqual(
+  expect(resultWithVerify.transaction.message.payerAddress).toStrictEqual(
     payerSigner.address,
   );
-  expect(resultWithVerify.message.recentBlockHash).toStrictEqual(
+  expect(resultWithVerify.transaction.message.recentBlockHash).toStrictEqual(
     recentBlockHash,
   );
-  expect(resultWithVerify.error).toStrictEqual(null);
-  expect(resultWithVerify.logs?.length).toStrictEqual(6);
-  expect(resultWithVerify.chargedFeesLamports).toStrictEqual(
+  expect(resultWithVerify.transaction.error).toStrictEqual(null);
+  expect(resultWithVerify.transaction.logs?.length).toStrictEqual(6);
+  expect(resultWithVerify.transaction.chargedFeesLamports).toStrictEqual(
     lamportsFeePerSigner * 2n,
   );
+  expect(resultWithVerify.transaction.consumedComputeUnits).toBeGreaterThan(0);
+  expect(resultWithVerify.afterAccountsByAddress.size).toStrictEqual(1);
+  const pledgeAccountWithVerify =
+    resultWithVerify.afterAccountsByAddress.get(pledgeAddress)!;
+  expect(pledgeAccountWithVerify.owner).toStrictEqual(programAddress);
+  expect(pledgeAccountWithVerify.lamports).toBeGreaterThan(0n);
+  expect(pledgeAccountWithVerify.data.length).toBeGreaterThan(0);
+  expect(pledgeAccountWithVerify.executable).toStrictEqual(false);
 });
 
 const secret = new Uint8Array([

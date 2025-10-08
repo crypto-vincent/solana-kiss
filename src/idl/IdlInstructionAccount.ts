@@ -2,8 +2,8 @@ import { casingConvertToSnake } from "../data/Casing";
 import {
   jsonCodecBoolean,
   jsonCodecPubkey,
+  jsonCodecRaw,
   jsonCodecString,
-  jsonCodecValue,
   jsonDecoderArray,
   jsonDecoderObject,
   jsonDecoderOptional,
@@ -126,8 +126,8 @@ const jsonDecoder = jsonDecoderObject({
   address: jsonDecoderOptional(jsonCodecPubkey.decoder),
   pda: jsonDecoderOptional(
     jsonDecoderObject({
-      seeds: jsonDecoderOptional(jsonDecoderArray(jsonCodecValue.decoder)),
-      program: jsonDecoderOptional(jsonCodecValue.decoder),
+      seeds: jsonDecoderOptional(jsonDecoderArray(jsonCodecRaw.decoder)),
+      program: jsonDecoderOptional(jsonCodecRaw.decoder),
     }),
   ),
 });

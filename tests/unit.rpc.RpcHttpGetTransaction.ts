@@ -31,24 +31,20 @@ it("run", async () => {
     "4nTobZxuiA9xZDuSMfSQE6WJSswAkoVoF7ycve42iiy2",
   );
   // Check the invocations content
-  expect(transaction.invocations.length).toStrictEqual(4);
-  expect(transaction.invocations[0]!.instruction).toStrictEqual(
+  const invocations = transaction.invocations!;
+  expect(invocations.length).toStrictEqual(4);
+  expect(invocations[0]!.instruction).toStrictEqual(
     transaction.message.instructions[0]!,
   );
-  expect(transaction.invocations[0]!.invocations.length).toStrictEqual(0);
+  expect(invocations[0]!.invocations.length).toStrictEqual(0);
   // Check the nested invocations content
-  expect(transaction.invocations[3]!.invocations.length).toStrictEqual(2);
+  expect(invocations[3]!.invocations.length).toStrictEqual(2);
   expect(
-    transaction.invocations[3]!.invocations[0]!.instruction.programAddress,
+    invocations[3]!.invocations[0]!.instruction.programAddress,
   ).toStrictEqual("PsyMP8fXEEMo2C6C84s8eXuRUrvzQnZyquyjipDRohf");
+  expect(invocations[3]!.invocations[0]!.invocations.length).toStrictEqual(1);
   expect(
-    transaction.invocations[3]!.invocations[0]!.invocations.length,
+    invocations[3]!.invocations[0]!.invocations[0]!.invocations.length,
   ).toStrictEqual(1);
-  expect(
-    transaction.invocations[3]!.invocations[0]!.invocations[0]!.invocations
-      .length,
-  ).toStrictEqual(1);
-  expect(
-    transaction.invocations[3]!.invocations[1]!.invocations.length,
-  ).toStrictEqual(0);
+  expect(invocations[3]!.invocations[1]!.invocations.length).toStrictEqual(0);
 });

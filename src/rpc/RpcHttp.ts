@@ -2,8 +2,8 @@ import {
   JsonObject,
   JsonValue,
   jsonCodecNumber,
+  jsonCodecRaw,
   jsonCodecString,
-  jsonCodecValue,
   jsonDecoderObject,
   jsonDecoderOptional,
 } from "../data/Json";
@@ -153,5 +153,5 @@ const responseJsonDecoder = jsonDecoderObject({
       message: jsonCodecString.decoder,
     }),
   ),
-  result: jsonDecoderOptional(jsonCodecValue.decoder),
+  result: jsonDecoderOptional(jsonCodecRaw.decoder),
 });

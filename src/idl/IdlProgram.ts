@@ -4,8 +4,8 @@ import {
   JsonObject,
   JsonValue,
   jsonCodecObjectRaw,
+  jsonCodecRaw,
   jsonCodecString,
-  jsonCodecValue,
   jsonDecoderArray,
   jsonDecoderByKind,
   jsonDecoderForked,
@@ -139,8 +139,9 @@ function parseScopedNamedValues<Content, Param>(
   parsingFunction: (name: string, value: JsonValue, param: Param) => Content,
 ): Map<string, Content> {
   const values = new Map<string, Content>();
-  const collection = collectionJsonDecoder(programObject[collectionName]);
-  for (const [name, value] of collection) {
+  for (const [name, value] of collectionJsonDecoder(
+    programObject[collectionName],
+  )) {
     let itemName = name;
     if (convertNameToSnakeCase) {
       itemName = casingConvertToSnake(name);
@@ -159,13 +160,13 @@ const collectionJsonDecoder = jsonDecoderByKind({
   undefined: () => new Map<string, JsonValue>(),
   object: jsonDecoderObjectToMap({
     keyDecoder: (name) => name,
-    valueDecoder: jsonCodecValue.decoder,
+    valueDecoder: jsonCodecRaw.decoder,
   }),
   array: jsonDecoderTransform(
     jsonDecoderArray(
       jsonDecoderForked([
         jsonDecoderObjectKey("name", jsonCodecString.decoder),
-        jsonCodecValue.decoder,
+        jsonCodecRaw.decoder,
       ]),
     ),
     (entries) => {

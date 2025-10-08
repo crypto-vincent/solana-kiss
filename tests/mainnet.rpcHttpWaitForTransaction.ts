@@ -22,12 +22,15 @@ it("run", async () => {
     "ETzLkjyxUNupAQxQRnTuG2u7wnQCWEgtdTLegeQycCPv",
   );
   expect(transaction.error).toStrictEqual(null);
-  expect(transaction.invocations.length).toStrictEqual(4);
-  expect(transaction.invocations[0]!.invocations.length).toStrictEqual(0);
-  expect(transaction.invocations[1]!.invocations.length).toStrictEqual(0);
-  expect(transaction.invocations[2]!.invocations.length).toStrictEqual(0);
-  expect(transaction.invocations[3]!.invocations.length).toStrictEqual(1);
-  const firstCpi = transaction.invocations[3]!.invocations[0]!;
+  // Check the invocations tree shape
+  const invocations = transaction.invocations!;
+  expect(invocations.length).toStrictEqual(4);
+  expect(invocations[0]!.invocations.length).toStrictEqual(0);
+  expect(invocations[1]!.invocations.length).toStrictEqual(0);
+  expect(invocations[2]!.invocations.length).toStrictEqual(0);
+  const lastRootCall = invocations[3]!;
+  expect(lastRootCall.invocations.length).toStrictEqual(1);
+  const firstCpi = lastRootCall.invocations[0]!;
   expect(firstCpi.invocations.length).toStrictEqual(2);
   expect(firstCpi.invocations[0]!.invocations.length).toStrictEqual(0);
   expect(firstCpi.invocations[1]!.invocations.length).toStrictEqual(4);

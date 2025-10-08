@@ -1,17 +1,13 @@
 import { base58Decode } from "../data/Base58";
-import {
-  Instruction,
-  InstructionInput,
-  compiledInstructionsJsonDecoder,
-  innerInstructionsJsonDecoder,
-} from "../data/Instruction";
+import { Instruction, InstructionInput } from "../data/Instruction";
 import {
   jsonCodecBlockHash,
   jsonCodecBlockSlot,
   jsonCodecNumber,
   jsonCodecPubkey,
+  jsonCodecRaw,
   jsonCodecSignature,
-  jsonCodecValue,
+  jsonCodecString,
   jsonDecoderArray,
   jsonDecoderNullable,
   jsonDecoderObject,
@@ -48,7 +44,7 @@ export async function rpcHttpGetTransaction(
   if (accountKeys.length <= 0) {
     throw new Error("RpcHttp: Invalid transaction with no accounts keys");
   }
-  const transactionInputs = decompileTransactionInputs(
+  const instructionsInputs = decompileInstructionsInputs(
     header.numRequiredSignatures,
     header.numReadonlySignedAccounts,
     header.numReadonlyUnsignedAccounts,
@@ -56,8 +52,8 @@ export async function rpcHttpGetTransaction(
     loadedAddresses?.writable ?? [],
     loadedAddresses?.readonly ?? [],
   );
-  const transactionInstructions = decompileTransactionInstructions(
-    transactionInputs,
+  const messageInstructions = decompileMessageInstructions(
+    instructionsInputs,
     message.instructions,
   );
   return {
@@ -67,22 +63,24 @@ export async function rpcHttpGetTransaction(
     },
     message: {
       payerAddress: accountKeys[0]!,
-      instructions: transactionInstructions,
+      instructions: messageInstructions,
       recentBlockHash: message.recentBlockhash,
     },
-    error: meta.err, // TODO - parse error to find custom program errors ?
-    logs: meta.logMessages, // TODO - parse logs for invocations and event data
     chargedFeesLamports: BigInt(meta.fee),
     consumedComputeUnits: meta.computeUnitsConsumed,
-    invocations: decompileTransactionInvocations(
-      transactionInputs,
-      transactionInstructions,
-      meta.innerInstructions ?? [],
-    ),
+    error: meta.err, // TODO - parse error to find custom program errors ?
+    logs: meta.logMessages, // TODO - parse logs for invocations and event data
+    invocations: meta.innerInstructions
+      ? decompileTransactionInvocations(
+          messageInstructions,
+          instructionsInputs,
+          meta.innerInstructions,
+        )
+      : undefined,
   };
 }
 
-function decompileTransactionInputs(
+function decompileInstructionsInputs(
   requiredSignaturesCount: number,
   readonlySignedAccountsCount: number,
   readonlyUnsignedAccountsCount: number,
@@ -120,19 +118,19 @@ function decompileTransactionInputs(
   inputsAddresses.push(...staticAddresses);
   inputsAddresses.push(...loadedWritableAddresses);
   inputsAddresses.push(...loadedReadonlyAddresses);
-  const transactionInputs = new Array<InstructionInput>();
+  const instructionsInputs = new Array<InstructionInput>();
   for (const inputAddress of inputsAddresses) {
-    transactionInputs.push({
+    instructionsInputs.push({
       address: inputAddress,
       signing: signingAddresses.has(inputAddress),
       writable: !readonlyAddresses.has(inputAddress),
     });
   }
-  return transactionInputs;
+  return instructionsInputs;
 }
 
-function decompileTransactionInstructions(
-  transactionInputs: Array<InstructionInput>,
+function decompileMessageInstructions(
+  instructionsInputs: Array<InstructionInput>,
   compiledInstructions: Array<CompiledInstruction>,
 ): Array<Instruction> {
   const instructions = new Array<Instruction>();
@@ -144,24 +142,24 @@ function decompileTransactionInstructions(
       );
     }
     instructions.push(
-      decompileTransactionInstruction(transactionInputs, compiledInstruction),
+      decompileMessageInstruction(compiledInstruction, instructionsInputs),
     );
   }
   return instructions;
 }
 
 function decompileTransactionInvocations(
-  transactionInputs: Array<InstructionInput>,
-  transactionInstructions: Array<Instruction>,
+  messageInstructions: Array<Instruction>,
+  instructionsInputs: Array<InstructionInput>,
   compiledInnerInstructions: Array<{
     index: number;
     instructions: Array<CompiledInstruction>;
   }>,
 ): Array<TransactionInvocation> {
   const rootInvocations = new Array<TransactionInvocation>();
-  for (let index = 0; index < transactionInstructions.length; index++) {
+  for (let index = 0; index < messageInstructions.length; index++) {
     rootInvocations.push({
-      instruction: transactionInstructions[index]!,
+      instruction: messageInstructions[index]!,
       invocations: [],
     });
   }
@@ -174,9 +172,9 @@ function decompileTransactionInvocations(
     invocationStack.push(rootInvocation);
     for (const compiledInnerInstruction of compiledInnerInstructionBlock.instructions) {
       const innerInvocation = {
-        instruction: decompileTransactionInstruction(
-          transactionInputs,
+        instruction: decompileMessageInstruction(
           compiledInnerInstruction,
+          instructionsInputs,
         ),
         invocations: [],
       };
@@ -208,17 +206,17 @@ type CompiledInstruction = {
   dataBase58: string;
 };
 
-function decompileTransactionInstruction(
-  transactionInputs: Array<InstructionInput>,
+function decompileMessageInstruction(
   compiledInstruction: CompiledInstruction,
+  instructionsInputs: Array<InstructionInput>,
 ): Instruction {
   const instructionProgram = expectItemInArray(
-    transactionInputs,
+    instructionsInputs,
     compiledInstruction.programIndex,
   );
   const instructionInputs = new Array<InstructionInput>();
   for (const accountIndex of compiledInstruction.accountsIndexes) {
-    instructionInputs.push(expectItemInArray(transactionInputs, accountIndex));
+    instructionInputs.push(expectItemInArray(instructionsInputs, accountIndex));
   }
   return {
     programAddress: instructionProgram.address,
@@ -227,14 +225,38 @@ function decompileTransactionInstruction(
   };
 }
 
+const compiledInstructionsJsonDecoder = jsonDecoderArray(
+  jsonDecoderObject(
+    {
+      stackHeight: jsonCodecNumber.decoder,
+      programIndex: jsonCodecNumber.decoder,
+      accountsIndexes: jsonDecoderArray(jsonCodecNumber.decoder),
+      dataBase58: jsonCodecString.decoder,
+    },
+    {
+      stackHeight: "stackHeight",
+      programIndex: "programIdIndex",
+      accountsIndexes: "accounts",
+      dataBase58: "data",
+    },
+  ),
+);
+
 const resultJsonDecoder = jsonDecoderOptional(
   jsonDecoderObject({
     blockTime: jsonDecoderOptional(jsonCodecNumber.decoder),
     meta: jsonDecoderObject({
       computeUnitsConsumed: jsonCodecNumber.decoder,
-      err: jsonDecoderNullable(jsonCodecValue.decoder),
+      err: jsonDecoderNullable(jsonCodecRaw.decoder),
       fee: jsonCodecNumber.decoder,
-      innerInstructions: innerInstructionsJsonDecoder,
+      innerInstructions: jsonDecoderOptional(
+        jsonDecoderArray(
+          jsonDecoderObject({
+            index: jsonCodecNumber.decoder,
+            instructions: compiledInstructionsJsonDecoder,
+          }),
+        ),
+      ),
       loadedAddresses: transactionLoadedAddressesJsonDecoder,
       logMessages: transactionLogsMessagesJsonDecoder,
     }),

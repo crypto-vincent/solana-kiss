@@ -1,13 +1,13 @@
 import { base64Encode } from "../data/Base64";
 import { BlockHash, blockHashFromBytes } from "../data/Block";
-import { innerInstructionsJsonDecoder, Instruction } from "../data/Instruction";
+import { Instruction } from "../data/Instruction";
 import {
   jsonCodecBlockSlot,
   jsonCodecBoolean,
   jsonCodecBytesBase64,
   jsonCodecNumber,
   jsonCodecPubkey,
-  jsonCodecValue,
+  jsonCodecRaw,
   jsonDecoderArray,
   jsonDecoderArrayToObject,
   jsonDecoderConst,
@@ -15,7 +15,7 @@ import {
   jsonDecoderOptional,
 } from "../data/Json";
 import { messageCompile, messageSign } from "../data/Message";
-import { Pubkey, pubkeyToBase58 } from "../data/Pubkey";
+import { Pubkey, pubkeyDefault } from "../data/Pubkey";
 import { signatureFromBytes } from "../data/Signature";
 import { Signer } from "../data/Signer";
 import {
@@ -25,7 +25,6 @@ import {
 } from "../data/Transaction";
 import { RpcHttp } from "./RpcHttp";
 
-// TODO - make sure we return a full Transaction object ?
 export async function rpcHttpSimulateInstructions(
   rpcHttp: RpcHttp,
   instructions: Array<Instruction>,
@@ -38,11 +37,22 @@ export async function rpcHttpSimulateInstructions(
         recentBlockHash: BlockHash;
       },
   options?: {
-    postFetchAccountsAddresses?: Set<Pubkey>;
+    afterAccountAddresses?: Set<Pubkey>;
   },
-): Promise<Transaction> {
-  if ((options?.postFetchAccountsAddresses?.size ?? 0) > 3) {
-    throw new Error("RpcHttp: postFetchAddresses max size is 3");
+): Promise<{
+  transaction: Transaction;
+  afterAccountsByAddress: Map<
+    Pubkey,
+    {
+      data: Uint8Array;
+      owner: Pubkey;
+      lamports: bigint;
+      executable: boolean;
+    }
+  >;
+}> {
+  if ((options?.afterAccountAddresses?.size ?? 0) > 3) {
+    throw new Error("RpcHttp: afterAccountAddresses max size is 3");
   }
   const instructionsAddresses = new Set<Pubkey>();
   for (const instruction of instructions) {
@@ -83,57 +93,55 @@ export async function rpcHttpSimulateInstructions(
   };
   const messageCompiled = messageCompile(message);
   const messageSigned = await messageSign(messageCompiled, signers);
-  const postFetchAddresses = options?.postFetchAccountsAddresses
-    ? [...options.postFetchAccountsAddresses]
+  const afterAccountsAddresses = options?.afterAccountAddresses
+    ? [...options.afterAccountAddresses]
     : [];
   const result = resultJsonDecoder(
     await rpcHttp("simulateTransaction", [base64Encode(messageSigned)], {
       encoding: "base64",
       accounts: {
-        addresses: postFetchAddresses.map((address) => pubkeyToBase58(address)),
+        addresses: afterAccountsAddresses.map(jsonCodecPubkey.encoder),
         encoding: "base64",
       },
-      innerInstructions: false, // TODO - what to do about this ?
+      innerInstructions: false,
       replaceRecentBlockhash,
       sigVerify,
     }),
   );
-
-  const postFetchAccountsByAddress = new Map<
-    Pubkey,
-    {
-      data: Uint8Array;
-      owner: Pubkey;
-      lamports: bigint;
-      executable: boolean;
-    }
-  >();
-  for (let index = 0; index < postFetchAddresses.length; index++) {
-    const postFetchInfo = result.value.accounts?.[index];
-    if (postFetchInfo) {
-      postFetchAccountsByAddress.set(postFetchAddresses[index]!, {
-        data: postFetchInfo.data.bytes,
-        owner: postFetchInfo.owner,
-        lamports: BigInt(postFetchInfo.lamports),
-        executable: postFetchInfo.executable,
-      });
-    }
-  }
-
-  return {
+  const transaction = {
     block: {
       time: undefined,
       slot: result.context.slot,
     },
     message,
-    error: result.value.err,
-    logs: result.value.logs,
     chargedFeesLamports: BigInt(result.value.fee),
     consumedComputeUnits: result.value.unitsConsumed,
-    // postFetchAccountsByAddress,
-    invocations: [],
-    // TODO - decompile invokactions and inner instructions ?
+    error: result.value.err,
+    logs: result.value.logs,
+    invocations: undefined,
   };
+  const afterAccountsByAddress = new Map(
+    afterAccountsAddresses.map((afterAccountAddress, accountIndex) => {
+      const afterAccount = result.value.accounts?.[accountIndex];
+      return [
+        afterAccountAddress,
+        afterAccount
+          ? {
+              data: afterAccount.data.bytes,
+              owner: afterAccount.owner,
+              lamports: BigInt(afterAccount.lamports),
+              executable: afterAccount.executable,
+            }
+          : {
+              data: new Uint8Array(0),
+              owner: pubkeyDefault,
+              lamports: 0n,
+              executable: false,
+            },
+      ];
+    }),
+  );
+  return { transaction, afterAccountsByAddress };
 }
 
 function signerFaked(address: Pubkey): Signer {
@@ -149,9 +157,8 @@ const resultJsonDecoder = jsonDecoderObject({
   }),
   value: jsonDecoderObject({
     unitsConsumed: jsonCodecNumber.decoder,
-    err: jsonCodecValue.decoder,
+    err: jsonCodecRaw.decoder,
     fee: jsonCodecNumber.decoder,
-    innerInstructions: innerInstructionsJsonDecoder,
     loadedAddresses: transactionLoadedAddressesJsonDecoder,
     logs: transactionLogsMessagesJsonDecoder,
     accounts: jsonDecoderOptional(

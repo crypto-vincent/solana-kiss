@@ -1,7 +1,7 @@
 import {
   JsonValue,
+  jsonCodecRaw,
   jsonCodecString,
-  jsonCodecValue,
   jsonDecoderByKind,
   jsonDecoderObject,
   jsonDecoderOptional,
@@ -200,7 +200,7 @@ const jsonDecoder = jsonDecoderByKind<{
   path: string | undefined;
 }>({
   object: jsonDecoderObject({
-    value: jsonCodecValue.decoder,
+    value: jsonCodecRaw.decoder,
     type: jsonDecoderOptional(idlTypeFlatParse),
     kind: jsonDecoderOptional(jsonCodecString.decoder),
     path: jsonDecoderOptional(jsonCodecString.decoder),

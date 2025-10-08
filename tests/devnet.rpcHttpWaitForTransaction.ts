@@ -22,7 +22,7 @@ it("run", async () => {
     "EZY4BjNgBeSKEnCV2DycDchJg1kjqiwJ3cb9GFc5Avhy",
   );
   expect(transaction1.error).toStrictEqual(null);
-  expect(transaction1.invocations.length).toStrictEqual(1);
+  expect(transaction1.invocations?.length).toStrictEqual(1);
   // This should be a failure with error
   const transaction2 = await rpcHttpWaitForTransaction(
     rpcHttp,
@@ -37,10 +37,10 @@ it("run", async () => {
   expect(transaction2.message.recentBlockHash).toStrictEqual(
     "EEkjZAAnF3qd5VRRt62GXjcoBqQYm2ezt9vNVZgZi6xQ",
   );
-  expect(transaction2.error).toStrictEqual({
+  expect(transaction2.error).toEqual({
     InstructionError: [1, { Custom: 3012 }],
   });
-  expect(transaction2.invocations.length).toStrictEqual(2);
+  expect(transaction2.invocations?.length).toStrictEqual(2);
   // This should be a transaction with many instructions (> 50)
   const transaction3 = await rpcHttpWaitForTransaction(
     rpcHttp,
@@ -56,5 +56,5 @@ it("run", async () => {
     "6gtmFZxPgbkS5b2Wxw9bk5XUGZXqwjRTwn2rLVYJiRJS",
   );
   expect(transaction3.error).toStrictEqual(null);
-  expect(transaction3.invocations.length).toStrictEqual(50);
+  expect(transaction3.invocations?.length).toStrictEqual(50);
 });

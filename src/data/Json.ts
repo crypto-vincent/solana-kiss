@@ -2,16 +2,14 @@ import { base16Decode, base16Encode } from "./Base16";
 import { base58Decode, base58Encode } from "./Base58";
 import { base64Decode, base64Encode } from "./Base64";
 import {
-  BlockHash,
   blockHashFromBase58,
   blockHashToBase58,
-  BlockSlot,
   blockSlotFromNumber,
   blockSlotToNumber,
 } from "./Block";
 import { casingConvertToSnake } from "./Casing";
-import { Pubkey, pubkeyFromBase58, pubkeyToBase58 } from "./Pubkey";
-import { Signature, signatureFromBase58, signatureToBase58 } from "./Signature";
+import { pubkeyFromBase58, pubkeyToBase58 } from "./Pubkey";
+import { signatureFromBase58, signatureToBase58 } from "./Signature";
 import { utf8Decode, utf8Encode } from "./Utf8";
 import { withContext } from "./Utils";
 
@@ -231,7 +229,10 @@ export function jsonPointerPreview(
     if (typeof token === "number") {
       parts.push(`[${token}]`);
     } else {
-      parts.push(`.${token}`);
+      if (index > 0) {
+        parts.push(".");
+      }
+      parts.push(token);
     }
   }
   return parts.join("");
@@ -290,19 +291,9 @@ export type JsonCodec<Content> = {
   encoder: JsonEncoder<Content>;
 };
 
-export const jsonCodecValue: JsonCodec<JsonValue> = {
-  decoder: (encoded: JsonValue): JsonValue => {
-    if (encoded === undefined) {
-      return undefined;
-    }
-    return JSON.parse(JSON.stringify(encoded));
-  },
-  encoder: (decoded: JsonValue): JsonValue => {
-    if (decoded === undefined) {
-      return undefined;
-    }
-    return JSON.parse(JSON.stringify(decoded));
-  },
+export const jsonCodecRaw: JsonCodec<JsonValue> = {
+  decoder: (encoded) => encoded,
+  encoder: (decoded) => decoded,
 };
 export const jsonCodecNull: JsonCodec<null> = {
   decoder: (encoded: JsonValue): null => {
@@ -411,41 +402,26 @@ export const jsonCodecInteger: JsonCodec<bigint> = {
   },
 };
 
-export const jsonCodecPubkey: JsonCodec<Pubkey> = jsonCodecTransform(
-  jsonCodecString,
-  {
-    decoder: pubkeyFromBase58,
-    encoder: pubkeyToBase58,
-  },
-);
-export const jsonCodecSignature: JsonCodec<Signature> = jsonCodecTransform(
-  jsonCodecString,
-  {
-    decoder: signatureFromBase58,
-    encoder: signatureToBase58,
-  },
-);
-export const jsonCodecBlockHash: JsonCodec<BlockHash> = jsonCodecTransform(
-  jsonCodecString,
-  {
-    decoder: blockHashFromBase58,
-    encoder: blockHashToBase58,
-  },
-);
-export const jsonCodecBlockSlot: JsonCodec<BlockSlot> = jsonCodecTransform(
-  jsonCodecNumber,
-  {
-    decoder: blockSlotFromNumber,
-    encoder: blockSlotToNumber,
-  },
-);
-export const jsonCodecDateTime: JsonCodec<Date> = jsonCodecTransform(
-  jsonCodecString,
-  {
-    decoder: (encoded) => new Date(encoded),
-    encoder: (decoded) => decoded.toISOString(),
-  },
-);
+export const jsonCodecPubkey = jsonCodecTransform(jsonCodecString, {
+  decoder: pubkeyFromBase58,
+  encoder: pubkeyToBase58,
+});
+export const jsonCodecSignature = jsonCodecTransform(jsonCodecString, {
+  decoder: signatureFromBase58,
+  encoder: signatureToBase58,
+});
+export const jsonCodecBlockHash = jsonCodecTransform(jsonCodecString, {
+  decoder: blockHashFromBase58,
+  encoder: blockHashToBase58,
+});
+export const jsonCodecBlockSlot = jsonCodecTransform(jsonCodecNumber, {
+  decoder: blockSlotFromNumber,
+  encoder: blockSlotToNumber,
+});
+export const jsonCodecDateTime = jsonCodecTransform(jsonCodecString, {
+  decoder: (encoded) => new Date(encoded),
+  encoder: (decoded) => decoded.toISOString(),
+});
 
 export const jsonCodecBytesArray = jsonCodecTransform(
   jsonCodecArray(jsonCodecNumber),
@@ -453,35 +429,23 @@ export const jsonCodecBytesArray = jsonCodecTransform(
     decoder: (encoded) => new Uint8Array(encoded),
     encoder: (decoded) => Array.from(decoded),
   },
-) as JsonCodec<Uint8Array>;
-export const jsonCodecBytesBase16: JsonCodec<Uint8Array> = jsonCodecTransform(
-  jsonCodecString,
-  {
-    decoder: base16Decode,
-    encoder: base16Encode,
-  },
 );
-export const jsonCodecBytesBase58: JsonCodec<Uint8Array> = jsonCodecTransform(
-  jsonCodecString,
-  {
-    decoder: base58Decode,
-    encoder: base58Encode,
-  },
-);
-export const jsonCodecBytesBase64: JsonCodec<Uint8Array> = jsonCodecTransform(
-  jsonCodecString,
-  {
-    decoder: base64Decode,
-    encoder: base64Encode,
-  },
-);
-export const jsonCodecBytesUtf8: JsonCodec<Uint8Array> = jsonCodecTransform(
-  jsonCodecString,
-  {
-    decoder: utf8Encode,
-    encoder: utf8Decode,
-  },
-);
+export const jsonCodecBytesBase16 = jsonCodecTransform(jsonCodecString, {
+  decoder: base16Decode,
+  encoder: base16Encode,
+});
+export const jsonCodecBytesBase58 = jsonCodecTransform(jsonCodecString, {
+  decoder: base58Decode,
+  encoder: base58Encode,
+});
+export const jsonCodecBytesBase64 = jsonCodecTransform(jsonCodecString, {
+  decoder: base64Decode,
+  encoder: base64Encode,
+});
+export const jsonCodecBytesUtf8 = jsonCodecTransform(jsonCodecString, {
+  decoder: utf8Encode,
+  encoder: utf8Decode,
+});
 
 export function jsonDecoderConst<Const extends boolean | number | string>(
   expected: Const,

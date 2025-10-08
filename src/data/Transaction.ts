@@ -19,11 +19,11 @@ export type Transaction = {
     slot: BlockSlot;
   };
   message: Message;
-  error: JsonValue | undefined;
-  logs: Array<string> | undefined;
   chargedFeesLamports: bigint;
   consumedComputeUnits: number;
-  invocations: Array<TransactionInvocation>;
+  error: JsonValue | undefined;
+  logs: Array<string> | undefined;
+  invocations: Array<TransactionInvocation> | undefined;
 };
 
 export type TransactionInvocation = {
