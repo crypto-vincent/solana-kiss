@@ -24,7 +24,7 @@ it("run", async () => {
       skipValidation: true,
     });
     const currentBrokenKeypair = await signerFromSecret(randomized, {
-      skipValidation: true,
+      skipVerify: true,
     });
     expect(currentBrokenKeypair.address).toStrictEqual(
       referenceBrokenKeypair.publicKey.toBase58(),

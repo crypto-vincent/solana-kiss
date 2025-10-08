@@ -28,13 +28,13 @@ import { RpcHttp } from "./RpcHttp";
 export async function rpcHttpSimulateInstructions(
   rpcHttp: RpcHttp,
   instructions: Array<Instruction>,
-  // TODO - support for LUTs ?
   context:
     | { payerAddress: Pubkey }
     | {
         payerSigner: Signer;
         extraSigners?: Array<Signer>;
         recentBlockHash: BlockHash;
+        // TODO - support for LUTs ?
       },
   options?: {
     afterAccountAddresses?: Set<Pubkey>;

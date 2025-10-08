@@ -18,7 +18,7 @@ export async function signerGenerate(): Promise<Signer> {
 
 export async function signerFromSecret(
   secret: Uint8Array,
-  options?: { skipValidation?: boolean },
+  options?: { skipVerify?: boolean },
 ): Promise<Signer> {
   if (secret.length != 64) {
     throw new Error(
@@ -53,14 +53,14 @@ export async function signerFromSecret(
   );
   const address = pubkeyFromBytes(secret.slice(32, 64));
   const signer = signerFromKeys(cryptoKey, address);
-  if (options?.skipValidation) {
+  if (options?.skipVerify) {
     return signer;
   }
   const message = new Uint8Array([1, 2, 3, 4, 5]);
   const signature = await signer.sign(message);
   const verifier = await pubkeyToVerifier(address);
   if (!(await verifier(signature, message))) {
-    throw new Error(`Signer: Secret public blob and private blob mismatch`);
+    throw new Error(`Signer: Secret public key and private key mismatch`);
   }
   return signer;
 }

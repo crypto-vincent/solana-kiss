@@ -40,13 +40,11 @@ it("run", async () => {
       owner: pubkeyToBase58(ownerAddress),
     },
   );
-  const signature = await rpcHttpScheduleInstructions(
-    rpcHttp,
+  const signature = await rpcHttpScheduleInstructions(rpcHttp, [instruction], {
     payerSigner,
-    [instruction],
+    extraSigners: [ownedSigner],
     recentBlockHash,
-    { extraSigners: [ownedSigner] },
-  );
+  });
   const transaction = await rpcHttpWaitForTransaction(rpcHttp, signature, 3000);
   expect(transaction.error).toStrictEqual(null);
   expect(transaction.chargedFeesLamports).toStrictEqual(

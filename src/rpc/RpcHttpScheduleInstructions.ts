@@ -10,20 +10,22 @@ import { RpcHttp } from "./RpcHttp";
 // TODO - provide a higher level function that handle block hash and wait for confirmation
 export async function rpcHttpScheduleInstructions(
   rpcHttp: RpcHttp,
-  payerSigner: Signer,
   instructions: Array<Instruction>,
-  recentBlockHash: BlockHash,
-  options?: {
+  context: {
+    payerSigner: Signer;
     extraSigners?: Array<Signer>;
-    skipPreflight?: boolean;
+    recentBlockHash: BlockHash;
     // TODO - support LUTs ?
   },
+  options?: {
+    skipPreflight?: boolean;
+  },
 ): Promise<Signature> {
-  const signers = [payerSigner, ...(options?.extraSigners ?? [])];
+  const signers = [context.payerSigner, ...(context?.extraSigners ?? [])];
   const messageCompiled = messageCompile({
-    payerAddress: payerSigner.address,
+    payerAddress: context.payerSigner.address,
     instructions,
-    recentBlockHash: recentBlockHash,
+    recentBlockHash: context.recentBlockHash,
   });
   const messageSigned = await messageSign(messageCompiled, signers);
   return jsonCodecSignature.decoder(
