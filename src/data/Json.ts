@@ -209,43 +209,73 @@ export function jsonIsDeepSubset(
   }
   return false;
 }
-export function jsonGetAtPath(
-  value: JsonValue,
-  path: string | Array<string | number>,
-  options?: {
-    failOnMissing?: boolean;
-  },
-): JsonValue {
-  const tokens = Array.isArray(path)
-    ? path
-    : path.replace(/\[(\w+)\]/g, ".$1").split(".");
-  let currentValue = value;
-  for (let tokenIndex = 0; tokenIndex < tokens.length; tokenIndex++) {
-    const token = tokens[tokenIndex]!;
-    const currentArray = jsonAsArray(currentValue);
-    if (currentArray !== undefined) {
-      const arrayIndex = Number(token);
-      if (!isFinite(arrayIndex)) {
-        throw new Error(`JSON: Expected a valid array index (found: ${token})`);
+
+export function jsonPointerParse(path: string): Array<string | number> {
+  return path
+    .replace(/\[(\w+)\]/g, ".$1")
+    .split(".")
+    .map((part) => {
+      if (/^\d+$/.test(part)) {
+        return Number(part);
       }
-      currentValue = currentArray[arrayIndex];
+      return part;
+    });
+}
+export function jsonPointerPreview(
+  pointer: Array<string | number>,
+  tokenIndex?: number,
+): string {
+  const parts = [];
+  for (let index = 0; index < (tokenIndex ?? pointer.length); index++) {
+    const token = pointer[index]!;
+    if (typeof token === "number") {
+      parts.push(`[${token}]`);
+    } else {
+      parts.push(`.${token}`);
+    }
+  }
+  return parts.join("");
+}
+export function jsonGetAt(
+  value: JsonValue,
+  pathOrPointer: string | Array<string | number>,
+  options?: { failOnMissing?: boolean },
+): JsonValue {
+  const pointer = Array.isArray(pathOrPointer)
+    ? pathOrPointer
+    : jsonPointerParse(pathOrPointer);
+  let current = value;
+  for (let tokenIndex = 0; tokenIndex < pointer.length; tokenIndex++) {
+    const token = pointer[tokenIndex]!;
+    const array = jsonAsArray(current);
+    if (array !== undefined) {
+      const arrayIndex = token;
+      if (typeof arrayIndex !== "number" || !Number.isFinite(arrayIndex)) {
+        throw new Error(
+          `JSON: Expected path ${jsonPointerPreview(pointer, tokenIndex)} index to be a finite number`,
+        );
+      }
+      if (arrayIndex < 0 || arrayIndex >= array.length) {
+        throw new Error(
+          `JSON: Expected path ${jsonPointerPreview(pointer, tokenIndex)} index to fit in input array of length ${array.length}`,
+        );
+      }
+      current = array[arrayIndex];
       continue;
     }
-    const currentObject = jsonAsObject(currentValue);
-    if (currentObject !== undefined) {
-      currentValue = currentObject[token];
+    const object = jsonAsObject(current);
+    if (object !== undefined) {
+      current = object[token];
       continue;
     }
     if (options?.failOnMissing) {
-      const pathSoFar = tokens.slice(0, tokenIndex).join(".");
       throw new Error(
-        `JSON: Expected an object or array at path "${pathSoFar}" (found: ${jsonPreview(currentValue)})`,
+        `JSON: Expected an object or array at path ${jsonPointerPreview(pointer, tokenIndex)} (found: ${jsonPreview(current)})`,
       );
-    } else {
-      break;
     }
+    break;
   }
-  return currentValue;
+  return current;
 }
 
 export type JsonDecoderContent<S> = S extends JsonDecoder<infer T> ? T : never;
@@ -648,17 +678,17 @@ function jsonCodecObjectKeyEncoder<Shape extends { [key: string]: any }>(
   return keyEncoding[keyDecoded] ?? keyDecoded;
 }
 
-export function jsonDecoderObjectWithEncodedSnakeKeys<
+export function jsonDecoderObjectEncodedSnakeKeys<
   Shape extends { [key: string]: JsonDecoder<any> },
 >(shape: Shape) {
   return jsonDecoderObject(shape, casingConvertToSnake);
 }
-export function jsonEncoderObjectWithEncodedSnakeKeys<
+export function jsonEncoderObjectEncodedSnakeKeys<
   Shape extends { [key: string]: JsonEncoder<any> },
 >(shape: Shape) {
   return jsonEncoderObject(shape, casingConvertToSnake);
 }
-export function jsonCodecObjectWithEncodedSnakeKeys<
+export function jsonCodecObjectEncodedSnakeKeys<
   Shape extends { [key: string]: JsonCodec<any> },
 >(shape: Shape) {
   return jsonCodecObject(shape, casingConvertToSnake);

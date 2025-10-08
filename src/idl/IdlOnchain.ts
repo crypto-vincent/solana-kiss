@@ -3,7 +3,7 @@ import {
   JsonValue,
   jsonCodecBytesArray,
   jsonCodecPubkey,
-  jsonDecoderObject,
+  jsonDecoderObjectEncodedSnakeKeys,
 } from "../data/Json";
 import {
   Pubkey,
@@ -26,8 +26,9 @@ export function idlOnchainAnchorDecode(
     idlAccountDecode(onchainAnchorIdl, anchorStoreData),
   );
   const onchainAnchorBytes = inflate(onchainAnchorContent.deflatedJson);
-  const onchainAnchorJson = utf8Decode(onchainAnchorBytes);
-  return idlProgramParse(JSON.parse(onchainAnchorJson) as JsonValue);
+  const onchainAnchorString = utf8Decode(onchainAnchorBytes);
+  const onchainAnchorJson = JSON.parse(onchainAnchorString) as JsonValue;
+  return idlProgramParse(onchainAnchorJson);
 }
 
 // TODO - this should probably be automatic in the program library
@@ -38,13 +39,7 @@ const onchainAnchorIdl = idlAccountParse("Idl", {
     { name: "deflated_json", type: { vec32: "u8" } },
   ],
 });
-const onchainAnchorJsonDecoder = jsonDecoderObject(
-  {
-    authority: jsonCodecPubkey.decoder,
-    deflatedJson: jsonCodecBytesArray.decoder,
-  },
-  {
-    authority: "authority",
-    deflatedJson: "deflated_json",
-  },
-);
+const onchainAnchorJsonDecoder = jsonDecoderObjectEncodedSnakeKeys({
+  authority: jsonCodecPubkey.decoder,
+  deflatedJson: jsonCodecBytesArray.decoder,
+});

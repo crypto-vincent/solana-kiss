@@ -28,11 +28,7 @@ export function idlErrorParse(
   };
 }
 
-export const jsonDecoder = jsonDecoderByKind<{
-  docs: IdlDocs;
-  code: number;
-  msg: string | undefined;
-}>({
+export const jsonDecoder = jsonDecoderByKind({
   number: (number: number) => ({
     docs: undefined,
     code: number,

@@ -5,21 +5,17 @@ import {
   jsonDecoderByKind,
   jsonDecoderObject,
   jsonDecoderOptional,
+  jsonGetAt,
+  jsonPointerParse,
 } from "../data/Json";
 import { Pubkey, pubkeyToBytes } from "../data/Pubkey";
-import {
-  IdlPath,
-  idlPathGetJsonValue,
-  idlPathGetTypeFull,
-  idlPathGetTypeFullFields,
-  idlPathParse,
-} from "./IdlPath";
 import { IdlTypedef } from "./IdlTypedef";
 import { IdlTypeFlat } from "./IdlTypeFlat";
 import { idlTypeFlatHydrate } from "./IdlTypeFlatHydrate";
 import { idlTypeFlatParse } from "./IdlTypeFlatParse";
 import { IdlTypeFull, IdlTypeFullFields } from "./IdlTypeFull";
 import { idlTypeFullEncode } from "./IdlTypeFullEncode";
+import { idlTypeFullFieldsGetAt, idlTypeFullGetAt } from "./IdlTypeFullGetAt";
 import { idlUtilsFlattenBlobs, idlUtilsInferValueTypeFlat } from "./IdlUtils";
 
 export type IdlInstructionBlobContext = {
@@ -34,11 +30,12 @@ export type IdlInstructionBlobConst = {
   bytes: Uint8Array;
 };
 export type IdlInstructionBlobArg = {
-  path: IdlPath;
+  pointer: Array<string | number>;
   typeFull: IdlTypeFull;
 };
 export type IdlInstructionBlobAccount = {
-  path: IdlPath;
+  name: string;
+  pointer: Array<string | number>;
   typeFull: IdlTypeFull | undefined;
 };
 
@@ -151,20 +148,20 @@ export function idlInstructionBlobParseArg(
   instructionArgsTypeFullFields: IdlTypeFullFields,
   typedefsIdls?: Map<string, IdlTypedef>,
 ): IdlInstructionBlob {
-  const path = idlPathParse(instructionBlobPath);
+  const path = jsonPointerParse(instructionBlobPath);
   if (instructionBlobType === undefined) {
-    const typeFull = idlPathGetTypeFullFields(
-      path,
+    const typeFull = idlTypeFullFieldsGetAt(
       instructionArgsTypeFullFields,
+      path,
     );
-    return IdlInstructionBlob.arg({ path, typeFull });
+    return IdlInstructionBlob.arg({ pointer: path, typeFull });
   }
   const typeFull = idlTypeFlatHydrate(
     instructionBlobType,
     new Map(),
     typedefsIdls,
   );
-  return IdlInstructionBlob.arg({ path, typeFull });
+  return IdlInstructionBlob.arg({ pointer: path, typeFull });
 }
 
 export function idlInstructionBlobParseAccount(
@@ -172,16 +169,28 @@ export function idlInstructionBlobParseAccount(
   instructionBlobType: IdlTypeFlat | undefined,
   typedefsIdls?: Map<string, IdlTypedef>,
 ): IdlInstructionBlob {
-  const path = idlPathParse(instructionBlobPath);
+  const nameAndPointer = jsonPointerParse(instructionBlobPath);
+  const name = nameAndPointer[0];
+  if (name === undefined) {
+    throw new Error(
+      "PDA Blob account path is empty (should have at least the account name)",
+    );
+  }
+  if (typeof name !== "string" || name === "") {
+    throw new Error(
+      "PDA Blob account path first part should be an account name",
+    );
+  }
+  const pointer = nameAndPointer.slice(1);
   if (instructionBlobType === undefined) {
-    return IdlInstructionBlob.account({ path, typeFull: undefined });
+    return IdlInstructionBlob.account({ name, pointer, typeFull: undefined });
   }
   const typeFull = idlTypeFlatHydrate(
     instructionBlobType,
     new Map(),
     typedefsIdls,
   );
-  return IdlInstructionBlob.account({ path, typeFull });
+  return IdlInstructionBlob.account({ name, pointer, typeFull });
 }
 
 const jsonDecoder = jsonDecoderByKind<{
@@ -218,7 +227,7 @@ const computeVisitor = {
     return self.bytes;
   },
   arg: (self: IdlInstructionBlobArg, context: IdlInstructionBlobContext) => {
-    const value = idlPathGetJsonValue(self.path, context.instructionPayload);
+    const value = jsonGetAt(context.instructionPayload, self.pointer);
     const blobs = new Array<Uint8Array>();
     idlTypeFullEncode(self.typeFull, value, blobs, false);
     return idlUtilsFlattenBlobs(blobs);
@@ -227,57 +236,33 @@ const computeVisitor = {
     self: IdlInstructionBlobAccount,
     context: IdlInstructionBlobContext,
   ) => {
-    if (self.path.isEmpty()) {
-      throw new Error(
-        "PDA Blob account path is empty (should have at least the account name)",
-      );
-    }
-    const split = self.path.splitFirst();
-    if (split === undefined) {
-      throw new Error("PDA Blob account path is empty (should not happen)");
-    }
-    const instructionAccountName = split.first.key();
-    if (!instructionAccountName) {
-      throw new Error(
-        "PDA Blob account path first part should be an account name",
-      );
-    }
-    const contentPath = split.rest;
-    if (contentPath.isEmpty()) {
-      const instructionAddress = context.instructionAddresses.get(
-        instructionAccountName,
-      )!;
-      if (!instructionAddress) {
-        throw new Error(
-          `Could not find address for account: ${instructionAccountName}`,
-        );
+    if (self.pointer.length === 0) {
+      const instructionAddress = context.instructionAddresses.get(self.name);
+      if (instructionAddress === undefined) {
+        throw new Error(`Could not find address for account: ${self.name}`);
       }
       return pubkeyToBytes(instructionAddress);
     }
     const instructionAccountState = context.instructionAccountsStates?.get(
-      instructionAccountName,
+      self.name,
     );
     if (instructionAccountState === undefined) {
-      throw new Error(
-        `Could not find state for account: ${instructionAccountName}`,
-      );
+      throw new Error(`Could not find state for account: ${self.name}`);
     }
-    const value = idlPathGetJsonValue(contentPath, instructionAccountState);
+    const value = jsonGetAt(instructionAccountState, self.pointer);
     const blobs = new Array<Uint8Array>();
     if (self.typeFull !== undefined) {
       idlTypeFullEncode(self.typeFull, value, blobs, false);
       return idlUtilsFlattenBlobs(blobs);
     }
     const instructionAccountContentTypeFull =
-      context.instructionAccountsContentsTypeFull?.get(instructionAccountName);
+      context.instructionAccountsContentsTypeFull?.get(self.name);
     if (instructionAccountContentTypeFull === undefined) {
-      throw new Error(
-        `Could not find content type for account: ${instructionAccountName}`,
-      );
+      throw new Error(`Could not find content type for account: ${self.name}`);
     }
-    const typeFull = idlPathGetTypeFull(
-      contentPath,
+    const typeFull = idlTypeFullGetAt(
       instructionAccountContentTypeFull,
+      self.pointer,
     );
     idlTypeFullEncode(typeFull, value, blobs, false);
     return idlUtilsFlattenBlobs(blobs);

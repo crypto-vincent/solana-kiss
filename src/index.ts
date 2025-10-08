@@ -23,7 +23,6 @@ export * from "./idl/IdlInstructionAccount";
 export * from "./idl/IdlInstructionBlob";
 export * from "./idl/IdlMetadata";
 export * from "./idl/IdlOnchain";
-export * from "./idl/IdlPath"; // TODO - generic json path utils later ?
 export * from "./idl/IdlProgram";
 export * from "./idl/IdlTypedef";
 export * from "./idl/IdlTypeFlat";
@@ -33,6 +32,7 @@ export * from "./idl/IdlTypeFull";
 export * from "./idl/IdlTypeFullBytemuck";
 export * from "./idl/IdlTypeFullDecode";
 export * from "./idl/IdlTypeFullEncode";
+export * from "./idl/IdlTypeFullGetAt";
 export * from "./idl/IdlTypePrefix";
 export * from "./idl/IdlTypePrimitive";
 export * from "./idl/IdlUtils";
