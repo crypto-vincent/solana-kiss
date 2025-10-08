@@ -20,7 +20,6 @@ import { signatureFromBytes } from "../data/Signature";
 import { Signer } from "../data/Signer";
 import {
   Transaction,
-  transactionLoadedAddressesJsonDecoder,
   transactionLogsMessagesJsonDecoder,
 } from "../data/Transaction";
 import { RpcHttp } from "./RpcHttp";
@@ -127,16 +126,16 @@ export async function rpcHttpSimulateInstructions(
         afterAccountAddress,
         afterAccount
           ? {
-              data: afterAccount.data.bytes,
-              owner: afterAccount.owner,
-              lamports: BigInt(afterAccount.lamports),
               executable: afterAccount.executable,
+              lamports: BigInt(afterAccount.lamports),
+              owner: afterAccount.owner,
+              data: afterAccount.data.bytes,
             }
           : {
-              data: new Uint8Array(0),
-              owner: pubkeyDefault,
-              lamports: 0n,
               executable: false,
+              lamports: 0n,
+              owner: pubkeyDefault,
+              data: new Uint8Array(0),
             },
       ];
     }),
@@ -152,26 +151,23 @@ function signerFaked(address: Pubkey): Signer {
 }
 
 const resultJsonDecoder = jsonDecoderObject({
-  context: jsonDecoderObject({
-    slot: jsonCodecBlockSlot.decoder,
-  }),
+  context: jsonDecoderObject({ slot: jsonCodecBlockSlot.decoder }),
   value: jsonDecoderObject({
     unitsConsumed: jsonCodecNumber.decoder,
-    err: jsonCodecRaw.decoder,
     fee: jsonCodecNumber.decoder,
-    loadedAddresses: transactionLoadedAddressesJsonDecoder,
+    err: jsonCodecRaw.decoder,
     logs: transactionLogsMessagesJsonDecoder,
     accounts: jsonDecoderOptional(
       jsonDecoderArray(
         jsonDecoderOptional(
           jsonDecoderObject({
+            executable: jsonCodecBoolean.decoder,
+            lamports: jsonCodecNumber.decoder,
+            owner: jsonCodecPubkey.decoder,
             data: jsonDecoderArrayToObject({
               bytes: jsonCodecBytesBase64.decoder,
               encoding: jsonDecoderConst("base64"),
             }),
-            executable: jsonCodecBoolean.decoder,
-            lamports: jsonCodecNumber.decoder,
-            owner: jsonCodecPubkey.decoder,
           }),
         ),
       ),
