@@ -13,14 +13,8 @@ import { signatureFromBase58, signatureToBase58 } from "./Signature";
 import { utf8Decode, utf8Encode } from "./Utf8";
 import { withContext } from "./Utils";
 
-export type JsonValue =
-  | undefined
-  | null
-  | boolean
-  | number
-  | string
-  | JsonArray
-  | JsonObject;
+export type JsonValue = JsonPrimitive | JsonArray | JsonObject;
+export type JsonPrimitive = boolean | number | string | null | undefined;
 export type JsonArray = Array<JsonValue>;
 export interface JsonObject {
   [key: string]: JsonValue;
@@ -447,9 +441,7 @@ export const jsonCodecBytesUtf8 = jsonCodecTransform(jsonCodecString, {
   encoder: utf8Decode,
 });
 
-export function jsonDecoderConst<Const extends boolean | number | string>(
-  expected: Const,
-) {
+export function jsonDecoderConst<Const extends JsonPrimitive>(expected: Const) {
   return (encoded: JsonValue): Const => {
     if (encoded !== expected) {
       throw new Error(
@@ -459,14 +451,12 @@ export function jsonDecoderConst<Const extends boolean | number | string>(
     return expected;
   };
 }
-export function jsonEncoderConst<Const extends boolean | number | string>(
-  expected: Const,
-) {
+export function jsonEncoderConst<Const extends JsonPrimitive>(expected: Const) {
   return (_: JsonValue): Const => {
     return expected;
   };
 }
-export function jsonCodecConst<Const extends boolean | number | string>(
+export function jsonCodecConst<Const extends JsonPrimitive>(
   expected: Const,
 ): JsonCodec<Const> {
   return {
@@ -824,24 +814,6 @@ export function jsonCodecTransform<Decoded, Encoded>(
   };
 }
 
-export function jsonDecoderCascade<Content>(
-  decoders: Array<(value: JsonValue) => Content>,
-): JsonDecoder<Content> {
-  return (encoded: JsonValue): Content => {
-    const errors = new Array();
-    for (const decoder of decoders) {
-      try {
-        return decoder(encoded);
-      } catch (error) {
-        errors.push(error);
-      }
-    }
-    const separator = "\n---\n >> JSON: Decode error: ";
-    throw new Error(
-      `JSON: Decode with cascades failed: ${separator}${errors.join(separator)})`,
-    );
-  };
-}
 export function jsonDecoderByKind<Content>(decoders: {
   undefined?: () => Content;
   null?: () => Content;

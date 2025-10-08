@@ -1,5 +1,8 @@
 import { expect, it } from "@jest/globals";
 import {
+  idlInstructionAddressesFind,
+  idlInstructionEncode,
+  idlProgramParse,
   InstructionInput,
   Pubkey,
   pubkeyDefault,
@@ -7,13 +10,8 @@ import {
   pubkeyFromBase58,
   pubkeyNewDummy,
   pubkeyToBytes,
+  utf8Encode,
 } from "../src";
-import { utf8Encode } from "../src/data/Utf8";
-import {
-  idlInstructionAddressesFind,
-  idlInstructionEncode,
-} from "../src/idl/IdlInstruction";
-import { idlProgramParse } from "../src/idl/IdlProgram";
 
 const systemProgramAddress = pubkeyDefault;
 const tokenProgramAddress = pubkeyFromBase58(

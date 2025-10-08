@@ -16,10 +16,12 @@ export async function rpcHttpGetAccountWithData(
   rpcHttp: RpcHttp,
   accountAddress: Pubkey,
 ): Promise<{
-  executable: boolean;
-  lamports: bigint;
-  owner: Pubkey;
-  data: Uint8Array;
+  accountInfo: {
+    executable: boolean;
+    lamports: bigint;
+    owner: Pubkey;
+    data: Uint8Array;
+  };
 }> {
   const result = resultJsonDecoder(
     await rpcHttp("getAccountInfo", [pubkeyToBase58(accountAddress)], {
@@ -28,10 +30,12 @@ export async function rpcHttpGetAccountWithData(
   );
   if (result.value === undefined) {
     return {
-      executable: false,
-      lamports: 0n,
-      owner: pubkeyDefault,
-      data: new Uint8Array(0),
+      accountInfo: {
+        executable: false,
+        lamports: 0n,
+        owner: pubkeyDefault,
+        data: new Uint8Array(0),
+      },
     };
   }
   const value = result.value;
@@ -44,7 +48,7 @@ export async function rpcHttpGetAccountWithData(
       `RpcHttp: Expected account data length (${data.length}) to match space (${value.space})`,
     );
   }
-  return { executable, lamports, owner, data };
+  return { accountInfo: { executable, lamports, owner, data } };
 }
 
 const resultJsonDecoder = jsonDecoderObject({

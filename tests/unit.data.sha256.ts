@@ -1,6 +1,5 @@
 import { expect, it } from "@jest/globals";
-import { base16Encode, sha256Hash } from "../src";
-import { utf8Encode } from "../src/data/Utf8";
+import { base16Encode, sha256Hash, utf8Encode } from "../src";
 
 async function referenceImplementation(data: Uint8Array): Promise<Uint8Array> {
   if (globalThis.crypto?.subtle !== undefined) {

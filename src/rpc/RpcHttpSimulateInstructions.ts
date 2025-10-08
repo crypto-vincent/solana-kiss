@@ -8,6 +8,7 @@ import {
   jsonCodecNumber,
   jsonCodecPubkey,
   jsonCodecRaw,
+  jsonCodecString,
   jsonDecoderArray,
   jsonDecoderArrayToObject,
   jsonDecoderConst,
@@ -18,11 +19,8 @@ import { messageCompile, messageSign } from "../data/Message";
 import { Pubkey, pubkeyDefault } from "../data/Pubkey";
 import { signatureFromBytes } from "../data/Signature";
 import { Signer } from "../data/Signer";
-import {
-  Transaction,
-  transactionLogsMessagesJsonDecoder,
-} from "../data/Transaction";
 import { RpcHttp } from "./RpcHttp";
+import { RpcTransactionExecution } from "./RpcTransaction";
 
 export async function rpcHttpSimulateInstructions(
   rpcHttp: RpcHttp,
@@ -36,22 +34,22 @@ export async function rpcHttpSimulateInstructions(
         // TODO - support for LUTs ?
       },
   options?: {
-    afterAccountAddresses?: Set<Pubkey>;
+    simulatedAccountsAddresses?: Set<Pubkey>;
   },
 ): Promise<{
-  transaction: Transaction;
-  afterAccountsByAddress: Map<
+  transactionExecution: RpcTransactionExecution;
+  simulatedAccountInfoByAddress: Map<
     Pubkey,
     {
-      data: Uint8Array;
-      owner: Pubkey;
-      lamports: bigint;
       executable: boolean;
+      lamports: bigint;
+      owner: Pubkey;
+      data: Uint8Array;
     }
   >;
 }> {
-  if ((options?.afterAccountAddresses?.size ?? 0) > 3) {
-    throw new Error("RpcHttp: afterAccountAddresses max size is 3");
+  if ((options?.simulatedAccountsAddresses?.size ?? 0) > 3) {
+    throw new Error("RpcHttp: fetchAccountsAddresses max size is 3");
   }
   const instructionsAddresses = new Set<Pubkey>();
   for (const instruction of instructions) {
@@ -92,8 +90,8 @@ export async function rpcHttpSimulateInstructions(
   };
   const messageCompiled = messageCompile(message);
   const messageSigned = await messageSign(messageCompiled, signers);
-  const afterAccountsAddresses = options?.afterAccountAddresses
-    ? [...options.afterAccountAddresses]
+  const afterAccountsAddresses = options?.simulatedAccountsAddresses
+    ? [...options.simulatedAccountsAddresses]
     : [];
   const result = resultJsonDecoder(
     await rpcHttp("simulateTransaction", [base64Encode(messageSigned)], {
@@ -107,29 +105,28 @@ export async function rpcHttpSimulateInstructions(
       sigVerify,
     }),
   );
-  const transaction = {
-    block: {
+  const transactionExecution = {
+    blockInfo: {
       time: undefined,
       slot: result.context.slot,
     },
     message,
     chargedFeesLamports: BigInt(result.value.fee),
     consumedComputeUnits: result.value.unitsConsumed,
-    error: result.value.err,
     logs: result.value.logs,
-    invocations: undefined,
+    error: result.value.err,
   };
   const afterAccountsByAddress = new Map(
-    afterAccountsAddresses.map((afterAccountAddress, accountIndex) => {
-      const afterAccount = result.value.accounts?.[accountIndex];
+    afterAccountsAddresses.map((afterAccountAddress, afterAccountIndex) => {
+      const afterAccountInfo = result.value.accounts?.[afterAccountIndex];
       return [
         afterAccountAddress,
-        afterAccount
+        afterAccountInfo
           ? {
-              executable: afterAccount.executable,
-              lamports: BigInt(afterAccount.lamports),
-              owner: afterAccount.owner,
-              data: afterAccount.data.bytes,
+              executable: afterAccountInfo.executable,
+              lamports: BigInt(afterAccountInfo.lamports),
+              owner: afterAccountInfo.owner,
+              data: afterAccountInfo.data.bytes,
             }
           : {
               executable: false,
@@ -140,13 +137,9 @@ export async function rpcHttpSimulateInstructions(
       ];
     }),
   );
-  return { transaction, afterAccountsByAddress };
-}
-
-function signerFaked(address: Pubkey): Signer {
   return {
-    address,
-    sign: async () => signatureFromBytes(new Uint8Array(64).fill(0)),
+    transactionExecution,
+    simulatedAccountInfoByAddress: afterAccountsByAddress,
   };
 }
 
@@ -156,7 +149,7 @@ const resultJsonDecoder = jsonDecoderObject({
     unitsConsumed: jsonCodecNumber.decoder,
     fee: jsonCodecNumber.decoder,
     err: jsonCodecRaw.decoder,
-    logs: transactionLogsMessagesJsonDecoder,
+    logs: jsonDecoderOptional(jsonDecoderArray(jsonCodecString.decoder)),
     accounts: jsonDecoderOptional(
       jsonDecoderArray(
         jsonDecoderOptional(
@@ -174,3 +167,10 @@ const resultJsonDecoder = jsonDecoderObject({
     ),
   }),
 });
+
+function signerFaked(address: Pubkey): Signer {
+  return {
+    address,
+    sign: async () => signatureFromBytes(new Uint8Array(64).fill(0)),
+  };
+}

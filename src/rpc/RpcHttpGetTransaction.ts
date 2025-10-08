@@ -15,20 +15,27 @@ import {
 } from "../data/Json";
 import { Pubkey } from "../data/Pubkey";
 import { Signature, signatureToBase58 } from "../data/Signature";
-import {
-  Transaction,
-  TransactionInvocation,
-  transactionLoadedAddressesJsonDecoder,
-  transactionLogsMessagesJsonDecoder,
-} from "../data/Transaction";
 import { RpcHttp } from "./RpcHttp";
+import {
+  RpcTransactionExecution,
+  RpcTransactionInvocation,
+} from "./RpcTransaction";
 
 export async function rpcHttpGetTransaction(
   rpcHttp: RpcHttp,
-  transactionSignature: Signature,
-): Promise<Transaction | undefined> {
+  transactionId: Signature,
+  options?: {
+    skipInvocations?: boolean;
+  },
+): Promise<
+  | {
+      transactionExecution: RpcTransactionExecution;
+      transactionInvocations: Array<RpcTransactionInvocation> | undefined;
+    }
+  | undefined
+> {
   const result = resultJsonDecoder(
-    await rpcHttp("getTransaction", [signatureToBase58(transactionSignature)], {
+    await rpcHttp("getTransaction", [signatureToBase58(transactionId)], {
       encoding: "json",
       maxSupportedTransactionVersion: 0,
     }),
@@ -56,8 +63,8 @@ export async function rpcHttpGetTransaction(
     instructionsInputs,
     message.instructions,
   );
-  return {
-    block: {
+  const transactionExecution = {
+    blockInfo: {
       time: result.blockTime ? new Date(result.blockTime * 1000) : undefined,
       slot: result.slot,
     },
@@ -68,15 +75,19 @@ export async function rpcHttpGetTransaction(
     },
     chargedFeesLamports: BigInt(meta.fee),
     consumedComputeUnits: meta.computeUnitsConsumed,
-    error: meta.err, // TODO - parse error to find custom program errors ?
     logs: meta.logMessages, // TODO - parse logs for invocations and event data
-    invocations: meta.innerInstructions
-      ? decompileTransactionInvocations(
-          messageInstructions,
-          instructionsInputs,
-          meta.innerInstructions,
-        )
-      : undefined,
+    error: meta.err, // TODO - parse error to find custom program errors ?
+  };
+  if (options?.skipInvocations || meta.innerInstructions === undefined) {
+    return { transactionExecution, transactionInvocations: undefined };
+  }
+  return {
+    transactionExecution,
+    transactionInvocations: decompileTransactionInvocations(
+      messageInstructions,
+      instructionsInputs,
+      meta.innerInstructions,
+    ),
   };
 }
 
@@ -155,8 +166,8 @@ function decompileTransactionInvocations(
     index: number;
     instructions: Array<CompiledInstruction>;
   }>,
-): Array<TransactionInvocation> {
-  const rootInvocations = new Array<TransactionInvocation>();
+): Array<RpcTransactionInvocation> {
+  const rootInvocations = new Array<RpcTransactionInvocation>();
   for (let index = 0; index < messageInstructions.length; index++) {
     rootInvocations.push({
       instruction: messageInstructions[index]!,
@@ -168,7 +179,7 @@ function decompileTransactionInvocations(
       rootInvocations,
       compiledInnerInstructionBlock.index,
     );
-    const invocationStack = new Array<TransactionInvocation>();
+    const invocationStack = new Array<RpcTransactionInvocation>();
     invocationStack.push(rootInvocation);
     for (const compiledInnerInstruction of compiledInnerInstructionBlock.instructions) {
       const innerInvocation = {
@@ -257,8 +268,15 @@ const resultJsonDecoder = jsonDecoderOptional(
           }),
         ),
       ),
-      loadedAddresses: transactionLoadedAddressesJsonDecoder,
-      logMessages: transactionLogsMessagesJsonDecoder,
+      loadedAddresses: jsonDecoderOptional(
+        jsonDecoderObject({
+          writable: jsonDecoderArray(jsonCodecPubkey.decoder),
+          readonly: jsonDecoderArray(jsonCodecPubkey.decoder),
+        }),
+      ),
+      logMessages: jsonDecoderOptional(
+        jsonDecoderArray(jsonCodecString.decoder),
+      ),
     }),
     slot: jsonCodecBlockSlot.decoder,
     transaction: jsonDecoderObject({

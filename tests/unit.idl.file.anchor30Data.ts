@@ -1,11 +1,12 @@
 import { expect, it } from "@jest/globals";
-import { pubkeyNewDummy, pubkeyToBase58 } from "../src";
-import { idlAccountDecode, idlAccountEncode } from "../src/idl/IdlAccount";
 import {
   idlInstructionArgsDecode,
   idlInstructionArgsEncode,
-} from "../src/idl/IdlInstruction";
-import { idlProgramParse } from "../src/idl/IdlProgram";
+  idlProgramParse,
+  pubkeyNewDummy,
+  pubkeyToBase58,
+} from "../src";
+import { idlAccountDecode, idlAccountEncode } from "../src/idl/IdlAccount";
 
 it("run", () => {
   // Parse IDL from file JSON directly

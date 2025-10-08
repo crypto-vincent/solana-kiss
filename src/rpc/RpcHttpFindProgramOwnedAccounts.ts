@@ -7,7 +7,7 @@ import {
 import { Pubkey, pubkeyToBase58 } from "../data/Pubkey";
 import { RpcHttp } from "./RpcHttp";
 
-export async function rpcHttpFindProgramOwnedAddresses(
+export async function rpcHttpFindProgramOwnedAccounts(
   rpcHttp: RpcHttp,
   programAddress: Pubkey,
   filters?: {
@@ -17,7 +17,7 @@ export async function rpcHttpFindProgramOwnedAddresses(
       bytes: Uint8Array;
     }>;
   },
-): Promise<Set<Pubkey>> {
+): Promise<{ accountsAddresses: Set<Pubkey> }> {
   const paramFilters = [];
   if (filters?.dataSize !== undefined) {
     paramFilters.push({ dataSize: filters.dataSize });
@@ -46,7 +46,7 @@ export async function rpcHttpFindProgramOwnedAddresses(
   for (const item of result) {
     accountsAddresses.add(item.pubkey);
   }
-  return accountsAddresses;
+  return { accountsAddresses };
 }
 
 const resultJsonDecoder = jsonDecoderArray(

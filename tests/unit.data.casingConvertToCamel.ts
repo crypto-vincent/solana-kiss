@@ -3,20 +3,27 @@ import { casingConvertToCamel } from "../src";
 
 it("run", async () => {
   const tests = [
-    { original: "", camelCase: "" },
-    // { original: "UPPERCASE", camelCase: "uppercase" },
-    { original: "Lowercase", camelCase: "lowercase" },
-    { original: "Capitalized", camelCase: "capitalized" },
-    { original: "PascalCase", camelCase: "pascalCase" },
-    { original: "camelCase", camelCase: "camelCase" },
-    { original: "snake1_case", camelCase: "snake1Case" },
-    { original: "SNAKE2_CASE", camelCase: "snake2Case" },
-    { original: "kebab-case", camelCase: "kebabCase" },
-    { original: "multiple__underscores", camelCase: "multipleUnderscores" },
-    { original: "hello_world_test", camelCase: "helloWorldTest" },
-    { original: "with_num1234_v1", camelCase: "withNum1234V1" },
+    { in: "", out: "" },
+    { in: "UPPERCASE", out: "uppercase" },
+    { in: "Lowercase", out: "lowercase" },
+    { in: "Capitalized", out: "capitalized" },
+    { in: "PascalCase", out: "pascalCase" },
+    { in: "snake1_case", out: "snake1Case" },
+    { in: "SNAKE2_CASE", out: "snake2Case" },
+    { in: "kebab-case", out: "kebabCase" },
+    { in: "kebab-CASE", out: "kebabCase" },
+    { in: "Title Case", out: "titleCase" },
+    { in: "with space", out: "withSpace" },
+    { in: "with ACRONYM", out: "withAcronym" },
+    { in: "multiple   spaces", out: "multipleSpaces" },
+    { in: "  leading _ trailing spaces  ", out: "leadingTrailingSpaces" },
+    { in: "multiple__underscores", out: "multipleUnderscores" },
+    { in: "\nhello\t_world_test", out: "helloWorldTest" },
+    { in: "with_num1234_v1", out: "withNum1234V1" },
+    { in: "withNum1234V1", out: "withNum1234V1" },
+    { in: "1234withNumV1", out: "1234withNumV1" },
   ];
   for (const test of tests) {
-    expect(casingConvertToCamel(test.original)).toStrictEqual(test.camelCase);
+    expect(casingConvertToCamel(test.in)).toStrictEqual(test.out);
   }
 });

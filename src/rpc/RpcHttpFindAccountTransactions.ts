@@ -7,19 +7,19 @@ import { Pubkey, pubkeyToBase58 } from "../data/Pubkey";
 import { Signature, signatureToBase58 } from "../data/Signature";
 import { RpcHttp } from "./RpcHttp";
 
-export async function rpcHttpFindAccountPastSignatures(
+export async function rpcHttpFindAccountTransactions(
   rpcHttp: RpcHttp,
   accountAddress: Pubkey,
-  maxLength: number,
+  maxResultLength: number,
   pagination?: {
-    startBefore?: Signature;
-    rewindUntil?: Signature;
+    startBeforeTransactionId?: Signature;
+    rewindUntilTransactionId?: Signature;
   },
-): Promise<Array<Signature>> {
+): Promise<{ transactionsIds: Array<Signature> }> {
   const requestLimit = 1000;
-  const signatures = new Array<Signature>();
-  const rewindUntil = pagination?.rewindUntil;
-  let startBefore = pagination?.startBefore;
+  const transactionsIds = new Array<Signature>();
+  const rewindUntil = pagination?.rewindUntilTransactionId;
+  let startBefore = pagination?.startBeforeTransactionId;
   while (true) {
     const result = resultJsonDecoder(
       await rpcHttp(
@@ -32,18 +32,18 @@ export async function rpcHttpFindAccountPastSignatures(
       ),
     );
     for (const item of result) {
-      const signature = item.signature;
-      signatures.push(signature);
-      if (signatures.length >= maxLength) {
-        return signatures;
+      const transactionId = item.signature;
+      transactionsIds.push(transactionId);
+      if (transactionsIds.length >= maxResultLength) {
+        return { transactionsIds };
       }
-      if (signature === rewindUntil) {
-        return signatures;
+      if (transactionId === rewindUntil) {
+        return { transactionsIds };
       }
-      startBefore = signature;
+      startBefore = transactionId;
     }
     if (result.length < requestLimit) {
-      return signatures;
+      return { transactionsIds };
     }
   }
 }

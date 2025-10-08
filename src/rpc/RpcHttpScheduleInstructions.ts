@@ -20,7 +20,9 @@ export async function rpcHttpScheduleInstructions(
   options?: {
     skipPreflight?: boolean;
   },
-): Promise<Signature> {
+): Promise<{
+  transactionId: Signature;
+}> {
   const signers = [context.payerSigner, ...(context?.extraSigners ?? [])];
   const messageCompiled = messageCompile({
     payerAddress: context.payerSigner.address,
@@ -28,10 +30,11 @@ export async function rpcHttpScheduleInstructions(
     recentBlockHash: context.recentBlockHash,
   });
   const messageSigned = await messageSign(messageCompiled, signers);
-  return jsonCodecSignature.decoder(
+  const transactionId = jsonCodecSignature.decoder(
     await rpcHttp("sendTransaction", [base64Encode(messageSigned)], {
       skipPreflight: options?.skipPreflight,
       encoding: "base64",
     }),
   );
+  return { transactionId };
 }

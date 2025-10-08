@@ -11,9 +11,9 @@ export * from "./data/Pubkey";
 export * from "./data/Sha256";
 export * from "./data/Signature";
 export * from "./data/Signer";
-export * from "./data/Transaction";
 export * from "./data/Utf8";
 export * from "./data/Utils";
+export * from "./rpc/RpcTransaction";
 
 export * from "./idl/IdlAccount";
 export * from "./idl/IdlError";
@@ -38,12 +38,13 @@ export * from "./idl/IdlTypePrimitive";
 export * from "./idl/IdlUtils";
 
 export * from "./rpc/RpcHttp";
-export * from "./rpc/RpcHttpFindAccountPastSignatures";
-export * from "./rpc/RpcHttpFindProgramOwnedAddresses";
+export * from "./rpc/RpcHttpFindAccountTransactions";
+export * from "./rpc/RpcHttpFindProgramOwnedAccounts";
 export * from "./rpc/RpcHttpGetAccountLamports";
 export * from "./rpc/RpcHttpGetAccountMetadata";
 export * from "./rpc/RpcHttpGetAccountWithData";
-export * from "./rpc/RpcHttpGetBlock";
+export * from "./rpc/RpcHttpGetBlockMetadata";
+export * from "./rpc/RpcHttpGetBlockTransactions";
 export * from "./rpc/RpcHttpGetLatestBlockHash";
 export * from "./rpc/RpcHttpGetTransaction";
 export * from "./rpc/RpcHttpScheduleInstructions";

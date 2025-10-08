@@ -14,7 +14,7 @@ it("run", async () => {
   const onchainAnchorAddress = idlOnchainAnchorAddress(
     pubkeyFromBase58("UCNcQRtrbGmvuLKA3Jv719Cc6DS4r661ZRpyZduxu2j"),
   );
-  const onchainAnchorInfo = await rpcHttpGetAccountWithData(
+  const { accountInfo: onchainAnchorInfo } = await rpcHttpGetAccountWithData(
     rpcHttp,
     onchainAnchorAddress,
   );

@@ -14,8 +14,8 @@ import {
   RpcHttp,
   rpcHttpFromUrl,
   rpcHttpGetAccountWithData,
+  utf8Encode,
 } from "../src";
-import { utf8Encode } from "../src/data/Utf8";
 
 it("run", async () => {
   // Create the endpoint
@@ -91,7 +91,10 @@ async function assertAccountInfo(
   accountStateKey: string,
   accountStateValue: JsonValue,
 ) {
-  const accountInfo = await rpcHttpGetAccountWithData(rpcHttp, accountAddress);
+  const { accountInfo } = await rpcHttpGetAccountWithData(
+    rpcHttp,
+    accountAddress,
+  );
   const accountIdl = idlProgramGuessAccount(programIdl, accountInfo.data)!;
   const accountState = idlAccountDecode(accountIdl, accountInfo.data);
   expect(accountIdl.name).toStrictEqual(accountName);

@@ -1,8 +1,12 @@
 import { expect, it } from "@jest/globals";
-import { pubkeyFindPdaAddress, pubkeyNewDummy, pubkeyToBytes } from "../src";
-import { utf8Encode } from "../src/data/Utf8";
-import { idlInstructionAddressesFind } from "../src/idl/IdlInstruction";
-import { idlProgramParse } from "../src/idl/IdlProgram";
+import {
+  idlInstructionAddressesFind,
+  idlProgramParse,
+  pubkeyFindPdaAddress,
+  pubkeyNewDummy,
+  pubkeyToBytes,
+  utf8Encode,
+} from "../src";
 
 it("run", () => {
   // Create an IDL on the fly

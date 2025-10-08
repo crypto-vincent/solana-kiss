@@ -6,8 +6,8 @@ import {
   pubkeyNewDummy,
   pubkeyToBase58,
   pubkeyToBytes,
+  utf8Encode,
 } from "../src";
-import { utf8Encode } from "../src/data/Utf8";
 
 it("run", () => {
   // Parse IDL from file JSON directly

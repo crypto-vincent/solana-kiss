@@ -24,7 +24,8 @@ it("run", async () => {
   const payerSigner = await signerFromSecret(secret);
   const ownedSigner = await signerGenerate();
   const ownerAddress = pubkeyNewDummy();
-  const recentBlockHash = await rpcHttpGetLatestBlockHash(rpcHttp);
+  const { blockInfo: recentBlockInfo } =
+    await rpcHttpGetLatestBlockHash(rpcHttp);
   const requestedSpace = 42;
   const transferLamports = lamportsRentExemptionMinimumForSpace(requestedSpace);
   const instruction = idlInstructionEncode(
@@ -40,24 +41,33 @@ it("run", async () => {
       owner: pubkeyToBase58(ownerAddress),
     },
   );
-  const signature = await rpcHttpScheduleInstructions(rpcHttp, [instruction], {
-    payerSigner,
-    extraSigners: [ownedSigner],
-    recentBlockHash,
-  });
-  const transaction = await rpcHttpWaitForTransaction(rpcHttp, signature, 3000);
-  expect(transaction.error).toStrictEqual(null);
-  expect(transaction.chargedFeesLamports).toStrictEqual(
+  const { transactionId } = await rpcHttpScheduleInstructions(
+    rpcHttp,
+    [instruction],
+    {
+      payerSigner,
+      extraSigners: [ownedSigner],
+      recentBlockHash: recentBlockInfo.hash,
+    },
+  );
+  const { transactionExecution } = await rpcHttpWaitForTransaction(
+    rpcHttp,
+    transactionId,
+    3000,
+  );
+  expect(transactionExecution.chargedFeesLamports).toStrictEqual(
     lamportsFeePerSigner * 2n,
   );
-  const receiverMetadata = await rpcHttpGetAccountMetadata(
+  expect(transactionExecution.logs?.length).toStrictEqual(2);
+  expect(transactionExecution.error).toStrictEqual(null);
+  const { accountInfo: ownedAccountInfo } = await rpcHttpGetAccountMetadata(
     rpcHttp,
     ownedSigner.address,
   );
-  expect(receiverMetadata.executable).toBe(false);
-  expect(receiverMetadata.lamports).toBe(transferLamports);
-  expect(receiverMetadata.owner).toBe(ownerAddress);
-  expect(receiverMetadata.space).toBe(requestedSpace);
+  expect(ownedAccountInfo.executable).toBe(false);
+  expect(ownedAccountInfo.lamports).toBe(transferLamports);
+  expect(ownedAccountInfo.owner).toBe(ownerAddress);
+  expect(ownedAccountInfo.space).toBe(requestedSpace);
 });
 
 const secret = new Uint8Array([

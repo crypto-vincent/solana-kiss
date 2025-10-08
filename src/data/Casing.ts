@@ -1,17 +1,18 @@
-export function casingConvertToSnake(camelCase: string): string {
-  return camelCase.replace(/([a-z0-9])([A-Z])/g, "$1_$2").toLowerCase();
+export function casingConvertToSnake(string: string): string {
+  return string
+    .replace(/[_\-\s]+/g, " ")
+    .replace(/([a-z0-9])([A-Z])/g, "$1 $2")
+    .trim()
+    .toLowerCase()
+    .replace(/\s+/g, "_");
 }
 
 export function casingConvertToCamel(string: string): string {
-  const base = string.replace(/[_-]+([a-z0-9])/g, (_, first) =>
-    first.toUpperCase(),
-  );
-  return base.charAt(0).toLowerCase() + base.slice(1);
-}
-
-export function casingConvertToPascal(string: string): string {
-  const base = string.replace(/[_-]+([a-z0-9])/g, (_, first) =>
-    first.toUpperCase(),
-  );
-  return base.charAt(0).toUpperCase() + base.slice(1);
+  return string
+    .replace(/[_\-\s]+/g, " ")
+    .replace(/([a-z0-9])([A-Z])/g, "$1 $2")
+    .trim()
+    .toLowerCase()
+    .replace(/\s([a-z])/g, (_, char) => char.toUpperCase())
+    .replace(/\s+/g, "");
 }

@@ -7,8 +7,8 @@ import {
   pubkeyNewDummy,
   pubkeyToBase58,
   pubkeyToBytes,
+  utf8Encode,
 } from "../src";
-import { utf8Encode } from "../src/data/Utf8";
 
 const tokenProgramAddress = pubkeyFromBase58(
   "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA",

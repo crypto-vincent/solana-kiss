@@ -8,22 +8,23 @@ import {
 it("run", async () => {
   const rpcHttp = rpcHttpFromUrl("https://api.mainnet-beta.solana.com");
   // Complex transaction with many inner instructions nested
-  const transaction = await rpcHttpWaitForTransaction(
-    rpcHttp,
-    signatureFromBase58(
-      "5c4TRGCXbv6ChbTpTnmFzt3WFqpWMMSAKdEqiqCFzG7hTFTWxdHpv2VxfQBzG3VwvQ2mMyG4rvV2eTN68jrLKy3U",
-    ),
-    0,
-  );
-  expect(transaction.message.payerAddress).toStrictEqual(
+  const { transactionExecution, transactionInvocations } =
+    await rpcHttpWaitForTransaction(
+      rpcHttp,
+      signatureFromBase58(
+        "5c4TRGCXbv6ChbTpTnmFzt3WFqpWMMSAKdEqiqCFzG7hTFTWxdHpv2VxfQBzG3VwvQ2mMyG4rvV2eTN68jrLKy3U",
+      ),
+      0,
+    );
+  expect(transactionExecution.message.payerAddress).toStrictEqual(
     "Ewfot2ZKhuGuEWaSRyFpe3LpK9xSEEUrDZk4AQpTazAR",
   );
-  expect(transaction.message.recentBlockHash).toStrictEqual(
+  expect(transactionExecution.message.recentBlockHash).toStrictEqual(
     "ETzLkjyxUNupAQxQRnTuG2u7wnQCWEgtdTLegeQycCPv",
   );
-  expect(transaction.error).toStrictEqual(null);
+  expect(transactionExecution.error).toStrictEqual(null);
   // Check the invocations tree shape
-  const invocations = transaction.invocations!;
+  const invocations = transactionInvocations!;
   expect(invocations.length).toStrictEqual(4);
   expect(invocations[0]!.invocations.length).toStrictEqual(0);
   expect(invocations[1]!.invocations.length).toStrictEqual(0);

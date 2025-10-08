@@ -1,6 +1,5 @@
 import { expect, it } from "@jest/globals";
-import { base16Decode, base16Encode } from "../src";
-import { utf8Encode } from "../src/data/Utf8";
+import { base16Decode, base16Encode, utf8Encode } from "../src";
 
 function referenceImplementation(data: Uint8Array): string {
   const hex = "0123456789ABCDEF";

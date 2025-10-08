@@ -1,10 +1,10 @@
 import { expect, it } from "@jest/globals";
-import { pubkeyNewDummy } from "../src";
 import {
   idlInstructionAccountsDecode,
   idlInstructionAccountsEncode,
-} from "../src/idl/IdlInstruction";
-import { idlProgramParse } from "../src/idl/IdlProgram";
+  idlProgramParse,
+  pubkeyNewDummy,
+} from "../src";
 
 it("run", () => {
   // Create an IDL on the fly

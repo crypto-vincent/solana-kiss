@@ -1,7 +1,6 @@
 import { expect, it } from "@jest/globals";
-import { pubkeyFromBytes, pubkeyToBase58 } from "../src";
+import { idlProgramParse, pubkeyFromBytes, pubkeyToBase58 } from "../src";
 import { idlAccountDecode, idlAccountEncode } from "../src/idl/IdlAccount";
-import { idlProgramParse } from "../src/idl/IdlProgram";
 
 it("run", () => {
   // Create an IDL on the fly

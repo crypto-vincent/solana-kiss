@@ -1,30 +1,29 @@
 import { expect, it } from "@jest/globals";
 import {
   pubkeyFromBase58,
-  rpcHttpFindAccountPastSignatures,
+  rpcHttpFindAccountTransactions,
   rpcHttpFromUrl,
   rpcHttpWaitForTransaction,
 } from "../src";
 
 it("run", async () => {
   const rpcHttp = rpcHttpFromUrl("https://api.devnet.solana.com");
-  const pastSignatures = await rpcHttpFindAccountPastSignatures(
+  const { transactionsIds } = await rpcHttpFindAccountTransactions(
     rpcHttp,
     pubkeyFromBase58("vVeH6Xd43HAScbxjVtvfwDGqBMaMvNDLsAxwM5WK1pG"),
     4200,
   );
-  expect(pastSignatures.length).toBeGreaterThan(0);
-  const pastSignature = pastSignatures[0]!;
-  const transaction = await rpcHttpWaitForTransaction(
+  expect(transactionsIds.length).toBeGreaterThan(0);
+  const { transactionExecution } = await rpcHttpWaitForTransaction(
     rpcHttp,
-    pastSignature,
+    transactionsIds[0]!,
     0,
   );
-  expect(transaction.block.time?.toISOString()).toStrictEqual(
+  expect(transactionExecution.blockInfo.time?.toISOString()).toStrictEqual(
     "2025-08-21T15:26:48.000Z",
   );
   let found = 0;
-  for (const log of transaction.logs ?? []) {
+  for (const log of transactionExecution.logs ?? []) {
     if (log.includes("vVeH6Xd43HAScbxjVtvfwDGqBMaMvNDLsAxwM5WK1pG")) {
       found += 1;
     }

@@ -3,48 +3,57 @@ import { Signature } from "../src";
 import { rpcHttpGetTransaction } from "../src/rpc/RpcHttpGetTransaction";
 
 it("run", async () => {
-  const transaction = (await rpcHttpGetTransaction(
+  const transactionResponse = (await rpcHttpGetTransaction(
     () => require("./fixtures/RpcHttpGetTransaction.json"),
     "!" as Signature,
   ))!;
+  const transactionExecution = transactionResponse.transactionExecution;
+  const transactionInvocations = transactionResponse.transactionInvocations!;
   // Check basic stuff about the transaction
-  expect(transaction.block.slot).toStrictEqual(328883613);
-  expect(transaction.error).toStrictEqual(null);
-  expect(transaction.logs?.length).toStrictEqual(18);
-  expect(transaction.logs?.[0]).toStrictEqual(
+  expect(transactionExecution.blockInfo.time?.toISOString()).toStrictEqual(
+    "2025-03-24T14:28:45.000Z",
+  );
+  expect(transactionExecution.blockInfo.slot).toStrictEqual(328883613);
+  expect(transactionExecution.chargedFeesLamports).toStrictEqual(32510n);
+  expect(transactionExecution.consumedComputeUnits).toStrictEqual(42381);
+  expect(transactionExecution.logs?.length).toStrictEqual(18);
+  expect(transactionExecution.logs?.[0]).toStrictEqual(
     "Program ComputeBudget111111111111111111111111111111 invoke [1]",
   );
-  expect(transaction.chargedFeesLamports).toStrictEqual(32510n);
-  expect(transaction.consumedComputeUnits).toStrictEqual(42381);
+  expect(transactionExecution.error).toStrictEqual(null);
   // Check the message content
-  expect(transaction.message.payerAddress).toStrictEqual(
+  expect(transactionExecution.message.payerAddress).toStrictEqual(
     "Hc3EobqKYuqndAYmPzEhokBab3trofMWDafj4PJxFYUL",
   );
-  expect(transaction.message.instructions.length).toStrictEqual(4);
-  expect(transaction.message.instructions[0]!.programAddress).toStrictEqual(
-    "ComputeBudget111111111111111111111111111111",
-  );
-  expect(transaction.message.instructions[0]!.data).toStrictEqual(
+  expect(transactionExecution.message.instructions.length).toStrictEqual(4);
+  expect(
+    transactionExecution.message.instructions[0]!.programAddress,
+  ).toStrictEqual("ComputeBudget111111111111111111111111111111");
+  expect(transactionExecution.message.instructions[0]!.data).toStrictEqual(
     new Uint8Array([2, 32, 161, 7, 0]),
   );
-  expect(transaction.message.recentBlockHash).toStrictEqual(
+  expect(transactionExecution.message.recentBlockHash).toStrictEqual(
     "4nTobZxuiA9xZDuSMfSQE6WJSswAkoVoF7ycve42iiy2",
   );
   // Check the invocations content
-  const invocations = transaction.invocations!;
-  expect(invocations.length).toStrictEqual(4);
-  expect(invocations[0]!.instruction).toStrictEqual(
-    transaction.message.instructions[0]!,
+  expect(transactionInvocations.length).toStrictEqual(4);
+  expect(transactionInvocations[0]!.instruction).toStrictEqual(
+    transactionExecution.message.instructions[0]!,
   );
-  expect(invocations[0]!.invocations.length).toStrictEqual(0);
+  expect(transactionInvocations[0]!.invocations.length).toStrictEqual(0);
   // Check the nested invocations content
-  expect(invocations[3]!.invocations.length).toStrictEqual(2);
+  expect(transactionInvocations[3]!.invocations.length).toStrictEqual(2);
   expect(
-    invocations[3]!.invocations[0]!.instruction.programAddress,
+    transactionInvocations[3]!.invocations[0]!.instruction.programAddress,
   ).toStrictEqual("PsyMP8fXEEMo2C6C84s8eXuRUrvzQnZyquyjipDRohf");
-  expect(invocations[3]!.invocations[0]!.invocations.length).toStrictEqual(1);
   expect(
-    invocations[3]!.invocations[0]!.invocations[0]!.invocations.length,
+    transactionInvocations[3]!.invocations[0]!.invocations.length,
   ).toStrictEqual(1);
-  expect(invocations[3]!.invocations[1]!.invocations.length).toStrictEqual(0);
+  expect(
+    transactionInvocations[3]!.invocations[0]!.invocations[0]!.invocations
+      .length,
+  ).toStrictEqual(1);
+  expect(
+    transactionInvocations[3]!.invocations[1]!.invocations.length,
+  ).toStrictEqual(0);
 });

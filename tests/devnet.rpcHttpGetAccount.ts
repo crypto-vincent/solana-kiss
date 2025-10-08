@@ -13,24 +13,24 @@ it("run", async () => {
   const accountAddress = pubkeyFromBase58(
     "DL8WvebR4WVMu8WDv42zyzWuH9UZELYZ8kdhCaa83skB",
   );
-  const resultWithData = await rpcHttpGetAccountWithData(
+  const { accountInfo: withDataAccountInfo } = await rpcHttpGetAccountWithData(
     rpcHttp,
     accountAddress,
   );
-  const resultLamports = await rpcHttpGetAccountLamports(
+  const { accountInfo: lamportsAccountInfo } = await rpcHttpGetAccountLamports(
     rpcHttp,
     accountAddress,
   );
-  const resultMetadata = await rpcHttpGetAccountMetadata(
+  const { accountInfo: metadataAccountInfo } = await rpcHttpGetAccountMetadata(
     rpcHttp,
     accountAddress,
   );
-  expect(resultWithData.lamports).toBeGreaterThan(0n);
-  expect(resultWithData.owner).not.toBe(pubkeyDefault);
-  expect(resultWithData.data.length).toBeGreaterThan(0);
-  expect(resultWithData.lamports).toBe(resultLamports);
-  expect(resultWithData.lamports).toBe(resultMetadata.lamports);
-  expect(resultWithData.owner).toBe(resultMetadata.owner);
-  expect(resultWithData.executable).toBe(resultMetadata.executable);
-  expect(resultWithData.data.length).toBe(resultMetadata.space);
+  expect(withDataAccountInfo.lamports).toBeGreaterThan(0n);
+  expect(withDataAccountInfo.owner).not.toBe(pubkeyDefault);
+  expect(withDataAccountInfo.data.length).toBeGreaterThan(0);
+  expect(withDataAccountInfo.lamports).toBe(lamportsAccountInfo.lamports);
+  expect(withDataAccountInfo.lamports).toBe(metadataAccountInfo.lamports);
+  expect(withDataAccountInfo.owner).toBe(metadataAccountInfo.owner);
+  expect(withDataAccountInfo.executable).toBe(metadataAccountInfo.executable);
+  expect(withDataAccountInfo.data.length).toBe(metadataAccountInfo.space);
 });

@@ -1,7 +1,10 @@
 import { expect, it } from "@jest/globals";
-import { pubkeyNewDummy, pubkeyToBase58 } from "../src";
-import { idlInstructionAddressesFind } from "../src/idl/IdlInstruction";
-import { idlProgramParse } from "../src/idl/IdlProgram";
+import {
+  idlInstructionAddressesFind,
+  idlProgramParse,
+  pubkeyNewDummy,
+  pubkeyToBase58,
+} from "../src";
 
 it("run", () => {
   // Keys used during the test

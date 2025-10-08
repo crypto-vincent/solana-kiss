@@ -84,7 +84,7 @@ export function idlInstructionAccountParse(
       if (decoded.pda === undefined) {
         return undefined;
       }
-      const seeds = (decoded.pda.seeds ?? []).map((seedValue) =>
+      const seeds = decoded.pda.seeds.map((seedValue) =>
         idlInstructionBlobParse(
           seedValue,
           instructionArgsTypeFullFields,
@@ -126,7 +126,7 @@ const jsonDecoder = jsonDecoderObject({
   address: jsonDecoderOptional(jsonCodecPubkey.decoder),
   pda: jsonDecoderOptional(
     jsonDecoderObject({
-      seeds: jsonDecoderOptional(jsonDecoderArray(jsonCodecRaw.decoder)),
+      seeds: jsonDecoderArray(jsonCodecRaw.decoder),
       program: jsonDecoderOptional(jsonCodecRaw.decoder),
     }),
   ),

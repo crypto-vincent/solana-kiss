@@ -1,7 +1,7 @@
 import { expect, it } from "@jest/globals";
 import {
   pubkeyFromBase58,
-  rpcHttpFindProgramOwnedAddresses,
+  rpcHttpFindProgramOwnedAccounts,
   rpcHttpFromUrl,
   rpcHttpGetAccountWithData,
 } from "../src";
@@ -12,12 +12,12 @@ const expectedDiscriminatorBytes = new Uint8Array([
 
 it("run", async () => {
   const rpcHttp = rpcHttpFromUrl("https://api.devnet.solana.com");
-  const ownedAddressesBySize = await rpcHttpFindProgramOwnedAddresses(
+  const ownedAccountsBySize = await rpcHttpFindProgramOwnedAccounts(
     rpcHttp,
     pubkeyFromBase58("vVeH6Xd43HAScbxjVtvfwDGqBMaMvNDLsAxwM5WK1pG"),
     { dataSize: 32 },
   );
-  const ownedAddressesByBlob = await rpcHttpFindProgramOwnedAddresses(
+  const ownedAccountsByBlob = await rpcHttpFindProgramOwnedAccounts(
     rpcHttp,
     pubkeyFromBase58("vVeH6Xd43HAScbxjVtvfwDGqBMaMvNDLsAxwM5WK1pG"),
     {
@@ -27,11 +27,23 @@ it("run", async () => {
       ],
     },
   );
-  expect(ownedAddressesBySize).toStrictEqual(ownedAddressesByBlob);
-  for (const ownedAddress of [...ownedAddressesBySize].slice(0, 3)) {
-    const metadata = await rpcHttpGetAccountWithData(rpcHttp, ownedAddress);
-    expect(metadata.data.slice(0, 8)).toStrictEqual(expectedDiscriminatorBytes);
-    expect(metadata.owner).toStrictEqual(
+  expect(ownedAccountsBySize.accountsAddresses).toStrictEqual(
+    ownedAccountsByBlob.accountsAddresses,
+  );
+  for (const ownedAddress of [...ownedAccountsBySize.accountsAddresses].slice(
+    0,
+    3,
+  )) {
+    const ownedAccountResult = await rpcHttpGetAccountWithData(
+      rpcHttp,
+      ownedAddress,
+    );
+    const ownedAccountInfo = ownedAccountResult.accountInfo;
+    expect(ownedAccountInfo.data.length).toBe(32);
+    expect(ownedAccountInfo.data.slice(0, 8)).toStrictEqual(
+      expectedDiscriminatorBytes,
+    );
+    expect(ownedAccountInfo.owner).toStrictEqual(
       "vVeH6Xd43HAScbxjVtvfwDGqBMaMvNDLsAxwM5WK1pG",
     );
   }
