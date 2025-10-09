@@ -10,6 +10,7 @@ import {
   messageCompile,
   messageSign,
   Pubkey,
+  pubkeyFromBase58,
   pubkeyNewDummy,
   signerFromSecret,
 } from "../src";
@@ -23,12 +24,12 @@ it("run", async () => {
   const signer2Current = await signerFromSecret(signer2Secret);
   const blockHash = blockHashFromBytes(new Uint8Array(32).fill(42));
   const generatedInstruction1 = generateInstruction(
-    signer1Reference.publicKey.toBase58() as Pubkey,
+    pubkeyFromBase58(signer1Reference.publicKey.toBase58()),
     signer2Current.address,
   );
   const generatedInstruction2 = generateInstruction(
     signer1Current.address,
-    signer2Reference.publicKey.toBase58() as Pubkey,
+    pubkeyFromBase58(signer2Reference.publicKey.toBase58()),
   );
   const referenceCompiledMessage = new TransactionMessage({
     payerKey: payerReference.publicKey,
