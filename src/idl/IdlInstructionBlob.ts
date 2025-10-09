@@ -1,4 +1,5 @@
 import {
+  JsonPointer,
   JsonValue,
   jsonCodecRaw,
   jsonCodecString,
@@ -30,12 +31,12 @@ export type IdlInstructionBlobConst = {
   bytes: Uint8Array;
 };
 export type IdlInstructionBlobArg = {
-  pointer: Array<string | number>;
+  pointer: JsonPointer;
   typeFull: IdlTypeFull;
 };
 export type IdlInstructionBlobAccount = {
   name: string;
-  pointer: Array<string | number>;
+  pointer: JsonPointer;
   typeFull: IdlTypeFull | undefined;
 };
 
@@ -220,14 +221,13 @@ const jsonDecoder = jsonDecoderByKind<{
 });
 
 const computeVisitor = {
-  const: (
-    self: IdlInstructionBlobConst,
-    _context: IdlInstructionBlobContext,
-  ) => {
+  const: (self: IdlInstructionBlobConst) => {
     return self.bytes;
   },
   arg: (self: IdlInstructionBlobArg, context: IdlInstructionBlobContext) => {
-    const value = jsonGetAt(context.instructionPayload, self.pointer);
+    const value = jsonGetAt(context.instructionPayload, self.pointer, {
+      throwOnMissing: true,
+    });
     const blobs = new Array<Uint8Array>();
     idlTypeFullEncode(self.typeFull, value, blobs, false);
     return idlUtilsFlattenBlobs(blobs);
@@ -249,7 +249,9 @@ const computeVisitor = {
     if (instructionAccountState === undefined) {
       throw new Error(`Could not find state for account: ${self.name}`);
     }
-    const value = jsonGetAt(instructionAccountState, self.pointer);
+    const value = jsonGetAt(instructionAccountState, self.pointer, {
+      throwOnMissing: true,
+    });
     const blobs = new Array<Uint8Array>();
     if (self.typeFull !== undefined) {
       idlTypeFullEncode(self.typeFull, value, blobs, false);

@@ -15,9 +15,9 @@ export async function rpcHttpFindAccountTransactions(
     startBeforeTransactionId?: Signature;
     rewindUntilTransactionId?: Signature;
   },
-): Promise<{ transactionsIds: Array<Signature> }> {
+): Promise<{ backwardTransactionsIds: Array<Signature> }> {
   const requestLimit = 1000;
-  const transactionsIds = new Array<Signature>();
+  const backTransactionsIds = new Array<Signature>();
   const rewindUntil = pagination?.rewindUntilTransactionId;
   let startBefore = pagination?.startBeforeTransactionId;
   while (true) {
@@ -33,17 +33,17 @@ export async function rpcHttpFindAccountTransactions(
     );
     for (const item of result) {
       const transactionId = item.signature;
-      transactionsIds.push(transactionId);
-      if (transactionsIds.length >= maxResultLength) {
-        return { transactionsIds };
+      backTransactionsIds.push(transactionId);
+      if (backTransactionsIds.length >= maxResultLength) {
+        return { backwardTransactionsIds: backTransactionsIds };
       }
       if (transactionId === rewindUntil) {
-        return { transactionsIds };
+        return { backwardTransactionsIds: backTransactionsIds };
       }
       startBefore = transactionId;
     }
     if (result.length < requestLimit) {
-      return { transactionsIds };
+      return { backwardTransactionsIds: backTransactionsIds };
     }
   }
 }

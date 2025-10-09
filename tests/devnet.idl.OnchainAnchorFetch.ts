@@ -1,13 +1,11 @@
 import { expect, it } from "@jest/globals";
 import {
+  idlOnchainAnchorAddress,
+  idlOnchainAnchorDecode,
   pubkeyFromBase58,
   rpcHttpFromUrl,
   rpcHttpGetAccountWithData,
 } from "../src";
-import {
-  idlOnchainAnchorAddress,
-  idlOnchainAnchorDecode,
-} from "../src/idl/IdlOnchain";
 
 it("run", async () => {
   const rpcHttp = rpcHttpFromUrl("https://api.devnet.solana.com");

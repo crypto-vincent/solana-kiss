@@ -2,28 +2,34 @@ import { it } from "@jest/globals";
 import {
   blockSlotFromNumber,
   rpcHttpFromUrl,
-  rpcHttpGetBlockTransactions,
+  rpcHttpGetBlockMetadata,
+  rpcHttpGetBlockWithTransactions,
 } from "../src";
-import { rpcHttpGetBlockMetadata } from "../src/rpc/RpcHttpGetBlockMetadata";
 
 it("run", async () => {
   const rpcHttp = rpcHttpFromUrl("https://api.devnet.solana.com");
-  const { blockInfo, parentBlockSlot } = await rpcHttpGetBlockMetadata(
-    rpcHttp,
-    blockSlotFromNumber(378967387),
-  );
-  expect(parentBlockSlot).toStrictEqual(378967386);
-  expect(blockInfo.hash).toStrictEqual(
+  const blockSlot = blockSlotFromNumber(378967387);
+  const {
+    previousBlockSlot: metadataPreviousBlockSlot,
+    blockInfo: metadataBlockInfo,
+  } = await rpcHttpGetBlockMetadata(rpcHttp, blockSlot);
+  expect(metadataPreviousBlockSlot).toStrictEqual(378967386);
+  expect(metadataBlockInfo.hash).toStrictEqual(
     "2SS9WkNqMdHkY8iki5CvzjeBkbiXSsDE2zY4oZHv7fDM",
   );
-  expect(blockInfo.height).toStrictEqual(366940433);
-  expect(blockInfo.time?.toISOString()).toStrictEqual(
+  expect(metadataBlockInfo.height).toStrictEqual(366940433);
+  expect(metadataBlockInfo.time?.toISOString()).toStrictEqual(
     "2025-05-06T02:42:34.000Z",
   );
-  const { transactionsIds } = await rpcHttpGetBlockTransactions(
-    rpcHttp,
-    blockSlotFromNumber(378967387),
+  const {
+    previousBlockSlot: withTransactionPreviousBlockSlot,
+    blockInfo: withTransactionBlockInfo,
+    transactionsIds,
+  } = await rpcHttpGetBlockWithTransactions(rpcHttp, blockSlot);
+  expect(withTransactionPreviousBlockSlot).toStrictEqual(
+    metadataPreviousBlockSlot,
   );
+  expect(withTransactionBlockInfo).toStrictEqual(metadataBlockInfo);
   expect(transactionsIds.length).toStrictEqual(17);
   expect(transactionsIds[0]).toStrictEqual(
     "3g4afiLu3KW1G2eYhvP1h3aKx2Pp54CCtqZTRX9q7daY84TQ6RcKMERNk56QJPi5CrhV5dYTHJzSrk6z4aLWKKrd",

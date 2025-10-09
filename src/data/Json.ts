@@ -202,25 +202,36 @@ export function jsonIsDeepSubset(
   return false;
 }
 
-export function jsonPointerParse(path: string): Array<string | number> {
-  return path
-    .replace(/\[(\w+)\]/g, ".$1")
+export type JsonPointer = Array<string | number>;
+export function jsonPointerParse(path: string): JsonPointer {
+  const tokens = path
+    .replace(/\[(.*?)\]/g, ".$1")
+    .replace(/\//g, ".")
     .split(".")
     .map((part) => {
-      if (/^\d+$/.test(part)) {
-        return Number(part);
+      const trimmed = part.trim();
+      if (trimmed === "") {
+        return "";
       }
-      return part;
+      const number = Number(trimmed);
+      if (isNaN(number)) {
+        return trimmed;
+      }
+      return number;
     });
+  if (tokens.length >= 1 && tokens[0] === "") {
+    return tokens.slice(1);
+  }
+  return tokens;
 }
 export function jsonPointerPreview(
-  pointer: Array<string | number>,
+  pointer: JsonPointer,
   tokenIndex?: number,
 ): string {
   const parts = [];
   for (let index = 0; index < (tokenIndex ?? pointer.length); index++) {
     const token = pointer[index]!;
-    if (typeof token === "number") {
+    if (typeof token === "number" || token === "") {
       parts.push(`[${token}]`);
     } else {
       if (index > 0) {
@@ -231,44 +242,61 @@ export function jsonPointerPreview(
   }
   return parts.join("");
 }
+export function jsonPointerTokenAsArrayIndex(
+  pointerToken: string | number,
+  arrayLength: number,
+): number | undefined {
+  if (typeof pointerToken !== "number") {
+    return undefined;
+  }
+  let arrayIndex = pointerToken;
+  if (arrayIndex < 0) {
+    arrayIndex = arrayIndex + arrayLength;
+  }
+  if (arrayIndex < 0 || arrayIndex >= arrayLength) {
+    return undefined;
+  }
+  return arrayIndex;
+}
 export function jsonGetAt(
   value: JsonValue,
-  pathOrPointer: string | Array<string | number>,
-  options?: { failOnMissing?: boolean },
+  pathOrPointer: string | JsonPointer,
+  options?: { throwOnMissing?: boolean },
 ): JsonValue {
   const pointer = Array.isArray(pathOrPointer)
     ? pathOrPointer
     : jsonPointerParse(pathOrPointer);
   let current = value;
   for (let tokenIndex = 0; tokenIndex < pointer.length; tokenIndex++) {
-    const token = pointer[tokenIndex]!;
+    const pointerToken = pointer[tokenIndex]!;
     const array = jsonAsArray(current);
     if (array !== undefined) {
-      const arrayIndex = token;
-      if (typeof arrayIndex !== "number" || !Number.isFinite(arrayIndex)) {
-        throw new Error(
-          `JSON: Expected path ${jsonPointerPreview(pointer, tokenIndex)} index to be a finite number`,
-        );
-      }
-      if (arrayIndex < 0 || arrayIndex >= array.length) {
-        throw new Error(
-          `JSON: Expected path ${jsonPointerPreview(pointer, tokenIndex)} index to fit in input array of length ${array.length}`,
-        );
+      const arrayIndex = jsonPointerTokenAsArrayIndex(
+        pointerToken,
+        array.length,
+      );
+      if (arrayIndex === undefined) {
+        if (options?.throwOnMissing) {
+          throw new Error(
+            `JSON: Expected path ${jsonPointerPreview(pointer, tokenIndex)} to be a valid index for an array of length ${array.length}`,
+          );
+        }
+        return undefined;
       }
       current = array[arrayIndex];
       continue;
     }
     const object = jsonAsObject(current);
     if (object !== undefined) {
-      current = object[token];
+      current = object[pointerToken];
       continue;
     }
-    if (options?.failOnMissing) {
+    if (options?.throwOnMissing) {
       throw new Error(
         `JSON: Expected an object or array at path ${jsonPointerPreview(pointer, tokenIndex)} (found: ${jsonPreview(current)})`,
       );
     }
-    break;
+    return undefined;
   }
   return current;
 }

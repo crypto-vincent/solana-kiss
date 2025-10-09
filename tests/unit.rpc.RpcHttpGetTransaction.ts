@@ -1,6 +1,5 @@
 import { expect, it } from "@jest/globals";
-import { Signature } from "../src";
-import { rpcHttpGetTransaction } from "../src/rpc/RpcHttpGetTransaction";
+import { rpcHttpGetTransaction, Signature } from "../src";
 
 it("run", async () => {
   const transactionResponse = (await rpcHttpGetTransaction(

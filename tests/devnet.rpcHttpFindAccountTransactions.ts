@@ -8,15 +8,15 @@ import {
 
 it("run", async () => {
   const rpcHttp = rpcHttpFromUrl("https://api.devnet.solana.com");
-  const { transactionsIds } = await rpcHttpFindAccountTransactions(
+  const { backwardTransactionsIds } = await rpcHttpFindAccountTransactions(
     rpcHttp,
     pubkeyFromBase58("vVeH6Xd43HAScbxjVtvfwDGqBMaMvNDLsAxwM5WK1pG"),
     4200,
   );
-  expect(transactionsIds.length).toBeGreaterThan(0);
+  expect(backwardTransactionsIds.length).toBeGreaterThan(0);
   const { transactionExecution } = await rpcHttpWaitForTransaction(
     rpcHttp,
-    transactionsIds[0]!,
+    backwardTransactionsIds[0]!,
     0,
   );
   expect(transactionExecution.blockInfo.time?.toISOString()).toStrictEqual(

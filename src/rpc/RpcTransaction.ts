@@ -3,7 +3,7 @@ import { Instruction } from "../data/Instruction";
 import { JsonValue } from "../data/Json";
 import { Message } from "../data/Message";
 
-// TODO - add FindBlocks capabilities ?
+// TODO - add FindBlocks (forward and backward?) capabilities ?
 // TODO - should add phantom integration (maybe different package?)
 // TODO - should integrate indexing capabilities ?
 

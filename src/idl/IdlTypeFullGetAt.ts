@@ -1,4 +1,9 @@
-import { jsonPointerParse, jsonPointerPreview } from "../data/Json";
+import {
+  JsonPointer,
+  jsonPointerParse,
+  jsonPointerPreview,
+  jsonPointerTokenAsArrayIndex,
+} from "../data/Json";
 import {
   IdlTypeFull,
   IdlTypeFullArray,
@@ -18,7 +23,7 @@ import { IdlTypePrimitive } from "./IdlTypePrimitive";
 
 export function idlTypeFullGetAt(
   typeFull: IdlTypeFull,
-  pathOrPointer: string | Array<string | number>,
+  pathOrPointer: string | JsonPointer,
 ): IdlTypeFull {
   const pointer = Array.isArray(pathOrPointer)
     ? pathOrPointer
@@ -28,7 +33,7 @@ export function idlTypeFullGetAt(
 
 export function idlTypeFullFieldsGetAt(
   typeFullFields: IdlTypeFullFields,
-  pathOrPointer: string | Array<string | number>,
+  pathOrPointer: string | JsonPointer,
 ): IdlTypeFull {
   const pointer = Array.isArray(pathOrPointer)
     ? pathOrPointer
@@ -86,10 +91,7 @@ const visitorTypeFull = {
     tokenIndex: number,
   ) => {
     const token = pointer[tokenIndex]!;
-    if (token === "") {
-      return visitTypeFull(self.items, pointer, tokenIndex + 1);
-    }
-    if (typeof token === "number") {
+    if (jsonPointerTokenAsArrayIndex(token, Infinity) !== undefined) {
       return visitTypeFull(self.items, pointer, tokenIndex + 1);
     }
     throw new Error(
@@ -102,19 +104,11 @@ const visitorTypeFull = {
     tokenIndex: number,
   ) => {
     const token = pointer[tokenIndex]!;
-    if (token === "") {
-      return visitTypeFull(self.items, pointer, tokenIndex + 1);
-    }
-    if (typeof token === "number") {
-      if (token < 0 || token >= self.length) {
-        throw new Error(
-          `Idl: Expected path ${jsonPointerPreview(pointer, tokenIndex)} to be fit in Array of length ${self.length}`,
-        );
-      }
+    if (jsonPointerTokenAsArrayIndex(token, self.length) !== undefined) {
       return visitTypeFull(self.items, pointer, tokenIndex + 1);
     }
     throw new Error(
-      `Idl: Expected path ${jsonPointerPreview(pointer, tokenIndex)} to be able to index into an Array`,
+      `Idl: Expected path ${jsonPointerPreview(pointer, tokenIndex)} to be a valid index for an Array of length ${self.length}`,
     );
   },
   string: (
@@ -148,7 +142,7 @@ const visitorTypeFull = {
       }
       const codes = self.variants.map((variant) => variant.code).join("/");
       throw new Error(
-        `Idl: Expected valid enum variant code at path: ${jsonPointerPreview(pointer, tokenIndex)}, available: ${codes} (found ${code})`,
+        `Idl: Expected valid enum variant code at path: ${jsonPointerPreview(pointer, tokenIndex)}, available: ${codes}`,
       );
     }
     const name = current;
@@ -159,7 +153,7 @@ const visitorTypeFull = {
     }
     const names = self.variants.map((variant) => variant.name).join("/");
     throw new Error(
-      `Idl: Expected valid enum variant name at path: ${jsonPointerPreview(pointer, tokenIndex)}, available: ${names} (found ${name})`,
+      `Idl: Expected valid enum variant name at path ${jsonPointerPreview(pointer, tokenIndex)}, available: ${names}`,
     );
   },
   padded: (
@@ -204,13 +198,7 @@ const visitorTypeFullFields = {
     pointer: Array<number | string>,
     tokenIndex: number,
   ) => {
-    const token = pointer[tokenIndex]!;
-    if (typeof token === "number") {
-      throw new Error(
-        `Idl: Expected path ${jsonPointerPreview(pointer, tokenIndex)} to be able to lookup a struct's field by name`,
-      );
-    }
-    const name = token;
+    const name = String(pointer[tokenIndex]!);
     for (const field of self) {
       if (field.name === name) {
         return visitTypeFull(field.content, pointer, tokenIndex + 1);
@@ -218,7 +206,7 @@ const visitorTypeFullFields = {
     }
     const names = self.map((field) => field.name).join("/");
     throw new Error(
-      `Idl: Expected valid field name at path: ${jsonPointerPreview(pointer, tokenIndex)}, available: ${names} (found ${name})`,
+      `Idl: Expected path ${jsonPointerPreview(pointer, tokenIndex)}, to be a valid accessor for on of the fields: ${names}`,
     );
   },
   unnamed: (
@@ -227,20 +215,12 @@ const visitorTypeFullFields = {
     tokenIndex: number,
   ) => {
     const token = pointer[tokenIndex]!;
-    if (typeof token === "string") {
+    const arrayIndex = jsonPointerTokenAsArrayIndex(token, self.length);
+    if (arrayIndex === undefined) {
       throw new Error(
-        `Idl: Expected path ${jsonPointerPreview(pointer, tokenIndex)} to be able to access a tuple's field by index`,
+        `Idl: Expected path ${jsonPointerPreview(pointer, tokenIndex)}, to be a valid index for a Tuple of length: ${self.length}`,
       );
     }
-    const index = token;
-    for (const field of self) {
-      if (field.position === index) {
-        return visitTypeFull(field.content, pointer, tokenIndex + 1);
-      }
-    }
-    const positions = self.map((field) => field.position).join("/");
-    throw new Error(
-      `Idl: Expected valid field index at path: ${jsonPointerPreview(pointer, tokenIndex)}, available: ${positions} (found ${index})`,
-    );
+    return visitTypeFull(self[arrayIndex]!.content, pointer, tokenIndex + 1);
   },
 };

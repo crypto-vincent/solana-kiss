@@ -44,7 +44,7 @@ export * from "./rpc/RpcHttpGetAccountLamports";
 export * from "./rpc/RpcHttpGetAccountMetadata";
 export * from "./rpc/RpcHttpGetAccountWithData";
 export * from "./rpc/RpcHttpGetBlockMetadata";
-export * from "./rpc/RpcHttpGetBlockTransactions";
+export * from "./rpc/RpcHttpGetBlockWithTransactions";
 export * from "./rpc/RpcHttpGetLatestBlockHash";
 export * from "./rpc/RpcHttpGetTransaction";
 export * from "./rpc/RpcHttpScheduleInstructions";

@@ -8,4 +8,4 @@ export function withContext<T>(message: string, fn: () => T): T {
   }
 }
 
-// TODO - error stacking util ( for what ?)
+// TODO - error stacking util (for what except the find account loop ?)

@@ -33,7 +33,7 @@ export async function rpcHttpFindProgramOwnedAccounts(
     }
   }
   if (paramFilters.length > 4) {
-    throw new Error("RpcHttp: Too many filters, max is 4");
+    throw new Error("RpcHttp: Too many account data filters, max is 4");
   }
   const result = resultJsonDecoder(
     await rpcHttp("getProgramAccounts", [pubkeyToBase58(programAddress)], {
