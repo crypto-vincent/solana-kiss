@@ -4,39 +4,37 @@ import { jsonGetAt } from "../src";
 it("run", async () => {
   const tests = [
     {
-      haystack: {
-        key: "Hello World",
-      },
+      haystack: { key: "Hello World" },
       path: "key",
       needle: "Hello World",
     },
     {
-      haystack: {
-        inner: {
-          subkey: "Sub Hello",
-        },
-      },
+      haystack: { inner: { subkey: "Sub Hello" } },
       path: "inner.subkey",
       needle: "Sub Hello",
     },
     {
-      haystack: {
-        array: [{ name: "Alice" }, { name: "Bob" }],
-      },
+      haystack: { array: [{ name: "Alice" }, { name: "Bob" }] },
       path: "array[1].name",
       needle: "Bob",
     },
     {
-      haystack: {
-        array: [{ name: "Alice" }, { name: "Bob" }],
-      },
+      haystack: { array: [{ name: "Alice" }, { name: "Bob" }] },
       path: "array.0.name",
       needle: "Alice",
     },
     {
-      haystack: {
-        inner: {},
-      },
+      haystack: { array: [{ name: "Alice" }, { name: "Bob" }] },
+      path: "array/-1/name",
+      needle: "Bob",
+    },
+    {
+      haystack: { array: [{ name: "Alice" }, { name: "Bob" }] },
+      path: "array[3].name",
+      needle: undefined,
+    },
+    {
+      haystack: { inner: {} },
       path: "inner.missing",
       needle: undefined,
     },
