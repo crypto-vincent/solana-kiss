@@ -8,6 +8,7 @@ it("run", async () => {
     { in: "Lowercase", out: "lowercase" },
     { in: "Capitalized", out: "capitalized" },
     { in: "PascalCase", out: "pascal_case" },
+    { in: "snake_case", out: "snake_case" },
     { in: "snake1_case", out: "snake1_case" },
     { in: "SNAKE2_CASE", out: "snake2_case" },
     { in: "kebab-case", out: "kebab_case" },
@@ -22,7 +23,6 @@ it("run", async () => {
     { in: "with_num1234_v1", out: "with_num1234_v1" },
     { in: "withNum1234V1", out: "with_num1234_v1" },
     { in: "1234withNumV1", out: "1234with_num_v1" },
-    // TODO - is that exactly right how anchor does it ?
   ];
   for (const test of tests) {
     expect(casingConvertToSnake(test.in)).toStrictEqual(test.out);
