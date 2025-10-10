@@ -111,10 +111,10 @@ export async function rpcHttpSimulateInstructions(
       slot: result.context.slot,
     },
     message,
-    chargedFeesLamports: BigInt(result.value.fee),
-    consumedComputeUnits: result.value.unitsConsumed,
     logs: result.value.logs,
     error: result.value.err,
+    consumedComputeUnits: result.value.unitsConsumed,
+    chargedFeesLamports: BigInt(result.value.fee),
   };
   const afterAccountsByAddress = new Map(
     afterAccountsAddresses.map((afterAccountAddress, afterAccountIndex) => {

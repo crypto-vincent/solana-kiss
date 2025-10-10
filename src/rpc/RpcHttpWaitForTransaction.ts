@@ -1,7 +1,10 @@
 import { Signature } from "../data/Signature";
 import { RpcHttp } from "./RpcHttp";
 import { rpcHttpGetTransaction } from "./RpcHttpGetTransaction";
-import { RpcTransactionExecution, RpcTransactionFlow } from "./RpcTransaction";
+import {
+  RpcTransactionCallStack,
+  RpcTransactionExecution,
+} from "./RpcTransaction";
 
 export async function rpcHttpWaitForTransaction(
   rpcHttp: RpcHttp,
@@ -9,7 +12,7 @@ export async function rpcHttpWaitForTransaction(
   timeoutMs: number,
 ): Promise<{
   transactionExecution: RpcTransactionExecution;
-  transactionFlow: RpcTransactionFlow | undefined;
+  transactionCallStack: RpcTransactionCallStack | undefined;
 }> {
   const start = Date.now();
   while (true) {
