@@ -158,9 +158,10 @@ const visitorDecode = {
       data,
       dataOffset,
     );
+    const dataCode = dataPrefix & enumMask;
     const dataVariantOffset = dataOffset + dataSize;
     for (const variant of self.variants) {
-      if (variant.code === (dataPrefix & enumMask)) {
+      if (variant.code === dataCode) {
         if (variant.fields.isNothing()) {
           return [dataSize, variant.name];
         }
@@ -174,7 +175,7 @@ const visitorDecode = {
       }
     }
     throw new Error(
-      `Decode: Unknown enum code: ${dataPrefix} (offset: ${dataOffset})`,
+      `Decode: Unknown enum code: ${dataCode} (offset: ${dataOffset})`,
     );
   },
   padded: (
@@ -198,12 +199,17 @@ const visitorDecode = {
     data: DataView,
     dataOffset: number,
   ): [number, JsonValue] => {
-    for (let index = 0; index < self.bytes.length; index++) {
-      const expected = self.bytes[index];
-      const found = data.getUint8(dataOffset + index);
-      if (found !== expected) {
+    for (
+      let expectedIndex = 0;
+      expectedIndex < self.bytes.length;
+      expectedIndex++
+    ) {
+      const foundIndex = dataOffset + expectedIndex;
+      const expectedByte = self.bytes[expectedIndex];
+      const foundByte = data.getUint8(foundIndex);
+      if (foundByte !== expectedByte) {
         throw new Error(
-          `Decode: Expected blob byte ${expected} at index ${index} (found: ${found})`,
+          `Decode: Expected byte ${expectedByte} at blob index ${expectedIndex} (offset ${foundIndex}, found: ${foundByte})`,
         );
       }
     }

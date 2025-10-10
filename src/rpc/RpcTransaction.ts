@@ -20,7 +20,17 @@ export type RpcTransactionExecution = {
   error: JsonValue | undefined;
 };
 
-export type RpcTransactionInvocation = {
-  instruction: Instruction;
-  invocations: Array<RpcTransactionInvocation>;
-};
+export type RpcTransactionFlow = Array<
+  | { unknown: string }
+  | { log: string }
+  | { data: Uint8Array }
+  | {
+      call: {
+        instruction: Instruction;
+        calls: RpcTransactionFlow;
+        consumedComputeUnits: number | undefined;
+        error: string | undefined;
+        returnData: Uint8Array | undefined;
+      };
+    }
+>;

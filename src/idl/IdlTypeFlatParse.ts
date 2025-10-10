@@ -15,8 +15,8 @@ import {
   jsonDecoderByKind,
   jsonDecoderForked,
   jsonDecoderObject,
-  jsonDecoderObjectEncodedSnakeKeys,
   jsonDecoderObjectToMap,
+  jsonDecoderObjectWithKeysSnakeEncoded,
   jsonDecoderOptional,
   jsonDecoderTransform,
 } from "../data/Json";
@@ -72,7 +72,7 @@ export function idlTypeFlatParseIsPossible(value: JsonValue): boolean {
     object.hasOwnProperty("variants64") ||
     object.hasOwnProperty("variants128") ||
     object.hasOwnProperty("padded") ||
-    object.hasOwnProperty("bytes") ||
+    object.hasOwnProperty("blob") ||
     object.hasOwnProperty("value")
   ) {
     return true;
@@ -277,7 +277,7 @@ function objectVariantsJsonDecoder(prefix: IdlTypePrefix) {
   );
 }
 
-const objectPaddedInfoJsonDecoder = jsonDecoderObjectEncodedSnakeKeys({
+const objectPaddedInfoJsonDecoder = jsonDecoderObjectWithKeysSnakeEncoded({
   before: jsonDecoderOptional(jsonCodecNumber.decoder),
   minSize: jsonDecoderOptional(jsonCodecNumber.decoder),
   after: jsonDecoderOptional(jsonCodecNumber.decoder),
@@ -329,7 +329,7 @@ const objectJsonDecoder: JsonDecoder<IdlTypeFlat> = jsonDecoderAsEnum({
   variants64: objectVariantsJsonDecoder(IdlTypePrefix.u64),
   variants128: objectVariantsJsonDecoder(IdlTypePrefix.u128),
   padded: objectPaddedJsonDecoder,
-  bytes: objectBlobJsonDecoder,
+  blob: objectBlobJsonDecoder,
   value: objectConstJsonDecoder,
 });
 

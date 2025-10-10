@@ -16,21 +16,18 @@ import {
 import { Pubkey } from "../data/Pubkey";
 import { Signature, signatureToBase58 } from "../data/Signature";
 import { RpcHttp } from "./RpcHttp";
-import {
-  RpcTransactionExecution,
-  RpcTransactionInvocation,
-} from "./RpcTransaction";
+import { RpcTransactionExecution, RpcTransactionFlow } from "./RpcTransaction";
 
 export async function rpcHttpGetTransaction(
   rpcHttp: RpcHttp,
   transactionId: Signature,
   options?: {
-    skipInvocations?: boolean;
+    skipFlow?: boolean;
   },
 ): Promise<
   | {
       transactionExecution: RpcTransactionExecution;
-      transactionInvocations: Array<RpcTransactionInvocation> | undefined;
+      transactionFlow: RpcTransactionFlow | undefined;
     }
   | undefined
 > {
@@ -78,17 +75,18 @@ export async function rpcHttpGetTransaction(
     logs: meta.logMessages, // TODO - parse logs for invocations and event data
     error: meta.err, // TODO - parse error to find custom program errors ?
   };
-  if (options?.skipInvocations || meta.innerInstructions === undefined) {
-    return { transactionExecution, transactionInvocations: undefined };
+  if (options?.skipFlow || meta.innerInstructions === undefined) {
+    return { transactionExecution, transactionFlow: undefined };
   }
-  return {
-    transactionExecution,
-    transactionInvocations: decompileTransactionInvocations(
-      messageInstructions,
-      instructionsInputs,
-      meta.innerInstructions,
-    ),
-  };
+  /*
+  const transactionFlow = decompileTransactionFlow(
+    messageInstructions,
+    instructionsInputs,
+    meta.innerInstructions,
+  );
+  completeTransactionFlow(transactionFlow, meta.logMessages ?? []);
+  */
+  return { transactionExecution, transactionFlow: undefined };
 }
 
 function decompileInstructionsInputs(
@@ -159,15 +157,16 @@ function decompileMessageInstructions(
   return instructions;
 }
 
-function decompileTransactionInvocations(
+/*
+function decompileTransactionFlow(
   messageInstructions: Array<Instruction>,
   instructionsInputs: Array<InstructionInput>,
   compiledInnerInstructions: Array<{
     index: number;
     instructions: Array<CompiledInstruction>;
   }>,
-): Array<RpcTransactionInvocation> {
-  const rootInvocations = new Array<RpcTransactionInvocation>();
+): RpcTransactionFlow {
+  const rootInvocations: RpcTransactionFlow = new Array();
   for (let index = 0; index < messageInstructions.length; index++) {
     rootInvocations.push({
       instruction: messageInstructions[index]!,
@@ -209,6 +208,93 @@ function decompileTransactionInvocations(
   }
   return rootInvocations;
 }
+
+function stripPrefix(s: string, prefix: string): string | undefined {
+  return s.startsWith(prefix) ? s.slice(prefix.length) : undefined;
+}
+
+function completeTransactionFlow(
+  invocation: RpcTransactionInvocation,
+  logs: Array<string>,
+  logIndex: number,
+  depth: number,
+) {
+  const debug = [];
+
+  let inner = 0;
+
+  while (logIndex + 1 < logs.length) {
+    logIndex++;
+    const logLine = logs[logIndex]!;
+
+    const logRegular = stripPrefix(logLine, "Program log: ");
+    if (logRegular !== undefined) {
+      invocation.events.push({ log: logRegular });
+      debug.push([" >>".repeat(inner), "Log", logRegular].join(" "));
+      continue;
+    }
+    const logData = stripPrefix(logLine, "Program data: ");
+    if (logData !== undefined) {
+      invocation.events.push({ data: base64Decode(logData) });
+      debug.push([" >>".repeat(inner), "Data", logData].join(" "));
+      continue;
+    }
+    const logReturn = stripPrefix(logLine, "Program return: ");
+    if (logReturn !== undefined) {
+      invocation.execution.returnData = base64Decode(logReturn);
+      debug.push([" >>".repeat(inner), "Return", logReturn].join(" "));
+      continue;
+    }
+
+    const logStack = stripPrefix(logLine, "Program ");
+    if (logStack !== undefined) {
+      const logsParts = logStack.split(" ");
+      if (logsParts.length >= 2) {
+        const logProgramAddress = pubkeyFromBase58(logsParts[0]!);
+        const logStackKind = logsParts[1]!;
+        if (logStackKind === "invoke") {
+        }
+      }
+
+      if (logProgramAddress === undefined || logInfo === undefined) {
+        throw new Error(`RpcHttp: Invalid program stack log: ${logLine}`);
+      }
+      const programAddress = pubkeyFromBase58(logProgramAddress);
+      if (logInfo.startsWith("invoke")) {
+        const invokeIndex = logInfo.indexOf("invoke") + "invoke".length;
+        const invokeDepth = parseInt(logInfo.slice(invokeIndex).trim());
+        inner++;
+        debug.push(
+          [" >>".repeat(inner), "Invoke", programAddress, inner].join(" "),
+        );
+        continue;
+      } else if (logInfo.startsWith("consumed")) {
+        debug.push(
+          [" >>".repeat(inner), "Consumed", programAddress, inner].join(" "),
+        );
+        continue;
+      } else if (logInfo.startsWith("success")) {
+        debug.push(
+          [" >>".repeat(inner), "Success", programAddress, inner].join(" "),
+        );
+        inner--;
+        continue;
+      } else if (logInfo.startsWith("failed")) {
+        debug.push(
+          [" >>".repeat(inner), "Failed", programAddress, inner].join(" "),
+        );
+        inner--;
+        continue;
+      }
+    }
+
+    debug.push([" >>".repeat(inner), "Unknown log", logLine].join(" "));
+    logIndex++;
+  }
+
+  console.log("Log decompilation", "\n" + debug.join("\n"));
+}
+*/
 
 type CompiledInstruction = {
   stackHeight: number;
