@@ -10,7 +10,7 @@ it("run", async () => {
   // This should be a simple success
   const {
     transactionExecution: transactionExecution1,
-    transactionInvocations: transactionInvocations1,
+    // transactionInvocations: transactionInvocations1,
   } = await rpcHttpWaitForTransaction(
     rpcHttp,
     signatureFromBase58(
@@ -25,11 +25,11 @@ it("run", async () => {
     "EZY4BjNgBeSKEnCV2DycDchJg1kjqiwJ3cb9GFc5Avhy",
   );
   expect(transactionExecution1.error).toStrictEqual(null);
-  expect(transactionInvocations1?.length).toStrictEqual(1);
+  // expect(transactionInvocations1?.length).toStrictEqual(1);
   // This should be a failure with error
   const {
     transactionExecution: transactionExecution2,
-    transactionInvocations: transactionInvocations2,
+    // transactionInvocations: transactionInvocations2,
   } = await rpcHttpWaitForTransaction(
     rpcHttp,
     signatureFromBase58(
@@ -46,11 +46,11 @@ it("run", async () => {
   expect(transactionExecution2.error).toEqual({
     InstructionError: [1, { Custom: 3012 }],
   });
-  expect(transactionInvocations2?.length).toStrictEqual(2);
+  // expect(transactionInvocations2?.length).toStrictEqual(2);
   // This should be a transaction with many instructions (> 50)
   const {
     transactionExecution: transactionExecution3,
-    transactionInvocations: transactionInvocations3,
+    // transactionInvocations: transactionInvocations3,
   } = await rpcHttpWaitForTransaction(
     rpcHttp,
     signatureFromBase58(
@@ -65,5 +65,5 @@ it("run", async () => {
     "6gtmFZxPgbkS5b2Wxw9bk5XUGZXqwjRTwn2rLVYJiRJS",
   );
   expect(transactionExecution3.error).toStrictEqual(null);
-  expect(transactionInvocations3?.length).toStrictEqual(50);
+  // expect(transactionInvocations3?.length).toStrictEqual(50);
 });

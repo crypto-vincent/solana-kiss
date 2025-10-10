@@ -25,6 +25,7 @@ import {
 import { IdlMetadata, idlMetadataParse } from "./IdlMetadata";
 import { IdlTypedef, idlTypedefParse } from "./IdlTypedef";
 
+// TODO - provide a in-house SPL library of trusted programs ?
 // TODO - should add support for IDL constants??
 // TODO - add support for a "program" level PDA (for sysvar for examples?)
 export type IdlProgram = {

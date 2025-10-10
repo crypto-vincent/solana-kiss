@@ -14,13 +14,23 @@ export type RpcTransactionExecution = {
     slot: BlockSlot;
   };
   message: Message;
-  chargedFeesLamports: bigint;
-  consumedComputeUnits: number;
   logs: Array<string> | undefined;
   error: JsonValue | undefined;
+  consumedComputeUnits: number;
+  chargedFeesLamports: bigint;
 };
 
-export type RpcTransactionInvocation = {
+export type RpcTransactionInvoke = {
   instruction: Instruction;
-  invocations: Array<RpcTransactionInvocation>;
+  callStack: RpcTransactionCallStack;
+  error: string | undefined;
+  returnData: Uint8Array | undefined;
+  consumedComputeUnits: number | undefined;
 };
+
+export type RpcTransactionCallStack = Array<
+  | { unknown: string }
+  | { log: string }
+  | { data: Uint8Array }
+  | { invoke: RpcTransactionInvoke }
+>;

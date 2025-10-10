@@ -8,9 +8,9 @@ it("run", () => {
       MyAccount: {
         discriminator: [22],
         fields: [
-          { bytes: { value: [1, 2, 3] } },
+          { name: "blob_before", bytes: { value: [1, 2, 3] } },
           { name: "value", type: "u8" },
-          { name: "blob_null", bytes: { type: null } },
+          { name: "blob_empty", bytes: { zeroes: 0 } },
           { name: "blob_after", bytes: { base16: "040506" } },
         ],
       },
@@ -21,9 +21,9 @@ it("run", () => {
       MyAccount: {
         discriminator: [22],
         fields: [
-          { bytes: { base58: "Ldp" } },
+          { name: "blob_before", bytes: { base58: "Ldp" } },
           { name: "value", type: "u8" },
-          { name: "blob_null", bytes: { value: null } },
+          { name: "blob_empty", bytes: [] },
           { name: "blob_after", bytes: { base64: "BAUG" } },
         ],
       },
@@ -34,9 +34,9 @@ it("run", () => {
       MyAccount: {
         discriminator: [22],
         fields: [
-          { bytes: [1, 2, 3] },
+          { name: "blob_before", bytes: [1, 2, 3] },
           { name: "value", type: "u8" },
-          { name: "blob_null", bytes: "" },
+          { name: "blob_empty", bytes: [] },
           {
             name: "blob_after",
             bytes: {
@@ -44,7 +44,7 @@ it("run", () => {
               prefixed: true,
               type: {
                 fields: [
-                  { name: "a", vec8: null },
+                  { name: "a", vec8: { fields: [] } },
                   { bytes: [5] },
                   { name: "c", type: "u8" },
                 ],
@@ -67,9 +67,9 @@ it("run", () => {
   });
   expect(accountData).toStrictEqual(new Uint8Array([22, 1, 2, 3, 42, 4, 5, 6]));
   expect(idlAccountDecode(accountIdl, accountData)).toStrictEqual({
-    0: null,
+    blob_before: null,
     value: 42,
-    blob_null: null,
+    blob_empty: null,
     blob_after: null,
   });
 });

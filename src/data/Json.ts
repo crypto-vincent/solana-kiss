@@ -347,6 +347,9 @@ export const jsonCodecNumber: JsonCodec<number> = {
     null: () => NaN,
     number: (number) => number,
     string: (string) => {
+      if (string === "NaN") {
+        return NaN;
+      }
       if (string === "Infinity") {
         return Infinity;
       }
@@ -354,13 +357,13 @@ export const jsonCodecNumber: JsonCodec<number> = {
         return -Infinity;
       }
       throw new Error(
-        `JSON: Expected a number (found: ${jsonPreview(string)})`,
+        `JSON: Expected a number or NaN/Infinity (found: ${jsonPreview(string)})`,
       );
     },
   }),
   encoder: (decoded: number): JsonValue => {
     if (isNaN(decoded)) {
-      return null;
+      return "NaN";
     }
     if (decoded === Infinity) {
       return "Infinity";
@@ -660,17 +663,17 @@ function jsonCodecObjectKeyEncoder<Shape extends { [key: string]: any }>(
   return keyEncoding[keyDecoded] ?? keyDecoded;
 }
 
-export function jsonDecoderObjectEncodedSnakeKeys<
+export function jsonDecoderObjectWithKeysSnakeEncoded<
   Shape extends { [key: string]: JsonDecoder<any> },
 >(shape: Shape) {
   return jsonDecoderObject(shape, casingConvertToSnake);
 }
-export function jsonEncoderObjectEncodedSnakeKeys<
+export function jsonEncoderObjectWithKeysSnakeEncoded<
   Shape extends { [key: string]: JsonEncoder<any> },
 >(shape: Shape) {
   return jsonEncoderObject(shape, casingConvertToSnake);
 }
-export function jsonCodecObjectEncodedSnakeKeys<
+export function jsonCodecObjectWithKeysSnakeEncoded<
   Shape extends { [key: string]: JsonCodec<any> },
 >(shape: Shape) {
   return jsonCodecObject(shape, casingConvertToSnake);

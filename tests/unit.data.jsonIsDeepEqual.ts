@@ -4,38 +4,57 @@ import { jsonIsDeepEqual } from "../src";
 it("run", async () => {
   const tests = [
     {
-      subset: {
-        key: "Hello World",
-      },
-      superset: {
-        key: "Hello World",
-        another: 42,
-      },
+      left: { key: "Hello World" },
+      right: { key: "Hello World", another: 42 },
       result: false,
     },
     {
-      subset: {
-        key: "Hello World",
-        another: 42,
-      },
-      superset: {
-        key: "Hello World",
-      },
+      left: { key: "Hello World", another: 42 },
+      right: { key: "Hello World" },
       result: false,
     },
     {
-      subset: {
-        key: "Hello World",
-      },
-      superset: {
-        key: "Hello World",
-      },
+      left: { key: "Hello World" },
+      right: { key: "Hello World" },
       result: true,
+    },
+    {
+      left: { another: { nested: [1, 2] } },
+      right: { another: { nested: [1, 2] } },
+      result: true,
+    },
+    {
+      left: { another: { nested: [1] } },
+      right: { another: { nested: [1, 2] } },
+      result: false,
+    },
+    {
+      left: { another: { nested: [1, 2] } },
+      right: { another: { nested: [1] } },
+      result: false,
+    },
+    {
+      left: [1, [1], { key: "value" }],
+      right: [1, [1], { key: "value" }],
+      result: true,
+    },
+    {
+      left: [1, [1], { key: "value" }],
+      right: [1, [1], { key: "value2" }],
+      result: false,
+    },
+    {
+      left: [1, [1], { key: "value" }],
+      right: [1, [2], { key: "value" }],
+      result: false,
+    },
+    {
+      left: [1, [1, 2], { key: "value" }],
+      right: [1, [1], { key: "value" }],
+      result: false,
     },
   ];
   for (const test of tests) {
-    expect(test.result).toStrictEqual(
-      jsonIsDeepEqual(test.subset, test.superset),
-    );
+    expect(test.result).toStrictEqual(jsonIsDeepEqual(test.left, test.right));
   }
 });

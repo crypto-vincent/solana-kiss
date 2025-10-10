@@ -26,13 +26,13 @@ it("run", () => {
     arr_u8: bytesCoordinatorJoinRun,
   });
   const case2 = idlAccountEncode(accountIdl, {
-    bytes: "CoordinatorJoinRun",
-    vec_u8: "CoordinatorJoinRun",
-    arr_u8: "CoordinatorJoinRun",
+    bytes: { utf8: "CoordinatorJoinRun" },
+    vec_u8: { utf8: "CoordinatorJoinRun" },
+    arr_u8: { utf8: "CoordinatorJoinRun" },
   });
   const case3 = idlAccountEncode(accountIdl, {
-    bytes: { value: "CoordinatorJoinRun" },
-    vec_u8: { value: "CoordinatorJoinRun" },
+    bytes: { value: "CoordinatorJoinRun", type: "string8", prefixed: false },
+    vec_u8: { value: "CoordinatorJoinRun", type: "string16" },
     arr_u8: { value: "CoordinatorJoinRun" },
   });
   const case4 = idlAccountEncode(accountIdl, {
@@ -46,7 +46,7 @@ it("run", () => {
       type: ["string"],
     },
     vec_u8: {
-      value: ["Coordinator", "Join", [82, 117, 110]],
+      value: [{ utf8: "Coordinator" }, { utf8: "Join" }, [82, 117, 110]],
       type: ["bytes", 3],
     },
     arr_u8: {

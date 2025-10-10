@@ -7,6 +7,7 @@ import {
   jsonCodecBytesBase58,
   jsonCodecBytesBase64,
   jsonCodecBytesUtf8,
+  jsonCodecNumber,
   jsonCodecRaw,
   jsonDecoderByKind,
   jsonDecoderObject,
@@ -23,18 +24,22 @@ import { idlTypeFlatParse } from "./IdlTypeFlatParse";
 import { idlTypeFullEncode } from "./IdlTypeFullEncode";
 
 export const idlUtilsBytesJsonDecoder = jsonDecoderByKind({
-  string: jsonCodecBytesUtf8.decoder,
   array: jsonCodecBytesArray.decoder,
   object: jsonDecoderTransform(
     jsonDecoderObject({
+      utf8: jsonDecoderOptional(jsonCodecBytesUtf8.decoder),
       base16: jsonDecoderOptional(jsonCodecBytesBase16.decoder),
       base58: jsonDecoderOptional(jsonCodecBytesBase58.decoder),
       base64: jsonDecoderOptional(jsonCodecBytesBase64.decoder),
+      zeroes: jsonDecoderOptional(jsonCodecNumber.decoder),
       value: jsonCodecRaw.decoder,
       type: jsonDecoderOptional(idlTypeFlatParse),
       prefixed: jsonDecoderOptional(jsonCodecBoolean.decoder),
     }),
     (info) => {
+      if (info.utf8 !== undefined) {
+        return info.utf8;
+      }
       if (info.base16 !== undefined) {
         return info.base16;
       }
@@ -43,6 +48,9 @@ export const idlUtilsBytesJsonDecoder = jsonDecoderByKind({
       }
       if (info.base64 !== undefined) {
         return info.base64;
+      }
+      if (info.zeroes !== undefined) {
+        return new Uint8Array(info.zeroes);
       }
       const typeFlat = info.type ?? idlUtilsInferValueTypeFlat(info.value);
       const typeFull = idlTypeFlatHydrate(typeFlat, new Map());
@@ -54,11 +62,9 @@ export const idlUtilsBytesJsonDecoder = jsonDecoderByKind({
 });
 
 export function idlUtilsInferValueTypeFlat(value: JsonValue): IdlTypeFlat {
-  if (value === null || value === undefined) {
-    return idlTypeFlatParse(null);
-  } else if (jsonAsString(value)) {
+  if (jsonAsString(value) !== undefined) {
     return idlTypeFlatParse("string");
-  } else if (jsonAsArray(value)) {
+  } else if (jsonAsArray(value) !== undefined) {
     return idlTypeFlatParse("bytes");
   } else {
     throw new Error(

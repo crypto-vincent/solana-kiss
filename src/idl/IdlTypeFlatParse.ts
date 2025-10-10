@@ -15,8 +15,8 @@ import {
   jsonDecoderByKind,
   jsonDecoderForked,
   jsonDecoderObject,
-  jsonDecoderObjectEncodedSnakeKeys,
   jsonDecoderObjectToMap,
+  jsonDecoderObjectWithKeysSnakeEncoded,
   jsonDecoderOptional,
   jsonDecoderTransform,
 } from "../data/Json";
@@ -277,7 +277,7 @@ function objectVariantsJsonDecoder(prefix: IdlTypePrefix) {
   );
 }
 
-const objectPaddedInfoJsonDecoder = jsonDecoderObjectEncodedSnakeKeys({
+const objectPaddedInfoJsonDecoder = jsonDecoderObjectWithKeysSnakeEncoded({
   before: jsonDecoderOptional(jsonCodecNumber.decoder),
   minSize: jsonDecoderOptional(jsonCodecNumber.decoder),
   after: jsonDecoderOptional(jsonCodecNumber.decoder),

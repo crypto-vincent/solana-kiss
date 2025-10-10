@@ -6,7 +6,9 @@ export async function rpcHttpGetAccountLamports(
   rpcHttp: RpcHttp,
   accountAddress: Pubkey,
 ): Promise<{
-  accountInfo: { lamports: bigint };
+  accountInfo: {
+    lamports: bigint;
+  };
 }> {
   const result = resultJsonDecoder(
     await rpcHttp("getBalance", [pubkeyToBase58(accountAddress)], {}),
