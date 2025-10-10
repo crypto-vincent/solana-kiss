@@ -1,4 +1,5 @@
 export function casingConvertToSnake(string: string): string {
+  // TODO - optimize this ?
   return string
     .replace(/[_\-\s]+/g, " ")
     .replace(/([a-z0-9])([A-Z])/g, "$1 $2")

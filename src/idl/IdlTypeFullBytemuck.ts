@@ -29,7 +29,7 @@ type IdlTypeFullPodFields = {
   value: IdlTypeFullFields;
 };
 
-// TODO - figure out how to handle discriminator offset
+// TODO - figure out how to handle discriminator alignment/offset
 export function idlTypeFullTypedefBytemuck(
   typeFullTypedef: IdlTypeFullTypedef,
 ): IdlTypeFullPod {

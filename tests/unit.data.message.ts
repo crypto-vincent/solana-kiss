@@ -7,6 +7,7 @@ import {
 } from "@solana/web3.js";
 import {
   blockHashFromBytes,
+  blockHashToBase58,
   messageCompile,
   messageSign,
   Pubkey,
@@ -33,7 +34,7 @@ it("run", async () => {
   );
   const referenceCompiledMessage = new TransactionMessage({
     payerKey: payerReference.publicKey,
-    recentBlockhash: blockHash as string,
+    recentBlockhash: blockHashToBase58(blockHash),
     instructions: [
       generatedInstruction1.reference,
       generatedInstruction2.reference,

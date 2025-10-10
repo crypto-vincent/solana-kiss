@@ -14,8 +14,8 @@ import { idlTypeFlatParse } from "./IdlTypeFlatParse";
 export type IdlTypedef = {
   name: string;
   docs: IdlDocs;
-  serialization: string | undefined;
   repr: string | undefined;
+  serialization: string | undefined;
   generics: Array<string>;
   typeFlat: IdlTypeFlat;
 };
@@ -28,8 +28,8 @@ export function idlTypedefParse(
   return {
     name: typedefName,
     docs: decoded.docs,
-    serialization: decoded.serialization,
     repr: decoded.repr,
+    serialization: decoded.serialization,
     generics: decoded.generics ?? [],
     typeFlat: idlTypeFlatParse(typedefValue),
   };
@@ -37,19 +37,16 @@ export function idlTypedefParse(
 
 const jsonDecoder = jsonDecoderObject({
   docs: idlDocsParse,
+  repr: jsonDecoderOptional(stringOrObjectKeyJsonDecoder("kind")),
   serialization: jsonDecoderOptional(jsonCodecString.decoder),
-  repr: jsonDecoderOptional(
-    jsonDecoderByKind({
-      string: (string) => string,
-      object: jsonDecoderObjectKey("kind", jsonCodecString.decoder),
-    }),
-  ),
   generics: jsonDecoderOptional(
-    jsonDecoderArray(
-      jsonDecoderByKind({
-        string: (string) => string,
-        object: jsonDecoderObjectKey("name", jsonCodecString.decoder),
-      }),
-    ),
+    jsonDecoderArray(stringOrObjectKeyJsonDecoder("name")),
   ),
 });
+
+function stringOrObjectKeyJsonDecoder(objectKey: string) {
+  return jsonDecoderByKind({
+    string: (string) => string,
+    object: jsonDecoderObjectKey(objectKey, jsonCodecString.decoder),
+  });
+}

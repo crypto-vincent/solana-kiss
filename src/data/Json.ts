@@ -516,11 +516,11 @@ export function jsonEncoderArray<Item>(
   };
 }
 export function jsonCodecArray<Item>(
-  itemType: JsonCodec<Item>,
+  itemCodec: JsonCodec<Item>,
 ): JsonCodec<Array<Item>> {
   return {
-    decoder: jsonDecoderArray(itemType.decoder),
-    encoder: jsonEncoderArray(itemType.encoder),
+    decoder: jsonDecoderArray(itemCodec.decoder),
+    encoder: jsonEncoderArray(itemCodec.encoder),
   };
 }
 
@@ -709,20 +709,20 @@ export function jsonEncoderObjectToMap<Key, Value>(params: {
   };
 }
 export function jsonCodecObjectToMap<Key, Value>(
-  keyType: {
+  keyCodec: {
     keyEncoder: (keyDecoded: Key) => string;
     keyDecoder: (keyEncoded: string) => Key;
   },
-  valueType: JsonCodec<Value>,
+  valueCodec: JsonCodec<Value>,
 ): JsonCodec<Map<Key, Value>> {
   return {
     decoder: jsonDecoderObjectToMap({
-      keyDecoder: keyType.keyDecoder,
-      valueDecoder: valueType.decoder,
+      keyDecoder: keyCodec.keyDecoder,
+      valueDecoder: valueCodec.decoder,
     }),
     encoder: jsonEncoderObjectToMap({
-      keyEncoder: keyType.keyEncoder,
-      valueEncoder: valueType.encoder,
+      keyEncoder: keyCodec.keyEncoder,
+      valueEncoder: valueCodec.encoder,
     }),
   };
 }
@@ -733,7 +733,7 @@ export function jsonDecoderObjectKey<Content>(
 ): JsonDecoder<Content> {
   return jsonDecoderTransform(
     jsonDecoderObject({ [key]: valueDecoder }),
-    (unmapped) => unmapped[key]!,
+    (encoded) => encoded[key]!,
   );
 }
 export function jsonEncoderObjectKey<Content>(
@@ -742,16 +742,16 @@ export function jsonEncoderObjectKey<Content>(
 ): JsonEncoder<Content> {
   return jsonEncoderTransform(
     jsonEncoderObject({ [key]: valueEncoder }),
-    (remapped) => ({ [key]: remapped }),
+    (decoded) => ({ [key]: decoded }),
   );
 }
 export function jsonCodecObjectKey<Content>(
   key: string,
-  valueType: JsonCodec<Content>,
+  valueCodec: JsonCodec<Content>,
 ): JsonCodec<Content> {
   return {
-    decoder: jsonDecoderObjectKey(key, valueType.decoder),
-    encoder: jsonEncoderObjectKey(key, valueType.encoder),
+    decoder: jsonDecoderObjectKey(key, valueCodec.decoder),
+    encoder: jsonEncoderObjectKey(key, valueCodec.encoder),
   };
 }
 
@@ -776,11 +776,11 @@ export function jsonEncoderNullable<Content>(
   };
 }
 export function jsonCodecNullable<Content>(
-  contentType: JsonCodec<Content>,
+  contentCodec: JsonCodec<Content>,
 ): JsonCodec<Content | null> {
   return {
-    decoder: jsonDecoderNullable(contentType.decoder),
-    encoder: jsonEncoderNullable(contentType.encoder),
+    decoder: jsonDecoderNullable(contentCodec.decoder),
+    encoder: jsonEncoderNullable(contentCodec.encoder),
   };
 }
 
@@ -805,11 +805,11 @@ export function jsonEncoderOptional<Content>(
   };
 }
 export function jsonCodecOptional<Content>(
-  contentType: JsonCodec<Content>,
+  contentCodec: JsonCodec<Content>,
 ): JsonCodec<Content | undefined> {
   return {
-    decoder: jsonDecoderOptional(contentType.decoder),
-    encoder: jsonEncoderOptional(contentType.encoder),
+    decoder: jsonDecoderOptional(contentCodec.decoder),
+    encoder: jsonEncoderOptional(contentCodec.encoder),
   };
 }
 
@@ -830,15 +830,15 @@ export function jsonEncoderTransform<Decoded, Encoded>(
   };
 }
 export function jsonCodecTransform<Decoded, Encoded>(
-  type: JsonCodec<Encoded>,
-  conversion: {
+  innerCodec: JsonCodec<Encoded>,
+  outerCodec: {
     decoder: (encoded: Encoded) => Decoded;
     encoder: (decoded: Decoded) => Encoded;
   },
 ): JsonCodec<Decoded> {
   return {
-    decoder: jsonDecoderTransform(type.decoder, conversion.decoder),
-    encoder: jsonEncoderTransform(type.encoder, conversion.encoder),
+    decoder: jsonDecoderTransform(innerCodec.decoder, outerCodec.decoder),
+    encoder: jsonEncoderTransform(innerCodec.encoder, outerCodec.encoder),
   };
 }
 
