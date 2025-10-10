@@ -8,10 +8,10 @@ it("run", () => {
       MyAccount: {
         discriminator: [22],
         fields: [
-          { name: "blob_before", blob: { value: [1, 2, 3] } },
+          { name: "blob_before", bytes: { value: [1, 2, 3] } },
           { name: "value", type: "u8" },
-          { name: "blob_null", blob: { type: null } },
-          { name: "blob_after", blob: { base16: "040506" } },
+          { name: "blob_empty", bytes: { zeroes: 0 } },
+          { name: "blob_after", bytes: { base16: "040506" } },
         ],
       },
     },
@@ -21,10 +21,10 @@ it("run", () => {
       MyAccount: {
         discriminator: [22],
         fields: [
-          { name: "blob_before", blob: { base58: "Ldp" } },
+          { name: "blob_before", bytes: { base58: "Ldp" } },
           { name: "value", type: "u8" },
-          { name: "blob_null", blob: { value: null } },
-          { name: "blob_after", blob: { base64: "BAUG" } },
+          { name: "blob_empty", bytes: [] },
+          { name: "blob_after", bytes: { base64: "BAUG" } },
         ],
       },
     },
@@ -34,18 +34,18 @@ it("run", () => {
       MyAccount: {
         discriminator: [22],
         fields: [
-          { name: "blob_before", blob: [1, 2, 3] },
+          { name: "blob_before", bytes: [1, 2, 3] },
           { name: "value", type: "u8" },
-          { name: "blob_null", blob: [] },
+          { name: "blob_empty", bytes: [] },
           {
             name: "blob_after",
-            blob: {
+            bytes: {
               value: { a: [null, null, null, null], c: 6 },
               prefixed: true,
               type: {
                 fields: [
-                  { name: "a", vec8: null },
-                  { blob: { bytes: [5] } },
+                  { name: "a", vec8: { fields: [] } },
+                  { bytes: [5] },
                   { name: "c", type: "u8" },
                 ],
               },
@@ -69,7 +69,7 @@ it("run", () => {
   expect(idlAccountDecode(accountIdl, accountData)).toStrictEqual({
     blob_before: null,
     value: 42,
-    blob_null: null,
+    blob_empty: null,
     blob_after: null,
   });
 });

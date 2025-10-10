@@ -72,7 +72,7 @@ export function idlTypeFlatParseIsPossible(value: JsonValue): boolean {
     object.hasOwnProperty("variants64") ||
     object.hasOwnProperty("variants128") ||
     object.hasOwnProperty("padded") ||
-    object.hasOwnProperty("blob") ||
+    object.hasOwnProperty("bytes") ||
     object.hasOwnProperty("value")
   ) {
     return true;
@@ -329,7 +329,7 @@ const objectJsonDecoder: JsonDecoder<IdlTypeFlat> = jsonDecoderAsEnum({
   variants64: objectVariantsJsonDecoder(IdlTypePrefix.u64),
   variants128: objectVariantsJsonDecoder(IdlTypePrefix.u128),
   padded: objectPaddedJsonDecoder,
-  blob: objectBlobJsonDecoder,
+  bytes: objectBlobJsonDecoder,
   value: objectConstJsonDecoder,
 });
 

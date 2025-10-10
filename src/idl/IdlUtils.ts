@@ -28,7 +28,6 @@ export const idlUtilsBytesJsonDecoder = jsonDecoderByKind({
   object: jsonDecoderTransform(
     jsonDecoderObject({
       utf8: jsonDecoderOptional(jsonCodecBytesUtf8.decoder),
-      bytes: jsonDecoderOptional(jsonCodecBytesArray.decoder),
       base16: jsonDecoderOptional(jsonCodecBytesBase16.decoder),
       base58: jsonDecoderOptional(jsonCodecBytesBase58.decoder),
       base64: jsonDecoderOptional(jsonCodecBytesBase64.decoder),
@@ -40,9 +39,6 @@ export const idlUtilsBytesJsonDecoder = jsonDecoderByKind({
     (info) => {
       if (info.utf8 !== undefined) {
         return info.utf8;
-      }
-      if (info.bytes !== undefined) {
-        return info.bytes;
       }
       if (info.base16 !== undefined) {
         return info.base16;
@@ -66,11 +62,9 @@ export const idlUtilsBytesJsonDecoder = jsonDecoderByKind({
 });
 
 export function idlUtilsInferValueTypeFlat(value: JsonValue): IdlTypeFlat {
-  if (value === null || value === undefined) {
-    return idlTypeFlatParse(null);
-  } else if (jsonAsString(value)) {
+  if (jsonAsString(value) !== undefined) {
     return idlTypeFlatParse("string");
-  } else if (jsonAsArray(value)) {
+  } else if (jsonAsArray(value) !== undefined) {
     return idlTypeFlatParse("bytes");
   } else {
     throw new Error(
