@@ -1,5 +1,6 @@
 import { expect, it } from "@jest/globals";
 import {
+  expectDefined,
   idlInstructionAccountsDecode,
   idlInstructionAccountsEncode,
   idlProgramParse,
@@ -25,7 +26,7 @@ it("run", () => {
     },
   });
   // Choose the instruction
-  const instructionIdl = programIdl.instructions.get("my_ix")!;
+  const instructionIdl = expectDefined(programIdl.instructions.get("my_ix"));
   // Use dummy accounts
   const acc_0_0 = pubkeyNewDummy();
   const acc_1_1 = pubkeyNewDummy();

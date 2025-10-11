@@ -1,5 +1,6 @@
 import { expect, it } from "@jest/globals";
 import {
+  expectDefined,
   idlAccountDecode,
   idlAccountEncode,
   idlInstructionArgsDecode,
@@ -13,7 +14,9 @@ it("run", () => {
   // Parse IDL from file JSON directly
   const programIdl = idlProgramParse(require("./fixtures/idl_anchor_26.json"));
   // Prepare instruction args
-  const instructionIdl = programIdl.instructions.get("initialize_market")!;
+  const instructionIdl = expectDefined(
+    programIdl.instructions.get("initialize_market"),
+  );
   const instructionPayload = {
     global_market_seed: "SEED",
     withdrawal_fee: {
@@ -47,7 +50,9 @@ it("run", () => {
     idlInstructionArgsDecode(instructionIdl, instructionData),
   ).toStrictEqual(instructionPayload);
   // Prepare an account contents
-  const marketAccountIdl = programIdl.accounts.get("GlobalMarketState")!;
+  const marketAccountIdl = expectDefined(
+    programIdl.accounts.get("GlobalMarketState"),
+  );
   const marketAccountState = {
     base_token_mint: pubkeyToBase58(pubkeyNewDummy()),
     lp_token_mint: pubkeyToBase58(pubkeyNewDummy()),
@@ -85,7 +90,9 @@ it("run", () => {
     marketAccountState,
   );
   // Prepare an account contents
-  const programAccountIdl = programIdl.accounts.get("ProgramState")!;
+  const programAccountIdl = expectDefined(
+    programIdl.accounts.get("ProgramState"),
+  );
   const programAccountState = {
     credix_multisig_key: pubkeyToBase58(pubkeyNewDummy()),
     credix_managers: [

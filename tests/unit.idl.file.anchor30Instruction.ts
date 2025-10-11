@@ -1,5 +1,6 @@
 import { expect, it } from "@jest/globals";
 import {
+  expectDefined,
   idlInstructionAddressesFind,
   idlInstructionEncode,
   idlProgramParse,
@@ -58,7 +59,9 @@ it("run", () => {
     ["redeemable_mint", redeemableMintAddress],
   ]);
   // Useful instruction
-  const instructionIdl = programIdl.instructions.get("campaign_create")!;
+  const instructionIdl = expectDefined(
+    programIdl.instructions.get("campaign_create"),
+  );
   // Resolve missing instruction accounts
   const instructionAddressesAfter = idlInstructionAddressesFind(
     instructionIdl,

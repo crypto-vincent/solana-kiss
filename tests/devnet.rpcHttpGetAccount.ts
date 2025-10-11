@@ -28,9 +28,17 @@ it("run", async () => {
   expect(withDataAccountInfo.lamports).toBeGreaterThan(0n);
   expect(withDataAccountInfo.owner).not.toBe(pubkeyDefault);
   expect(withDataAccountInfo.data.length).toBeGreaterThan(0);
-  expect(withDataAccountInfo.lamports).toBe(lamportsAccountInfo.lamports);
-  expect(withDataAccountInfo.lamports).toBe(metadataAccountInfo.lamports);
-  expect(withDataAccountInfo.owner).toBe(metadataAccountInfo.owner);
-  expect(withDataAccountInfo.executable).toBe(metadataAccountInfo.executable);
-  expect(withDataAccountInfo.data.length).toBe(metadataAccountInfo.space);
+  expect(withDataAccountInfo.lamports).toStrictEqual(
+    lamportsAccountInfo.lamports,
+  );
+  expect(withDataAccountInfo.lamports).toStrictEqual(
+    metadataAccountInfo.lamports,
+  );
+  expect(withDataAccountInfo.owner).toStrictEqual(metadataAccountInfo.owner);
+  expect(withDataAccountInfo.executable).toStrictEqual(
+    metadataAccountInfo.executable,
+  );
+  expect(withDataAccountInfo.data.length).toStrictEqual(
+    metadataAccountInfo.space,
+  );
 });

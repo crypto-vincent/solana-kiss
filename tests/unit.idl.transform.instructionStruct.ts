@@ -1,5 +1,6 @@
 import { expect, it } from "@jest/globals";
 import {
+  expectDefined,
   idlInstructionDecode,
   idlInstructionEncode,
   idlProgramParse,
@@ -33,7 +34,7 @@ it("run", () => {
     },
   });
   // Choose the instruction
-  const instructionIdl = programIdl.instructions.get("my_ix")!;
+  const instructionIdl = expectDefined(programIdl.instructions.get("my_ix"));
   // Check that we can use the manual IDL to encode/decode our IX
   const instructionProgramAddress = pubkeyNewDummy();
   const instructionPayload = {
@@ -57,12 +58,12 @@ it("run", () => {
     programAddress: instructionProgramAddress,
     inputs: [
       {
-        address: instructionAddresses.get("signer")!,
+        address: expectDefined(instructionAddresses.get("signer")),
         signing: true,
         writable: false,
       },
       {
-        address: instructionAddresses.get("writable")!,
+        address: expectDefined(instructionAddresses.get("writable")),
         signing: false,
         writable: true,
       },

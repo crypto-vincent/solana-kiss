@@ -39,7 +39,7 @@ it("run", async () => {
       ownedAddress,
     );
     const ownedAccountInfo = ownedAccountResult.accountInfo;
-    expect(ownedAccountInfo.data.length).toBe(32);
+    expect(ownedAccountInfo.data.length).toStrictEqual(32);
     expect(ownedAccountInfo.data.slice(0, 8)).toStrictEqual(
       expectedDiscriminatorBytes,
     );

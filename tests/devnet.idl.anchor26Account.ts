@@ -1,5 +1,6 @@
 import { expect, it } from "@jest/globals";
 import {
+  expectDefined,
   idlAccountDecode,
   idlInstructionAddressesFind,
   IdlProgram,
@@ -65,7 +66,7 @@ it("run", async () => {
   );
   // Check that we could indeed find the right accounts programatically
   const instructionAddresses = idlInstructionAddressesFind(
-    programIdl.instructions.get("initialize_market")!,
+    expectDefined(programIdl.instructions.get("initialize_market")),
     {
       instructionProgramAddress: programAddress,
       instructionAddresses: new Map(),
@@ -95,7 +96,9 @@ async function assertAccountInfo(
     rpcHttp,
     accountAddress,
   );
-  const accountIdl = idlProgramGuessAccount(programIdl, accountInfo.data)!;
+  const accountIdl = expectDefined(
+    idlProgramGuessAccount(programIdl, accountInfo.data),
+  );
   const accountState = idlAccountDecode(accountIdl, accountInfo.data);
   expect(accountIdl.name).toStrictEqual(accountName);
   expect(

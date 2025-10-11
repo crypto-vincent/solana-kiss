@@ -64,10 +64,10 @@ it("run", async () => {
     rpcHttp,
     ownedSigner.address,
   );
-  expect(ownedAccountInfo.executable).toBe(false);
-  expect(ownedAccountInfo.lamports).toBe(transferLamports);
-  expect(ownedAccountInfo.owner).toBe(ownerAddress);
-  expect(ownedAccountInfo.space).toBe(requestedSpace);
+  expect(ownedAccountInfo.executable).toStrictEqual(false);
+  expect(ownedAccountInfo.lamports).toStrictEqual(transferLamports);
+  expect(ownedAccountInfo.owner).toStrictEqual(ownerAddress);
+  expect(ownedAccountInfo.space).toStrictEqual(requestedSpace);
 });
 
 const secret = new Uint8Array([
@@ -78,7 +78,7 @@ const secret = new Uint8Array([
 ]);
 
 const instructionIdl = idlInstructionParse("create", {
-  discriminator: { value: 0, type: "u32" },
+  discriminator: { encode: { value: 0, type: "u32" } },
   accounts: [
     { name: "payer", signing: true, writable: true },
     { name: "owned", signing: true, writable: true },

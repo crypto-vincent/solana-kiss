@@ -1,5 +1,6 @@
 import { expect, it } from "@jest/globals";
 import {
+  expectDefined,
   idlInstructionAddressesFind,
   idlProgramParse,
   pubkeyFindPdaAddress,
@@ -59,7 +60,7 @@ it("run", () => {
   ]);
   // Generate all missing IX accounts with just the minimum information
   const initializeMarketAddresses = idlInstructionAddressesFind(
-    programIdl.instructions.get("initialize_market")!,
+    expectDefined(programIdl.instructions.get("initialize_market")),
     {
       instructionProgramAddress: programAddress,
       instructionAddresses: new Map([
@@ -79,7 +80,7 @@ it("run", () => {
     },
   );
   // Check the outcomes
-  expect(initializeMarketAddresses.get("global_market_state")!).toStrictEqual(
+  expect(initializeMarketAddresses.get("global_market_state")).toStrictEqual(
     globalMarketStateAddress,
   );
   expect(initializeMarketAddresses.get("market_admins")).toStrictEqual(
@@ -96,7 +97,7 @@ it("run", () => {
   );
   // Generate all missing IX accounts with just the minimum information
   const openDealAddresses = idlInstructionAddressesFind(
-    programIdl.instructions.get("open_deal")!,
+    expectDefined(programIdl.instructions.get("open_deal")),
     {
       instructionProgramAddress: programAddress,
       instructionAddresses: new Map([

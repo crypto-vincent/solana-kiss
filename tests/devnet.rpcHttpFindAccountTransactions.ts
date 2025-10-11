@@ -1,5 +1,6 @@
 import { expect, it } from "@jest/globals";
 import {
+  expectDefined,
   pubkeyFromBase58,
   rpcHttpFindAccountTransactions,
   rpcHttpFromUrl,
@@ -16,7 +17,7 @@ it("run", async () => {
   expect(backwardTransactionsIds.length).toBeGreaterThan(0);
   const { transactionExecution } = await rpcHttpWaitForTransaction(
     rpcHttp,
-    backwardTransactionsIds[0]!,
+    expectDefined(backwardTransactionsIds[0]),
     0,
   );
   expect(transactionExecution.blockInfo.time?.toISOString()).toStrictEqual(

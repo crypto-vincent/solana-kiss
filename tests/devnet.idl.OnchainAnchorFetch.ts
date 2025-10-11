@@ -18,9 +18,9 @@ it("run", async () => {
   );
   const onchainAnchorIdl = idlOnchainAnchorDecode(onchainAnchorInfo.data);
   expect(onchainAnchorIdl.metadata.name).toStrictEqual("psyche_crowd_funding");
-  expect(onchainAnchorIdl.typedefs.size).toBe(9);
-  expect(onchainAnchorIdl.accounts.size).toBe(2);
-  expect(onchainAnchorIdl.instructions.size).toBe(6);
-  expect(onchainAnchorIdl.errors.size).toBe(5);
-  expect(onchainAnchorIdl.events.size).toBe(0);
+  expect(onchainAnchorIdl.typedefs.size).toStrictEqual(9);
+  expect(onchainAnchorIdl.accounts.size).toStrictEqual(2);
+  expect(onchainAnchorIdl.instructions.size).toStrictEqual(6);
+  expect(onchainAnchorIdl.errors.size).toStrictEqual(5);
+  expect(onchainAnchorIdl.events.size).toStrictEqual(0);
 });

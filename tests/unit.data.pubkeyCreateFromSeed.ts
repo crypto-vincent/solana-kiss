@@ -4,26 +4,26 @@ import { Pubkey, pubkeyCreateFromSeed, pubkeyNewDummy } from "../src";
 
 it("run", async () => {
   const tests = Array<{
-    signerAddress: Pubkey;
+    fromAddress: Pubkey;
     seedUtf8: string;
     ownerAddress: Pubkey;
   }>();
   for (let counter = 0; counter < 20; counter++) {
     tests.push({
-      signerAddress: pubkeyNewDummy(),
+      fromAddress: pubkeyNewDummy(),
       seedUtf8: `seed:${counter}`,
       ownerAddress: pubkeyNewDummy(),
     });
   }
   for (const test of tests) {
     const found = pubkeyCreateFromSeed(
-      test.signerAddress,
+      test.fromAddress,
       test.seedUtf8,
       test.ownerAddress,
     );
     const expected = (
       await PublicKey.createWithSeed(
-        new PublicKey(test.signerAddress),
+        new PublicKey(test.fromAddress),
         test.seedUtf8,
         new PublicKey(test.ownerAddress),
       )

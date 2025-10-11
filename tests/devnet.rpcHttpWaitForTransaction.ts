@@ -47,6 +47,9 @@ it("run", async () => {
     InstructionError: [1, { Custom: 3012 }],
   });
   expect(transactionCallStack2?.length).toStrictEqual(2);
+  expect((transactionCallStack2 as any)[1].invoke.error).toStrictEqual(
+    "custom program error: 0xbc4",
+  );
   // This should be a transaction with many instructions (> 50)
   const {
     transactionExecution: transactionExecution3,

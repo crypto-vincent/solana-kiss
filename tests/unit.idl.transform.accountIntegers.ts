@@ -1,5 +1,10 @@
 import { expect, it } from "@jest/globals";
-import { idlAccountDecode, idlAccountEncode, idlProgramParse } from "../src";
+import {
+  expectDefined,
+  idlAccountDecode,
+  idlAccountEncode,
+  idlProgramParse,
+} from "../src";
 
 it("run", () => {
   // Create an IDL on the fly
@@ -23,7 +28,7 @@ it("run", () => {
     },
   });
   // Choose the account
-  const accountIdl = programIdl.accounts.get("MyAccount")!;
+  const accountIdl = expectDefined(programIdl.accounts.get("MyAccount"));
   // Dummy state we'll encode/decode
   const accountstateRaw = {
     u8: 0xff,

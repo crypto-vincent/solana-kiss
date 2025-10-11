@@ -1,5 +1,6 @@
 import { expect, it } from "@jest/globals";
 import {
+  expectDefined,
   idlInstructionAddressesFind,
   idlProgramParse,
   pubkeyFindPdaAddress,
@@ -55,7 +56,7 @@ it("run", () => {
   ]);
   // Generate all missing IX accounts with just the minimum information
   const campaignCreateAddresses = idlInstructionAddressesFind(
-    programIdl.instructions.get("campaign_create")!,
+    expectDefined(programIdl.instructions.get("campaign_create")),
     {
       instructionProgramAddress: programAddress,
       instructionAddresses: new Map([
@@ -78,7 +79,7 @@ it("run", () => {
   );
   // Generate all missing IX accounts with just the minimum information
   const campaignExtractAddresses = idlInstructionAddressesFind(
-    programIdl.instructions.get("campaign_extract")!,
+    expectDefined(programIdl.instructions.get("campaign_extract")),
     {
       instructionProgramAddress: programAddress,
       instructionAddresses: new Map([
@@ -105,7 +106,7 @@ it("run", () => {
   );
   // Generate all missing IX accounts with just the minimum information
   const pledgeCreateAddresses = idlInstructionAddressesFind(
-    programIdl.instructions.get("pledge_create")!,
+    expectDefined(programIdl.instructions.get("pledge_create")),
     {
       instructionProgramAddress: programAddress,
       instructionAddresses: new Map([
@@ -120,7 +121,7 @@ it("run", () => {
   expect(pledgeAddress).toStrictEqual(pledgeCreateAddresses.get("pledge"));
   // Generate all missing IX accounts with just the minimum information
   const pledgeDepositAddresses = idlInstructionAddressesFind(
-    programIdl.instructions.get("pledge_deposit")!,
+    expectDefined(programIdl.instructions.get("pledge_deposit")),
     {
       instructionProgramAddress: programAddress,
       instructionAddresses: new Map([

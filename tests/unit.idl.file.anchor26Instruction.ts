@@ -1,5 +1,6 @@
 import { expect, it } from "@jest/globals";
 import {
+  expectDefined,
   idlInstructionAddressesFind,
   idlInstructionDecode,
   idlInstructionEncode,
@@ -11,7 +12,9 @@ it("run", () => {
   // Parse IDL from file JSON directly
   const programIdl = idlProgramParse(require("./fixtures/idl_anchor_26.json"));
   // IDL instruction
-  const instructionIdl = programIdl.instructions.get("create_deal")!;
+  const instructionIdl = expectDefined(
+    programIdl.instructions.get("create_deal"),
+  );
   // Program
   const programAddress = pubkeyNewDummy();
   // Prepare instruction args

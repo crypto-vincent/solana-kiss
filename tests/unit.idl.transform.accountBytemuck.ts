@@ -1,5 +1,6 @@
 import { expect, it } from "@jest/globals";
 import {
+  expectDefined,
   idlAccountDecode,
   idlAccountEncode,
   idlProgramParse,
@@ -81,7 +82,7 @@ it("run", () => {
     },
   });
   // Choose the instruction
-  const accountIdl = programIdl.accounts.get("BytemuckAccount")!;
+  const accountIdl = expectDefined(programIdl.accounts.get("BytemuckAccount"));
   // Bytemuck constants
   const keyF2 = pubkeyToBase58(
     pubkeyFromBytes(

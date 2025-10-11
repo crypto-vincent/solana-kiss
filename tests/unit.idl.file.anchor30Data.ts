@@ -1,5 +1,6 @@
 import { expect, it } from "@jest/globals";
 import {
+  expectDefined,
   idlAccountDecode,
   idlAccountEncode,
   idlInstructionArgsDecode,
@@ -13,7 +14,9 @@ it("run", () => {
   // Parse IDL from file JSON directly
   const programIdl = idlProgramParse(require("./fixtures/idl_anchor_30.json"));
   // Instruction used
-  const instructionIdl = programIdl.instructions.get("campaign_create")!;
+  const instructionIdl = expectDefined(
+    programIdl.instructions.get("campaign_create"),
+  );
   // Prepare instruction payload
   const instructionPayloadMetadataBytes = new Array<number>();
   for (let index = 0; index < 512; index++) {
@@ -39,7 +42,7 @@ it("run", () => {
     idlInstructionArgsDecode(instructionIdl, instructionData),
   );
   // IDL Account used
-  const campaignAccountIdl = programIdl.accounts.get("Campaign")!;
+  const campaignAccountIdl = expectDefined(programIdl.accounts.get("Campaign"));
   // Prepare account state
   const campaignAccountStateMetadataBytes = new Array<number>();
   for (let index = 0; index < 512; index++) {
@@ -72,7 +75,7 @@ it("run", () => {
     idlAccountDecode(campaignAccountIdl, campaignAccountData),
   );
   // IDL Account used
-  const pledgeAccountIdl = programIdl.accounts.get("Pledge")!;
+  const pledgeAccountIdl = expectDefined(programIdl.accounts.get("Pledge"));
   const pledgeAccountState = {
     bump: 44,
     deposited_collateral_amount: "999",

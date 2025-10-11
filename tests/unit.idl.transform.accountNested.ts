@@ -1,5 +1,10 @@
 import { expect, it } from "@jest/globals";
-import { idlAccountDecode, idlAccountEncode, idlProgramParse } from "../src";
+import {
+  expectDefined,
+  idlAccountDecode,
+  idlAccountEncode,
+  idlProgramParse,
+} from "../src";
 
 it("run", () => {
   // Create an IDL on the fly
@@ -39,7 +44,7 @@ it("run", () => {
     },
   });
   // MyAccount1 prepared
-  const accountIdl1 = programIdl.accounts.get("MyAccount1")!;
+  const accountIdl1 = expectDefined(programIdl.accounts.get("MyAccount1"));
   const accountstate1 = {
     name: "ABCD",
     struct: {
@@ -63,7 +68,7 @@ it("run", () => {
     idlAccountDecode(accountIdl1, accountData1),
   );
   // MyAccount2 prepared
-  const accountIdl2 = programIdl.accounts.get("MyAccount2")!;
+  const accountIdl2 = expectDefined(programIdl.accounts.get("MyAccount2"));
   const accountState2 = {
     val1: {
       integer: 43,

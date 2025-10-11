@@ -1,5 +1,6 @@
 import { expect, it } from "@jest/globals";
 import {
+  expectDefined,
   idlInstructionEncode,
   idlProgramParse,
   InstructionInput,
@@ -17,7 +18,7 @@ it("run", () => {
   const placeholderAddress = pubkeyNewDummy();
   // Actually generate the instruction
   const instruction = idlInstructionEncode(
-    programIdl.instructions.get("initialize_realm")!,
+    expectDefined(programIdl.instructions.get("initialize_realm")),
     programAddress,
     new Map([
       ["payer", payerAddress],
