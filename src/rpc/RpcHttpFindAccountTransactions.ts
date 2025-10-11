@@ -16,10 +16,10 @@ export async function rpcHttpFindAccountTransactions(
     rewindUntilTransactionId?: Signature;
   },
 ): Promise<{ backwardTransactionsIds: Array<Signature> }> {
+  const backwardTransactionsIds = new Array<Signature>();
   const requestLimit = 1000;
-  const backTransactionsIds = new Array<Signature>();
-  const rewindUntil = pagination?.rewindUntilTransactionId;
-  let startBefore = pagination?.startBeforeTransactionId;
+  const rewindUntilTransactionId = pagination?.rewindUntilTransactionId;
+  let startBeforeTransactionId = pagination?.startBeforeTransactionId;
   while (true) {
     const result = resultJsonDecoder(
       await rpcHttp(
@@ -27,23 +27,25 @@ export async function rpcHttpFindAccountTransactions(
         [pubkeyToBase58(accountAddress)],
         {
           limit: requestLimit,
-          before: startBefore ? signatureToBase58(startBefore) : undefined,
+          before: startBeforeTransactionId
+            ? signatureToBase58(startBeforeTransactionId)
+            : undefined,
         },
       ),
     );
     for (const item of result) {
       const transactionId = item.signature;
-      backTransactionsIds.push(transactionId);
-      if (backTransactionsIds.length >= maxResultLength) {
-        return { backwardTransactionsIds: backTransactionsIds };
+      backwardTransactionsIds.push(transactionId);
+      if (backwardTransactionsIds.length >= maxResultLength) {
+        return { backwardTransactionsIds };
       }
-      if (transactionId === rewindUntil) {
-        return { backwardTransactionsIds: backTransactionsIds };
+      if (transactionId === rewindUntilTransactionId) {
+        return { backwardTransactionsIds };
       }
-      startBefore = transactionId;
+      startBeforeTransactionId = transactionId;
     }
     if (result.length < requestLimit) {
-      return { backwardTransactionsIds: backTransactionsIds };
+      return { backwardTransactionsIds };
     }
   }
 }
