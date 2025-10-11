@@ -9,7 +9,7 @@ import {
   IdlTypeFullFields,
   IdlTypeFullFieldUnnamed,
   IdlTypeFullOption,
-  IdlTypeFullPadded,
+  IdlTypeFullPad,
   IdlTypeFullString,
   IdlTypeFullStruct,
   IdlTypeFullTypedef,
@@ -178,8 +178,8 @@ const visitorDecode = {
       `Decode: Unknown enum code: ${dataCode} (offset: ${dataOffset})`,
     );
   },
-  padded: (
-    self: IdlTypeFullPadded,
+  pad: (
+    self: IdlTypeFullPad,
     data: DataView,
     dataOffset: number,
   ): [number, JsonValue] => {

@@ -1,20 +1,25 @@
 import { expect, it } from "@jest/globals";
 import {
+  Instruction,
+  Pubkey,
+  pubkeyFromBase58,
   rpcHttpFromUrl,
   rpcHttpWaitForTransaction,
+  RpcTransactionCallStack,
   signatureFromBase58,
 } from "../src";
 
 it("run", async () => {
   const rpcHttp = rpcHttpFromUrl("https://api.mainnet-beta.solana.com");
   // Complex transaction with many inner instructions nested
-  const { transactionExecution } = await rpcHttpWaitForTransaction(
-    rpcHttp,
-    signatureFromBase58(
-      "5c4TRGCXbv6ChbTpTnmFzt3WFqpWMMSAKdEqiqCFzG7hTFTWxdHpv2VxfQBzG3VwvQ2mMyG4rvV2eTN68jrLKy3U",
-    ),
-    0,
-  );
+  const { transactionExecution, transactionCallStack } =
+    await rpcHttpWaitForTransaction(
+      rpcHttp,
+      signatureFromBase58(
+        "5c4TRGCXbv6ChbTpTnmFzt3WFqpWMMSAKdEqiqCFzG7hTFTWxdHpv2VxfQBzG3VwvQ2mMyG4rvV2eTN68jrLKy3U",
+      ),
+      0,
+    );
   expect(transactionExecution.message.payerAddress).toStrictEqual(
     "Ewfot2ZKhuGuEWaSRyFpe3LpK9xSEEUrDZk4AQpTazAR",
   );
@@ -23,22 +28,231 @@ it("run", async () => {
   );
   expect(transactionExecution.error).toStrictEqual(null);
   // Check the invocations tree shape
-  /*
-  const invocations = transactionInvocations!;
-  expect(invocations.length).toStrictEqual(4);
-  expect(invocations[0]!.invocations.length).toStrictEqual(0);
-  expect(invocations[1]!.invocations.length).toStrictEqual(0);
-  expect(invocations[2]!.invocations.length).toStrictEqual(0);
-  const lastRootCall = invocations[3]!;
-  expect(lastRootCall.invocations.length).toStrictEqual(1);
-  const firstCpi = lastRootCall.invocations[0]!;
-  expect(firstCpi.invocations.length).toStrictEqual(2);
-  expect(firstCpi.invocations[0]!.invocations.length).toStrictEqual(0);
-  expect(firstCpi.invocations[1]!.invocations.length).toStrictEqual(4);
-  const secondCpi = firstCpi.invocations[1]!;
-  expect(secondCpi.invocations[0]!.invocations.length).toStrictEqual(0);
-  expect(secondCpi.invocations[1]!.invocations.length).toStrictEqual(0);
-  expect(secondCpi.invocations[2]!.invocations.length).toStrictEqual(0);
-  expect(secondCpi.invocations[3]!.invocations.length).toStrictEqual(0);
-  */
+  const createParams = new Uint8Array(410);
+  expect(transactionCallStack).toStrictEqual([
+    invoke({
+      instruction: instruction({
+        programAddress: "ComputeBudget111111111111111111111111111111",
+        data: [2, 32, 161, 7, 0],
+      }),
+    }),
+    invoke({
+      instruction: instruction({
+        programAddress: "ComputeBudget111111111111111111111111111111",
+        data: [3, 112, 17, 1, 0, 0, 0, 0, 0],
+      }),
+    }),
+    invoke({
+      instruction: instruction({
+        programAddress: "11111111111111111111111111111111",
+        inputs: [
+          input("Ewfot2ZKhuGuEWaSRyFpe3LpK9xSEEUrDZk4AQpTazAR", "ws"),
+          input("DttWaMuVvTiduZRnguLF7jNxTgiMBZ1hyAumKUiL2KRL", "w"),
+        ],
+        data: [2, 0, 0, 0, 160, 134, 1, 0, 0, 0, 0, 0],
+      }),
+    }),
+    invoke({
+      instruction: instruction({
+        programAddress: "SQDS4ep65T869zMMBKyuUq6aD6EgTu8psMjkvj52pCf",
+        inputs: [
+          input("95YsCnu6P89y8N52qLLTbRog42eypUNqzDi4JYCSCuA", ""),
+          input("9HLo1KDmyY8xkqz6wyd31qUdBHLK5jyxtkEkguXdaZ24", "w"),
+          input("FnapEgNwU7rbxZEbTmi3TjQHGcMx5USufajmqtsHSqth", ""),
+          input("Ewfot2ZKhuGuEWaSRyFpe3LpK9xSEEUrDZk4AQpTazAR", "ws"),
+          input("45AMNJMGuojexK1rEBHJSSVFDpTUcoHRcAUmRfLF8hrm", ""),
+          input("8PDYaC2zz9UYN3qVoAyZvAF7qRkmTByBT5TnT2mHGPuZ", "w"),
+          input("8sWsVPJpjcBrmmuAQCk1Tp6BgAmEc8A5UM8RhJn1qzED", "w"),
+          input("BLv19rpwzGkZoJndnR3FXMhkdpqaWiW2i2PvgGzh7kRD", "w"),
+          input("PsyMP8fXEEMo2C6C84s8eXuRUrvzQnZyquyjipDRohf", ""),
+          input("EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v", ""),
+          input("ATokenGPvbdGVxr1b2hvZbsiqW5xWH25efTNsLJA8knL", ""),
+          input("TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA", ""),
+          input("11111111111111111111111111111111", ""),
+        ],
+        data: [194, 8, 161, 87, 153, 164, 25, 171],
+      }),
+      callStack: [
+        { log: "Instruction: VaultTransactionExecute" },
+        invoke({
+          instruction: instruction({
+            programAddress: "PsyMP8fXEEMo2C6C84s8eXuRUrvzQnZyquyjipDRohf",
+            inputs: [
+              input("8PDYaC2zz9UYN3qVoAyZvAF7qRkmTByBT5TnT2mHGPuZ", "w"),
+              input("8PDYaC2zz9UYN3qVoAyZvAF7qRkmTByBT5TnT2mHGPuZ", "w"),
+              input("8sWsVPJpjcBrmmuAQCk1Tp6BgAmEc8A5UM8RhJn1qzED", "w"),
+              input("BLv19rpwzGkZoJndnR3FXMhkdpqaWiW2i2PvgGzh7kRD", "w"),
+              input("EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v", ""),
+              input("ATokenGPvbdGVxr1b2hvZbsiqW5xWH25efTNsLJA8knL", ""),
+              input("TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA", ""),
+              input("11111111111111111111111111111111", ""),
+            ],
+            data: [
+              [55, 151, 27, 224, 136, 247, 199, 235],
+              Array.from(createParams),
+            ].flat(),
+          }),
+          callStack: [
+            { log: "Instruction: PoolCreate" },
+            invoke({
+              instruction: instruction({
+                programAddress: "11111111111111111111111111111111",
+                inputs: [
+                  input("8PDYaC2zz9UYN3qVoAyZvAF7qRkmTByBT5TnT2mHGPuZ", "w"),
+                  input("8sWsVPJpjcBrmmuAQCk1Tp6BgAmEc8A5UM8RhJn1qzED", "w"),
+                ],
+                data: [
+                  0, 0, 0, 0, 128, 55, 72, 0, 0, 0, 0, 0, 40, 2, 0, 0, 0, 0, 0,
+                  0, 5, 220, 105, 90, 248, 108, 44, 154, 131, 181, 49, 53, 202,
+                  179, 79, 86, 224, 229, 132, 215, 152, 39, 45, 61, 220, 191,
+                  239, 53, 227, 144, 199, 206,
+                ],
+              }),
+            }),
+            invoke({
+              instruction: instruction({
+                programAddress: "ATokenGPvbdGVxr1b2hvZbsiqW5xWH25efTNsLJA8knL",
+                inputs: [
+                  input("8PDYaC2zz9UYN3qVoAyZvAF7qRkmTByBT5TnT2mHGPuZ", "w"),
+                  input("BLv19rpwzGkZoJndnR3FXMhkdpqaWiW2i2PvgGzh7kRD", "w"),
+                  input("8sWsVPJpjcBrmmuAQCk1Tp6BgAmEc8A5UM8RhJn1qzED", "w"),
+                  input("EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v", ""),
+                  input("11111111111111111111111111111111", ""),
+                  input("TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA", ""),
+                ],
+                data: [0],
+              }),
+              callStack: [
+                { log: "Create" },
+                invoke({
+                  instruction: instruction({
+                    programAddress:
+                      "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA",
+                    inputs: [
+                      input("EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v", ""),
+                    ],
+                    data: [21, 7, 0],
+                  }),
+                  callStack: [{ log: "Instruction: GetAccountDataSize" }],
+                  result: {
+                    returnData: [165, 0, 0, 0, 0, 0, 0, 0],
+                    consumedComputeUnits: 1622,
+                  },
+                }),
+                invoke({
+                  instruction: instruction({
+                    programAddress: "11111111111111111111111111111111",
+                    inputs: [
+                      input(
+                        "8PDYaC2zz9UYN3qVoAyZvAF7qRkmTByBT5TnT2mHGPuZ",
+                        "w",
+                      ),
+                      input(
+                        "BLv19rpwzGkZoJndnR3FXMhkdpqaWiW2i2PvgGzh7kRD",
+                        "w",
+                      ),
+                    ],
+                    data: [
+                      0, 0, 0, 0, 240, 29, 31, 0, 0, 0, 0, 0, 165, 0, 0, 0, 0,
+                      0, 0, 0, 6, 221, 246, 225, 215, 101, 161, 147, 217, 203,
+                      225, 70, 206, 235, 121, 172, 28, 180, 133, 237, 95, 91,
+                      55, 145, 58, 140, 245, 133, 126, 255, 0, 169,
+                    ],
+                  }),
+                }),
+                { log: "Initialize the associated token account" },
+                invoke({
+                  instruction: instruction({
+                    programAddress:
+                      "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA",
+                    inputs: [
+                      input(
+                        "BLv19rpwzGkZoJndnR3FXMhkdpqaWiW2i2PvgGzh7kRD",
+                        "w",
+                      ),
+                    ],
+                    data: [22],
+                  }),
+                  callStack: [
+                    {
+                      log: "Instruction: InitializeImmutableOwner",
+                    },
+                    {
+                      log: "Please upgrade to SPL Token 2022 for immutable owner support",
+                    },
+                  ],
+                  result: { consumedComputeUnits: 1405 },
+                }),
+                invoke({
+                  instruction: instruction({
+                    programAddress:
+                      "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA",
+                    inputs: [
+                      input(
+                        "BLv19rpwzGkZoJndnR3FXMhkdpqaWiW2i2PvgGzh7kRD",
+                        "w",
+                      ),
+                      input("EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v", ""),
+                    ],
+                    data: [
+                      18, 116, 242, 159, 166, 19, 7, 185, 227, 29, 234, 100,
+                      229, 133, 109, 136, 56, 141, 204, 162, 159, 6, 103, 180,
+                      194, 157, 194, 135, 102, 47, 149, 8, 226,
+                    ],
+                  }),
+                  callStack: [{ log: "Instruction: InitializeAccount3" }],
+                  result: { consumedComputeUnits: 4241 },
+                }),
+              ],
+              result: { consumedComputeUnits: 20544 },
+            }),
+          ],
+          result: { consumedComputeUnits: 37287 },
+        }),
+      ],
+      result: { consumedComputeUnits: 67334 },
+    }),
+  ]);
 });
+
+function invoke(value: {
+  instruction: Instruction;
+  callStack?: RpcTransactionCallStack;
+  result?: {
+    error?: string | undefined;
+    returnData?: Array<number> | undefined;
+    consumedComputeUnits?: number | undefined;
+  };
+}) {
+  return {
+    invoke: {
+      instruction: value.instruction,
+      callStack: value.callStack ?? [],
+      error: value.result?.error,
+      returnData: value.result?.returnData
+        ? new Uint8Array(value.result.returnData)
+        : undefined,
+      consumedComputeUnits: value.result?.consumedComputeUnits,
+    },
+  };
+}
+
+function instruction(value: {
+  programAddress: string;
+  inputs?: Array<{ address: Pubkey; signing: boolean; writable: boolean }>;
+  data?: Array<number>;
+}): Instruction {
+  return {
+    programAddress: pubkeyFromBase58(value.programAddress),
+    inputs: value.inputs ?? [],
+    data: new Uint8Array(value.data ?? []),
+  };
+}
+
+function input(address: string, mode: string) {
+  return {
+    address: pubkeyFromBase58(address),
+    signing: mode.includes("s"),
+    writable: mode.includes("w"),
+  };
+}

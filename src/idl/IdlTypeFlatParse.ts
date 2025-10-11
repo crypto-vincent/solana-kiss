@@ -277,14 +277,14 @@ function objectVariantsJsonDecoder(prefix: IdlTypePrefix) {
   );
 }
 
-const objectPaddedInfoJsonDecoder = jsonDecoderObjectWithKeysSnakeEncoded({
+const objectPadInfoJsonDecoder = jsonDecoderObjectWithKeysSnakeEncoded({
   before: jsonDecoderOptional(jsonCodecNumber.decoder),
   minSize: jsonDecoderOptional(jsonCodecNumber.decoder),
   after: jsonDecoderOptional(jsonCodecNumber.decoder),
 });
-function objectPaddedJsonDecoder(value: JsonValue): IdlTypeFlat {
-  const info = objectPaddedInfoJsonDecoder(value);
-  return IdlTypeFlat.padded({
+function objectPadJsonDecoder(value: JsonValue): IdlTypeFlat {
+  const info = objectPadInfoJsonDecoder(value);
+  return IdlTypeFlat.pad({
     before: info.before ?? 0,
     minSize: info.minSize ?? 0,
     after: info.after ?? 0,
@@ -328,7 +328,7 @@ const objectJsonDecoder: JsonDecoder<IdlTypeFlat> = jsonDecoderAsEnum({
   variants32: objectVariantsJsonDecoder(IdlTypePrefix.u32),
   variants64: objectVariantsJsonDecoder(IdlTypePrefix.u64),
   variants128: objectVariantsJsonDecoder(IdlTypePrefix.u128),
-  padded: objectPaddedJsonDecoder,
+  padded: objectPadJsonDecoder,
   bytes: objectBlobJsonDecoder,
   value: objectConstJsonDecoder,
 });

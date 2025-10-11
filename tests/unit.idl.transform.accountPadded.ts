@@ -8,10 +8,10 @@ it("run", () => {
       MyAccount: {
         discriminator: [22],
         fields: [
-          { name: "padded_before", padded: { before: 3, type: "u8" } },
-          { name: "padded_size1", padded: { min_size: 3, type: ["u8", 2] } },
-          { name: "padded_size2", padded: { min_size: 3, type: ["u8", 4] } },
-          { name: "padded_after", padded: { after: 3, type: "u8" } },
+          { name: "pad_before", padded: { before: 3, type: "u8" } },
+          { name: "pad_size1", padded: { min_size: 3, type: ["u8", 2] } },
+          { name: "pad_size2", padded: { min_size: 3, type: ["u8", 4] } },
+          { name: "pad_after", padded: { after: 3, type: "u8" } },
         ],
       },
     },
@@ -21,10 +21,10 @@ it("run", () => {
       MyAccount: {
         discriminator: [22],
         fields: [
-          { name: "padded_before", padded: { before: 3, type: "u8" } },
-          { name: "padded_size1", padded: { min_size: 3, array: ["u8", 2] } },
-          { name: "padded_size2", padded: { min_size: 3, array: ["u8", 4] } },
-          { name: "padded_after", padded: { after: 3, type: "u8" } },
+          { name: "pad_before", padded: { before: 3, type: "u8" } },
+          { name: "pad_size1", padded: { min_size: 3, array: ["u8", 2] } },
+          { name: "pad_size2", padded: { min_size: 3, array: ["u8", 4] } },
+          { name: "pad_after", padded: { after: 3, type: "u8" } },
         ],
       },
     },
@@ -35,10 +35,10 @@ it("run", () => {
   const accountIdl = programIdl1.accounts.get("MyAccount")!;
   // Dummy state we'll encode/decode
   const accountState = {
-    padded_before: 40,
-    padded_size1: [50, 51],
-    padded_size2: [60, 61, 62, 63],
-    padded_after: 70,
+    pad_before: 40,
+    pad_size1: [50, 51],
+    pad_size2: [60, 61, 62, 63],
+    pad_after: 70,
   };
   // Check that we can use the manual IDL to encode/decode our account
   const accountData = idlAccountEncode(accountIdl, accountState);

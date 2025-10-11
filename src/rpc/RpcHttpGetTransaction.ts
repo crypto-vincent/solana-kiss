@@ -80,16 +80,18 @@ export async function rpcHttpGetTransaction(
     consumedComputeUnits: meta.computeUnitsConsumed,
     chargedFeesLamports: BigInt(meta.fee),
   };
-  console.log(meta.logMessages);
-  if (options?.skipCallStack || meta.innerInstructions === undefined) {
+  if (
+    options?.skipCallStack ||
+    meta.innerInstructions === undefined ||
+    meta.logMessages === undefined
+  ) {
     return { transactionExecution, transactionCallStack: undefined };
   }
-  const instructionsInvocations = decompileInstructionsInvocations(
+  const instructionsCallStack = decompileInstructionsTree(
     messageInstructions,
     instructionsInputs,
     meta.innerInstructions,
   );
-  //console.log(JSON.stringify(instructionsInvocations, null, 2));
   const transactionCallStack = {
     instruction: {} as Instruction, // Will be replaced at the first invocation
     callStack: [],
@@ -97,14 +99,32 @@ export async function rpcHttpGetTransaction(
     returnData: undefined,
     consumedComputeUnits: undefined,
   };
-  const offsets = parseTransactionCallstack(
+  const afterParsing = parseTransactionCallstack(
     transactionCallStack,
-    instructionsInvocations,
+    instructionsCallStack,
     meta.logMessages ?? [],
     -1,
   );
-  console.log("Transaction call stack decompilation offsets", offsets);
-  // TODO - check the validity of offsets and root callstack
+  if (transactionCallStack.error !== undefined) {
+    throw new Error(
+      `RpcHttp: Unable to parse transaction callstack (found error at root level: ${transactionCallStack.error})`,
+    );
+  }
+  if (transactionCallStack.returnData !== undefined) {
+    throw new Error(
+      `RpcHttp: Unable to parse transaction callstack (found return data at root level: ${transactionCallStack.returnData})`,
+    );
+  }
+  if (transactionCallStack.consumedComputeUnits !== undefined) {
+    throw new Error(
+      `RpcHttp: Unable to parse transaction callstack (found consumed compute units at root level: ${transactionCallStack.consumedComputeUnits})`,
+    );
+  }
+  if (afterParsing.logIndex + 1 !== (meta.logMessages?.length ?? 0)) {
+    throw new Error(
+      `RpcHttp: Unable to parse transaction callstack (only parsed ${afterParsing.logIndex + 1} out of ${meta.logMessages?.length ?? 0} log messages)`,
+    );
+  }
   return {
     transactionExecution,
     transactionCallStack: transactionCallStack.callStack,
@@ -210,7 +230,7 @@ type InstructionInvocation = {
   invocations: Array<InstructionInvocation>;
 };
 
-function decompileInstructionsInvocations(
+function decompileInstructionsTree(
   messageInstructions: Array<Instruction>,
   instructionsInputs: Array<InstructionInput>,
   compiledInnerInstructions: Array<{
@@ -261,33 +281,29 @@ function decompileInstructionsInvocations(
   return rootInvocations;
 }
 
-function stripPrefix(s: string, prefix: string): string | undefined {
-  return s.startsWith(prefix) ? s.slice(prefix.length) : undefined;
-}
-
 function parseTransactionCallstack(
   invoked: RpcTransactionInvoke,
-  instructionsInvocations: Array<InstructionInvocation>,
+  instructionsCallStack: Array<InstructionInvocation>,
   logs: Array<string>,
   logIndex: number,
 ): { logIndex: number } {
+  function stripPrefix(s: string, prefix: string): string | undefined {
+    return s.startsWith(prefix) ? s.slice(prefix.length) : undefined;
+  }
   let invocationIndex = 0;
   while (logIndex + 1 < logs.length) {
     logIndex++;
     const logLine = logs[logIndex]!;
-
     const logRegular = stripPrefix(logLine, "Program log: ");
     if (logRegular !== undefined) {
       invoked.callStack.push({ log: logRegular });
       continue;
     }
-
     const logData = stripPrefix(logLine, "Program data: ");
     if (logData !== undefined) {
       invoked.callStack.push({ data: base64Decode(logData) });
       continue;
     }
-
     const logReturn = stripPrefix(logLine, "Program return: ");
     if (logReturn !== undefined) {
       const parts = logReturn.split(" ");
@@ -303,17 +319,14 @@ function parseTransactionCallstack(
       invoked.returnData = base64Decode(parts[1]!);
       continue;
     }
-
-    const logStack = stripPrefix(logLine, "Program ");
-    if (logStack !== undefined) {
-      const logsParts = logStack.split(" ");
-      if (logsParts.length >= 2) {
-        const logProgramAddress = pubkeyFromBase58(logsParts[0]!);
-        const logStackKind = logsParts[1]!;
-
-        if (logStackKind === "invoke") {
-          const instructionInvocation =
-            instructionsInvocations[invocationIndex];
+    const logProgram = stripPrefix(logLine, "Program ");
+    if (logProgram !== undefined) {
+      const logsProgramParts = logProgram.split(" ");
+      if (logsProgramParts.length >= 2) {
+        const logProgramAddress = pubkeyFromBase58(logsProgramParts[0]!);
+        const logProgramKind = logsProgramParts[1]!;
+        if (logProgramKind === "invoke") {
+          const instructionInvocation = instructionsCallStack[invocationIndex];
           invocationIndex++;
           if (instructionInvocation === undefined) {
             throw new Error(`RpcHttp: Unexpected invoke log: ${logLine}`);
@@ -333,31 +346,29 @@ function parseTransactionCallstack(
             returnData: undefined,
             consumedComputeUnits: undefined,
           };
-          const offsets = parseTransactionCallstack(
+          const afterParsing = parseTransactionCallstack(
             innerInvoke,
             instructionInvocation.invocations,
             logs,
             logIndex,
           );
-          logIndex = offsets.logIndex;
+          logIndex = afterParsing.logIndex;
           invoked.callStack.push({ invoke: innerInvoke });
           continue;
         }
-        if (logStackKind === "consumed") {
-          invoked.consumedComputeUnits = Number(logsParts[2]);
+        if (logProgramKind === "consumed") {
+          invoked.consumedComputeUnits = Number(logsProgramParts[2]);
           continue;
         }
-        if (logStackKind === "success") {
+        if (logProgramKind === "success") {
           invoked.error = undefined;
           return { logIndex };
         }
-        if (logStackKind === "failed:") {
-          // TODO - parse failure reason
-          invoked.error = logsParts.slice(2).join(" ");
+        if (logProgramKind === "failed:") {
+          invoked.error = logsProgramParts.slice(2).join(" ");
           return { logIndex };
         }
       }
-      throw new Error(`RpcHttp: Unexpected stack log: ${logLine}`);
     }
     invoked.callStack.push({ unknown: logLine });
   }

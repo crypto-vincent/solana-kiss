@@ -8,7 +8,7 @@ import {
   IdlTypeFullFields,
   IdlTypeFullFieldUnnamed,
   IdlTypeFullOption,
-  IdlTypeFullPadded,
+  IdlTypeFullPad,
   IdlTypeFullString,
   IdlTypeFullStruct,
   IdlTypeFullTypedef,
@@ -95,7 +95,7 @@ const visitorBytemuckC = {
     return {
       alignment,
       size,
-      value: IdlTypeFull.padded({
+      value: IdlTypeFull.pad({
         before: 0,
         minSize: size,
         after: 0,
@@ -163,7 +163,7 @@ const visitorBytemuckC = {
     return {
       alignment,
       size,
-      value: IdlTypeFull.padded({
+      value: IdlTypeFull.pad({
         before: 0,
         minSize: size,
         after: 0,
@@ -174,12 +174,12 @@ const visitorBytemuckC = {
       }),
     };
   },
-  padded: (self: IdlTypeFullPadded): IdlTypeFullPod => {
+  pad: (self: IdlTypeFullPad): IdlTypeFullPod => {
     const contentPod = bytemuckC(self.content);
     return {
       alignment: 1,
       size: self.before + Math.max(contentPod.size, self.minSize) + self.after,
-      value: IdlTypeFull.padded({
+      value: IdlTypeFull.pad({
         before: self.before,
         minSize: self.minSize,
         after: self.after,
@@ -214,7 +214,7 @@ const visitorBytemuckRust = {
     return {
       alignment,
       size,
-      value: IdlTypeFull.padded({
+      value: IdlTypeFull.pad({
         before: 0,
         minSize: size,
         after: 0,
@@ -282,7 +282,7 @@ const visitorBytemuckRust = {
     return {
       alignment,
       size,
-      value: IdlTypeFull.padded({
+      value: IdlTypeFull.pad({
         before: 0,
         minSize: size,
         after: 0,
@@ -293,12 +293,12 @@ const visitorBytemuckRust = {
       }),
     };
   },
-  padded: (self: IdlTypeFullPadded): IdlTypeFullPod => {
+  pad: (self: IdlTypeFullPad): IdlTypeFullPod => {
     const contentPod = bytemuckRust(self.content);
     return {
       alignment: 1,
       size: self.before + Math.max(contentPod.size, self.minSize) + self.after,
-      value: IdlTypeFull.padded({
+      value: IdlTypeFull.pad({
         before: self.before,
         minSize: self.minSize,
         after: self.after,
@@ -445,7 +445,7 @@ function internalFieldsInfoAligned<T>(
     } else {
       fieldsInfoPadded.push({
         meta: fieldMeta,
-        type: IdlTypeFull.padded({
+        type: IdlTypeFull.pad({
           before: paddingBefore,
           minSize: fieldSize,
           after: paddingAfter,

@@ -13,7 +13,7 @@ import {
   IdlTypeFullFields,
   IdlTypeFullFieldUnnamed,
   IdlTypeFullOption,
-  IdlTypeFullPadded,
+  IdlTypeFullPad,
   IdlTypeFullString,
   IdlTypeFullStruct,
   IdlTypeFullTypedef,
@@ -156,8 +156,8 @@ const visitorTypeFull = {
       `Idl: Expected valid enum variant name at path ${jsonPointerPreview(pointer, tokenIndex)}, available: ${names}`,
     );
   },
-  padded: (
-    self: IdlTypeFullPadded,
+  pad: (
+    self: IdlTypeFullPad,
     pointer: Array<number | string>,
     tokenIndex: number,
   ) => {

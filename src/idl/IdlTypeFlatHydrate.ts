@@ -11,7 +11,7 @@ import {
   IdlTypeFlatFieldUnnamed,
   IdlTypeFlatGeneric,
   IdlTypeFlatOption,
-  IdlTypeFlatPadded,
+  IdlTypeFlatPad,
   IdlTypeFlatString,
   IdlTypeFlatStruct,
   IdlTypeFlatVec,
@@ -189,12 +189,12 @@ const visitorHydrateOrConstLiteral = {
       }),
     });
   },
-  padded: (
-    self: IdlTypeFlatPadded,
+  pad: (
+    self: IdlTypeFlatPad,
     genericsBySymbol: Map<string, IdlTypeFull | number>,
     typedefs?: Map<string, IdlTypedef>,
   ): IdlTypeFull | number => {
-    return IdlTypeFull.padded({
+    return IdlTypeFull.pad({
       before: self.before,
       minSize: self.minSize,
       after: self.after,

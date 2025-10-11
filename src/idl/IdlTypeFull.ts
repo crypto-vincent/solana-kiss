@@ -28,7 +28,7 @@ export type IdlTypeFullEnum = {
   prefix: IdlTypePrefix;
   variants: Array<IdlTypeFullEnumVariant>;
 };
-export type IdlTypeFullPadded = {
+export type IdlTypeFullPad = {
   before: number;
   minSize: number;
   after: number;
@@ -46,7 +46,7 @@ type IdlTypeFullDiscriminant =
   | "string"
   | "struct"
   | "enum"
-  | "padded"
+  | "pad"
   | "blob"
   | "primitive";
 type IdlTypeFullContent =
@@ -57,7 +57,7 @@ type IdlTypeFullContent =
   | IdlTypeFullString
   | IdlTypeFullStruct
   | IdlTypeFullEnum
-  | IdlTypeFullPadded
+  | IdlTypeFullPad
   | IdlTypeFullBlob
   | IdlTypePrimitive;
 
@@ -94,8 +94,8 @@ export class IdlTypeFull {
   public static enum(value: IdlTypeFullEnum): IdlTypeFull {
     return new IdlTypeFull("enum", value);
   }
-  public static padded(value: IdlTypeFullPadded): IdlTypeFull {
-    return new IdlTypeFull("padded", value);
+  public static pad(value: IdlTypeFullPad): IdlTypeFull {
+    return new IdlTypeFull("pad", value);
   }
   public static blob(value: IdlTypeFullBlob): IdlTypeFull {
     return new IdlTypeFull("blob", value);
@@ -123,7 +123,7 @@ export class IdlTypeFull {
       string: (value: IdlTypeFullString, p1: P1, p2: P2, p3: P3) => T;
       struct: (value: IdlTypeFullStruct, p1: P1, p2: P2, p3: P3) => T;
       enum: (value: IdlTypeFullEnum, p1: P1, p2: P2, p3: P3) => T;
-      padded: (value: IdlTypeFullPadded, p1: P1, p2: P2, p3: P3) => T;
+      pad: (value: IdlTypeFullPad, p1: P1, p2: P2, p3: P3) => T;
       blob: (value: IdlTypeFullBlob, p1: P1, p2: P2, p3: P3) => T;
       primitive: (value: IdlTypePrimitive, p1: P1, p2: P2, p3: P3) => T;
     },

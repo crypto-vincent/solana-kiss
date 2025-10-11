@@ -31,7 +31,7 @@ export type IdlTypeFlatEnum = {
   prefix: IdlTypePrefix;
   variants: Array<IdlTypeFlatEnumVariant>;
 };
-export type IdlTypeFlatPadded = {
+export type IdlTypeFlatPad = {
   before: number;
   minSize: number;
   after: number;
@@ -53,7 +53,7 @@ type IdlTypeFlatDiscriminant =
   | "string"
   | "struct"
   | "enum"
-  | "padded"
+  | "pad"
   | "blob"
   | "const"
   | "primitive";
@@ -66,7 +66,7 @@ type IdlTypeFlatContent =
   | IdlTypeFlatString
   | IdlTypeFlatStruct
   | IdlTypeFlatEnum
-  | IdlTypeFlatPadded
+  | IdlTypeFlatPad
   | IdlTypeFlatBlob
   | IdlTypeFlatConst
   | IdlTypePrimitive;
@@ -107,8 +107,8 @@ export class IdlTypeFlat {
   public static enum(value: IdlTypeFlatEnum): IdlTypeFlat {
     return new IdlTypeFlat("enum", value);
   }
-  public static padded(value: IdlTypeFlatPadded): IdlTypeFlat {
-    return new IdlTypeFlat("padded", value);
+  public static pad(value: IdlTypeFlatPad): IdlTypeFlat {
+    return new IdlTypeFlat("pad", value);
   }
   public static blob(value: IdlTypeFlatBlob): IdlTypeFlat {
     return new IdlTypeFlat("blob", value);
@@ -136,7 +136,7 @@ export class IdlTypeFlat {
       string: (value: IdlTypeFlatString, p1: P1, p2: P2) => T;
       struct: (value: IdlTypeFlatStruct, p1: P1, p2: P2) => T;
       enum: (value: IdlTypeFlatEnum, p1: P1, p2: P2) => T;
-      padded: (value: IdlTypeFlatPadded, p1: P1, p2: P2) => T;
+      pad: (value: IdlTypeFlatPad, p1: P1, p2: P2) => T;
       blob: (value: IdlTypeFlatBlob, p1: P1, p2: P2) => T;
       const: (value: IdlTypeFlatConst, p1: P1, p2: P2) => T;
       primitive: (value: IdlTypePrimitive, p1: P1, p2: P2) => T;

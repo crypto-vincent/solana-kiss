@@ -1,5 +1,12 @@
 import { expect, it } from "@jest/globals";
-import { rpcHttpGetTransaction, Signature } from "../src";
+import {
+  Instruction,
+  Pubkey,
+  pubkeyFromBase58,
+  rpcHttpGetTransaction,
+  RpcTransactionCallStack,
+  Signature,
+} from "../src";
 
 it("run", async () => {
   const { transactionExecution, transactionCallStack } =
@@ -34,30 +41,133 @@ it("run", async () => {
     "4nTobZxuiA9xZDuSMfSQE6WJSswAkoVoF7ycve42iiy2",
   );
   // Check the invocations content
-  console.log(
-    "Transaction call stack",
-    JSON.stringify(transactionCallStack, null, 2),
-  );
-  /*
-  expect(transactionInvocations.length).toStrictEqual(4);
-  expect(transactionInvocations[0]!.instruction).toStrictEqual(
-    transactionExecution.message.instructions[0]!,
-  );
-  expect(transactionInvocations[0]!.invocations.length).toStrictEqual(0);
-  // Check the nested invocations content
-  expect(transactionInvocations[3]!.invocations.length).toStrictEqual(2);
-  expect(
-    transactionInvocations[3]!.invocations[0]!.instruction.programAddress,
-  ).toStrictEqual("PsyMP8fXEEMo2C6C84s8eXuRUrvzQnZyquyjipDRohf");
-  expect(
-    transactionInvocations[3]!.invocations[0]!.invocations.length,
-  ).toStrictEqual(1);
-  expect(
-    transactionInvocations[3]!.invocations[0]!.invocations[0]!.invocations
-      .length,
-  ).toStrictEqual(1);
-  expect(
-    transactionInvocations[3]!.invocations[1]!.invocations.length,
-  ).toStrictEqual(0);
-  */
+  expect(transactionCallStack).toStrictEqual([
+    invoke({
+      instruction: instruction({
+        programAddress: "ComputeBudget111111111111111111111111111111",
+        data: [2, 32, 161, 7, 0],
+      }),
+    }),
+    invoke({
+      instruction: instruction({
+        programAddress: "ComputeBudget111111111111111111111111111111",
+        data: [3, 236, 214, 0, 0, 0, 0, 0, 0],
+      }),
+    }),
+    invoke({
+      instruction: instruction({
+        programAddress: "11111111111111111111111111111111",
+        inputs: [
+          input("Hc3EobqKYuqndAYmPzEhokBab3trofMWDafj4PJxFYUL", "ws"),
+          input("DttWaMuVvTiduZRnguLF7jNxTgiMBZ1hyAumKUiL2KRL", "w"),
+        ],
+        data: [2, 0, 0, 0, 160, 134, 1, 0, 0, 0, 0, 0],
+      }),
+    }),
+    invoke({
+      instruction: instruction({
+        programAddress: "SQDS4ep65T869zMMBKyuUq6aD6EgTu8psMjkvj52pCf",
+        inputs: [
+          input("95YsCnu6P89y8N52qLLTbRog42eypUNqzDi4JYCSCuA", ""),
+          input("5tpzxYCp1U2HtKpLtLyH3f4mFcbSD1HoBzy4NaC7pmkS", "w"),
+          input("DPbRHiRRDznJLF7nhmTywYcxUWpiNk1QYCPMvJ6rhrQs", ""),
+          input("Hc3EobqKYuqndAYmPzEhokBab3trofMWDafj4PJxFYUL", "ws"),
+          input("45AMNJMGuojexK1rEBHJSSVFDpTUcoHRcAUmRfLF8hrm", ""),
+          input("8PDYaC2zz9UYN3qVoAyZvAF7qRkmTByBT5TnT2mHGPuZ", "w"),
+          input("A3EPnkUqt4ueCiJBdnACDnLenyU5xZ57QZsAtnYKA5qx", "w"),
+          input("8sWsVPJpjcBrmmuAQCk1Tp6BgAmEc8A5UM8RhJn1qzED", "w"),
+          input("BLv19rpwzGkZoJndnR3FXMhkdpqaWiW2i2PvgGzh7kRD", "w"),
+          input("PsyMP8fXEEMo2C6C84s8eXuRUrvzQnZyquyjipDRohf", ""),
+          input("TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA", ""),
+        ],
+        data: [194, 8, 161, 87, 153, 164, 25, 171],
+      }),
+      callStack: [
+        { log: "Instruction: VaultTransactionExecute" },
+        invoke({
+          instruction: instruction({
+            programAddress: "PsyMP8fXEEMo2C6C84s8eXuRUrvzQnZyquyjipDRohf",
+            inputs: [
+              input("8PDYaC2zz9UYN3qVoAyZvAF7qRkmTByBT5TnT2mHGPuZ", "w"),
+              input("A3EPnkUqt4ueCiJBdnACDnLenyU5xZ57QZsAtnYKA5qx", "w"),
+              input("8sWsVPJpjcBrmmuAQCk1Tp6BgAmEc8A5UM8RhJn1qzED", "w"),
+              input("BLv19rpwzGkZoJndnR3FXMhkdpqaWiW2i2PvgGzh7kRD", "w"),
+              input("TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA", ""),
+            ],
+            data: [11, 36, 247, 105, 0, 212, 165, 190, 42, 0, 0, 0, 0, 0, 0, 0],
+          }),
+          callStack: [
+            { log: "Instruction: PoolExtract" },
+            invoke({
+              instruction: instruction({
+                programAddress: "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA",
+                inputs: [
+                  input("BLv19rpwzGkZoJndnR3FXMhkdpqaWiW2i2PvgGzh7kRD", "w"),
+                  input("A3EPnkUqt4ueCiJBdnACDnLenyU5xZ57QZsAtnYKA5qx", "w"),
+                  input("8sWsVPJpjcBrmmuAQCk1Tp6BgAmEc8A5UM8RhJn1qzED", "w"),
+                ],
+                data: [3, 42, 0, 0, 0, 0, 0, 0, 0],
+              }),
+              callStack: [
+                { log: "Instruction: Transfer" },
+                invoke({
+                  instruction: instruction({
+                    programAddress: "11111111111111111111111111111111",
+                  }),
+                }),
+              ],
+              result: { consumedComputeUnits: 4645 },
+            }),
+          ],
+          result: { consumedComputeUnits: 13848 },
+        }),
+        invoke({
+          instruction: instruction({
+            programAddress: "11111111111111111111111111111111",
+          }),
+        }),
+      ],
+      result: { consumedComputeUnits: 41931 },
+    }),
+  ]);
 });
+
+function invoke(value: {
+  instruction: Instruction;
+  callStack?: RpcTransactionCallStack;
+  result?: {
+    error?: string | undefined;
+    returnData?: Uint8Array | undefined;
+    consumedComputeUnits?: number | undefined;
+  };
+}) {
+  return {
+    invoke: {
+      instruction: value.instruction,
+      callStack: value.callStack ?? [],
+      error: value.result?.error,
+      returnData: value.result?.returnData,
+      consumedComputeUnits: value.result?.consumedComputeUnits,
+    },
+  };
+}
+
+function instruction(value: {
+  programAddress: string;
+  inputs?: Array<{ address: Pubkey; signing: boolean; writable: boolean }>;
+  data?: Array<number>;
+}): Instruction {
+  return {
+    programAddress: pubkeyFromBase58(value.programAddress),
+    inputs: value.inputs ?? [],
+    data: new Uint8Array(value.data ?? []),
+  };
+}
+
+function input(address: string, mode: string) {
+  return {
+    address: pubkeyFromBase58(address),
+    signing: mode.includes("s"),
+    writable: mode.includes("w"),
+  };
+}

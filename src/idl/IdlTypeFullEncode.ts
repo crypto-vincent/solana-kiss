@@ -19,7 +19,7 @@ import {
   IdlTypeFullFields,
   IdlTypeFullFieldUnnamed,
   IdlTypeFullOption,
-  IdlTypeFullPadded,
+  IdlTypeFullPad,
   IdlTypeFullString,
   IdlTypeFullStruct,
   IdlTypeFullTypedef,
@@ -190,8 +190,8 @@ const visitorEncode = {
     }
     throw new Error("Expected enum value to be: number/string or object");
   },
-  padded: (
-    self: IdlTypeFullPadded,
+  pad: (
+    self: IdlTypeFullPad,
     value: JsonValue,
     blobs: Array<Uint8Array>,
     prefixed: boolean,
