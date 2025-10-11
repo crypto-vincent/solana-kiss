@@ -1,5 +1,10 @@
 import { expect, it } from "@jest/globals";
-import { idlAccountDecode, idlAccountEncode, idlProgramParse } from "../src";
+import {
+  expectDefined,
+  idlAccountDecode,
+  idlAccountEncode,
+  idlProgramParse,
+} from "../src";
 
 it("run", () => {
   // Create an IDL on the fly
@@ -25,7 +30,7 @@ it("run", () => {
     "Mixed: Hello, 世界! 12345 🚀🔥\nNew line and \t tab.",
   ];
   // Check that we can properly serialize various strings
-  const accountIdl = programIdl.accounts.get("MyAccount")!;
+  const accountIdl = expectDefined(programIdl.accounts.get("MyAccount"));
   for (const test of tests) {
     const content = { value: test };
     const encoded = idlAccountEncode(accountIdl, content);

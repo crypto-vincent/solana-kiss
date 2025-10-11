@@ -1,5 +1,6 @@
 import { it } from "@jest/globals";
 import {
+  expectDefined,
   idlInstructionAddressesFind,
   idlInstructionEncode,
   idlOnchainAnchorAddress,
@@ -29,7 +30,9 @@ it("run", async () => {
       idlOnchainAnchorAddress(programAddress),
     );
   const programIdl = idlOnchainAnchorDecode(programOnchainAnchorInfo.data);
-  const instructionIdl = programIdl.instructions.get("pledge_create")!;
+  const instructionIdl = expectDefined(
+    programIdl.instructions.get("pledge_create"),
+  );
   const payerSigner = await signerFromSecret(secret);
   const userSigner = await signerGenerate();
   const campaignAddress = pubkeyFindPdaAddress(programAddress, [
@@ -52,7 +55,7 @@ it("run", async () => {
     instructionAddresses,
     instructionPayload,
   );
-  const pledgeAddress = instructionAddresses.get("pledge")!;
+  const pledgeAddress = expectDefined(instructionAddresses.get("pledge"));
   // Run the simulation without verifying the signers
   const resultNoVerify = await rpcHttpSimulateInstructions(
     rpcHttp,
@@ -71,8 +74,9 @@ it("run", async () => {
   expect(
     resultNoVerify.transactionExecution.consumedComputeUnits,
   ).toBeGreaterThan(0);
-  const pledgeAccountNoVerify =
-    resultNoVerify.simulatedAccountInfoByAddress.get(pledgeAddress)!;
+  const pledgeAccountNoVerify = expectDefined(
+    resultNoVerify.simulatedAccountInfoByAddress.get(pledgeAddress),
+  );
   expect(pledgeAccountNoVerify.owner).toStrictEqual(programAddress);
   expect(pledgeAccountNoVerify.lamports).toBeGreaterThan(0n);
   expect(pledgeAccountNoVerify.data.length).toBeGreaterThan(0);
@@ -105,8 +109,9 @@ it("run", async () => {
     resultWithVerify.transactionExecution.consumedComputeUnits,
   ).toBeGreaterThan(0);
   expect(resultWithVerify.simulatedAccountInfoByAddress.size).toStrictEqual(1);
-  const pledgeAccountWithVerify =
-    resultWithVerify.simulatedAccountInfoByAddress.get(pledgeAddress)!;
+  const pledgeAccountWithVerify = expectDefined(
+    resultWithVerify.simulatedAccountInfoByAddress.get(pledgeAddress),
+  );
   expect(pledgeAccountWithVerify.owner).toStrictEqual(programAddress);
   expect(pledgeAccountWithVerify.lamports).toBeGreaterThan(0n);
   expect(pledgeAccountWithVerify.data.length).toBeGreaterThan(0);

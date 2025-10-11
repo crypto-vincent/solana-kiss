@@ -1,5 +1,6 @@
 import { expect, it } from "@jest/globals";
 import {
+  expectDefined,
   idlProgramParse,
   IdlTypeFull,
   IdlTypeFullFields,
@@ -13,7 +14,7 @@ it("run", () => {
     require("./fixtures/idl_anchor_generics.json"),
   );
   // Check that the account was parsed correctly
-  const accountIdl = programIdl.accounts.get("GenericAccount")!;
+  const accountIdl = expectDefined(programIdl.accounts.get("GenericAccount"));
   expect(accountIdl.contentTypeFull).toStrictEqual(
     IdlTypeFull.typedef({
       name: "GenericAccount",
@@ -33,7 +34,7 @@ it("run", () => {
     }),
   );
   // Check that the instruction was parsed correctly
-  const instructionIdl = programIdl.instructions.get("generic")!;
+  const instructionIdl = expectDefined(programIdl.instructions.get("generic"));
   expect(instructionIdl.argsTypeFullFields).toStrictEqual(
     IdlTypeFullFields.named([
       {

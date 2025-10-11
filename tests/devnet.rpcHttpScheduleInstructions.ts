@@ -78,7 +78,7 @@ const secret = new Uint8Array([
 ]);
 
 const instructionIdl = idlInstructionParse("create", {
-  discriminator: { value: 0, type: "u32" },
+  discriminator: { encode: { value: 0, type: "u32" } },
   accounts: [
     { name: "payer", signing: true, writable: true },
     { name: "owned", signing: true, writable: true },

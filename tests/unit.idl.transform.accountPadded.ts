@@ -1,5 +1,10 @@
 import { expect, it } from "@jest/globals";
-import { idlAccountDecode, idlAccountEncode, idlProgramParse } from "../src";
+import {
+  expectDefined,
+  idlAccountDecode,
+  idlAccountEncode,
+  idlProgramParse,
+} from "../src";
 
 it("run", () => {
   // Create IDLs using different shortened formats
@@ -32,7 +37,7 @@ it("run", () => {
   // Assert that all are equivalent
   expect(programIdl1).toStrictEqual(programIdl2);
   // Choose the account
-  const accountIdl = programIdl1.accounts.get("MyAccount")!;
+  const accountIdl = expectDefined(programIdl1.accounts.get("MyAccount"));
   // Dummy state we'll encode/decode
   const accountState = {
     pad_before: 40,

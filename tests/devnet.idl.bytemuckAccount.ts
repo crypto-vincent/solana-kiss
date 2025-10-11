@@ -1,4 +1,5 @@
 import {
+  expectDefined,
   idlAccountDecode,
   idlOnchainAnchorAddress,
   idlOnchainAnchorDecode,
@@ -27,7 +28,9 @@ it("run", async () => {
     onchainAnchorAddress,
   );
   const programIdl = idlOnchainAnchorDecode(onchainAnchorInfo.data);
-  const accountIdl = idlProgramGuessAccount(programIdl, accountInfo.data)!;
+  const accountIdl = expectDefined(
+    idlProgramGuessAccount(programIdl, accountInfo.data),
+  );
   // Decode the account data and check some values
   const accountState = idlAccountDecode(accountIdl, accountInfo.data);
   expect(accountIdl.name).toStrictEqual("CoordinatorAccount");

@@ -1,5 +1,10 @@
 import { expect, it } from "@jest/globals";
-import { idlAccountDecode, idlAccountEncode, idlProgramParse } from "../src";
+import {
+  expectDefined,
+  idlAccountDecode,
+  idlAccountEncode,
+  idlProgramParse,
+} from "../src";
 
 it("run", () => {
   // Create IDLs using different shortened formats
@@ -8,7 +13,7 @@ it("run", () => {
       MyAccount: {
         discriminator: [22],
         fields: [
-          { name: "blob_before", bytes: { value: [1, 2, 3] } },
+          { name: "blob_before", bytes: { encode: { value: [1, 2, 3] } } },
           { name: "value", type: "u8" },
           { name: "blob_empty", bytes: { zeroes: 0 } },
           { name: "blob_after", bytes: { base16: "040506" } },
@@ -40,14 +45,16 @@ it("run", () => {
           {
             name: "blob_after",
             bytes: {
-              value: { a: [null, null, null, null], c: 6 },
-              prefixed: true,
-              type: {
-                fields: [
-                  { name: "a", vec8: { fields: [] } },
-                  { bytes: [5] },
-                  { name: "c", type: "u8" },
-                ],
+              encode: {
+                value: { a: [null, null, null, null], c: 6 },
+                type: {
+                  fields: [
+                    { name: "a", vec8: { fields: [] } },
+                    { bytes: [5] },
+                    { name: "c", type: "u8" },
+                  ],
+                },
+                prefixed: true,
               },
             },
           },
@@ -59,7 +66,7 @@ it("run", () => {
   expect(programIdl1).toStrictEqual(programIdl2);
   expect(programIdl1).toStrictEqual(programIdl3);
   // Choose the account
-  const accountIdl = programIdl1.accounts.get("MyAccount")!;
+  const accountIdl = expectDefined(programIdl1.accounts.get("MyAccount"));
   // Check that we can use the manual IDL to encode/decode our account
   const accountData = idlAccountEncode(accountIdl, {
     value: 42,

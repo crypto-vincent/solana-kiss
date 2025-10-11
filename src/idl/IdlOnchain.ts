@@ -15,8 +15,8 @@ import { idlAccountDecode, idlAccountParse } from "./IdlAccount";
 import { IdlProgram, idlProgramParse } from "./IdlProgram";
 
 export function idlOnchainAnchorAddress(programAddress: Pubkey): Pubkey {
-  const basePdaAddress = pubkeyFindPdaAddress(programAddress, []);
-  return pubkeyCreateFromSeed(basePdaAddress, "anchor:idl", programAddress);
+  const fromPdaAddress = pubkeyFindPdaAddress(programAddress, []);
+  return pubkeyCreateFromSeed(fromPdaAddress, "anchor:idl", programAddress);
 }
 
 export function idlOnchainAnchorDecode(

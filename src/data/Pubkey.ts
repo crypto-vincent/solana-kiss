@@ -97,17 +97,18 @@ export function pubkeyCreatePdaAddress(
 }
 
 export function pubkeyCreateFromSeed(
-  signerAddress: Pubkey,
+  baseAddress: Pubkey,
   seedUtf8: string,
   ownerAddress: Pubkey,
 ): Pubkey {
-  if (seedUtf8.length > 32) {
+  const seedBytes = utf8Encode(seedUtf8);
+  if (seedBytes.length > 32) {
     throw new Error(`Pubkey: Create: Seed length must not exceed 32 bytes`);
   }
   return pubkeyFromBytes(
     sha256Hash([
-      pubkeyToBytes(signerAddress),
-      utf8Encode(seedUtf8),
+      pubkeyToBytes(baseAddress),
+      seedBytes,
       pubkeyToBytes(ownerAddress),
     ]),
   );

@@ -1,5 +1,6 @@
 import { expect, it } from "@jest/globals";
 import {
+  expectDefined,
   Instruction,
   Pubkey,
   pubkeyFromBase58,
@@ -9,11 +10,12 @@ import {
 } from "../src";
 
 it("run", async () => {
-  const { transactionExecution, transactionCallStack } =
-    (await rpcHttpGetTransaction(
+  const { transactionExecution, transactionCallStack } = expectDefined(
+    await rpcHttpGetTransaction(
       () => require("./fixtures/RpcHttpGetTransaction.json"),
       "!" as Signature,
-    ))!;
+    ),
+  );
   // Check basic stuff about the transaction
   expect(transactionExecution.blockInfo.time?.toISOString()).toStrictEqual(
     "2025-03-24T14:28:45.000Z",

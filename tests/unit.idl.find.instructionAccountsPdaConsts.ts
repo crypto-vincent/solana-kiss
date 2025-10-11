@@ -1,5 +1,6 @@
 import { expect, it } from "@jest/globals";
 import {
+  expectDefined,
   idlInstructionAddressesFind,
   idlProgramParse,
   pubkeyFindPdaAddress,
@@ -134,7 +135,7 @@ it("run", () => {
   );
   // Assert that the accounts can be properly resolved
   const instructionAddresses = idlInstructionAddressesFind(
-    programIdl1.instructions.get("my_ix")!,
+    expectDefined(programIdl1.instructions.get("my_ix")),
     {
       instructionProgramAddress: programAddress1,
       instructionAddresses: new Map(),

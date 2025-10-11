@@ -1,5 +1,6 @@
 import { it } from "@jest/globals";
 import {
+  expectDefined,
   idlInstructionDecode,
   idlProgramGuessInstruction,
   idlProgramParse,
@@ -22,10 +23,14 @@ it("run", async () => {
     0,
   );
   // Check we can decode the instruction correctly
-  const instruction = transactionExecution.message.instructions[1]!;
-  const instructionIdl = idlProgramGuessInstruction(programIdl, instruction);
-  expect(instructionIdl?.name).toStrictEqual("pledge_deposit");
-  const instructionDecoded = idlInstructionDecode(instructionIdl!, instruction);
+  const instruction = expectDefined(
+    transactionExecution.message.instructions[1],
+  );
+  const instructionIdl = expectDefined(
+    idlProgramGuessInstruction(programIdl, instruction),
+  );
+  expect(instructionIdl.name).toStrictEqual("pledge_deposit");
+  const instructionDecoded = idlInstructionDecode(instructionIdl, instruction);
   expect(instructionDecoded.instructionAddresses.get("user")).toStrictEqual(
     "99ywHQcPAYZ2te68Dah5CiSapqptNXvwGUqC1wP2qsi2",
   );
