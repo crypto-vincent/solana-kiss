@@ -29,8 +29,8 @@ export type RpcTransactionInvoke = {
 };
 
 export type RpcTransactionCallStack = Array<
-  | { unknown: string }
-  | { log: string }
-  | { data: Uint8Array }
   | { invoke: RpcTransactionInvoke }
+  | { data: Uint8Array }
+  | { log: string }
+  | { unknown: string }
 >;
