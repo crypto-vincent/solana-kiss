@@ -75,7 +75,7 @@ export async function rpcHttpGetTransaction(
       instructions: messageInstructions,
       recentBlockHash: message.recentBlockhash,
     },
-    logs: meta.logMessages, // TODO - parse logs for invocations and event data
+    logs: meta.logMessages,
     error: meta.err, // TODO - parse error to find custom program errors ?
     consumedComputeUnits: meta.computeUnitsConsumed,
     chargedFeesLamports: BigInt(meta.fee),

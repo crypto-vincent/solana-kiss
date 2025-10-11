@@ -93,7 +93,8 @@ export function idlUtilsDiscriminator(name: string): Uint8Array {
   return sha256Hash([utf8Encode(name)]).slice(0, 8);
 }
 
-// TODO - deep test this
+// TODO - should I add a transformer type thingy to help with this ? (No doesnt make sense because cannot un decoded?)
+// TODO - deep test this ?
 const pubkeyJsonDecoder = jsonDecoderByKind({
   string: jsonCodecPubkey.decoder,
   object: jsonDecoderAsEnum(
