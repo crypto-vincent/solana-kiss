@@ -75,7 +75,7 @@ export async function rpcHttpGetTransaction(
       instructions: messageInstructions,
       recentBlockHash: message.recentBlockhash,
     },
-    logs: meta.logMessages, // TODO - parse logs for invocations and event data
+    logs: meta.logMessages,
     error: meta.err, // TODO - parse error to find custom program errors ?
     consumedComputeUnits: meta.computeUnitsConsumed,
     chargedFeesLamports: BigInt(meta.fee),
@@ -92,42 +92,42 @@ export async function rpcHttpGetTransaction(
     instructionsInputs,
     meta.innerInstructions,
   );
-  const transactionCallStack = {
-    instruction: {} as Instruction, // Will be replaced at the first invocation
+  const rootInvoke = {
+    instruction: {} as Instruction,
     callStack: [],
     error: undefined,
     returnData: undefined,
     consumedComputeUnits: undefined,
   };
   const afterParsing = parseTransactionCallstack(
-    transactionCallStack,
+    rootInvoke,
     instructionsCallStack,
-    meta.logMessages ?? [],
+    meta.logMessages,
     -1,
   );
-  if (transactionCallStack.error !== undefined) {
+  if (rootInvoke.error !== undefined) {
     throw new Error(
-      `RpcHttp: Unable to parse transaction callstack (found error at root level: ${transactionCallStack.error})`,
+      `RpcHttp: Unable to parse transaction callstack (found error at root level: ${rootInvoke.error})`,
     );
   }
-  if (transactionCallStack.returnData !== undefined) {
+  if (rootInvoke.returnData !== undefined) {
     throw new Error(
-      `RpcHttp: Unable to parse transaction callstack (found return data at root level: ${transactionCallStack.returnData})`,
+      `RpcHttp: Unable to parse transaction callstack (found return data at root level: ${rootInvoke.returnData})`,
     );
   }
-  if (transactionCallStack.consumedComputeUnits !== undefined) {
+  if (rootInvoke.consumedComputeUnits !== undefined) {
     throw new Error(
-      `RpcHttp: Unable to parse transaction callstack (found consumed compute units at root level: ${transactionCallStack.consumedComputeUnits})`,
+      `RpcHttp: Unable to parse transaction callstack (found consumed compute units at root level: ${rootInvoke.consumedComputeUnits})`,
     );
   }
-  if (afterParsing.logIndex + 1 !== (meta.logMessages?.length ?? 0)) {
+  if (afterParsing.logIndex + 1 !== meta.logMessages.length) {
     throw new Error(
-      `RpcHttp: Unable to parse transaction callstack (only parsed ${afterParsing.logIndex + 1} out of ${meta.logMessages?.length ?? 0} log messages)`,
+      `RpcHttp: Unable to parse transaction callstack (only parsed ${afterParsing.logIndex + 1} out of ${meta.logMessages.length} log messages)`,
     );
   }
   return {
     transactionExecution,
-    transactionCallStack: transactionCallStack.callStack,
+    transactionCallStack: rootInvoke.callStack,
   };
 }
 
