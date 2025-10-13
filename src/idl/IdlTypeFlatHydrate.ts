@@ -94,7 +94,10 @@ const visitorHydrateOrConstLiteral = {
       repr: typedef.repr,
       content: typeFull,
     };
-    if (typedef.serialization === "bytemuck") {
+    if (
+      typedef.serialization === "bytemuck" ||
+      typedef.serialization === "bytemuckunsafe"
+    ) {
       return idlTypeFullTypedefBytemuck(typeTypedef).value;
     }
     return IdlTypeFull.typedef(typeTypedef);
