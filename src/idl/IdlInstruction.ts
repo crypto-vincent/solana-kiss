@@ -22,8 +22,14 @@ import {
 } from "./IdlTypeFlatHydrate";
 import { idlTypeFlatFieldsParse, idlTypeFlatParse } from "./IdlTypeFlatParse";
 import { IdlTypeFull, IdlTypeFullFields } from "./IdlTypeFull";
-import { idlTypeFullFieldsDecode } from "./IdlTypeFullDecode";
-import { idlTypeFullFieldsEncode } from "./IdlTypeFullEncode";
+import {
+  idlTypeFullDecode,
+  idlTypeFullFieldsDecode,
+} from "./IdlTypeFullDecode";
+import {
+  idlTypeFullEncode,
+  idlTypeFullFieldsEncode,
+} from "./IdlTypeFullEncode";
 import {
   idlUtilsBytesJsonDecoder,
   idlUtilsDiscriminator,
@@ -46,12 +52,14 @@ export type IdlInstruction = {
   };
 };
 
+// TODO - should the returned type be an object for naming convenience?
 export function idlInstructionEncode(
   instructionIdl: IdlInstruction,
   instructionProgramAddress: Pubkey,
   instructionAddresses: Map<string, Pubkey>,
   instructionPayload: JsonValue,
 ): Instruction {
+  // TODO - auto resolve the program address from the program idl when possible ?
   const instructionInputs = idlInstructionAccountsEncode(
     instructionIdl,
     instructionAddresses,
@@ -60,11 +68,12 @@ export function idlInstructionEncode(
     instructionIdl,
     instructionPayload,
   );
-  return {
+  const instruction = {
     programAddress: instructionProgramAddress,
     inputs: instructionInputs,
     data: instructionData,
   };
+  return instruction;
 }
 
 export function idlInstructionDecode(
@@ -204,12 +213,12 @@ export function idlInstructionArgsDecode(
   instructionData: Uint8Array,
 ): JsonValue {
   idlInstructionArgsCheck(instructionIdl, instructionData);
-  const [, payload] = idlTypeFullFieldsDecode(
+  const [, instructionPayload] = idlTypeFullFieldsDecode(
     instructionIdl.args.typeFullFields,
     new DataView(instructionData.buffer),
     instructionIdl.discriminator.length,
   );
-  return payload;
+  return instructionPayload;
 }
 
 export function idlInstructionArgsCheck(
@@ -219,6 +228,34 @@ export function idlInstructionArgsCheck(
   idlUtilsExpectBlobAt(0, instructionIdl.discriminator, instructionData);
 }
 
+// TODO - test this return decoding/encoding ?
+export function idlInstructionReturnEncode(
+  instructionIdl: IdlInstruction,
+  instructionResult: JsonValue,
+): Uint8Array {
+  const blobs = new Array<Uint8Array>();
+  idlTypeFullEncode(
+    instructionIdl.return.typeFull,
+    instructionResult,
+    blobs,
+    true,
+  );
+  return idlUtilsFlattenBlobs(blobs);
+}
+
+export function idlInstructionReturnDecode(
+  instructionIdl: IdlInstruction,
+  instructionReturned: Uint8Array,
+): JsonValue {
+  const [, instructionResult] = idlTypeFullDecode(
+    instructionIdl.return.typeFull,
+    new DataView(instructionReturned.buffer),
+    instructionIdl.discriminator.length,
+  );
+  return instructionResult;
+}
+
+// TODO - this should be in a higher level module ?
 export function idlInstructionAddressesFind(
   instructionIdl: IdlInstruction,
   instructionBlobContext: IdlInstructionBlobContext,

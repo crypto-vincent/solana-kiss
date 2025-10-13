@@ -24,8 +24,9 @@ export type IdlInstructionBlobContext = {
   instructionProgramAddress: Pubkey;
   instructionAddresses: Map<string, Pubkey>;
   instructionPayload: JsonValue;
+  // TODO - should those two be merged into a single map of account name to (pubkey,state,type) or a snapshot object ?
   instructionAccountsStates?: Map<string, JsonValue>;
-  instructionAccountsContentsTypeFull?: Map<string, IdlTypeFull>;
+  instructionAccountsTypes?: Map<string, IdlTypeFull>;
 };
 
 export type IdlInstructionBlobConst = {
@@ -259,7 +260,7 @@ const computeVisitor = {
           idlTypeFullEncode(self.typeFull, stateValue, blobs, false);
           return idlUtilsFlattenBlobs(blobs);
         }
-        const stateTypeFull = context.instructionAccountsContentsTypeFull?.get(
+        const stateTypeFull = context.instructionAccountsTypes?.get(
           instructionAccountName,
         );
         if (stateTypeFull === undefined) {

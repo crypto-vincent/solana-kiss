@@ -5,9 +5,9 @@ import { Message } from "../data/Message";
 
 // TODO - add FindBlocks (forward and backward?) capabilities ?
 // TODO - should add phantom integration (maybe different package?)
-// TODO - should integrate indexing capabilities ?
+// TODO - should integrate indexing capabilities ? (maybe different package?)
 
-// TODO - rpc transaction naming ?
+// TODO - rpc transaction naming convention ?
 export type RpcTransactionExecution = {
   blockInfo: {
     time: Date | undefined;

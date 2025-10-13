@@ -24,6 +24,7 @@ it("run", () => {
           { name: "index", type: "u32" },
           { name: "id", type: "i64" },
         ],
+        returns: { fields: [] },
       },
     },
     accounts: {
@@ -52,7 +53,7 @@ it("run", () => {
     constants: {
       MY_CONSTANT: {
         docs: ["My constant doc"],
-        type: ["u32"],
+        type: ["f32"],
         value: "[420_420, 69.069_0]",
       },
     },
@@ -106,7 +107,7 @@ it("run", () => {
       {
         name: "MY_CONSTANT",
         docs: ["My constant doc"],
-        type: ["u32"],
+        type: ["f32"],
         value: "[420_420, 69.069_0]",
       },
     ],
@@ -180,9 +181,11 @@ it("run", () => {
   expect(programIdl1.accounts.get("MyAccount")).toStrictEqual({
     name: "MyAccount",
     docs: ["My Account doc"],
-    space: undefined,
-    blobs: [],
     discriminator: new Uint8Array([246, 28, 6, 87, 251, 45, 50, 42]),
+    dataSpace: undefined,
+    dataBlobs: [
+      { offset: 0, bytes: new Uint8Array([246, 28, 6, 87, 251, 45, 50, 42]) },
+    ],
     typeFlat: IdlTypeFlat.struct({
       fields: IdlTypeFlatFields.named([
         {
@@ -256,11 +259,11 @@ it("run", () => {
     value: [420_420, 69.069_0],
     typeFlat: IdlTypeFlat.vec({
       prefix: IdlTypePrefix.u32,
-      items: IdlTypeFlat.primitive(IdlTypePrimitive.u32),
+      items: IdlTypeFlat.primitive(IdlTypePrimitive.f32),
     }),
     typeFull: IdlTypeFull.vec({
       prefix: IdlTypePrefix.u32,
-      items: IdlTypeFull.primitive(IdlTypePrimitive.u32),
+      items: IdlTypeFull.primitive(IdlTypePrimitive.f32),
     }),
   });
 });

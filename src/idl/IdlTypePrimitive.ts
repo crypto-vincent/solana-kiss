@@ -6,7 +6,6 @@ import {
   jsonCodecPubkey,
 } from "../data/Json";
 import { pubkeyFromBytes, pubkeyToBytes } from "../data/Pubkey";
-import { idlUtilsPubkeyJsonDecoder } from "./IdlUtils";
 
 export class IdlTypePrimitive {
   public static readonly u8 = new IdlTypePrimitive("u8", 1, 1);
@@ -169,7 +168,7 @@ const visitorEncode = {
     blob[0] = jsonCodecBoolean.decoder(value) ? 1 : 0;
   },
   pubkey: (blob: Uint8Array, value: JsonValue) => {
-    blob.set(pubkeyToBytes(idlUtilsPubkeyJsonDecoder(value)));
+    blob.set(pubkeyToBytes(jsonCodecPubkey.decoder(value)));
   },
 };
 

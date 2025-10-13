@@ -8,10 +8,7 @@ import {
   jsonCodecBytesBase64,
   jsonCodecBytesUtf8,
   jsonCodecNumber,
-  jsonCodecPubkey,
   jsonCodecRaw,
-  jsonCodecString,
-  jsonDecoderArray,
   jsonDecoderAsEnum,
   jsonDecoderByKind,
   jsonDecoderObject,
@@ -20,11 +17,6 @@ import {
   jsonPreview,
   JsonValue,
 } from "../data/Json";
-import {
-  Pubkey,
-  pubkeyCreateFromSeed,
-  pubkeyFindPdaAddress,
-} from "../data/Pubkey";
 import { sha256Hash } from "../data/Sha256";
 import { utf8Encode } from "../data/Utf8";
 import { IdlTypeFlat } from "./IdlTypeFlat";
@@ -32,13 +24,33 @@ import { idlTypeFlatHydrate } from "./IdlTypeFlatHydrate";
 import { idlTypeFlatParse } from "./IdlTypeFlatParse";
 import { idlTypeFullEncode } from "./IdlTypeFullEncode";
 
-export function idlUtilsPubkeyJsonDecoder(encoded: JsonValue): Pubkey {
-  return pubkeyJsonDecoder(encoded);
-}
-
-export function idlUtilsBytesJsonDecoder(encoded: JsonValue): Uint8Array {
-  return bytesJsonDecoder(encoded);
-}
+export const idlUtilsBytesJsonDecoder = jsonDecoderByKind({
+  array: jsonCodecBytesArray.decoder,
+  object: jsonDecoderAsEnum({
+    utf8: jsonCodecBytesUtf8.decoder,
+    base16: jsonCodecBytesBase16.decoder,
+    base58: jsonCodecBytesBase58.decoder,
+    base64: jsonCodecBytesBase64.decoder,
+    zeroes: jsonDecoderTransform(
+      jsonCodecNumber.decoder,
+      (n) => new Uint8Array(n),
+    ),
+    encode: jsonDecoderTransform(
+      jsonDecoderObject({
+        value: jsonCodecRaw.decoder,
+        type: jsonDecoderOptional(idlTypeFlatParse),
+        prefixed: jsonDecoderOptional(jsonCodecBoolean.decoder),
+      }),
+      (info) => {
+        const typeFlat = info.type ?? idlUtilsInferValueTypeFlat(info.value);
+        const typeFull = idlTypeFlatHydrate(typeFlat, new Map());
+        const blobs = new Array<Uint8Array>();
+        idlTypeFullEncode(typeFull, info.value, blobs, info.prefixed === true);
+        return idlUtilsFlattenBlobs(blobs);
+      },
+    ),
+  }),
+});
 
 export function idlUtilsInferValueTypeFlat(value: JsonValue): IdlTypeFlat {
   if (jsonAsString(value) !== undefined) {
@@ -89,10 +101,6 @@ export function idlUtilsFlattenBlobs(blobs: Array<Uint8Array>): Uint8Array {
   return bytes;
 }
 
-export function idlUtilsDiscriminator(name: string): Uint8Array {
-  return sha256Hash([utf8Encode(name)]).slice(0, 8);
-}
-
 export function idlUtilsJsonRustedParse(jsonRusted: string): JsonValue {
   return JSON.parse(
     jsonRusted.replace(
@@ -107,52 +115,6 @@ export function idlUtilsJsonRustedParse(jsonRusted: string): JsonValue {
   );
 }
 
-// TODO - deep test this, is that needed at all ?
-const pubkeyJsonDecoder = jsonDecoderByKind({
-  string: jsonCodecPubkey.decoder,
-  object: jsonDecoderAsEnum({
-    seed: jsonDecoderTransform(
-      jsonDecoderObject({
-        from: idlUtilsPubkeyJsonDecoder,
-        seed: jsonCodecString.decoder,
-        owner: idlUtilsPubkeyJsonDecoder,
-      }),
-      (info) => pubkeyCreateFromSeed(info.from, info.seed, info.owner),
-    ),
-    pda: jsonDecoderTransform(
-      jsonDecoderObject({
-        program: idlUtilsPubkeyJsonDecoder,
-        seeds: jsonDecoderOptional(jsonDecoderArray(idlUtilsBytesJsonDecoder)),
-      }),
-      (info) => pubkeyFindPdaAddress(info.program, info.seeds ?? []),
-    ),
-  }),
-});
-
-const bytesJsonDecoder = jsonDecoderByKind({
-  array: jsonCodecBytesArray.decoder,
-  object: jsonDecoderAsEnum({
-    utf8: jsonCodecBytesUtf8.decoder,
-    base16: jsonCodecBytesBase16.decoder,
-    base58: jsonCodecBytesBase58.decoder,
-    base64: jsonCodecBytesBase64.decoder,
-    zeroes: jsonDecoderTransform(
-      jsonCodecNumber.decoder,
-      (n) => new Uint8Array(n),
-    ),
-    encode: jsonDecoderTransform(
-      jsonDecoderObject({
-        value: jsonCodecRaw.decoder,
-        type: jsonDecoderOptional(idlTypeFlatParse),
-        prefixed: jsonDecoderOptional(jsonCodecBoolean.decoder),
-      }),
-      (info) => {
-        const typeFlat = info.type ?? idlUtilsInferValueTypeFlat(info.value);
-        const typeFull = idlTypeFlatHydrate(typeFlat, new Map());
-        const blobs = new Array<Uint8Array>();
-        idlTypeFullEncode(typeFull, info.value, blobs, info.prefixed === true);
-        return idlUtilsFlattenBlobs(blobs);
-      },
-    ),
-  }),
-});
+export function idlUtilsDiscriminator(name: string): Uint8Array {
+  return sha256Hash([utf8Encode(name)]).slice(0, 8);
+}

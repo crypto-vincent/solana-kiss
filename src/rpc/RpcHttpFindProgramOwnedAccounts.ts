@@ -24,6 +24,12 @@ export async function rpcHttpFindProgramOwnedAccounts(
   }
   if (filters?.dataBlobs !== undefined) {
     for (const dataBlob of filters.dataBlobs) {
+      if (dataBlob.offset < 0) {
+        throw new Error("RpcHttp: Account data filter offset must be >= 0");
+      }
+      if (dataBlob.bytes.length === 0) {
+        continue;
+      }
       paramFilters.push({
         memcmp: {
           offset: dataBlob.offset,

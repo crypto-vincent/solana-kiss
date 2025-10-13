@@ -26,9 +26,9 @@ import {
 export type IdlAccount = {
   name: string;
   docs: IdlDocs;
-  space: number | undefined;
-  blobs: Array<{ offset: number; bytes: Uint8Array }>;
   discriminator: Uint8Array;
+  dataSpace: number | undefined;
+  dataBlobs: Array<{ offset: number; bytes: Uint8Array }>;
   typeFlat: IdlTypeFlat;
   typeFull: IdlTypeFull;
 };
@@ -60,17 +60,16 @@ export function idlAccountCheck(
   accountIdl: IdlAccount,
   accountData: Uint8Array,
 ): void {
-  if (accountIdl.space !== undefined) {
-    if (accountIdl.space !== accountData.length) {
+  if (accountIdl.dataSpace !== undefined) {
+    if (accountIdl.dataSpace !== accountData.length) {
       throw new Error(
-        `Idl: Expected account space ${accountIdl.space} (found: ${accountData.length})`,
+        `Idl: Expected account space ${accountIdl.dataSpace} (found: ${accountData.length})`,
       );
     }
   }
-  for (const blob of accountIdl.blobs) {
+  for (const blob of accountIdl.dataBlobs) {
     idlUtilsExpectBlobAt(blob.offset, blob.bytes, accountData);
   }
-  idlUtilsExpectBlobAt(0, accountIdl.discriminator, accountData);
 }
 
 export function idlAccountParse(
@@ -79,6 +78,21 @@ export function idlAccountParse(
   typedefsIdls?: Map<string, IdlTypedef>,
 ): IdlAccount {
   const decoded = jsonDecoder(accountValue);
+  const discriminator =
+    decoded.discriminator ?? idlUtilsDiscriminator(`account:${accountName}`);
+  const dataSpace = decoded.space;
+  const dataBlobs = new Array<{ offset: number; bytes: Uint8Array }>();
+  dataBlobs.push({ offset: 0, bytes: discriminator });
+  if (decoded.blobs !== undefined) {
+    for (const blob of decoded.blobs) {
+      if (blob.offset < 0) {
+        throw new Error(
+          `Idl: Account blob offset must be >= 0 (found: ${blob.offset})`,
+        );
+      }
+      dataBlobs.push(blob);
+    }
+  }
   const typeFlat = idlTypeFlatParseIsPossible(accountValue)
     ? idlTypeFlatParse(accountValue)
     : idlTypeFlatParse(accountName);
@@ -86,10 +100,9 @@ export function idlAccountParse(
   return {
     name: accountName,
     docs: decoded.docs,
-    space: decoded.space,
-    blobs: decoded.blobs ?? [],
-    discriminator:
-      decoded.discriminator ?? idlUtilsDiscriminator(`account:${accountName}`),
+    discriminator,
+    dataSpace,
+    dataBlobs,
     typeFlat,
     typeFull,
   };

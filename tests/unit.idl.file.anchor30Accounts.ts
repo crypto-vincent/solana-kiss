@@ -95,8 +95,11 @@ it("run", () => {
           { collateral_mint: pubkeyToBase58(collateralMintAddress) },
         ],
       ]),
-      instructionAccountsContentsTypeFull: new Map([
-        ["campaign", programIdl.accounts.get("Campaign")!.typeFull],
+      instructionAccountsTypes: new Map([
+        [
+          "campaign",
+          expectDefined(programIdl.accounts.get("Campaign")).typeFull,
+        ],
       ]),
     },
   );
@@ -137,8 +140,11 @@ it("run", () => {
           { collateral_mint: pubkeyToBase58(collateralMintAddress) },
         ],
       ]),
-      instructionAccountsContentsTypeFull: new Map([
-        ["campaign", programIdl.accounts.get("Campaign")!.typeFull],
+      instructionAccountsTypes: new Map([
+        [
+          "campaign",
+          expectDefined(programIdl.accounts.get("Campaign")).typeFull,
+        ],
       ]),
     },
   );

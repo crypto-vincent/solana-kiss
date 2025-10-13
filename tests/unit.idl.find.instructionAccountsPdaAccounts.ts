@@ -102,7 +102,7 @@ it("run", () => {
         },
       }),
     ),
-    instructionAccountsContentsTypeFull: new Map(
+    instructionAccountsTypes: new Map(
       Object.entries({
         first: accountIdl.typeFull,
       }),

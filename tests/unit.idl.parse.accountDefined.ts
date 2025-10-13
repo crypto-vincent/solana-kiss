@@ -50,9 +50,14 @@ it("run", () => {
   expect(programIdl1.accounts.get("MyAccount")).toStrictEqual({
     name: "MyAccount",
     docs: undefined,
-    space: undefined,
-    blobs: [],
     discriminator: new Uint8Array([246, 28, 6, 87, 251, 45, 50, 42]),
+    dataSpace: undefined,
+    dataBlobs: [
+      {
+        offset: 0,
+        bytes: new Uint8Array([246, 28, 6, 87, 251, 45, 50, 42]),
+      },
+    ],
     typeFlat: IdlTypeFlat.defined({
       name: "MyAccount",
       generics: [],

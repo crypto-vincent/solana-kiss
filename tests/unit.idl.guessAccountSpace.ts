@@ -35,27 +35,27 @@ it("run", () => {
   expect(programIdl.accounts.get("MyAccount1_x3")).toStrictEqual({
     name: "MyAccount1_x3",
     docs: undefined,
-    space: 3,
-    blobs: [],
     discriminator: new Uint8Array([1]),
+    dataSpace: 3,
+    dataBlobs: [{ offset: 0, bytes: new Uint8Array([1]) }],
     typeFlat: IdlTypeFlat.structNothing(),
     typeFull: IdlTypeFull.structNothing(),
   });
   expect(programIdl.accounts.get("MyAccount1_x6")).toStrictEqual({
     name: "MyAccount1_x6",
     docs: undefined,
-    space: 6,
-    blobs: [],
     discriminator: new Uint8Array([1]),
+    dataSpace: 6,
+    dataBlobs: [{ offset: 0, bytes: new Uint8Array([1]) }],
     typeFlat: IdlTypeFlat.structNothing(),
     typeFull: IdlTypeFull.structNothing(),
   });
   expect(programIdl.accounts.get("MyAccount2_x6")).toStrictEqual({
     name: "MyAccount2_x6",
     docs: undefined,
-    space: 6,
-    blobs: [],
     discriminator: new Uint8Array([2]),
+    dataSpace: 6,
+    dataBlobs: [{ offset: 0, bytes: new Uint8Array([2]) }],
     typeFlat: IdlTypeFlat.defined({
       name: "MyAccount2_x6",
       generics: [],

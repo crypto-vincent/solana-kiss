@@ -1,5 +1,6 @@
 import {
   JsonValue,
+  jsonCodecPubkey,
   jsonCodecString,
   jsonDecoderForked,
   jsonDecoderObject,
@@ -8,7 +9,6 @@ import {
 } from "../data/Json";
 import { Pubkey } from "../data/Pubkey";
 import { IdlDocs, idlDocsParse } from "./IdlDocs";
-import { idlUtilsPubkeyJsonDecoder } from "./IdlUtils";
 
 export type IdlMetadata = {
   name: string | undefined;
@@ -41,7 +41,7 @@ const innerJsonDecoder = jsonDecoderOptional(
     description: jsonDecoderOptional(jsonCodecString.decoder),
     repository: jsonDecoderOptional(jsonCodecString.decoder),
     contact: jsonDecoderOptional(jsonCodecString.decoder),
-    address: jsonDecoderOptional(idlUtilsPubkeyJsonDecoder),
+    address: jsonDecoderOptional(jsonCodecPubkey.decoder),
     version: jsonDecoderOptional(jsonCodecString.decoder),
     spec: jsonDecoderOptional(jsonCodecString.decoder),
     docs: idlDocsParse,

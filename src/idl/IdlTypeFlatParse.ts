@@ -311,9 +311,8 @@ function objectBlobJsonDecoder(value: JsonValue): IdlTypeFlat {
 }
 
 function objectConstJsonDecoder(value: JsonValue): IdlTypeFlat {
-  const literal = jsonCodecNumber.decoder(
-    idlUtilsJsonRustedParse(jsonCodecString.decoder(value)),
-  );
+  const encoded = idlUtilsJsonRustedParse(jsonCodecString.decoder(value));
+  const literal = jsonCodecNumber.decoder(encoded);
   return IdlTypeFlat.const({ literal });
 }
 

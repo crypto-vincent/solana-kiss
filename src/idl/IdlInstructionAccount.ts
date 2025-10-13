@@ -2,6 +2,7 @@ import { casingConvertToSnake } from "../data/Casing";
 import {
   jsonCodecArrayRaw,
   jsonCodecBoolean,
+  jsonCodecPubkey,
   jsonCodecRaw,
   jsonCodecString,
   jsonDecoderArray,
@@ -20,7 +21,6 @@ import {
 } from "./IdlInstructionBlob";
 import { IdlTypedef } from "./IdlTypedef";
 import { IdlTypeFullFields } from "./IdlTypeFull";
-import { idlUtilsPubkeyJsonDecoder } from "./IdlUtils";
 
 export type IdlInstructionAccount = {
   name: string;
@@ -159,7 +159,7 @@ const jsonDecoder = jsonDecoderObject({
   isMut: jsonDecoderOptional(jsonCodecBoolean.decoder),
   optional: jsonDecoderOptional(jsonCodecBoolean.decoder),
   isOptional: jsonDecoderOptional(jsonCodecBoolean.decoder),
-  address: jsonDecoderOptional(idlUtilsPubkeyJsonDecoder),
+  address: jsonDecoderOptional(jsonCodecPubkey.decoder),
   pda: jsonDecoderOptional(
     jsonDecoderObject({
       seeds: jsonDecoderArray(jsonCodecRaw.decoder),

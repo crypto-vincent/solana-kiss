@@ -76,9 +76,9 @@ it("run", () => {
   expect(programIdl.accounts.get("MyAccount")).toStrictEqual({
     name: "MyAccount",
     docs: undefined,
-    space: undefined,
-    blobs: [],
     discriminator: new Uint8Array([77]),
+    dataSpace: undefined,
+    dataBlobs: [{ offset: 0, bytes: new Uint8Array([77]) }],
     typeFlat: IdlTypeFlat.struct({
       fields: IdlTypeFlatFields.unnamed([
         {

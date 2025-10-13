@@ -62,6 +62,8 @@ export function idlEventParse(
   typedefsIdls?: Map<string, IdlTypedef>,
 ): IdlEvent {
   const decoded = jsonDecoder(eventValue);
+  const discriminator =
+    decoded.discriminator ?? idlUtilsDiscriminator(`event:${eventName}`);
   const typeFlat = idlTypeFlatParseIsPossible(eventValue)
     ? idlTypeFlatParse(eventValue)
     : idlTypeFlatParse(eventName);
@@ -69,10 +71,9 @@ export function idlEventParse(
   return {
     name: eventName,
     docs: decoded.docs,
-    discriminator:
-      decoded.discriminator ?? idlUtilsDiscriminator(`event:${eventName}`),
-    typeFlat: typeFlat,
-    typeFull: typeFull,
+    discriminator,
+    typeFlat,
+    typeFull,
   };
 }
 

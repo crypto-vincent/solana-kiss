@@ -27,7 +27,7 @@ import { IdlMetadata, idlMetadataParse } from "./IdlMetadata";
 import { IdlTypedef, idlTypedefParse } from "./IdlTypedef";
 
 // TODO - provide a in-house SPL library of trusted programs ?
-// TODO - add support for a "program" level PDA (for sysvar for examples?)
+// TODO - add support for a "program" level PDA (for sysvar or conveniences? for examples?)
 export type IdlProgram = {
   metadata: IdlMetadata;
   typedefs: Map<string, IdlTypedef>;

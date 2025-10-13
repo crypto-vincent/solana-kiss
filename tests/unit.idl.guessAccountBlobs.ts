@@ -66,30 +66,37 @@ it("run", () => {
   expect(programIdl1.accounts.get("MyAccount1_x3")).toStrictEqual({
     name: "MyAccount1_x3",
     docs: undefined,
-    space: undefined,
-    blobs: [{ offset: 1, bytes: new Uint8Array([2, 3]) }],
     discriminator: new Uint8Array([1]),
+    dataSpace: undefined,
+    dataBlobs: [
+      { offset: 0, bytes: new Uint8Array([1]) },
+      { offset: 1, bytes: new Uint8Array([2, 3]) },
+    ],
     typeFlat: IdlTypeFlat.structNothing(),
     typeFull: IdlTypeFull.structNothing(),
   });
   expect(programIdl1.accounts.get("MyAccount1_x6")).toStrictEqual({
     name: "MyAccount1_x6",
     docs: undefined,
-    space: undefined,
-    blobs: [{ offset: 5, bytes: new Uint8Array([6]) }],
     discriminator: new Uint8Array([1]),
+    dataSpace: undefined,
+    dataBlobs: [
+      { offset: 0, bytes: new Uint8Array([1]) },
+      { offset: 5, bytes: new Uint8Array([6]) },
+    ],
     typeFlat: IdlTypeFlat.structNothing(),
     typeFull: IdlTypeFull.structNothing(),
   });
   expect(programIdl1.accounts.get("MyAccount2_x6")).toStrictEqual({
     name: "MyAccount2_x6",
     docs: undefined,
-    space: undefined,
-    blobs: [
+    discriminator: new Uint8Array([2]),
+    dataSpace: undefined,
+    dataBlobs: [
+      { offset: 0, bytes: new Uint8Array([2]) },
       { offset: 1, bytes: new Uint8Array([2, 2, 2]) },
       { offset: 5, bytes: new Uint8Array([2]) },
     ],
-    discriminator: new Uint8Array([2]),
     typeFlat: IdlTypeFlat.defined({
       name: "MyAccount2_x6",
       generics: [],
