@@ -14,6 +14,8 @@ import { utf8Decode } from "../data/Utf8";
 import { idlAccountDecode, idlAccountParse } from "./IdlAccount";
 import { IdlProgram, idlProgramParse } from "./IdlProgram";
 
+// TODO - should this be idlLibrary instead of idlOnchain ?
+
 export function idlOnchainAnchorAddress(programAddress: Pubkey): Pubkey {
   const fromPdaAddress = pubkeyFindPdaAddress(programAddress, []);
   return pubkeyCreateFromSeed(fromPdaAddress, "anchor:idl", programAddress);

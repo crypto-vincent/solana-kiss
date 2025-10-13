@@ -30,6 +30,8 @@ type IdlTypeFullPodFields = {
 };
 
 // TODO - figure out how to handle discriminator alignment/offset
+// TODO - support Repr modifiers (packed, align(N))
+// TODO - support for bytemuckunsafe/transparent/custom
 export function idlTypeFullTypedefBytemuck(
   typeFullTypedef: IdlTypeFullTypedef,
 ): IdlTypeFullPod {

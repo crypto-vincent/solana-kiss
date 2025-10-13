@@ -21,6 +21,7 @@ import {
 import { IdlTypedef } from "./IdlTypedef";
 import { IdlTypeFullFields } from "./IdlTypeFull";
 
+// TODO - suport nested accounts ?
 export type IdlInstructionAccount = {
   name: string;
   docs: IdlDocs;

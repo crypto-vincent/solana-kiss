@@ -49,8 +49,10 @@ export function idlTypeFlatParseIsPossible(value: JsonValue): boolean {
   }
   if (
     object.hasOwnProperty("type") ||
+    object.hasOwnProperty("alias") ||
     object.hasOwnProperty("defined") ||
     object.hasOwnProperty("generic") ||
+    object.hasOwnProperty("coption") ||
     object.hasOwnProperty("option") ||
     object.hasOwnProperty("option8") ||
     object.hasOwnProperty("option16") ||
@@ -249,6 +251,15 @@ const objectDefinedJsonDecoder = jsonDecoderTransform(
     }),
 );
 
+const objectCOptionJsonDecoder = jsonDecoderTransform(
+  idlTypeFlatParse,
+  (content) =>
+    IdlTypeFlat.defined({
+      name: "$C",
+      generics: [IdlTypeFlat.option({ prefix: IdlTypePrefix.u32, content })],
+    }),
+);
+
 function objectGenericJsonDecoder(value: JsonValue): IdlTypeFlat {
   const symbol = jsonCodecString.decoder(value);
   return IdlTypeFlat.generic({ symbol });
@@ -306,8 +317,10 @@ function objectConstJsonDecoder(value: JsonValue): IdlTypeFlat {
 
 const objectJsonDecoder: JsonDecoder<IdlTypeFlat> = jsonDecoderAsEnum({
   type: idlTypeFlatParse,
+  alias: idlTypeFlatParse,
   defined: objectDefinedJsonDecoder,
   generic: objectGenericJsonDecoder,
+  coption: objectCOptionJsonDecoder,
   option: objectOptionJsonDecoder(IdlTypePrefix.u8),
   option8: objectOptionJsonDecoder(IdlTypePrefix.u8),
   option16: objectOptionJsonDecoder(IdlTypePrefix.u16),
