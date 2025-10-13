@@ -14,7 +14,7 @@ import {
   IdlTypeFullTypedef,
   IdlTypeFullVec,
 } from "./IdlTypeFull";
-import { IdlTypePrefix } from "./IdlTypePrefix";
+import { IdlTypePrefix, idlTypePrefixBySize } from "./IdlTypePrefix";
 import { IdlTypePrimitive } from "./IdlTypePrimitive";
 
 type IdlTypeFullPod = {
@@ -485,7 +485,7 @@ function internalVerifyUnstableOrder(prefixSize: number, fieldsCount: number) {
 }
 
 function internalPrefixFromAlignment(alignment: number): IdlTypePrefix {
-  const prefix = IdlTypePrefix.prefixesBySize.get(alignment);
+  const prefix = idlTypePrefixBySize.get(alignment);
   if (prefix === undefined) {
     throw new Error(`Bytemuck: Unknown alignment: ${alignment}`);
   }

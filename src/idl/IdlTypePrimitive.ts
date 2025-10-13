@@ -24,33 +24,6 @@ export class IdlTypePrimitive {
   public static readonly bool = new IdlTypePrimitive("bool", 1, 1);
   public static readonly pubkey = new IdlTypePrimitive("pubkey", 32, 1);
 
-  public static readonly primitivesByName: ReadonlyMap<
-    string,
-    IdlTypePrimitive
-  > = (() => {
-    const primitives = [
-      IdlTypePrimitive.u8,
-      IdlTypePrimitive.u16,
-      IdlTypePrimitive.u32,
-      IdlTypePrimitive.u64,
-      IdlTypePrimitive.u128,
-      IdlTypePrimitive.i8,
-      IdlTypePrimitive.i16,
-      IdlTypePrimitive.i32,
-      IdlTypePrimitive.i64,
-      IdlTypePrimitive.i128,
-      IdlTypePrimitive.f32,
-      IdlTypePrimitive.f64,
-      IdlTypePrimitive.bool,
-      IdlTypePrimitive.pubkey,
-    ];
-    const primitivesByName = new Map<string, IdlTypePrimitive>();
-    for (const primitive of primitives) {
-      primitivesByName.set(primitive.name, primitive);
-    }
-    return primitivesByName;
-  })();
-
   public readonly name: string;
   public readonly size: number;
   public readonly alignment: number;
@@ -84,6 +57,31 @@ export class IdlTypePrimitive {
     return visitor[this.name as keyof typeof visitor](p1, p2);
   }
 }
+
+export const idlTypePrimitiveByName: ReadonlyMap<string, IdlTypePrimitive> =
+  (() => {
+    const primitives = [
+      IdlTypePrimitive.u8,
+      IdlTypePrimitive.u16,
+      IdlTypePrimitive.u32,
+      IdlTypePrimitive.u64,
+      IdlTypePrimitive.u128,
+      IdlTypePrimitive.i8,
+      IdlTypePrimitive.i16,
+      IdlTypePrimitive.i32,
+      IdlTypePrimitive.i64,
+      IdlTypePrimitive.i128,
+      IdlTypePrimitive.f32,
+      IdlTypePrimitive.f64,
+      IdlTypePrimitive.bool,
+      IdlTypePrimitive.pubkey,
+    ];
+    const primitivesByName = new Map<string, IdlTypePrimitive>();
+    for (const primitive of primitives) {
+      primitivesByName.set(primitive.name, primitive);
+    }
+    return primitivesByName;
+  })();
 
 export function idlTypePrimitiveEncode(
   primitive: IdlTypePrimitive,

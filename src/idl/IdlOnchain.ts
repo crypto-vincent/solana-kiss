@@ -31,6 +31,7 @@ export function idlOnchainAnchorDecode(
   return idlProgramParse(onchainAnchorJson);
 }
 
+// TODO - provide definition for the idl upload IXs too
 export const idlOnchainAnchorAccount = idlAccountParse("AnchorIdl", {
   discriminator: [24, 70, 98, 191, 58, 144, 123, 158],
   fields: [

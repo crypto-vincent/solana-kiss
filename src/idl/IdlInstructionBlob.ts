@@ -246,9 +246,6 @@ const computeVisitor = {
     const instructionAccountState = context.instructionAccountsStates?.get(
       self.name,
     );
-    if (instructionAccountState === undefined) {
-      throw new Error(`Could not find state for account: ${self.name}`);
-    }
     const value = jsonGetAt(instructionAccountState, self.pointer, {
       throwOnMissing: true,
     });

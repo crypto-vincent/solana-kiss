@@ -27,7 +27,7 @@ import {
   IdlTypeFlatFields,
 } from "./IdlTypeFlat";
 import { IdlTypePrefix } from "./IdlTypePrefix";
-import { IdlTypePrimitive } from "./IdlTypePrimitive";
+import { IdlTypePrimitive, idlTypePrimitiveByName } from "./IdlTypePrimitive";
 import { idlUtilsBytesJsonDecoder } from "./IdlUtils";
 
 export function idlTypeFlatParseIsPossible(value: JsonValue): boolean {
@@ -271,7 +271,7 @@ function objectStructJsonDecoder(value: JsonValue): IdlTypeFlat {
   return IdlTypeFlat.struct({ fields });
 }
 
-function objectVariantsJsonDecoder(prefix: IdlTypePrefix) {
+function objectEnumJsonDecoder(prefix: IdlTypePrefix) {
   return jsonDecoderTransform(variantsJsonDecoder, (variants) =>
     IdlTypeFlat.enum({ prefix, variants }),
   );
@@ -322,12 +322,12 @@ const objectJsonDecoder: JsonDecoder<IdlTypeFlat> = jsonDecoderAsEnum({
   vec128: objectVecJsonDecoder(IdlTypePrefix.u128),
   array: arrayJsonDecoder,
   fields: objectStructJsonDecoder,
-  variants: objectVariantsJsonDecoder(IdlTypePrefix.u8),
-  variants8: objectVariantsJsonDecoder(IdlTypePrefix.u8),
-  variants16: objectVariantsJsonDecoder(IdlTypePrefix.u16),
-  variants32: objectVariantsJsonDecoder(IdlTypePrefix.u32),
-  variants64: objectVariantsJsonDecoder(IdlTypePrefix.u64),
-  variants128: objectVariantsJsonDecoder(IdlTypePrefix.u128),
+  variants: objectEnumJsonDecoder(IdlTypePrefix.u8),
+  variants8: objectEnumJsonDecoder(IdlTypePrefix.u8),
+  variants16: objectEnumJsonDecoder(IdlTypePrefix.u16),
+  variants32: objectEnumJsonDecoder(IdlTypePrefix.u32),
+  variants64: objectEnumJsonDecoder(IdlTypePrefix.u64),
+  variants128: objectEnumJsonDecoder(IdlTypePrefix.u128),
   padded: objectPadJsonDecoder,
   bytes: objectBlobJsonDecoder,
   value: objectConstJsonDecoder,
@@ -354,7 +354,7 @@ function stringJsonDecoder(string: string): IdlTypeFlat {
   if (preset !== undefined) {
     return preset;
   }
-  const primitive = IdlTypePrimitive.primitivesByName.get(string);
+  const primitive = idlTypePrimitiveByName.get(string);
   if (primitive !== undefined) {
     return IdlTypeFlat.primitive(primitive);
   }

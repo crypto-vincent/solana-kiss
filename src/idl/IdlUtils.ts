@@ -97,31 +97,23 @@ export function idlUtilsDiscriminator(name: string): Uint8Array {
 // TODO - deep test this ?
 const pubkeyJsonDecoder = jsonDecoderByKind({
   string: jsonCodecPubkey.decoder,
-  object: jsonDecoderAsEnum(
-    {
-      fromSeed: jsonDecoderTransform(
-        jsonDecoderObject({
-          from: idlUtilsPubkeyJsonDecoder,
-          seed: jsonCodecString.decoder,
-          owner: idlUtilsPubkeyJsonDecoder,
-        }),
-        (info) => pubkeyCreateFromSeed(info.from, info.seed, info.owner),
-      ),
-      findPda: jsonDecoderTransform(
-        jsonDecoderObject({
-          program: idlUtilsPubkeyJsonDecoder,
-          seeds: jsonDecoderOptional(
-            jsonDecoderArray(idlUtilsBytesJsonDecoder),
-          ),
-        }),
-        (info) => pubkeyFindPdaAddress(info.program, info.seeds ?? []),
-      ),
-    },
-    {
-      fromSeed: "from_seed",
-      findPda: "find_pda",
-    },
-  ),
+  object: jsonDecoderAsEnum({
+    seed: jsonDecoderTransform(
+      jsonDecoderObject({
+        from: idlUtilsPubkeyJsonDecoder,
+        seed: jsonCodecString.decoder,
+        owner: idlUtilsPubkeyJsonDecoder,
+      }),
+      (info) => pubkeyCreateFromSeed(info.from, info.seed, info.owner),
+    ),
+    pda: jsonDecoderTransform(
+      jsonDecoderObject({
+        program: idlUtilsPubkeyJsonDecoder,
+        seeds: jsonDecoderOptional(jsonDecoderArray(idlUtilsBytesJsonDecoder)),
+      }),
+      (info) => pubkeyFindPdaAddress(info.program, info.seeds ?? []),
+    ),
+  }),
 });
 
 const bytesJsonDecoder = jsonDecoderByKind({

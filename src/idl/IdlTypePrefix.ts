@@ -5,22 +5,6 @@ export class IdlTypePrefix {
   public static readonly u64 = new IdlTypePrefix("u64", 8);
   public static readonly u128 = new IdlTypePrefix("u128", 16);
 
-  public static readonly prefixesBySize: ReadonlyMap<number, IdlTypePrefix> =
-    (() => {
-      const prefixes = [
-        IdlTypePrefix.u8,
-        IdlTypePrefix.u16,
-        IdlTypePrefix.u32,
-        IdlTypePrefix.u64,
-        IdlTypePrefix.u128,
-      ];
-      const prefixesBySize = new Map<number, IdlTypePrefix>();
-      for (const prefix of prefixes) {
-        prefixesBySize.set(prefix.size, prefix);
-      }
-      return prefixesBySize;
-    })();
-
   public readonly name: string;
   public readonly size: number;
 
@@ -43,6 +27,21 @@ export class IdlTypePrefix {
     return visitor[this.name as keyof typeof visitor](p1, p2);
   }
 }
+
+export const idlTypePrefixBySize: ReadonlyMap<number, IdlTypePrefix> = (() => {
+  const prefixes = [
+    IdlTypePrefix.u8,
+    IdlTypePrefix.u16,
+    IdlTypePrefix.u32,
+    IdlTypePrefix.u64,
+    IdlTypePrefix.u128,
+  ];
+  const prefixesBySize = new Map<number, IdlTypePrefix>();
+  for (const prefix of prefixes) {
+    prefixesBySize.set(prefix.size, prefix);
+  }
+  return prefixesBySize;
+})();
 
 export function idlTypePrefixEncode(
   prefix: IdlTypePrefix,
