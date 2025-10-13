@@ -1,4 +1,4 @@
-import { IdlTypedef } from "./IdlTypedef";
+import { IdlTypedef, idlTypedefGlobalsByName } from "./IdlTypedef";
 import {
   IdlTypeFlat,
   IdlTypeFlatArray,
@@ -66,10 +66,7 @@ const visitorHydrateOrConstLiteral = {
     genericsBySymbol: Map<string, IdlTypeFull | number>,
     typedefs?: Map<string, IdlTypedef>,
   ): IdlTypeFull | number => {
-    if (typedefs === undefined) {
-      throw new Error("Typedefs not available in this context");
-    }
-    const typedef = typedefs.get(self.name);
+    const typedef = lookupTypedef(self.name, typedefs);
     if (typedef === undefined) {
       throw new Error(`Could not resolve typedef named: ${self.name}`);
     }
@@ -269,3 +266,17 @@ const visitorHydrateFields = {
     );
   },
 };
+
+function lookupTypedef(
+  name: string,
+  typedefs?: Map<string, IdlTypedef>,
+): IdlTypedef | undefined {
+  const typedefGlobal = idlTypedefGlobalsByName.get(name);
+  if (typedefGlobal !== undefined) {
+    return typedefGlobal;
+  }
+  if (typedefs === undefined) {
+    throw new Error("Typedefs not available in this context");
+  }
+  return typedefs.get(name);
+}

@@ -35,6 +35,32 @@ export function idlTypedefParse(
   };
 }
 
+export const idlTypedefGlobalsByName: ReadonlyMap<string, IdlTypedef> = (() => {
+  const typedefs = [
+    {
+      name: "$Rust",
+      docs: undefined,
+      repr: "rust",
+      serialization: "bytemuck",
+      generics: ["T"],
+      typeFlat: IdlTypeFlat.generic({ symbol: "T" }),
+    },
+    {
+      name: "$C",
+      docs: undefined,
+      repr: "c",
+      serialization: "bytemuck",
+      generics: ["T"],
+      typeFlat: IdlTypeFlat.generic({ symbol: "T" }),
+    },
+  ];
+  const typedefsByName = new Map<string, IdlTypedef>();
+  for (const typedef of typedefs) {
+    typedefsByName.set(typedef.name, typedef);
+  }
+  return typedefsByName;
+})();
+
 const jsonDecoder = jsonDecoderObject({
   docs: idlDocsParse,
   repr: jsonDecoderOptional(stringOrObjectKeyJsonDecoder("kind")),

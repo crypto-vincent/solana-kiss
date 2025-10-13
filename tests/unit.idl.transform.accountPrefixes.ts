@@ -13,6 +13,8 @@ it("run", () => {
       MyAccount: {
         discriminator: [77],
         fields: [
+          { name: "coption1", coption: "u8" },
+          { name: "coption2", coption: "u8" },
           { name: "option", option: "u8" },
           { name: "option8", option8: "u8" },
           { name: "option16", option16: "u8" },
@@ -34,6 +36,8 @@ it("run", () => {
       MyAccount: {
         discriminator: [77],
         fields: [
+          { name: "coption1", type: { coption: "u8" } },
+          { name: "coption2", type: { coption: "u8" } },
           { name: "option", type: { option: "u8" } },
           { name: "option8", type: { option8: "u8" } },
           { name: "option16", type: { option16: "u8" } },
@@ -56,6 +60,8 @@ it("run", () => {
   const accountIdl = expectDefined(programIdl1.accounts.get("MyAccount"));
   // Dummy state we'll encode/decode
   const accountState = {
+    coption1: null,
+    coption2: 39,
     option: 40,
     option8: 41,
     option16: 42,
@@ -73,8 +79,8 @@ it("run", () => {
   const accountData = idlAccountEncode(accountIdl, accountState);
   expect(accountData).toStrictEqual(
     new Uint8Array([
-      77, 1, 40, 1, 41, 1, 0, 42, 1, 0, 0, 0, 43, 1, 0, 0, 0, 50, 1, 51, 1, 0,
-      52, 1, 0, 0, 0, 53, 0, 1, 2, 0, 3, 0, 0, 0,
+      77, 0, 0, 0, 0, 0, 1, 0, 0, 0, 39, 1, 40, 1, 41, 1, 0, 42, 1, 0, 0, 0, 43,
+      1, 0, 0, 0, 50, 1, 51, 1, 0, 52, 1, 0, 0, 0, 53, 0, 1, 2, 0, 3, 0, 0, 0,
     ]),
   );
   expect(idlAccountDecode(accountIdl, accountData)).toStrictEqual(accountState);
