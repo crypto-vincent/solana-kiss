@@ -5,6 +5,7 @@ import {
   IdlTypeFlatFields,
   IdlTypeFull,
   IdlTypeFullFields,
+  IdlTypePrefix,
   IdlTypePrimitive,
 } from "../src";
 
@@ -40,6 +41,21 @@ it("run", () => {
         msg: "My error message",
       },
     },
+    events: {
+      MyEvent: {
+        fields: [
+          { name: "field1", type: "u64", index: false },
+          { name: "field2", type: "u32", index: true },
+        ],
+      },
+    },
+    constants: {
+      MY_CONSTANT: {
+        docs: ["My constant doc"],
+        type: ["u32"],
+        value: "[420_420, 69.069_0]",
+      },
+    },
   });
   const programIdl2 = idlProgramParse({
     instructions: [
@@ -70,11 +86,28 @@ it("run", () => {
         },
       },
     ],
+    events: [
+      {
+        name: "MyEvent",
+        fields: [
+          { name: "field1", type: "u64", index: false },
+          { name: "field2", type: "u32", index: true },
+        ],
+      },
+    ],
     errors: [
       {
         code: 4242,
         name: "MyError",
         msg: "My error message",
+      },
+    ],
+    constants: [
+      {
+        name: "MY_CONSTANT",
+        docs: ["My constant doc"],
+        type: ["u32"],
+        value: "[420_420, 69.069_0]",
       },
     ],
   });
@@ -114,30 +147,34 @@ it("run", () => {
         pda: undefined,
       },
     ],
-    argsTypeFlatFields: IdlTypeFlatFields.named([
-      {
-        name: "index",
-        docs: undefined,
-        content: IdlTypeFlat.primitive(IdlTypePrimitive.u32),
-      },
-      {
-        name: "id",
-        docs: undefined,
-        content: IdlTypeFlat.primitive(IdlTypePrimitive.i64),
-      },
-    ]),
-    argsTypeFullFields: IdlTypeFullFields.named([
-      {
-        name: "index",
-        content: IdlTypeFull.primitive(IdlTypePrimitive.u32),
-      },
-      {
-        name: "id",
-        content: IdlTypeFull.primitive(IdlTypePrimitive.i64),
-      },
-    ]),
-    returnTypeFlat: IdlTypeFlat.structNothing(),
-    returnTypeFull: IdlTypeFull.structNothing(),
+    args: {
+      typeFlatFields: IdlTypeFlatFields.named([
+        {
+          name: "index",
+          docs: undefined,
+          content: IdlTypeFlat.primitive(IdlTypePrimitive.u32),
+        },
+        {
+          name: "id",
+          docs: undefined,
+          content: IdlTypeFlat.primitive(IdlTypePrimitive.i64),
+        },
+      ]),
+      typeFullFields: IdlTypeFullFields.named([
+        {
+          name: "index",
+          content: IdlTypeFull.primitive(IdlTypePrimitive.u32),
+        },
+        {
+          name: "id",
+          content: IdlTypeFull.primitive(IdlTypePrimitive.i64),
+        },
+      ]),
+    },
+    return: {
+      typeFlat: IdlTypeFlat.structNothing(),
+      typeFull: IdlTypeFull.structNothing(),
+    },
   });
   // Assert account was parsed correctly
   expect(programIdl1.accounts.get("MyAccount")).toStrictEqual({
@@ -146,7 +183,7 @@ it("run", () => {
     space: undefined,
     blobs: [],
     discriminator: new Uint8Array([246, 28, 6, 87, 251, 45, 50, 42]),
-    contentTypeFlat: IdlTypeFlat.struct({
+    typeFlat: IdlTypeFlat.struct({
       fields: IdlTypeFlatFields.named([
         {
           name: "field1",
@@ -160,7 +197,39 @@ it("run", () => {
         },
       ]),
     }),
-    contentTypeFull: IdlTypeFull.struct({
+    typeFull: IdlTypeFull.struct({
+      fields: IdlTypeFullFields.named([
+        {
+          name: "field1",
+          content: IdlTypeFull.primitive(IdlTypePrimitive.u64),
+        },
+        {
+          name: "field2",
+          content: IdlTypeFull.primitive(IdlTypePrimitive.u32),
+        },
+      ]),
+    }),
+  });
+  // Assert event was parsed correctly
+  expect(programIdl1.events.get("MyEvent")).toStrictEqual({
+    name: "MyEvent",
+    docs: undefined,
+    discriminator: new Uint8Array([96, 184, 197, 243, 139, 2, 90, 148]),
+    typeFlat: IdlTypeFlat.struct({
+      fields: IdlTypeFlatFields.named([
+        {
+          name: "field1",
+          docs: undefined,
+          content: IdlTypeFlat.primitive(IdlTypePrimitive.u64),
+        },
+        {
+          name: "field2",
+          docs: undefined,
+          content: IdlTypeFlat.primitive(IdlTypePrimitive.u32),
+        },
+      ]),
+    }),
+    typeFull: IdlTypeFull.struct({
       fields: IdlTypeFullFields.named([
         {
           name: "field1",
@@ -179,5 +248,19 @@ it("run", () => {
     docs: undefined,
     code: 4242,
     msg: "My error message",
+  });
+  // Assert constant was parsed correctly
+  expect(programIdl1.constants.get("MY_CONSTANT")).toStrictEqual({
+    name: "MY_CONSTANT",
+    docs: ["My constant doc"],
+    value: [420_420, 69.069_0],
+    typeFlat: IdlTypeFlat.vec({
+      prefix: IdlTypePrefix.u32,
+      items: IdlTypeFlat.primitive(IdlTypePrimitive.u32),
+    }),
+    typeFull: IdlTypeFull.vec({
+      prefix: IdlTypePrefix.u32,
+      items: IdlTypeFull.primitive(IdlTypePrimitive.u32),
+    }),
   });
 });

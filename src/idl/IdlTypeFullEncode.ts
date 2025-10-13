@@ -177,7 +177,15 @@ const visitorEncode = {
           return enumVariantEncode(variant, undefined);
         }
       }
-      throw new Error(`Could not find enum variant with name: ${value}`);
+      const code = BigInt(string);
+      for (const variant of self.variants) {
+        if (variant.code === code) {
+          return enumVariantEncode(variant, undefined);
+        }
+      }
+      throw new Error(
+        `Could not find enum variant with name or code: ${value}`,
+      );
     }
     const object = jsonAsObject(value);
     if (object !== undefined) {

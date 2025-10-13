@@ -53,11 +53,11 @@ it("run", () => {
     space: undefined,
     blobs: [],
     discriminator: new Uint8Array([246, 28, 6, 87, 251, 45, 50, 42]),
-    contentTypeFlat: IdlTypeFlat.defined({
+    typeFlat: IdlTypeFlat.defined({
       name: "MyAccount",
       generics: [],
     }),
-    contentTypeFull: IdlTypeFull.typedef({
+    typeFull: IdlTypeFull.typedef({
       name: "MyAccount",
       repr: undefined,
       content: IdlTypeFull.structNothing(),

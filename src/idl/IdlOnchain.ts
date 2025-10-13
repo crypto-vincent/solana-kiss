@@ -14,7 +14,7 @@ import { utf8Decode } from "../data/Utf8";
 import { idlAccountDecode, idlAccountParse } from "./IdlAccount";
 import { IdlProgram, idlProgramParse } from "./IdlProgram";
 
-// TODO - should this be idlLibrary instead of idlOnchain ?
+// TODO - should this be idlLibrary instead of idlOnchain or inside of a service module ?
 
 export function idlOnchainAnchorAddress(programAddress: Pubkey): Pubkey {
   const fromPdaAddress = pubkeyFindPdaAddress(programAddress, []);

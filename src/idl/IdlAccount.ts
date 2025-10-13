@@ -29,8 +29,8 @@ export type IdlAccount = {
   space: number | undefined;
   blobs: Array<{ offset: number; bytes: Uint8Array }>;
   discriminator: Uint8Array;
-  contentTypeFlat: IdlTypeFlat;
-  contentTypeFull: IdlTypeFull;
+  typeFlat: IdlTypeFlat;
+  typeFull: IdlTypeFull;
 };
 
 export function idlAccountEncode(
@@ -39,7 +39,7 @@ export function idlAccountEncode(
 ): Uint8Array {
   const blobs = new Array<Uint8Array>();
   blobs.push(accountIdl.discriminator);
-  idlTypeFullEncode(accountIdl.contentTypeFull, accountState, blobs, true);
+  idlTypeFullEncode(accountIdl.typeFull, accountState, blobs, true);
   return idlUtilsFlattenBlobs(blobs);
 }
 
@@ -49,7 +49,7 @@ export function idlAccountDecode(
 ): JsonValue {
   idlAccountCheck(accountIdl, accountData);
   const [, accountState] = idlTypeFullDecode(
-    accountIdl.contentTypeFull,
+    accountIdl.typeFull,
     new DataView(accountData.buffer),
     accountIdl.discriminator.length,
   );
@@ -79,14 +79,10 @@ export function idlAccountParse(
   typedefsIdls?: Map<string, IdlTypedef>,
 ): IdlAccount {
   const decoded = jsonDecoder(accountValue);
-  const contentTypeFlat = idlTypeFlatParseIsPossible(accountValue)
+  const typeFlat = idlTypeFlatParseIsPossible(accountValue)
     ? idlTypeFlatParse(accountValue)
     : idlTypeFlatParse(accountName);
-  const contentTypeFull = idlTypeFlatHydrate(
-    contentTypeFlat,
-    new Map(),
-    typedefsIdls,
-  );
+  const typeFull = idlTypeFlatHydrate(typeFlat, new Map(), typedefsIdls);
   return {
     name: accountName,
     docs: decoded.docs,
@@ -94,8 +90,8 @@ export function idlAccountParse(
     blobs: decoded.blobs ?? [],
     discriminator:
       decoded.discriminator ?? idlUtilsDiscriminator(`account:${accountName}`),
-    contentTypeFlat,
-    contentTypeFull,
+    typeFlat,
+    typeFull,
   };
 }
 

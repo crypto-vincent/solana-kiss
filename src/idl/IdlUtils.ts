@@ -93,8 +93,21 @@ export function idlUtilsDiscriminator(name: string): Uint8Array {
   return sha256Hash([utf8Encode(name)]).slice(0, 8);
 }
 
-// TODO - should I add a transformer type thingy to help with this ? (No doesnt make sense because cannot un decoded?)
-// TODO - deep test this ?
+export function idlUtilsJsonRustedParse(jsonRusted: string): JsonValue {
+  return JSON.parse(
+    jsonRusted.replace(
+      /"(?:\\.|[^"\\])*"|(-?(?:0|[1-9][0-9_]*)(?:\.[0-9_]+)?(?:[eE][+-]?[0-9_]+)?)/g,
+      (match, num) => {
+        if (num === undefined) {
+          return match;
+        }
+        return num.replace(/_/g, "");
+      },
+    ),
+  );
+}
+
+// TODO - deep test this, is that needed at all ?
 const pubkeyJsonDecoder = jsonDecoderByKind({
   string: jsonCodecPubkey.decoder,
   object: jsonDecoderAsEnum({

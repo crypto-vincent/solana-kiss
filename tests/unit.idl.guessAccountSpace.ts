@@ -38,8 +38,8 @@ it("run", () => {
     space: 3,
     blobs: [],
     discriminator: new Uint8Array([1]),
-    contentTypeFlat: IdlTypeFlat.structNothing(),
-    contentTypeFull: IdlTypeFull.structNothing(),
+    typeFlat: IdlTypeFlat.structNothing(),
+    typeFull: IdlTypeFull.structNothing(),
   });
   expect(programIdl.accounts.get("MyAccount1_x6")).toStrictEqual({
     name: "MyAccount1_x6",
@@ -47,8 +47,8 @@ it("run", () => {
     space: 6,
     blobs: [],
     discriminator: new Uint8Array([1]),
-    contentTypeFlat: IdlTypeFlat.structNothing(),
-    contentTypeFull: IdlTypeFull.structNothing(),
+    typeFlat: IdlTypeFlat.structNothing(),
+    typeFull: IdlTypeFull.structNothing(),
   });
   expect(programIdl.accounts.get("MyAccount2_x6")).toStrictEqual({
     name: "MyAccount2_x6",
@@ -56,11 +56,11 @@ it("run", () => {
     space: 6,
     blobs: [],
     discriminator: new Uint8Array([2]),
-    contentTypeFlat: IdlTypeFlat.defined({
+    typeFlat: IdlTypeFlat.defined({
       name: "MyAccount2_x6",
       generics: [],
     }),
-    contentTypeFull: IdlTypeFull.typedef({
+    typeFull: IdlTypeFull.typedef({
       name: "MyAccount2_x6",
       repr: undefined,
       content: IdlTypeFull.structNothing(),

@@ -32,6 +32,7 @@ type IdlTypeFullPodFields = {
 // TODO - figure out how to handle discriminator alignment/offset
 // TODO - support Repr modifiers (packed, align(N))
 // TODO - support for bytemuckunsafe/transparent/custom
+// TODO - support for circular typedefs, through borsh options for example ?
 export function idlTypeFullTypedefBytemuck(
   typeFullTypedef: IdlTypeFullTypedef,
 ): IdlTypeFullPod {

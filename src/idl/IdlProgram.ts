@@ -15,6 +15,7 @@ import {
 } from "../data/Json";
 import { withContext } from "../data/Utils";
 import { IdlAccount, idlAccountCheck, idlAccountParse } from "./IdlAccount";
+import { IdlConstant, idlConstantParse } from "./IdlConstant";
 import { IdlError, idlErrorParse } from "./IdlError";
 import { IdlEvent, idlEventCheck, idlEventParse } from "./IdlEvent";
 import {
@@ -26,7 +27,6 @@ import { IdlMetadata, idlMetadataParse } from "./IdlMetadata";
 import { IdlTypedef, idlTypedefParse } from "./IdlTypedef";
 
 // TODO - provide a in-house SPL library of trusted programs ?
-// TODO - should add support for IDL constants??
 // TODO - add support for a "program" level PDA (for sysvar for examples?)
 export type IdlProgram = {
   metadata: IdlMetadata;
@@ -35,6 +35,7 @@ export type IdlProgram = {
   instructions: Map<string, IdlInstruction>;
   events: Map<string, IdlEvent>;
   errors: Map<string, IdlError>;
+  constants: Map<string, IdlConstant>;
 };
 
 export function idlProgramGuessAccount(
@@ -90,10 +91,7 @@ export function idlProgramGuessError(
 
 export function idlProgramParse(programValue: JsonValue): IdlProgram {
   const programObject = jsonCodecObjectRaw.decoder(programValue);
-  const metadata = {
-    ...idlMetadataParse(programObject),
-    ...idlMetadataParse(programObject["metadata"]),
-  };
+  const metadata = idlMetadataParse(programObject);
   const typedefs = parseScopedNamedValues(
     programObject,
     "types",
@@ -129,7 +127,22 @@ export function idlProgramParse(programValue: JsonValue): IdlProgram {
     undefined,
     idlErrorParse,
   );
-  return { metadata, typedefs, accounts, instructions, events, errors };
+  const constants = parseScopedNamedValues(
+    programObject,
+    "constants",
+    false,
+    undefined,
+    idlConstantParse,
+  );
+  return {
+    metadata,
+    typedefs,
+    accounts,
+    instructions,
+    events,
+    errors,
+    constants,
+  };
 }
 
 function parseScopedNamedValues<Content, Param>(

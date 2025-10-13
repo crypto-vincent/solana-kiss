@@ -36,10 +36,14 @@ export type IdlInstruction = {
   docs: IdlDocs;
   discriminator: Uint8Array;
   accounts: Array<IdlInstructionAccount>;
-  argsTypeFlatFields: IdlTypeFlatFields;
-  argsTypeFullFields: IdlTypeFullFields;
-  returnTypeFlat: IdlTypeFlat;
-  returnTypeFull: IdlTypeFull;
+  args: {
+    typeFlatFields: IdlTypeFlatFields;
+    typeFullFields: IdlTypeFullFields;
+  };
+  return: {
+    typeFlat: IdlTypeFlat;
+    typeFull: IdlTypeFull;
+  };
 };
 
 export function idlInstructionEncode(
@@ -187,7 +191,7 @@ export function idlInstructionArgsEncode(
   const blobs = new Array<Uint8Array>();
   blobs.push(instructionIdl.discriminator);
   idlTypeFullFieldsEncode(
-    instructionIdl.argsTypeFullFields,
+    instructionIdl.args.typeFullFields,
     instructionPayload,
     blobs,
     true,
@@ -201,7 +205,7 @@ export function idlInstructionArgsDecode(
 ): JsonValue {
   idlInstructionArgsCheck(instructionIdl, instructionData);
   const [, payload] = idlTypeFullFieldsDecode(
-    instructionIdl.argsTypeFullFields,
+    instructionIdl.args.typeFullFields,
     new DataView(instructionData.buffer),
     instructionIdl.discriminator.length,
   );
@@ -277,13 +281,17 @@ export function idlInstructionParse(
     new Map(),
     typedefsIdls,
   );
-  const accounts = (decoded.accounts ?? []).map((instructionAccount) => {
-    return idlInstructionAccountParse(
-      instructionAccount,
-      argsTypeFullFields,
-      typedefsIdls,
+  const accounts = new Array<IdlInstructionAccount>();
+  for (const instructionAccount of decoded.accounts ?? []) {
+    accounts.push(
+      ...idlInstructionAccountParse(
+        [],
+        instructionAccount,
+        argsTypeFullFields,
+        typedefsIdls,
+      ),
     );
-  });
+  }
   return {
     name: instructionName,
     docs: decoded.docs,
@@ -291,10 +299,14 @@ export function idlInstructionParse(
       decoded.discriminator ??
       idlUtilsDiscriminator(`global:${instructionName}`),
     accounts,
-    argsTypeFlatFields,
-    argsTypeFullFields,
-    returnTypeFlat,
-    returnTypeFull,
+    args: {
+      typeFlatFields: argsTypeFlatFields,
+      typeFullFields: argsTypeFullFields,
+    },
+    return: {
+      typeFlat: returnTypeFlat,
+      typeFull: returnTypeFull,
+    },
   };
 }
 

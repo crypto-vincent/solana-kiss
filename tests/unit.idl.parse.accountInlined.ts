@@ -80,7 +80,7 @@ it("run", () => {
     space: undefined,
     blobs: [],
     discriminator: new Uint8Array([246, 28, 6, 87, 251, 45, 50, 42]),
-    contentTypeFlat: IdlTypeFlat.structNothing(),
-    contentTypeFull: IdlTypeFull.structNothing(),
+    typeFlat: IdlTypeFlat.structNothing(),
+    typeFull: IdlTypeFull.structNothing(),
   });
 });

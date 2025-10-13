@@ -25,8 +25,8 @@ export type IdlEvent = {
   name: string;
   docs: IdlDocs;
   discriminator: Uint8Array;
-  infoTypeFlat: IdlTypeFlat;
-  infoTypeFull: IdlTypeFull;
+  typeFlat: IdlTypeFlat;
+  typeFull: IdlTypeFull;
 };
 
 export function idlEventEncode(
@@ -35,7 +35,7 @@ export function idlEventEncode(
 ): Uint8Array {
   const blobs = new Array<Uint8Array>();
   blobs.push(eventIdl.discriminator);
-  idlTypeFullEncode(eventIdl.infoTypeFull, eventPayload, blobs, true);
+  idlTypeFullEncode(eventIdl.typeFull, eventPayload, blobs, true);
   return idlUtilsFlattenBlobs(blobs);
 }
 
@@ -45,7 +45,7 @@ export function idlEventDecode(
 ): JsonValue {
   idlEventCheck(eventIdl, eventData);
   const [_, eventPayload] = idlTypeFullDecode(
-    eventIdl.infoTypeFull,
+    eventIdl.typeFull,
     new DataView(eventData.buffer),
     eventIdl.discriminator.length,
   );
@@ -62,21 +62,17 @@ export function idlEventParse(
   typedefsIdls?: Map<string, IdlTypedef>,
 ): IdlEvent {
   const decoded = jsonDecoder(eventValue);
-  const infoTypeFlat = idlTypeFlatParseIsPossible(eventValue)
+  const typeFlat = idlTypeFlatParseIsPossible(eventValue)
     ? idlTypeFlatParse(eventValue)
     : idlTypeFlatParse(eventName);
-  const infoTypeFull = idlTypeFlatHydrate(
-    infoTypeFlat,
-    new Map(),
-    typedefsIdls,
-  );
+  const typeFull = idlTypeFlatHydrate(typeFlat, new Map(), typedefsIdls);
   return {
     name: eventName,
     docs: decoded.docs,
     discriminator:
       decoded.discriminator ?? idlUtilsDiscriminator(`event:${eventName}`),
-    infoTypeFlat,
-    infoTypeFull,
+    typeFlat: typeFlat,
+    typeFull: typeFull,
   };
 }
 

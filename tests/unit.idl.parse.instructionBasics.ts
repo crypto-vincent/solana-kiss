@@ -21,6 +21,13 @@ it("run", () => {
           { name: "account_rs", signer: true, writable: false },
           { name: "account_w", signer: false, writable: true },
           { name: "account_r", signer: false, writable: false },
+          {
+            name: "nester",
+            accounts: [
+              { name: "nested_a" },
+              { name: "nested", accounts: [{ name: "b" }] },
+            ],
+          },
         ],
         args: [{ name: "arg", type: { vec: "u8" } }],
         returns: "i8",
@@ -36,6 +43,13 @@ it("run", () => {
           { name: "account_rs", signer: true },
           { name: "account_w", writable: true },
           { name: "account_r" },
+          {
+            name: "nester",
+            accounts: [
+              { name: "nested_a" },
+              { name: "nested", accounts: [{ name: "b" }] },
+            ],
+          },
         ],
         args: [{ name: "arg", type: { vec: "u8" } }],
         returns: "i8",
@@ -51,6 +65,13 @@ it("run", () => {
           { name: "account_rs", isSigner: true },
           { name: "account_w", isMut: true },
           { name: "account_r" },
+          {
+            name: "nester",
+            accounts: [
+              { name: "nested_a" },
+              { name: "nested", accounts: [{ name: "b" }] },
+            ],
+          },
         ],
         args: [{ name: "arg", vec: "u8" }],
         returns: "i8",
@@ -65,6 +86,13 @@ it("run", () => {
           { name: "account_rs", isSigner: true },
           { name: "account_w", isMut: true },
           { name: "account_r" },
+          {
+            name: "nester",
+            accounts: [
+              { name: "nested_a" },
+              { name: "nested", accounts: [{ name: "b" }] },
+            ],
+          },
         ],
         args: [{ name: "arg", vec: "u8" }],
         returns: "i8",
@@ -117,27 +145,49 @@ it("run", () => {
         address: undefined,
         pda: undefined,
       },
-    ],
-    argsTypeFlatFields: IdlTypeFlatFields.named([
       {
-        name: "arg",
+        name: "nester.nested_a",
         docs: undefined,
-        content: IdlTypeFlat.vec({
-          prefix: IdlTypePrefix.u32,
-          items: IdlTypeFlat.primitive(IdlTypePrimitive.u8),
-        }),
+        writable: false,
+        signer: false,
+        optional: false,
+        address: undefined,
+        pda: undefined,
       },
-    ]),
-    argsTypeFullFields: IdlTypeFullFields.named([
       {
-        name: "arg",
-        content: IdlTypeFull.vec({
-          prefix: IdlTypePrefix.u32,
-          items: IdlTypeFull.primitive(IdlTypePrimitive.u8),
-        }),
+        name: "nester.nested.b",
+        docs: undefined,
+        writable: false,
+        signer: false,
+        optional: false,
+        address: undefined,
+        pda: undefined,
       },
-    ]),
-    returnTypeFlat: IdlTypeFlat.primitive(IdlTypePrimitive.i8),
-    returnTypeFull: IdlTypeFull.primitive(IdlTypePrimitive.i8),
+    ],
+    args: {
+      typeFlatFields: IdlTypeFlatFields.named([
+        {
+          name: "arg",
+          docs: undefined,
+          content: IdlTypeFlat.vec({
+            prefix: IdlTypePrefix.u32,
+            items: IdlTypeFlat.primitive(IdlTypePrimitive.u8),
+          }),
+        },
+      ]),
+      typeFullFields: IdlTypeFullFields.named([
+        {
+          name: "arg",
+          content: IdlTypeFull.vec({
+            prefix: IdlTypePrefix.u32,
+            items: IdlTypeFull.primitive(IdlTypePrimitive.u8),
+          }),
+        },
+      ]),
+    },
+    return: {
+      typeFlat: IdlTypeFlat.primitive(IdlTypePrimitive.i8),
+      typeFull: IdlTypeFull.primitive(IdlTypePrimitive.i8),
+    },
   });
 });

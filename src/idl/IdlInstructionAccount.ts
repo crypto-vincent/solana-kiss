@@ -1,7 +1,7 @@
 import { casingConvertToSnake } from "../data/Casing";
 import {
+  jsonCodecArrayRaw,
   jsonCodecBoolean,
-  jsonCodecPubkey,
   jsonCodecRaw,
   jsonCodecString,
   jsonDecoderArray,
@@ -20,8 +20,8 @@ import {
 } from "./IdlInstructionBlob";
 import { IdlTypedef } from "./IdlTypedef";
 import { IdlTypeFullFields } from "./IdlTypeFull";
+import { idlUtilsPubkeyJsonDecoder } from "./IdlUtils";
 
-// TODO - suport nested accounts ?
 export type IdlInstructionAccount = {
   name: string;
   docs: IdlDocs;
@@ -74,11 +74,41 @@ export function idlInstructionAccountFind(
 }
 
 export function idlInstructionAccountParse(
+  instructionAccountGroups: Array<string>,
   instructionAccountValue: JsonValue,
   instructionArgsTypeFullFields: IdlTypeFullFields,
   typedefsIdls?: Map<string, IdlTypedef>,
-): IdlInstructionAccount {
+): Array<IdlInstructionAccount> {
   const decoded = jsonDecoder(instructionAccountValue);
+  if (decoded.accounts !== undefined) {
+    if (
+      decoded.signer !== undefined ||
+      decoded.isSigner !== undefined ||
+      decoded.signing !== undefined ||
+      decoded.writable !== undefined ||
+      decoded.isMut !== undefined ||
+      decoded.optional !== undefined ||
+      decoded.isOptional !== undefined ||
+      decoded.address !== undefined ||
+      decoded.pda !== undefined
+    ) {
+      throw new Error(
+        `Idl: Instruction Account: Cannot mix nested accounts with other properties: ${decoded.name}`,
+      );
+    }
+    const nestedAccounts = new Array<IdlInstructionAccount>();
+    for (const nestedAccount of decoded.accounts) {
+      nestedAccounts.push(
+        ...idlInstructionAccountParse(
+          [...instructionAccountGroups, decoded.name],
+          nestedAccount,
+          instructionArgsTypeFullFields,
+          typedefsIdls,
+        ),
+      );
+    }
+    return nestedAccounts;
+  }
   const pda = withContext(
     `Idl: Instruction Account: Pda: ${decoded.name}`,
     () => {
@@ -103,20 +133,25 @@ export function idlInstructionAccountParse(
       return { seeds, program };
     },
   );
-  return {
-    name: casingConvertToSnake(decoded.name),
-    docs: decoded.docs,
-    writable: decoded.writable ?? decoded.isMut ?? false,
-    signer: decoded.signer ?? decoded.isSigner ?? decoded.signing ?? false,
-    optional: decoded.optional ?? decoded.isOptional ?? false,
-    address: decoded.address,
-    pda,
-  };
+  return [
+    {
+      name: casingConvertToSnake(
+        [...instructionAccountGroups, decoded.name].join("."),
+      ),
+      docs: decoded.docs,
+      writable: decoded.writable ?? decoded.isMut ?? false,
+      signer: decoded.signer ?? decoded.isSigner ?? decoded.signing ?? false,
+      optional: decoded.optional ?? decoded.isOptional ?? false,
+      address: decoded.address,
+      pda,
+    },
+  ];
 }
 
 const jsonDecoder = jsonDecoderObject({
   name: jsonCodecString.decoder,
   docs: idlDocsParse,
+  accounts: jsonDecoderOptional(jsonCodecArrayRaw.decoder),
   signer: jsonDecoderOptional(jsonCodecBoolean.decoder),
   isSigner: jsonDecoderOptional(jsonCodecBoolean.decoder),
   signing: jsonDecoderOptional(jsonCodecBoolean.decoder),
@@ -124,7 +159,7 @@ const jsonDecoder = jsonDecoderObject({
   isMut: jsonDecoderOptional(jsonCodecBoolean.decoder),
   optional: jsonDecoderOptional(jsonCodecBoolean.decoder),
   isOptional: jsonDecoderOptional(jsonCodecBoolean.decoder),
-  address: jsonDecoderOptional(jsonCodecPubkey.decoder),
+  address: jsonDecoderOptional(idlUtilsPubkeyJsonDecoder),
   pda: jsonDecoderOptional(
     jsonDecoderObject({
       seeds: jsonDecoderArray(jsonCodecRaw.decoder),

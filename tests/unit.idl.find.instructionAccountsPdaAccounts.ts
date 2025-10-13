@@ -104,7 +104,7 @@ it("run", () => {
     ),
     instructionAccountsContentsTypeFull: new Map(
       Object.entries({
-        first: accountIdl.contentTypeFull,
+        first: accountIdl.typeFull,
       }),
     ),
   });

@@ -16,6 +16,7 @@ export * from "./data/Utils";
 export * from "./rpc/RpcTransaction";
 
 export * from "./idl/IdlAccount";
+export * from "./idl/IdlConstant";
 export * from "./idl/IdlError";
 export * from "./idl/IdlEvent";
 export * from "./idl/IdlInstruction";

@@ -28,7 +28,7 @@ import {
 } from "./IdlTypeFlat";
 import { IdlTypePrefix } from "./IdlTypePrefix";
 import { IdlTypePrimitive, idlTypePrimitiveByName } from "./IdlTypePrimitive";
-import { idlUtilsBytesJsonDecoder } from "./IdlUtils";
+import { idlUtilsBytesJsonDecoder, idlUtilsJsonRustedParse } from "./IdlUtils";
 
 export function idlTypeFlatParseIsPossible(value: JsonValue): boolean {
   if (value === null) {
@@ -311,7 +311,9 @@ function objectBlobJsonDecoder(value: JsonValue): IdlTypeFlat {
 }
 
 function objectConstJsonDecoder(value: JsonValue): IdlTypeFlat {
-  const literal = Number(jsonCodecString.decoder(value));
+  const literal = jsonCodecNumber.decoder(
+    idlUtilsJsonRustedParse(jsonCodecString.decoder(value)),
+  );
   return IdlTypeFlat.const({ literal });
 }
 

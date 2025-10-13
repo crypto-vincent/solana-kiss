@@ -96,7 +96,7 @@ it("run", () => {
         ],
       ]),
       instructionAccountsContentsTypeFull: new Map([
-        ["campaign", programIdl.accounts.get("Campaign")!.contentTypeFull],
+        ["campaign", programIdl.accounts.get("Campaign")!.typeFull],
       ]),
     },
   );
@@ -138,7 +138,7 @@ it("run", () => {
         ],
       ]),
       instructionAccountsContentsTypeFull: new Map([
-        ["campaign", programIdl.accounts.get("Campaign")!.contentTypeFull],
+        ["campaign", programIdl.accounts.get("Campaign")!.typeFull],
       ]),
     },
   );

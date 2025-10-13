@@ -15,7 +15,7 @@ it("run", () => {
   );
   // Check that the account was parsed correctly
   const accountIdl = expectDefined(programIdl.accounts.get("GenericAccount"));
-  expect(accountIdl.contentTypeFull).toStrictEqual(
+  expect(accountIdl.typeFull).toStrictEqual(
     IdlTypeFull.typedef({
       name: "GenericAccount",
       repr: undefined,
@@ -35,7 +35,7 @@ it("run", () => {
   );
   // Check that the instruction was parsed correctly
   const instructionIdl = expectDefined(programIdl.instructions.get("generic"));
-  expect(instructionIdl.argsTypeFullFields).toStrictEqual(
+  expect(instructionIdl.args.typeFullFields).toStrictEqual(
     IdlTypeFullFields.named([
       {
         name: "generic_field",
