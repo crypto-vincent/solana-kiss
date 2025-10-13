@@ -112,8 +112,8 @@ it("run", () => {
   expect(programIdl1).toStrictEqual(programIdl2);
   // Pdas based off of const bytes seeds
   const pdaSeedsConstBytes = [
-    Uint8Array.from([41, 0, 0, 0]),
-    Uint8Array.from([42, 0, 0, 0]),
+    new Uint8Array([41, 0, 0, 0]),
+    new Uint8Array([42, 0, 0, 0]),
   ];
   const pdaConstBytes1 = pubkeyFindPdaAddress(
     programAddress1,

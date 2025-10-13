@@ -26,7 +26,7 @@ export type IdlInstructionBlobContext = {
   instructionPayload: JsonValue;
   // TODO - should those two be merged into a single map of account name to (pubkey,state,type) or a snapshot object ?
   instructionAccountsStates?: Map<string, JsonValue>;
-  instructionAccountsTypes?: Map<string, IdlTypeFull>;
+  instructionAccountsTypes?: Record<string, IdlTypeFull>;
 };
 
 export type IdlInstructionBlobConst = {
@@ -211,7 +211,6 @@ const jsonDecoder = jsonDecoderByKind<{
   }),
 });
 
-// TODO - better tests for account nested paths
 const computeVisitor = {
   const: (self: IdlInstructionBlobConst) => {
     return self.bytes;
@@ -234,7 +233,7 @@ const computeVisitor = {
     ) {
       for (const [
         instructionAccountName,
-        instructionAddress,
+        instructionAddress, // TODO - naming stands out here
       ] of context.instructionAddresses.entries()) {
         if (instructionAccountName === self.path) {
           return pubkeyToBytes(instructionAddress);
@@ -260,9 +259,8 @@ const computeVisitor = {
           idlTypeFullEncode(self.typeFull, stateValue, blobs, false);
           return idlUtilsFlattenBlobs(blobs);
         }
-        const stateTypeFull = context.instructionAccountsTypes?.get(
-          instructionAccountName,
-        );
+        const stateTypeFull = // TODO - use records and check for hasOwnProperty
+          context.instructionAccountsTypes?.[instructionAccountName];
         if (stateTypeFull === undefined) {
           throw new Error(
             `Could not find content type for account: ${instructionAccountName}`,

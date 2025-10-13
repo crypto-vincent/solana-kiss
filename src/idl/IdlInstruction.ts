@@ -80,6 +80,7 @@ export function idlInstructionDecode(
   instructionIdl: IdlInstruction,
   instruction: Instruction,
 ): {
+  // TODO - naming for "InstructionAddresses?" and should this be a map or an object ?
   instructionProgramAddress: Pubkey;
   instructionAddresses: Map<string, Pubkey>;
   instructionPayload: JsonValue;

@@ -72,7 +72,7 @@ it("run", () => {
   });
   expect(idlInstructionDecode(instructionIdl, instruction)).toStrictEqual({
     instructionProgramAddress,
-    instructionPayload,
     instructionAddresses,
+    instructionPayload,
   });
 });

@@ -56,17 +56,17 @@ it("run", () => {
   // Keys used during the test
   const programAddress = pubkeyNewDummy();
   const pdaSeeds = [
-    Uint8Array.from([77]),
-    Uint8Array.from([78, 0]),
-    Uint8Array.from([79, 0, 0, 0]),
-    Uint8Array.from([80, 0, 0, 0, 0, 0, 0, 0]),
-    Uint8Array.from([11, 12]),
-    Uint8Array.from([21, 22, 23]),
+    new Uint8Array([77]),
+    new Uint8Array([78, 0]),
+    new Uint8Array([79, 0, 0, 0]),
+    new Uint8Array([80, 0, 0, 0, 0, 0, 0, 0]),
+    new Uint8Array([11, 12]),
+    new Uint8Array([21, 22, 23]),
     utf8Encode("hello"),
-    Uint8Array.from([111]),
-    Uint8Array.from([222, 0]),
-    Uint8Array.from([222]),
-    Uint8Array.from([222, 0, 0, 0]),
+    new Uint8Array([111]),
+    new Uint8Array([222, 0]),
+    new Uint8Array([222]),
+    new Uint8Array([222, 0, 0, 0]),
   ];
   const pdaAddress = pubkeyFindPdaAddress(programAddress, pdaSeeds);
   // Assert that the accounts can be properly resolved
