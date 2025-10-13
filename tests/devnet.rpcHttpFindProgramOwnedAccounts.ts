@@ -15,7 +15,7 @@ it("run", async () => {
   const ownedAccountsBySize = await rpcHttpFindProgramOwnedAccounts(
     rpcHttp,
     pubkeyFromBase58("vVeH6Xd43HAScbxjVtvfwDGqBMaMvNDLsAxwM5WK1pG"),
-    { dataSize: 32 },
+    { dataSpace: 32 },
   );
   const ownedAccountsByBlob = await rpcHttpFindProgramOwnedAccounts(
     rpcHttp,
