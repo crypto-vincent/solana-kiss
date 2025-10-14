@@ -17,4 +17,16 @@ export function expectDefined<T>(value: T | undefined, name?: string): T {
   return value;
 }
 
+export function objectGetOwnProperty<
+  Object extends object,
+  Key extends keyof Object,
+>(object: Object, key: Key): Object[Key & keyof Object] | undefined {
+  if (Object.prototype.hasOwnProperty.call(object, key)) {
+    if (key in object) {
+      return object[key];
+    }
+  }
+  return undefined;
+}
+
 // TODO - error stacking util (for what except the find account loop ?)

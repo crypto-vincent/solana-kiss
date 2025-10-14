@@ -11,7 +11,7 @@ import { casingConvertToSnake } from "./Casing";
 import { pubkeyFromBase58, pubkeyToBase58 } from "./Pubkey";
 import { signatureFromBase58, signatureToBase58 } from "./Signature";
 import { utf8Decode, utf8Encode } from "./Utf8";
-import { withContext } from "./Utils";
+import { objectGetOwnProperty, withContext } from "./Utils";
 
 export type JsonValue = JsonPrimitive | JsonArray | JsonObject;
 export type JsonPrimitive = boolean | number | string | null | undefined;
@@ -151,7 +151,12 @@ export function jsonIsDeepEqual(
       expectedKeys.add(expectedKey);
     }
     for (const foundKey in foundObject) {
-      if (!jsonIsDeepEqual(foundObject[foundKey], expectedObject[foundKey])) {
+      if (
+        !jsonIsDeepEqual(
+          foundObject[foundKey],
+          objectGetOwnProperty(expectedObject, foundKey),
+        )
+      ) {
         return false;
       }
       expectedKeys.delete(foundKey);
@@ -193,7 +198,12 @@ export function jsonIsDeepSubset(
       return false;
     }
     for (const key of Object.keys(subsetObject)) {
-      if (!jsonIsDeepSubset(subsetObject[key]!, supersetObject[key])) {
+      if (
+        !jsonIsDeepSubset(
+          subsetObject[key]!,
+          objectGetOwnProperty(supersetObject, key),
+        )
+      ) {
         return false;
       }
     }
@@ -288,7 +298,7 @@ export function jsonGetAt(
     }
     const object = jsonAsObject(current);
     if (object !== undefined) {
-      current = object[pointerToken];
+      current = objectGetOwnProperty(object, pointerToken);
       continue;
     }
     if (options?.throwOnMissing) {
@@ -399,7 +409,7 @@ export const jsonCodecArrayRaw: JsonCodec<JsonArray> = {
     return decoded;
   },
   encoder: (decoded: JsonArray): JsonValue => {
-    return [...decoded] as JsonArray;
+    return decoded;
   },
 };
 export const jsonCodecObjectRaw: JsonCodec<JsonObject> = {
@@ -413,7 +423,7 @@ export const jsonCodecObjectRaw: JsonCodec<JsonObject> = {
     return decoded;
   },
   encoder: (decoded: JsonObject): JsonValue => {
-    return { ...decoded } as JsonObject;
+    return decoded;
   },
 };
 
@@ -542,10 +552,13 @@ export function jsonDecoderArrayToObject<
     };
     const array = jsonCodecArrayRaw.decoder(encoded);
     let index = 0;
-    for (const key in shape) {
-      decoded[key] = withContext(`JSON: Decode Array[${index}] =>`, () =>
-        shape[key]!(array[index++]),
+    for (const keyDecoded in shape) {
+      const valueDecoded = withContext(`JSON: Decode Array[${index}] =>`, () =>
+        shape[keyDecoded]!(array[index++]),
       );
+      if (valueDecoded !== undefined) {
+        decoded[keyDecoded] = valueDecoded;
+      }
     }
     return decoded;
   };
@@ -559,9 +572,10 @@ export function jsonEncoderArrayToObject<
     [K in keyof Shape]: JsonEncoderContent<Shape[K]>;
   }): JsonValue => {
     const encoded = new Array<JsonValue>();
-    let index = 0;
-    for (const key in shape) {
-      encoded[index++] = shape[key]!(decoded[key as keyof typeof decoded]);
+    for (const keyDecoded in shape) {
+      const valueDecoded = objectGetOwnProperty(decoded, keyDecoded);
+      const valueEncoded = shape[keyDecoded]!(valueDecoded);
+      encoded.push(valueEncoded);
     }
     return encoded;
   };
@@ -600,10 +614,14 @@ export function jsonDecoderObject<
     const object = jsonCodecObjectRaw.decoder(encoded);
     for (const keyDecoded in shape) {
       const keyEncoded = objectKeyEncoder(keyDecoded, keyEncoding);
-      decoded[keyDecoded] = withContext(
+      const valueEncoded = objectGetOwnProperty(object, keyEncoded);
+      const valueDecoded = withContext(
         `JSON: Decode Object["${keyEncoded}"] =>`,
-        () => shape[keyDecoded]!(object[keyEncoded]),
+        () => shape[keyDecoded]!(valueEncoded),
       );
+      if (valueDecoded !== undefined) {
+        decoded[keyDecoded] = valueDecoded;
+      }
     }
     return decoded;
   };
@@ -622,9 +640,12 @@ export function jsonEncoderObject<
     const encoded = {} as JsonObject;
     for (const keyDecoded in shape) {
       const keyEncoded = objectKeyEncoder(keyDecoded, keyEncoding);
-      encoded[keyEncoded] = shape[keyDecoded]!(
-        decoded[keyDecoded as keyof typeof decoded],
+      const valueEncoded = shape[keyDecoded]!(
+        objectGetOwnProperty(decoded, keyDecoded),
       );
+      if (valueEncoded !== undefined) {
+        encoded[keyEncoded] = valueEncoded;
+      }
     }
     return encoded;
   };
@@ -674,12 +695,12 @@ export function jsonDecoderObjectToMap<Key, Value>(params: {
     const object = jsonCodecObjectRaw.decoder(encoded);
     for (const keyEncoded of Object.keys(object)) {
       const keyDecoded = params.keyDecoder(keyEncoded);
-      decoded.set(
-        keyDecoded,
-        withContext(`JSON: Decode Object["${keyEncoded}"] =>`, () =>
-          params.valueDecoder(object[keyEncoded]!),
-        ),
+      const valueEncoded = objectGetOwnProperty(object, keyEncoded);
+      const valueDecoded = withContext(
+        `JSON: Decode Object["${keyEncoded}"] =>`,
+        () => params.valueDecoder(valueEncoded),
       );
+      decoded.set(keyDecoded, valueDecoded);
     }
     return decoded;
   };
@@ -690,9 +711,10 @@ export function jsonEncoderObjectToMap<Key, Value>(params: {
 }): JsonEncoder<Map<Key, Value>> {
   return (decoded: Map<Key, Value>): JsonValue => {
     const encoded = {} as JsonObject;
-    for (const [keyDecoded, val] of decoded.entries()) {
+    for (const [keyDecoded, valueDecoded] of decoded.entries()) {
       const keyEncoded = params.keyEncoder(keyDecoded);
-      encoded[keyEncoded] = params.valueEncoder(val);
+      const valueEncoded = params.valueEncoder(valueDecoded);
+      encoded[keyEncoded] = valueEncoded;
     }
     return encoded;
   };
@@ -722,7 +744,7 @@ export function jsonDecoderObjectKey<Content>(
 ): JsonDecoder<Content> {
   return jsonDecoderTransform(
     jsonDecoderObject({ [key]: valueDecoder }),
-    (encoded) => encoded[key]!,
+    (encoded) => objectGetOwnProperty(encoded, key)!,
   );
 }
 export function jsonEncoderObjectKey<Content>(
@@ -896,9 +918,11 @@ export function jsonDecoderAsEnum<
       }
     }
     if (foundKey !== undefined) {
-      return withContext(`JSON: Decode Enum["${foundKey.encoded}"] =>`, () =>
-        shape[foundKey.decoded]!(object[foundKey.encoded]),
-      );
+      return withContext(`JSON: Decode Enum["${foundKey.encoded}"] =>`, () => {
+        return shape[foundKey.decoded]!(
+          objectGetOwnProperty(object, foundKey.encoded),
+        );
+      });
     }
     const expectedKeys = Object.keys(shape).join("/");
     const foundKeys = Object.keys(object).join("/");
@@ -931,5 +955,5 @@ function objectKeyEncoder<Shape extends { [key: string]: any }>(
   if (typeof keyEncoding === "function") {
     return keyEncoding(keyDecoded);
   }
-  return keyEncoding[keyDecoded] ?? keyDecoded;
+  return objectGetOwnProperty(keyEncoding, keyDecoded) ?? keyDecoded;
 }

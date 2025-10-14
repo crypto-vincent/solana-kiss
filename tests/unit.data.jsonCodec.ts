@@ -6,6 +6,7 @@ import {
   casingConvertToSnake,
   JsonCodec,
   jsonCodecArray,
+  jsonCodecArrayToObject,
   jsonCodecBlockHash,
   jsonCodecBlockSlot,
   jsonCodecBoolean,
@@ -35,43 +36,43 @@ it("run", async () => {
     decoded: any;
   }> = [
     {
-      encoded: { helloWorld: 42 },
+      encoded: { helloWorld: 1 },
       codec: jsonCodecObject({ helloWorld: jsonCodecNumber }),
-      decoded: { helloWorld: 42 },
+      decoded: { helloWorld: 1 },
     },
     {
-      encoded: { helloWorld: 42 },
+      encoded: { helloWorld: 2 },
       codec: jsonCodecObject({ helloWorld: jsonCodecNumber }, {}),
-      decoded: { helloWorld: 42 },
+      decoded: { helloWorld: 2 },
     },
     {
-      encoded: { hello_world: 42 },
+      encoded: { hello_world: 3 },
       codec: jsonCodecObject(
         { helloWorld: jsonCodecNumber },
         casingConvertToSnake,
       ),
-      decoded: { helloWorld: 42 },
+      decoded: { helloWorld: 3 },
     },
     {
-      encoded: { helloWorld: 42 },
+      encoded: { helloWorld: 4 },
       codec: jsonCodecObject(
         { hello_world: jsonCodecNumber },
         casingConvertToCamel,
       ),
-      decoded: { hello_world: 42 },
+      decoded: { hello_world: 4 },
     },
     {
-      encoded: { encoded_key: 42 },
+      encoded: { encoded_key: 5 },
       codec: jsonCodecObject(
         { decodedKey: jsonCodecNumber },
         { decodedKey: "encoded_key" },
       ),
-      decoded: { decodedKey: 42 },
+      decoded: { decodedKey: 5 },
     },
     {
-      encoded: [42, 43],
+      encoded: [6, 7],
       codec: jsonCodecArray(jsonCodecNumber),
-      decoded: [42, 43],
+      decoded: [6, 7],
     },
     {
       encoded: [undefined, "Hello", undefined],
@@ -79,12 +80,12 @@ it("run", async () => {
       decoded: [undefined, "Hello", undefined],
     },
     {
-      encoded: { const: 42, nullables: [null, true, false, null] },
+      encoded: { const: 8, nullables: [null, true, false, null] },
       codec: jsonCodecObject({
-        const: jsonCodecConst(42),
+        const: jsonCodecConst(8),
         nullables: jsonCodecArray(jsonCodecNullable(jsonCodecBoolean)),
       }),
-      decoded: { const: 42, nullables: [null, true, false, null] },
+      decoded: { const: 8, nullables: [null, true, false, null] },
     },
     {
       encoded: { keyed: { value: "Hello" } },
@@ -100,7 +101,7 @@ it("run", async () => {
         pubkey: address.toString(),
         signature: signature.toString(),
         blockHash: blockHash.toString(),
-        blockSlot: 42,
+        blockSlot: 9,
       },
       codec: jsonCodecObject({
         datetime: jsonCodecDateTime,
@@ -114,7 +115,7 @@ it("run", async () => {
         pubkey: address,
         signature,
         blockHash,
-        blockSlot: blockSlotFromNumber(42),
+        blockSlot: blockSlotFromNumber(9),
       },
     },
     {
@@ -126,24 +127,53 @@ it("run", async () => {
       decoded: { integer1: -42n, integer2: 4242424242424242424242424242n },
     },
     {
-      encoded: { outer: { inner: { value: 42 } } },
+      encoded: { outer: { inner: { value: 10 } } },
       codec: jsonCodecObject({
         outer: jsonCodecObject({
           inner: jsonCodecObject({ value: jsonCodecNumber }),
         }),
       }),
-      decoded: { outer: { inner: { value: 42 } } },
+      decoded: { outer: { inner: { value: 10 } } },
     },
     {
-      encoded: { [address.toString()]: 42 },
+      encoded: { [address.toString()]: 11 },
       codec: jsonCodecObjectToMap(
-        {
-          keyEncoder: pubkeyToBase58,
-          keyDecoder: pubkeyFromBase58,
-        },
+        { keyEncoder: pubkeyToBase58, keyDecoder: pubkeyFromBase58 },
         jsonCodecNumber,
       ),
-      decoded: new Map([[address, 42]]),
+      decoded: new Map([[address, 11]]),
+    },
+    {
+      encoded: { constructor: 12, toString: undefined },
+      codec: jsonCodecObjectToMap<string, number | undefined>(
+        { keyEncoder: (key) => key, keyDecoder: (key) => key },
+        jsonCodecOptional(jsonCodecNumber),
+      ),
+      decoded: new Map<string, number | undefined>([
+        ["constructor", 12],
+        ["toString", undefined],
+      ]),
+    },
+    {
+      encoded: { toString: 13 },
+      codec: jsonCodecObject({
+        constructor: jsonCodecOptional(jsonCodecNumber),
+        toString: jsonCodecOptional(jsonCodecNumber),
+      }),
+      decoded: { toString: 13 },
+    },
+    {
+      encoded: [14, undefined],
+      codec: jsonCodecArrayToObject({
+        constructor: jsonCodecOptional(jsonCodecNumber),
+        toString: jsonCodecOptional(jsonCodecNumber),
+      }),
+      decoded: { constructor: 14 },
+    },
+    {
+      encoded: {},
+      codec: jsonCodecObjectKey("toString", jsonCodecOptional(jsonCodecString)),
+      decoded: undefined,
     },
   ];
   for (const test of tests) {
