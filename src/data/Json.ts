@@ -323,10 +323,6 @@ export type JsonCodec<Content> = {
   encoder: JsonEncoder<Content>;
 };
 
-export const jsonCodecRaw: JsonCodec<JsonValue> = {
-  decoder: (encoded) => encoded,
-  encoder: (decoded) => decoded,
-};
 export const jsonCodecNull: JsonCodec<null> = {
   decoder: (encoded: JsonValue): null => {
     if (encoded !== null && encoded !== undefined) {
@@ -397,6 +393,11 @@ export const jsonCodecString: JsonCodec<string> = {
   encoder: (decoded: string): JsonValue => {
     return decoded;
   },
+};
+
+export const jsonCodecRaw: JsonCodec<JsonValue> = {
+  decoder: (encoded) => encoded,
+  encoder: (decoded) => decoded,
 };
 export const jsonCodecArrayRaw: JsonCodec<JsonArray> = {
   decoder: (encoded: JsonValue): JsonArray => {

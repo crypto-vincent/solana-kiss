@@ -26,7 +26,7 @@ import {
 import { IdlMetadata, idlMetadataParse } from "./IdlMetadata";
 import { IdlTypedef, idlTypedefParse } from "./IdlTypedef";
 
-// TODO - provide a in-house SPL library of trusted programs ?
+// TODO (service) - provide a in-house SPL library of trusted programs ?
 export type IdlProgram = {
   metadata: IdlMetadata;
   typedefs: Map<string, IdlTypedef>;

@@ -24,7 +24,7 @@ export type IdlInstructionBlobContext = {
   instructionProgramAddress: Pubkey;
   instructionAddresses: Record<string, Pubkey>;
   instructionPayload: JsonValue;
-  // TODO - should those two be merged into a single map of account name to (pubkey,state,type) or a snapshot object ?
+  // TODO (naming) - should those two be merged into a single map of account name to (pubkey,state,type) or a snapshot object ?
   instructionAccountsStates?: Record<string, JsonValue>;
   instructionAccountsTypes?: Record<string, IdlTypeFull>;
 };
@@ -229,7 +229,7 @@ const computeVisitor = {
   ) => {
     for (const [
       instructionAccountName,
-      instructionAddress, // TODO - naming stands out here
+      instructionAddress, // TODO (naming) - naming stands out here
     ] of Object.entries(context.instructionAddresses)) {
       if (instructionAccountName === self.path) {
         return pubkeyToBytes(instructionAddress);

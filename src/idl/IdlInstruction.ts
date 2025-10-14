@@ -52,14 +52,14 @@ export type IdlInstruction = {
   };
 };
 
-// TODO - should the returned type be an object for naming convenience?
+// TODO (naming) - should the returned type be an object for naming convenience?
 export function idlInstructionEncode(
   instructionIdl: IdlInstruction,
   instructionProgramAddress: Pubkey,
   instructionAddresses: Record<string, Pubkey>,
   instructionPayload: JsonValue,
 ): Instruction {
-  // TODO - auto resolve the program address from the program idl when possible ?
+  // TODO (service) - auto resolve the program address from the program idl when possible ?
   const instructionInputs = idlInstructionAccountsEncode(
     instructionIdl,
     instructionAddresses,
@@ -80,7 +80,7 @@ export function idlInstructionDecode(
   instructionIdl: IdlInstruction,
   instruction: Instruction,
 ): {
-  // TODO - naming for "InstructionAddresses?" and should this be a map or an object ?
+  // TODO (naming) - "InstructionInputsAddresses?" should this be a map or an object ?
   instructionProgramAddress: Pubkey;
   instructionAddresses: Record<string, Pubkey>;
   instructionPayload: JsonValue;
@@ -252,7 +252,7 @@ export function idlInstructionReturnDecode(
   return instructionResult;
 }
 
-// TODO - this should be in a higher level module ?
+// TODO (service) - this should be in a higher level module ?
 export function idlInstructionAddressesFind(
   instructionIdl: IdlInstruction,
   instructionBlobContext: IdlInstructionBlobContext,

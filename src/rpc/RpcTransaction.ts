@@ -6,7 +6,7 @@ import { Message } from "../data/Message";
 // TODO - should add phantom integration (maybe different package?)
 // TODO - should integrate indexing capabilities ? (maybe different package?)
 
-// TODO - rpc transaction naming convention ?
+// TODO (naming) - rpc transaction naming convention ?
 export type RpcTransactionExecution = {
   blockInfo: {
     time: Date | undefined;

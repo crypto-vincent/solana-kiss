@@ -4,6 +4,7 @@ import { Pubkey, pubkeyFromBytes, pubkeyToBytes } from "./Pubkey";
 import { signatureToBytes } from "./Signature";
 import { Signer } from "./Signer";
 
+// TODO (naming) - have a branded type for a compiled message and/or decompiling utilities ?
 export type Message = {
   payerAddress: Pubkey;
   instructions: Array<Instruction>;
@@ -66,7 +67,7 @@ export function messageCompile(message: Message): Uint8Array {
     length += 1 + 1 + instruction.inputs.length + 1 + instruction.data.length;
   }
   length += 1; // LUTs count
-  // TODO - handle LUTs
+  // TODO (ALT) - handle LUTs
   const addressesToIndexes = new Map<Pubkey, number>();
   for (let index = 0; index < staticAddresses.length; index++) {
     addressesToIndexes.set(staticAddresses[index]!, index);
@@ -96,7 +97,7 @@ export function messageCompile(message: Message): Uint8Array {
     index += instruction.data.length;
   }
   frame[index++] = 0; // LUTs count
-  // TODO - handle LUTs
+  // TODO (ALT) - handle LUTs
   return frame;
 }
 

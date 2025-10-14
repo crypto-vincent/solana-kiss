@@ -39,7 +39,7 @@ it("run", async () => {
       generatedInstruction1.reference,
       generatedInstruction2.reference,
     ],
-  }).compileToV0Message([]); // TODO - handle address lookup tables
+  }).compileToV0Message([]); // TODO (ALT) - handle address lookup tables
   const referenceSignedMessage = new VersionedTransaction(
     referenceCompiledMessage,
   );

@@ -14,7 +14,7 @@ import { utf8Decode } from "../data/Utf8";
 import { idlAccountDecode, idlAccountParse } from "./IdlAccount";
 import { IdlProgram, idlProgramParse } from "./IdlProgram";
 
-// TODO - should this be idlLibrary instead of idlOnchain or inside of a service module ?
+// TODO (service) - should this be idlLibrary instead of idlOnchain or inside of a service module ?
 
 export function idlOnchainAnchorAddress(programAddress: Pubkey): Pubkey {
   const fromPdaAddress = pubkeyFindPdaAddress(programAddress, []);
@@ -33,7 +33,7 @@ export function idlOnchainAnchorDecode(
   return idlProgramParse(onchainAnchorJson);
 }
 
-// TODO - provide definition for the idl upload IXs too
+// TODO - provide definition for the idl upload IXs too (and make those guessable ?)
 export const idlOnchainAnchorAccount = idlAccountParse("AnchorIdl", {
   discriminator: [24, 70, 98, 191, 58, 144, 123, 158],
   fields: [

@@ -7,7 +7,7 @@ import { Signature } from "../data/Signature";
 import { Signer } from "../data/Signer";
 import { RpcHttp } from "./RpcHttp";
 
-// TODO - provide a higher level function that handle block hash and wait for confirmation
+// TODO (service) - provide a higher level function that handle block hash and wait for confirmation
 export async function rpcHttpScheduleInstructions(
   rpcHttp: RpcHttp,
   instructions: Array<Instruction>,
@@ -15,7 +15,7 @@ export async function rpcHttpScheduleInstructions(
     payerSigner: Signer;
     extraSigners?: Array<Signer>;
     recentBlockHash: BlockHash;
-    // TODO - support LUTs ?
+    // TODO (ALT) - support LUTs ?
   },
   options?: {
     skipPreflight?: boolean;

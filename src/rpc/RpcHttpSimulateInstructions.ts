@@ -31,7 +31,7 @@ export async function rpcHttpSimulateInstructions(
         payerSigner: Signer;
         extraSigners?: Array<Signer>;
         recentBlockHash: BlockHash;
-        // TODO - support for LUTs ?
+        // TODO (ALT) - support for LUTs ?
       },
   options?: {
     simulatedAccountsAddresses?: Set<Pubkey>;
