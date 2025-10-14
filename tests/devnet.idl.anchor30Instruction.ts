@@ -31,7 +31,7 @@ it("run", async () => {
   );
   expect(instructionIdl.name).toStrictEqual("pledge_deposit");
   const instructionDecoded = idlInstructionDecode(instructionIdl, instruction);
-  expect(instructionDecoded.instructionAddresses.get("user")).toStrictEqual(
+  expect(instructionDecoded.instructionAddresses["user"]).toStrictEqual(
     "99ywHQcPAYZ2te68Dah5CiSapqptNXvwGUqC1wP2qsi2",
   );
   expect(instructionDecoded.instructionPayload).toStrictEqual({

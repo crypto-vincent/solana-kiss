@@ -6,7 +6,7 @@ import {
   jsonDecoderOptional,
 } from "../data/Json";
 import { Pubkey } from "../data/Pubkey";
-import { withContext } from "../data/Utils";
+import { objectGetOwnProperty, withContext } from "../data/Utils";
 import { IdlDocs, idlDocsParse } from "./IdlDocs";
 import {
   IdlInstructionAccount,
@@ -56,7 +56,7 @@ export type IdlInstruction = {
 export function idlInstructionEncode(
   instructionIdl: IdlInstruction,
   instructionProgramAddress: Pubkey,
-  instructionAddresses: Map<string, Pubkey>,
+  instructionAddresses: Record<string, Pubkey>,
   instructionPayload: JsonValue,
 ): Instruction {
   // TODO - auto resolve the program address from the program idl when possible ?
@@ -82,7 +82,7 @@ export function idlInstructionDecode(
 ): {
   // TODO - naming for "InstructionAddresses?" and should this be a map or an object ?
   instructionProgramAddress: Pubkey;
-  instructionAddresses: Map<string, Pubkey>;
+  instructionAddresses: Record<string, Pubkey>;
   instructionPayload: JsonValue;
 } {
   idlInstructionCheck(instructionIdl, instruction.inputs, instruction.data);
@@ -112,20 +112,18 @@ export function idlInstructionCheck(
 
 export function idlInstructionAccountsEncode(
   instructionIdl: IdlInstruction,
-  instructionAddresses: Map<string, Pubkey>,
+  instructionAddresses: Record<string, Pubkey>,
 ): Array<InstructionInput> {
   const instructionInputs = new Array<InstructionInput>();
   for (const instructionAccountIdl of instructionIdl.accounts) {
-    if (
-      instructionAccountIdl.optional &&
-      !instructionAddresses.has(instructionAccountIdl.name)
-    ) {
-      continue;
-    }
-    const instructionAddress = instructionAddresses.get(
+    const instructionAddress = objectGetOwnProperty(
+      instructionAddresses,
       instructionAccountIdl.name,
     );
-    if (!instructionAddress) {
+    if (instructionAddress === undefined) {
+      if (instructionAccountIdl.optional) {
+        continue;
+      }
       throw new Error(
         `Idl: Missing address for instruction account: ${instructionAccountIdl.name}`,
       );
@@ -142,7 +140,7 @@ export function idlInstructionAccountsEncode(
 export function idlInstructionAccountsDecode(
   instructionIdl: IdlInstruction,
   instructionInputs: Array<InstructionInput>,
-): Map<string, Pubkey> {
+): Record<string, Pubkey> {
   idlInstructionAccountsCheck(instructionIdl, instructionInputs);
   let instructionOptionalsPossible = 0;
   for (const instructionAccountIdl of instructionIdl.accounts) {
@@ -154,7 +152,7 @@ export function idlInstructionAccountsDecode(
     instructionIdl.accounts.length - instructionInputs.length;
   const instructionOptionalsUsed =
     instructionOptionalsPossible - instructionOptionalsUnuseds;
-  const instructionAddresses = new Map<string, Pubkey>();
+  const instructionAddresses: Record<string, Pubkey> = {};
   let instructionInputIndex = 0;
   let instructionOptionalsCurrent = 0;
   for (const instructionAccountIdl of instructionIdl.accounts) {
@@ -167,10 +165,8 @@ export function idlInstructionAccountsDecode(
     if (instructionInputIndex >= instructionInputs.length) {
       break;
     }
-    instructionAddresses.set(
-      instructionAccountIdl.name,
-      instructionInputs[instructionInputIndex]!.address,
-    );
+    instructionAddresses[instructionAccountIdl.name] =
+      instructionInputs[instructionInputIndex]!.address;
     instructionInputIndex++;
   }
   return instructionAddresses;
@@ -260,10 +256,10 @@ export function idlInstructionReturnDecode(
 export function idlInstructionAddressesFind(
   instructionIdl: IdlInstruction,
   instructionBlobContext: IdlInstructionBlobContext,
-): Map<string, Pubkey> {
-  const instructionAddresses = new Map<string, Pubkey>(
-    instructionBlobContext.instructionAddresses,
-  );
+): Record<string, Pubkey> {
+  const instructionAddresses = {
+    ...instructionBlobContext.instructionAddresses,
+  };
   instructionBlobContext = {
     ...instructionBlobContext,
     instructionAddresses,
@@ -271,7 +267,7 @@ export function idlInstructionAddressesFind(
   while (true) {
     let madeProgress = false;
     for (let instructionAccountIdl of instructionIdl.accounts) {
-      if (instructionAddresses.has(instructionAccountIdl.name)) {
+      if (instructionAddresses.hasOwnProperty(instructionAccountIdl.name)) {
         continue;
       }
       try {
@@ -282,10 +278,8 @@ export function idlInstructionAddressesFind(
               instructionAccountIdl,
               instructionBlobContext,
             );
-            instructionAddresses.set(
-              instructionAccountIdl.name,
-              instructionAddress,
-            );
+            instructionAddresses[instructionAccountIdl.name] =
+              instructionAddress;
             madeProgress = true;
           },
         );

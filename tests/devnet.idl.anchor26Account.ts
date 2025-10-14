@@ -69,17 +69,17 @@ it("run", async () => {
     expectDefined(programIdl.instructions.get("initialize_market")),
     {
       instructionProgramAddress: programAddress,
-      instructionAddresses: new Map(),
+      instructionAddresses: {},
       instructionPayload: { global_market_seed: "credix-marketplace" },
     },
   );
-  expect(instructionAddresses.get("global_market_state")).toStrictEqual(
+  expect(instructionAddresses["global_market_state"]).toStrictEqual(
     globalMarketStateAddress,
   );
-  expect(instructionAddresses.get("program_state")).toStrictEqual(
+  expect(instructionAddresses["program_state"]).toStrictEqual(
     programStateAddress,
   );
-  expect(instructionAddresses.get("market_admins")).toStrictEqual(
+  expect(instructionAddresses["market_admins"]).toStrictEqual(
     marketAdminsAddress,
   );
 });

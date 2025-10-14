@@ -20,7 +20,13 @@ export function expectDefined<T>(value: T | undefined, name?: string): T {
 export function objectGetOwnProperty<
   Object extends object,
   Key extends keyof Object,
->(object: Object, key: Key): Object[Key & keyof Object] | undefined {
+>(
+  object: Object | undefined,
+  key: Key,
+): Object[Key & keyof Object] | undefined {
+  if (object === undefined) {
+    return undefined;
+  }
   if (Object.prototype.hasOwnProperty.call(object, key)) {
     if (key in object) {
       return object[key];

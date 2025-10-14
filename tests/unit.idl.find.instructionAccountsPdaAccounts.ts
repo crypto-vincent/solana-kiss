@@ -3,7 +3,6 @@ import {
   expectDefined,
   idlInstructionAddressesFind,
   idlProgramParse,
-  JsonValue,
   pubkeyFindPdaAddress,
   pubkeyNewDummy,
   pubkeyToBytes,
@@ -93,31 +92,29 @@ it("run", () => {
   const instructionIdl = expectDefined(programIdl.instructions.get("my_ix"));
   const instructionAddresses = idlInstructionAddressesFind(instructionIdl, {
     instructionProgramAddress: programAddress,
-    instructionAddresses: new Map([
-      ["first", firstAddress],
-      ["nester.nested1", nested1Address],
-    ]),
+    instructionAddresses: {
+      first: firstAddress,
+      "nester.nested1": nested1Address,
+    },
     instructionPayload: {},
-    instructionAccountsStates: new Map<string, JsonValue>([
-      [
-        "first",
-        {
-          u8: 77,
-          u16: 78,
-          u32: 79,
-          u64: 80,
-          array_u8_2: [11, 12],
-          vec_u8_3: [21, 22, 23],
-          string: "hello",
-          inner: {
-            u8: 111,
-            u16: 222,
-          },
+    instructionAccountsStates: {
+      first: {
+        u8: 77,
+        u16: 78,
+        u32: 79,
+        u64: 80,
+        array_u8_2: [11, 12],
+        vec_u8_3: [21, 22, 23],
+        string: "hello",
+        inner: {
+          u8: 111,
+          u16: 222,
         },
-      ],
-      ["nester.nested2", 42],
-    ]),
+      },
+
+      "nester.nested2": 42,
+    },
     instructionAccountsTypes: { first: accountIdl.typeFull },
   });
-  expect(instructionAddresses.get("pda")).toStrictEqual(pdaAddress);
+  expect(instructionAddresses["pda"]).toStrictEqual(pdaAddress);
 });

@@ -4,7 +4,6 @@ import {
   idlInstructionDecode,
   idlInstructionEncode,
   idlProgramParse,
-  Pubkey,
   pubkeyNewDummy,
 } from "../src";
 
@@ -44,10 +43,10 @@ it("run", () => {
     },
     arg2: -2,
   };
-  const instructionAddresses = new Map<string, Pubkey>([
-    ["signer", pubkeyNewDummy()],
-    ["writable", pubkeyNewDummy()],
-  ]);
+  const instructionAddresses = {
+    signer: pubkeyNewDummy(),
+    writable: pubkeyNewDummy(),
+  };
   const instruction = idlInstructionEncode(
     instructionIdl,
     instructionProgramAddress,
@@ -58,12 +57,12 @@ it("run", () => {
     programAddress: instructionProgramAddress,
     inputs: [
       {
-        address: expectDefined(instructionAddresses.get("signer")),
+        address: expectDefined(instructionAddresses["signer"]),
         signing: true,
         writable: false,
       },
       {
-        address: expectDefined(instructionAddresses.get("writable")),
+        address: expectDefined(instructionAddresses["writable"]),
         signing: false,
         writable: true,
       },

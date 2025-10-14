@@ -52,12 +52,12 @@ it("run", () => {
     },
   };
   // Prepare instruction known accounts addresses
-  const instructionAddressesBefore = new Map([
-    ["payer", payerAddress],
-    ["authority", authorityAddress],
-    ["collateral_mint", collateralMintAddress],
-    ["redeemable_mint", redeemableMintAddress],
-  ]);
+  const instructionAddressesBefore = {
+    payer: payerAddress,
+    authority: authorityAddress,
+    collateral_mint: collateralMintAddress,
+    redeemable_mint: redeemableMintAddress,
+  };
   // Useful instruction
   const instructionIdl = expectDefined(
     programIdl.instructions.get("campaign_create"),

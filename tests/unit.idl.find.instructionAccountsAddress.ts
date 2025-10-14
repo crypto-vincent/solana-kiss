@@ -29,9 +29,9 @@ it("run", () => {
     expectDefined(programIdl.instructions.get("my_ix")),
     {
       instructionProgramAddress: pubkeyNewDummy(),
-      instructionAddresses: new Map(),
+      instructionAddresses: {},
       instructionPayload: {},
     },
   );
-  expect(instructionAddresses.get("const_address")).toStrictEqual(dummyAddress);
+  expect(instructionAddresses["const_address"]).toStrictEqual(dummyAddress);
 });

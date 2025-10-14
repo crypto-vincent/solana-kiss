@@ -31,7 +31,7 @@ it("run", async () => {
   );
   expect(instructionIdl.name).toStrictEqual("redeem_phase_one");
   const instructionDecoded = idlInstructionDecode(instructionIdl, instruction);
-  expect(instructionDecoded.instructionAddresses.get("user")).toStrictEqual(
+  expect(instructionDecoded.instructionAddresses["user"]).toStrictEqual(
     "6cGTLr9bTCYis6KjsuZPQS7LrcPjyjibr9gFk2JH65Mn",
   );
   expect(instructionDecoded.instructionPayload).toStrictEqual({

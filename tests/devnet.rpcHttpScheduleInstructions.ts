@@ -31,10 +31,10 @@ it("run", async () => {
   const instruction = idlInstructionEncode(
     instructionIdl,
     programAddress,
-    new Map([
-      ["payer", payerSigner.address],
-      ["owned", ownedSigner.address],
-    ]),
+    {
+      payer: payerSigner.address,
+      owned: ownedSigner.address,
+    },
     {
       lamports: String(transferLamports),
       space: requestedSpace,

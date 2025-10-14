@@ -74,7 +74,7 @@ it("run", () => {
     expectDefined(programIdl.instructions.get("my_ix")),
     {
       instructionProgramAddress: programAddress,
-      instructionAddresses: new Map(),
+      instructionAddresses: {},
       instructionPayload: {
         u8: 77,
         u16: 78,
@@ -90,5 +90,5 @@ it("run", () => {
       },
     },
   );
-  expect(instructionAddresses.get("pda")).toStrictEqual(pdaAddress);
+  expect(instructionAddresses["pda"]).toStrictEqual(pdaAddress);
 });

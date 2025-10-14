@@ -11,7 +11,7 @@ import {
   JsonValue,
 } from "../data/Json";
 import { Pubkey, pubkeyFindPdaAddress, pubkeyFromBytes } from "../data/Pubkey";
-import { withContext } from "../data/Utils";
+import { objectGetOwnProperty, withContext } from "../data/Utils";
 import { IdlDocs, idlDocsParse } from "./IdlDocs";
 import {
   IdlInstructionBlob,
@@ -41,11 +41,12 @@ export function idlInstructionAccountFind(
   instructionAccountIdl: IdlInstructionAccount,
   instructionBlobContext: IdlInstructionBlobContext,
 ): Pubkey {
-  const address = instructionBlobContext.instructionAddresses.get(
+  const instructionAdddress = objectGetOwnProperty(
+    instructionBlobContext.instructionAddresses,
     instructionAccountIdl.name,
   );
-  if (address !== undefined) {
-    return address;
+  if (instructionAdddress !== undefined) {
+    return instructionAdddress;
   }
   if (instructionAccountIdl.address !== undefined) {
     return instructionAccountIdl.address;

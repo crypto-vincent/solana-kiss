@@ -42,11 +42,11 @@ it("run", async () => {
   const instructionPayload = { params: null };
   const instructionAddresses = idlInstructionAddressesFind(instructionIdl, {
     instructionProgramAddress: programAddress,
-    instructionAddresses: new Map([
-      ["payer", payerSigner.address],
-      ["user", userSigner.address],
-      ["campaign", campaignAddress],
-    ]),
+    instructionAddresses: {
+      payer: payerSigner.address,
+      user: userSigner.address,
+      campaign: campaignAddress,
+    },
     instructionPayload,
   });
   const instruction = idlInstructionEncode(
@@ -55,7 +55,7 @@ it("run", async () => {
     instructionAddresses,
     instructionPayload,
   );
-  const pledgeAddress = expectDefined(instructionAddresses.get("pledge"));
+  const pledgeAddress = expectDefined(instructionAddresses["pledge"]);
   // Run the simulation without verifying the signers
   const resultNoVerify = await rpcHttpSimulateInstructions(
     rpcHttp,

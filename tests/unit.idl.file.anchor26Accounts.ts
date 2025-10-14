@@ -63,36 +63,36 @@ it("run", () => {
     expectDefined(programIdl.instructions.get("initialize_market")),
     {
       instructionProgramAddress: programAddress,
-      instructionAddresses: new Map([
-        ["owner", ownerAddress],
-        ["liquidity_pool_token_account", liquidityPoolTokenAccountAddress],
-        ["treasury", treasuryAddress],
-        ["treasury_pool_token_account", treasuryPoolTokenAccountAddress],
-        ["base_token_mint", baseTokenMintAddress],
-        ["associated_token_program", placeholderAddress],
-        ["rent", placeholderAddress],
-        ["token_program", placeholderAddress],
-        ["system_program", placeholderAddress],
-      ]),
+      instructionAddresses: {
+        owner: ownerAddress,
+        liquidity_pool_token_account: liquidityPoolTokenAccountAddress,
+        treasury: treasuryAddress,
+        treasury_pool_token_account: treasuryPoolTokenAccountAddress,
+        base_token_mint: baseTokenMintAddress,
+        associated_token_program: placeholderAddress,
+        rent: placeholderAddress,
+        token_program: placeholderAddress,
+        system_program: placeholderAddress,
+      },
       instructionPayload: {
         global_market_seed: globalMarketSeed,
       },
     },
   );
   // Check the outcomes
-  expect(initializeMarketAddresses.get("global_market_state")).toStrictEqual(
+  expect(initializeMarketAddresses["global_market_state"]).toStrictEqual(
     globalMarketStateAddress,
   );
-  expect(initializeMarketAddresses.get("market_admins")).toStrictEqual(
+  expect(initializeMarketAddresses["market_admins"]).toStrictEqual(
     marketAdminsAddress,
   );
-  expect(initializeMarketAddresses.get("program_state")).toStrictEqual(
+  expect(initializeMarketAddresses["program_state"]).toStrictEqual(
     programStateAddresss,
   );
-  expect(initializeMarketAddresses.get("signing_authority")).toStrictEqual(
+  expect(initializeMarketAddresses["signing_authority"]).toStrictEqual(
     signingAuthorityAddress,
   );
-  expect(initializeMarketAddresses.get("lp_token_mint")).toStrictEqual(
+  expect(initializeMarketAddresses["lp_token_mint"]).toStrictEqual(
     lpTokenMintAddress,
   );
   // Generate all missing IX accounts with just the minimum information
@@ -100,34 +100,27 @@ it("run", () => {
     expectDefined(programIdl.instructions.get("open_deal")),
     {
       instructionProgramAddress: programAddress,
-      instructionAddresses: new Map([
-        ["owner", ownerAddress],
-        ["global_market_state", globalMarketStateAddress],
-      ]),
+      instructionAddresses: {
+        owner: ownerAddress,
+        global_market_state: globalMarketStateAddress,
+      },
       instructionPayload: { global_market_seed: globalMarketSeed },
-      instructionAccountsStates: new Map([
-        [
-          "deal",
-          {
-            deal_number: dealNumber,
-            borrower: pubkeyToBase58(borrowerAddress),
-          },
-        ],
-      ]),
+      instructionAccountsStates: {
+        deal: {
+          deal_number: dealNumber,
+          borrower: pubkeyToBase58(borrowerAddress),
+        },
+      },
     },
   );
   // Check the outcomes
-  expect(openDealAddresses.get("market_admins")).toStrictEqual(
-    marketAdminsAddress,
+  expect(openDealAddresses["market_admins"]).toStrictEqual(marketAdminsAddress);
+  expect(openDealAddresses["deal"]).toStrictEqual(dealAddress);
+  expect(openDealAddresses["deal_tranches"]).toStrictEqual(dealTranchesAddress);
+  expect(openDealAddresses["repayment_schedule"]).toStrictEqual(
+    repaymentScheduleAddress,
   );
-  expect(openDealAddresses.get("deal")).toStrictEqual(dealAddress);
-  expect(openDealAddresses.get("deal_tranches")).toStrictEqual(
-    dealTranchesAddress,
-  );
-  expect(openDealAddresses.get("deal_tranches")).toStrictEqual(
-    dealTranchesAddress,
-  );
-  expect(openDealAddresses.get("repayment_schedule")).toStrictEqual(
+  expect(openDealAddresses["repayment_schedule"]).toStrictEqual(
     repaymentScheduleAddress,
   );
 });

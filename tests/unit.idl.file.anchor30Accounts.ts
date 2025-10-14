@@ -59,42 +59,37 @@ it("run", () => {
     expectDefined(programIdl.instructions.get("campaign_create")),
     {
       instructionProgramAddress: programAddress,
-      instructionAddresses: new Map([
-        ["payer", payerAddress],
-        ["authority", authorityAddress],
-        ["collateral_mint", collateralMintAddress],
-        ["redeemable_mint", redeemableMintAddress],
-      ]),
+      instructionAddresses: {
+        payer: payerAddress,
+        authority: authorityAddress,
+        collateral_mint: collateralMintAddress,
+        redeemable_mint: redeemableMintAddress,
+      },
       instructionPayload: {
         params: { index: campaignIndex },
       },
     },
   );
   // Check outcome
-  expect(campaignAddress).toStrictEqual(
-    campaignCreateAddresses.get("campaign"),
-  );
+  expect(campaignAddress).toStrictEqual(campaignCreateAddresses["campaign"]);
   expect(campaignCollateralAddress).toStrictEqual(
-    campaignCreateAddresses.get("campaign_collateral"),
+    campaignCreateAddresses["campaign_collateral"],
   );
   // Generate all missing IX accounts with just the minimum information
   const campaignExtractAddresses = idlInstructionAddressesFind(
     expectDefined(programIdl.instructions.get("campaign_extract")),
     {
       instructionProgramAddress: programAddress,
-      instructionAddresses: new Map([
-        ["payer", payerAddress],
-        ["authority", authorityAddress],
-        ["authority_collateral", authorityCollateralAddress],
-        ["campaign", campaignAddress],
-      ]),
+      instructionAddresses: {
+        payer: payerAddress,
+        authority: authorityAddress,
+        authority_collateral: authorityCollateralAddress,
+        campaign: campaignAddress,
+      },
       instructionPayload: { params: { index: campaignIndex } },
-      instructionAccountsStates: new Map([
-        [
-          "campaign",
-          { collateral_mint: pubkeyToBase58(collateralMintAddress) },
-        ],
-      ]),
+      instructionAccountsStates: {
+        campaign: { collateral_mint: pubkeyToBase58(collateralMintAddress) },
+      },
       instructionAccountsTypes: {
         campaign: expectDefined(programIdl.accounts.get("Campaign")).typeFull,
       },
@@ -102,41 +97,38 @@ it("run", () => {
   );
   // Check outcome
   expect(campaignCollateralAddress).toStrictEqual(
-    campaignExtractAddresses.get("campaign_collateral"),
+    campaignExtractAddresses["campaign_collateral"],
   );
   // Generate all missing IX accounts with just the minimum information
   const pledgeCreateAddresses = idlInstructionAddressesFind(
     expectDefined(programIdl.instructions.get("pledge_create")),
     {
       instructionProgramAddress: programAddress,
-      instructionAddresses: new Map([
-        ["payer", payerAddress],
-        ["user", userAddress],
-        ["campaign", campaignAddress],
-      ]),
+      instructionAddresses: {
+        payer: payerAddress,
+        user: userAddress,
+        campaign: campaignAddress,
+      },
       instructionPayload: {},
     },
   );
   // Check outcome
-  expect(pledgeAddress).toStrictEqual(pledgeCreateAddresses.get("pledge"));
+  expect(pledgeAddress).toStrictEqual(pledgeCreateAddresses["pledge"]);
   // Generate all missing IX accounts with just the minimum information
   const pledgeDepositAddresses = idlInstructionAddressesFind(
     expectDefined(programIdl.instructions.get("pledge_deposit")),
     {
       instructionProgramAddress: programAddress,
-      instructionAddresses: new Map([
-        ["payer", payerAddress],
-        ["user", userAddress],
-        ["user_collateral", userCollateralAddress],
-        ["campaign", campaignAddress],
-      ]),
+      instructionAddresses: {
+        payer: payerAddress,
+        user: userAddress,
+        user_collateral: userCollateralAddress,
+        campaign: campaignAddress,
+      },
       instructionPayload: {},
-      instructionAccountsStates: new Map([
-        [
-          "campaign",
-          { collateral_mint: pubkeyToBase58(collateralMintAddress) },
-        ],
-      ]),
+      instructionAccountsStates: {
+        campaign: { collateral_mint: pubkeyToBase58(collateralMintAddress) },
+      },
       instructionAccountsTypes: {
         campaign: expectDefined(programIdl.accounts.get("Campaign")).typeFull,
       },
@@ -144,7 +136,7 @@ it("run", () => {
   );
   // Check outcome
   expect(campaignCollateralAddress).toStrictEqual(
-    pledgeDepositAddresses.get("campaign_collateral"),
+    pledgeDepositAddresses["campaign_collateral"],
   );
-  expect(pledgeAddress).toStrictEqual(pledgeDepositAddresses.get("pledge"));
+  expect(pledgeAddress).toStrictEqual(pledgeDepositAddresses["pledge"]);
 });

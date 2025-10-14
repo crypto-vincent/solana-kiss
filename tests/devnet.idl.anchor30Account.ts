@@ -44,11 +44,11 @@ it("run", async () => {
     expectDefined(programIdl.instructions.get("campaign_create")),
     {
       instructionProgramAddress: programAddress,
-      instructionAddresses: new Map(),
+      instructionAddresses: {},
       instructionPayload: { params: { index: "0" } },
     },
   );
-  expect(instructionAddresses.get("campaign")).toStrictEqual(campaign);
+  expect(instructionAddresses["campaign"]).toStrictEqual(campaign);
 });
 
 async function assertAccountInfo(

@@ -10,6 +10,7 @@ import {
   jsonPointerParse,
 } from "../data/Json";
 import { Pubkey, pubkeyToBytes } from "../data/Pubkey";
+import { objectGetOwnProperty } from "../data/Utils";
 import { IdlTypedef } from "./IdlTypedef";
 import { IdlTypeFlat } from "./IdlTypeFlat";
 import { idlTypeFlatHydrate } from "./IdlTypeFlatHydrate";
@@ -17,15 +18,14 @@ import { idlTypeFlatParse } from "./IdlTypeFlatParse";
 import { IdlTypeFull, IdlTypeFullFields } from "./IdlTypeFull";
 import { idlTypeFullEncode } from "./IdlTypeFullEncode";
 import { idlTypeFullFieldsGetAt, idlTypeFullGetAt } from "./IdlTypeFullGetAt";
-import { IdlTypePrimitive } from "./IdlTypePrimitive";
 import { idlUtilsFlattenBlobs, idlUtilsInferValueTypeFlat } from "./IdlUtils";
 
 export type IdlInstructionBlobContext = {
   instructionProgramAddress: Pubkey;
-  instructionAddresses: Map<string, Pubkey>;
+  instructionAddresses: Record<string, Pubkey>;
   instructionPayload: JsonValue;
   // TODO - should those two be merged into a single map of account name to (pubkey,state,type) or a snapshot object ?
-  instructionAccountsStates?: Map<string, JsonValue>;
+  instructionAccountsStates?: Record<string, JsonValue>;
   instructionAccountsTypes?: Record<string, IdlTypeFull>;
 };
 
@@ -227,17 +227,12 @@ const computeVisitor = {
     self: IdlInstructionBlobAccount,
     context: IdlInstructionBlobContext,
   ) => {
-    if (
-      self.typeFull === undefined ||
-      self.typeFull.isPrimitive(IdlTypePrimitive.pubkey)
-    ) {
-      for (const [
-        instructionAccountName,
-        instructionAddress, // TODO - naming stands out here
-      ] of context.instructionAddresses.entries()) {
-        if (instructionAccountName === self.path) {
-          return pubkeyToBytes(instructionAddress);
-        }
+    for (const [
+      instructionAccountName,
+      instructionAddress, // TODO - naming stands out here
+    ] of Object.entries(context.instructionAddresses)) {
+      if (instructionAccountName === self.path) {
+        return pubkeyToBytes(instructionAddress);
       }
     }
     if (context.instructionAccountsStates === undefined) {
@@ -248,10 +243,11 @@ const computeVisitor = {
     for (const [
       instructionAccountName,
       instructionAccountState,
-    ] of context.instructionAccountsStates) {
+    ] of Object.entries(context.instructionAccountsStates)) {
       if (self.path.startsWith(instructionAccountName)) {
         const statePath = self.path.slice(instructionAccountName.length);
-        const stateValue = jsonGetAt(instructionAccountState, statePath, {
+        const statePointer = jsonPointerParse(statePath);
+        const stateValue = jsonGetAt(instructionAccountState, statePointer, {
           throwOnMissing: true,
         });
         const blobs = new Array<Uint8Array>();
@@ -259,15 +255,17 @@ const computeVisitor = {
           idlTypeFullEncode(self.typeFull, stateValue, blobs, false);
           return idlUtilsFlattenBlobs(blobs);
         }
-        const stateTypeFull = // TODO - use records and check for hasOwnProperty
-          context.instructionAccountsTypes?.[instructionAccountName];
+        const stateTypeFull = objectGetOwnProperty(
+          context.instructionAccountsTypes,
+          instructionAccountName,
+        );
         if (stateTypeFull === undefined) {
           throw new Error(
             `Could not find content type for account: ${instructionAccountName}`,
           );
         }
         idlTypeFullEncode(
-          idlTypeFullGetAt(stateTypeFull, statePath),
+          idlTypeFullGetAt(stateTypeFull, statePointer),
           stateValue,
           blobs,
           false,

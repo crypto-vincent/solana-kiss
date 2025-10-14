@@ -138,20 +138,20 @@ it("run", () => {
     expectDefined(programIdl1.instructions.get("my_ix")),
     {
       instructionProgramAddress: programAddress1,
-      instructionAddresses: new Map(),
+      instructionAddresses: {},
       instructionPayload: null,
     },
   );
-  expect(instructionAddresses.get("const_bytes_without_program")).toStrictEqual(
+  expect(instructionAddresses["const_bytes_without_program"]).toStrictEqual(
     pdaConstBytes1,
   );
-  expect(instructionAddresses.get("const_bytes_with_program")).toStrictEqual(
+  expect(instructionAddresses["const_bytes_with_program"]).toStrictEqual(
     pdaConstBytes2,
   );
-  expect(
-    instructionAddresses.get("const_string_without_program"),
-  ).toStrictEqual(pdaConstString1);
-  expect(instructionAddresses.get("const_string_with_program")).toStrictEqual(
+  expect(instructionAddresses["const_string_without_program"]).toStrictEqual(
+    pdaConstString1,
+  );
+  expect(instructionAddresses["const_string_with_program"]).toStrictEqual(
     pdaConstString2,
   );
 });

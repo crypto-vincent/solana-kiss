@@ -29,12 +29,12 @@ it("run", () => {
     migrated: true,
   };
   // Prepare instruction accounts addresses
-  const instructionAddressesBefore = new Map([
-    ["owner", pubkeyNewDummy()],
-    ["borrower", pubkeyNewDummy()],
-    ["global_market_state", pubkeyNewDummy()],
-    ["system_program", pubkeyNewDummy()],
-  ]);
+  const instructionAddressesBefore = {
+    owner: pubkeyNewDummy(),
+    borrower: pubkeyNewDummy(),
+    global_market_state: pubkeyNewDummy(),
+    system_program: pubkeyNewDummy(),
+  };
   // Find missing instruction accounts
   const instructionAddressesAfter = idlInstructionAddressesFind(
     instructionIdl,
@@ -42,9 +42,9 @@ it("run", () => {
       instructionProgramAddress: programAddress,
       instructionAddresses: instructionAddressesBefore,
       instructionPayload,
-      instructionAccountsStates: new Map([
-        ["borrower_info", { num_of_deals: 42 }],
-      ]),
+      instructionAccountsStates: {
+        borrower_info: { num_of_deals: 42 },
+      },
     },
   );
   // Check that we can encode it and then decode it

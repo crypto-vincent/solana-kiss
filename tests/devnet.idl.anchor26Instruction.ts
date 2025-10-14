@@ -31,7 +31,7 @@ it("run", async () => {
   );
   expect(instructionIdl.name).toStrictEqual("update_tranches_amounts_due");
   const instructionDecoded = idlInstructionDecode(instructionIdl, instruction);
-  expect(instructionDecoded.instructionAddresses.get("deal")).toStrictEqual(
+  expect(instructionDecoded.instructionAddresses["deal"]).toStrictEqual(
     "7uZHNgrXDz2NeUBY7g21CUi3LGmCPPn4rFwpnbujA9n4",
   );
   expect(instructionDecoded.instructionPayload).toStrictEqual(null);
