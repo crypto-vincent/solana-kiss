@@ -137,12 +137,9 @@ it("run", () => {
           { collateral_mint: pubkeyToBase58(collateralMintAddress) },
         ],
       ]),
-      instructionAccountsTypes: new Map([
-        [
-          "campaign",
-          expectDefined(programIdl.accounts.get("Campaign")).typeFull,
-        ],
-      ]),
+      instructionAccountsTypes: {
+        campaign: expectDefined(programIdl.accounts.get("Campaign")).typeFull,
+      },
     },
   );
   // Check outcome

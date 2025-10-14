@@ -40,11 +40,13 @@ export * from "./idl/IdlUtils";
 
 export * from "./rpc/RpcHttp";
 export * from "./rpc/RpcHttpFindAccountTransactions";
+export * from "./rpc/RpcHttpFindBlocks";
 export * from "./rpc/RpcHttpFindProgramOwnedAccounts";
 export * from "./rpc/RpcHttpGetAccountLamports";
 export * from "./rpc/RpcHttpGetAccountMetadata";
 export * from "./rpc/RpcHttpGetAccountWithData";
 export * from "./rpc/RpcHttpGetBlockMetadata";
+export * from "./rpc/RpcHttpGetBlockTime";
 export * from "./rpc/RpcHttpGetBlockWithTransactions";
 export * from "./rpc/RpcHttpGetLatestBlockHash";
 export * from "./rpc/RpcHttpGetTransaction";

@@ -3,6 +3,7 @@ import {
   blockSlotFromNumber,
   rpcHttpFromUrl,
   rpcHttpGetBlockMetadata,
+  rpcHttpGetBlockTime,
   rpcHttpGetBlockWithTransactions,
 } from "../src";
 
@@ -33,5 +34,12 @@ it("run", async () => {
   expect(transactionsIds.length).toStrictEqual(17);
   expect(transactionsIds[0]).toStrictEqual(
     "3g4afiLu3KW1G2eYhvP1h3aKx2Pp54CCtqZTRX9q7daY84TQ6RcKMERNk56QJPi5CrhV5dYTHJzSrk6z4aLWKKrd",
+  );
+  const { blockInfo: dateBlockInfo } = await rpcHttpGetBlockTime(
+    rpcHttp,
+    blockSlot,
+  );
+  expect(dateBlockInfo?.time?.toISOString()).toStrictEqual(
+    "2025-05-06T02:42:34.000Z",
   );
 });

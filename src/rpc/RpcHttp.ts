@@ -11,7 +11,7 @@ import {
 export type RpcHttp = (
   method: string,
   params: Array<JsonValue>,
-  config: JsonObject,
+  config: JsonObject | undefined,
 ) => Promise<JsonValue>;
 
 export function rpcHttpFromUrl(
@@ -31,14 +31,17 @@ export function rpcHttpFromUrl(
     (async (url, request) => {
       return (await fetch(url, request)).json();
     });
-  return async function (methodName, params, config) {
+  return async function (method, params, config) {
     const contextCommitment = context?.commitment;
-    if (contextCommitment !== undefined) {
-      config = {
-        preflightCommitment: contextCommitment,
-        commitment: contextCommitment,
-        ...config,
-      };
+    if (config !== undefined) {
+      if (contextCommitment !== undefined) {
+        config = {
+          preflightCommitment: contextCommitment,
+          commitment: contextCommitment,
+          ...config,
+        };
+      }
+      params.push(config);
     }
     const requestId = uniqueRequestId++;
     const responseJson = await fetcher(url, {
@@ -47,8 +50,8 @@ export function rpcHttpFromUrl(
       body: JSON.stringify({
         jsonrpc: "2.0",
         id: requestId,
-        method: methodName,
-        params: [...params, config],
+        method,
+        params,
       }),
     });
     const responseInfo = responseJsonDecoder(responseJson);
