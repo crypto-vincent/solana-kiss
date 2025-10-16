@@ -26,9 +26,7 @@ export function objectGetOwnProperty<
     return undefined;
   }
   if (Object.prototype.hasOwnProperty.call(object, key)) {
-    if (key in object) {
-      return object[key];
-    }
+    return object[key];
   }
   return undefined;
 }

@@ -41,16 +41,25 @@ it("run", () => {
   });
   // MyAccount info
   const accountIdl = expectDefined(programIdl.accounts.get("MyAccount"));
-  const accountState = [
+  const accountState1 = [
     "Empty",
     { Named: { field1: 42 } },
     { Unnamed: [22, 23] },
     "Shortened",
     "BigCode",
   ];
+  const accountState2 = [
+    2,
+    { 0: { field1: 42 } },
+    { 99: [22, 23] },
+    3,
+    0xffffffffffffffffffffffffffffffffn.toString(),
+  ];
   // Check that we can use the manual IDL to encode/decode our account
-  const accountData = idlAccountEncode(accountIdl, accountState);
-  expect(accountData).toStrictEqual(
+  const accountData1 = idlAccountEncode(accountIdl, accountState1);
+  const accountData2 = idlAccountEncode(accountIdl, accountState2);
+  expect(accountData2).toStrictEqual(accountData1);
+  expect(accountData1).toStrictEqual(
     new Uint8Array(
       [
         [77, 78],
@@ -67,7 +76,9 @@ it("run", () => {
       ].flat(),
     ),
   );
-  expect(idlAccountDecode(accountIdl, accountData)).toStrictEqual(accountState);
+  expect(idlAccountDecode(accountIdl, accountData1)).toStrictEqual(
+    accountState1,
+  );
 });
 
 const ff = 0xff;

@@ -147,36 +147,29 @@ const visitorDecode = {
     if (self.variants.length === 0) {
       return [0, null];
     }
-    let enumMask = 0n;
-    const codes = [];
-    for (const variant of self.variants) {
-      enumMask |= variant.code;
-      codes.push(variant.code);
-    }
     let [dataSize, dataPrefix] = idlTypePrefixDecode(
       self.prefix,
       data,
       dataOffset,
     );
-    const dataCode = dataPrefix & enumMask;
+    const dataCode = dataPrefix & self.mask;
     const dataVariantOffset = dataOffset + dataSize;
-    for (const variant of self.variants) {
-      if (variant.code === dataCode) {
-        if (variant.fields.isNothing()) {
-          return [dataSize, variant.name];
-        }
-        const [dataVariantSize, dataVariant] = withContext(
-          `Decode: Enum Variant: ${variant.name} (offset: ${dataVariantOffset})`,
-          () =>
-            idlTypeFullFieldsDecode(variant.fields, data, dataVariantOffset),
-        );
-        dataSize += dataVariantSize;
-        return [dataSize, { [variant.name]: dataVariant }];
-      }
+    const variantIndex = self.indexByCodeBigInt.get(dataCode);
+    if (variantIndex === undefined) {
+      throw new Error(
+        `Decode: Unknown enum code: ${dataCode} (offset: ${dataOffset})`,
+      );
     }
-    throw new Error(
-      `Decode: Unknown enum code: ${dataCode} (offset: ${dataOffset})`,
+    const variant = self.variants[variantIndex]!;
+    if (variant.fields.isNothing()) {
+      return [dataSize, variant.name];
+    }
+    const [dataVariantSize, dataVariant] = withContext(
+      `Decode: Enum Variant: ${variant.name} (offset: ${dataVariantOffset})`,
+      () => idlTypeFullFieldsDecode(variant.fields, data, dataVariantOffset),
     );
+    dataSize += dataVariantSize;
+    return [dataSize, { [variant.name]: dataVariant }];
   },
   pad: (
     self: IdlTypeFullPad,

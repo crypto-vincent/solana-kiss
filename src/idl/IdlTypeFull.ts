@@ -26,6 +26,10 @@ export type IdlTypeFullStruct = {
 };
 export type IdlTypeFullEnum = {
   prefix: IdlTypePrefix;
+  mask: bigint;
+  indexByName: Map<string, number>;
+  indexByCodeBigInt: Map<bigint, number>;
+  indexByCodeString: Map<string, number>;
   variants: Array<IdlTypeFullEnumVariant>;
 };
 export type IdlTypeFullPad = {

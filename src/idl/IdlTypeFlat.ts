@@ -29,6 +29,10 @@ export type IdlTypeFlatStruct = {
 };
 export type IdlTypeFlatEnum = {
   prefix: IdlTypePrefix;
+  mask: bigint;
+  indexByName: Map<string, number>;
+  indexByCodeBigInt: Map<bigint, number>;
+  indexByCodeString: Map<string, number>;
   variants: Array<IdlTypeFlatEnumVariant>;
 };
 export type IdlTypeFlatPad = {

@@ -132,28 +132,20 @@ const visitorTypeFull = {
     pointer: Array<number | string>,
     tokenIndex: number,
   ) => {
-    const current = pointer[tokenIndex]!;
-    if (typeof current === "number") {
-      const code = BigInt(current);
-      for (const variant of self.variants) {
-        if (variant.code === code) {
-          return visitTypeFullFields(variant.fields, pointer, tokenIndex + 1);
-        }
-      }
-      const codes = self.variants.map((variant) => variant.code).join("/");
-      throw new Error(
-        `Idl: Expected valid enum variant code at path: ${jsonPointerPreview(pointer, tokenIndex)}, available: ${codes}`,
+    const nameOrCode = String(pointer[tokenIndex]!);
+    const variantIndex =
+      self.indexByName.get(nameOrCode) ??
+      self.indexByCodeString.get(nameOrCode);
+    if (variantIndex !== undefined) {
+      return visitTypeFullFields(
+        self.variants[variantIndex]!.fields,
+        pointer,
+        tokenIndex + 1,
       );
-    }
-    const name = current;
-    for (const variant of self.variants) {
-      if (variant.name === name) {
-        return visitTypeFullFields(variant.fields, pointer, tokenIndex + 1);
-      }
     }
     const names = self.variants.map((variant) => variant.name).join("/");
     throw new Error(
-      `Idl: Expected valid enum variant name at path ${jsonPointerPreview(pointer, tokenIndex)}, available: ${names}`,
+      `Idl: Expected valid enum variant name or code at path ${jsonPointerPreview(pointer, tokenIndex)}, available: ${names}`,
     );
   },
   pad: (

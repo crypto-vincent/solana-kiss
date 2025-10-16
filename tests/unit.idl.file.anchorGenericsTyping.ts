@@ -132,6 +132,25 @@ function makeTypeFullGenericEnum(
     repr: undefined,
     content: IdlTypeFull.enum({
       prefix: IdlTypePrefix.u8,
+      mask: 3n,
+      indexByName: new Map([
+        ["Unnamed", 0],
+        ["Named", 1],
+        ["Struct", 2],
+        ["Arr", 3],
+      ]),
+      indexByCodeBigInt: new Map([
+        [0n, 0],
+        [1n, 1],
+        [2n, 2],
+        [3n, 3],
+      ]),
+      indexByCodeString: new Map([
+        ["0", 0],
+        ["1", 1],
+        ["2", 2],
+        ["3", 3],
+      ]),
       variants: [
         {
           name: "Unnamed",

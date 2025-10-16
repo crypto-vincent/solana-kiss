@@ -3,8 +3,8 @@ import { Instruction } from "../data/Instruction";
 import { JsonValue } from "../data/Json";
 import { Message } from "../data/Message";
 
-// TODO - should add phantom integration (maybe different package?)
-// TODO - should integrate indexing capabilities ? (maybe different package?)
+// TODO (external) - should add phantom integration (maybe different package?)
+// TODO (external) - should integrate indexing capabilities ? (maybe different package?)
 
 // TODO (naming) - rpc transaction naming convention ?
 export type RpcTransactionExecution = {

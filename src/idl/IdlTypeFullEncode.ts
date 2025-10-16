@@ -8,7 +8,7 @@ import {
   JsonValue,
 } from "../data/Json";
 import { utf8Encode } from "../data/Utf8";
-import { withContext } from "../data/Utils";
+import { objectGetOwnProperty, withContext } from "../data/Utils";
 import {
   IdlTypeFull,
   IdlTypeFullArray,
@@ -162,36 +162,36 @@ const visitorEncode = {
     }
     const number = jsonAsNumber(value);
     if (number !== undefined) {
-      const code = BigInt(number);
-      for (const variant of self.variants) {
-        if (variant.code === code) {
-          return enumVariantEncode(variant, undefined);
-        }
+      const codeString = String(number);
+      const variantIndex = self.indexByCodeString.get(codeString);
+      if (variantIndex === undefined) {
+        throw new Error(`Could not find enum variant with code: ${value}`);
       }
-      throw new Error(`Could not find enum variant with code: ${value}`);
+      return enumVariantEncode(self.variants[variantIndex]!, undefined);
     }
     const string = jsonAsString(value);
     if (string !== undefined) {
-      for (const variant of self.variants) {
-        if (variant.name === string) {
-          return enumVariantEncode(variant, undefined);
-        }
+      let variantIndex =
+        self.indexByName.get(string) ?? self.indexByCodeString.get(string);
+      if (variantIndex === undefined) {
+        throw new Error(
+          `Could not find enum variant with name or code: ${value}`,
+        );
       }
-      const code = BigInt(string);
-      for (const variant of self.variants) {
-        if (variant.code === code) {
-          return enumVariantEncode(variant, undefined);
-        }
-      }
-      throw new Error(
-        `Could not find enum variant with name or code: ${value}`,
-      );
+      return enumVariantEncode(self.variants[variantIndex]!, undefined);
     }
     const object = jsonAsObject(value);
     if (object !== undefined) {
       for (const variant of self.variants) {
-        if (object.hasOwnProperty(variant.name)) {
-          return enumVariantEncode(variant, object[variant.name]);
+        const valueAtName = objectGetOwnProperty(object, variant.name);
+        if (valueAtName !== undefined) {
+          return enumVariantEncode(variant, valueAtName);
+        }
+      }
+      for (const variant of self.variants) {
+        const valueAtCode = objectGetOwnProperty(object, String(variant.code));
+        if (valueAtCode !== undefined) {
+          return enumVariantEncode(variant, valueAtCode);
         }
       }
       throw new Error("Could not guess enum variant from object key");

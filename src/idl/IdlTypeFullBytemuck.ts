@@ -29,9 +29,9 @@ type IdlTypeFullPodFields = {
   value: IdlTypeFullFields;
 };
 
-// TODO - figure out how to handle discriminator alignment/offset
-// TODO - support Repr modifiers (packed, align(N))
-// TODO - support for transparent/custom
+// TODO (repr) - figure out how to handle discriminator alignment/offset
+// TODO (repr) - support Repr modifiers (packed, align(N))
+// TODO (repr) - support for transparent/custom
 export function idlTypeFullTypedefBytemuck(
   typeFullTypedef: IdlTypeFullTypedef,
 ): IdlTypeFullPod {
@@ -171,6 +171,10 @@ const visitorBytemuckC = {
         after: 0,
         content: IdlTypeFull.enum({
           prefix: internalPrefixFromAlignment(alignment),
+          mask: self.mask,
+          indexByName: self.indexByName,
+          indexByCodeBigInt: self.indexByCodeBigInt,
+          indexByCodeString: self.indexByCodeString,
           variants: variantsReprC,
         }),
       }),
@@ -290,6 +294,10 @@ const visitorBytemuckRust = {
         after: 0,
         content: IdlTypeFull.enum({
           prefix: self.prefix,
+          mask: self.mask,
+          indexByName: self.indexByName,
+          indexByCodeBigInt: self.indexByCodeBigInt,
+          indexByCodeString: self.indexByCodeString,
           variants: variantsReprRust,
         }),
       }),
@@ -364,12 +372,10 @@ const visitorBytemuckFields = {
       alignment: fieldsInfosPadded.alignment,
       size: fieldsInfosPadded.size,
       value: IdlTypeFullFields.named(
-        fieldsInfosPadded.value.map((fieldInfo) => {
-          return {
-            name: fieldInfo.meta,
-            content: fieldInfo.type,
-          };
-        }),
+        fieldsInfosPadded.value.map((fieldInfo) => ({
+          name: fieldInfo.meta,
+          content: fieldInfo.type,
+        })),
       ),
     };
   },
@@ -401,12 +407,10 @@ const visitorBytemuckFields = {
       alignment: fieldsInfosPadded.alignment,
       size: fieldsInfosPadded.size,
       value: IdlTypeFullFields.unnamed(
-        fieldsInfosPadded.value.map((fieldInfo) => {
-          return {
-            position: fieldInfo.meta,
-            content: fieldInfo.type,
-          };
-        }),
+        fieldsInfosPadded.value.map((fieldInfo) => ({
+          position: fieldInfo.meta,
+          content: fieldInfo.type,
+        })),
       ),
     };
   },

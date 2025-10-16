@@ -135,6 +135,10 @@ it("run", () => {
           docs: undefined,
           content: IdlTypeFlat.enum({
             prefix: IdlTypePrefix.u8,
+            mask: 0n,
+            indexByName: new Map(),
+            indexByCodeBigInt: new Map(),
+            indexByCodeString: new Map(),
             variants: [],
           }),
         },
@@ -143,6 +147,10 @@ it("run", () => {
           docs: undefined,
           content: IdlTypeFlat.enum({
             prefix: IdlTypePrefix.u8,
+            mask: 0n,
+            indexByName: new Map(),
+            indexByCodeBigInt: new Map(),
+            indexByCodeString: new Map(),
             variants: [],
           }),
         },

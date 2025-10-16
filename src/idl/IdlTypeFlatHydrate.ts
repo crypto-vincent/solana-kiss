@@ -176,17 +176,19 @@ const visitorHydrateOrConstLiteral = {
   ): IdlTypeFull | number => {
     return IdlTypeFull.enum({
       prefix: self.prefix,
-      variants: self.variants.map((variant) => {
-        return {
-          name: variant.name,
-          code: variant.code,
-          fields: idlTypeFlatFieldsHydrate(
-            variant.fields,
-            genericsBySymbol,
-            typedefs,
-          ),
-        };
-      }),
+      mask: self.mask,
+      indexByName: self.indexByName,
+      indexByCodeBigInt: self.indexByCodeBigInt,
+      indexByCodeString: self.indexByCodeString,
+      variants: self.variants.map((variant) => ({
+        name: variant.name,
+        code: variant.code,
+        fields: idlTypeFlatFieldsHydrate(
+          variant.fields,
+          genericsBySymbol,
+          typedefs,
+        ),
+      })),
     });
   },
   pad: (
@@ -238,16 +240,10 @@ const visitorHydrateFields = {
     typedefs?: Map<string, IdlTypedef>,
   ): IdlTypeFullFields => {
     return IdlTypeFullFields.named(
-      self.map((field) => {
-        return {
-          name: field.name,
-          content: idlTypeFlatHydrate(
-            field.content,
-            genericsBySymbol,
-            typedefs,
-          ),
-        };
-      }),
+      self.map((field) => ({
+        name: field.name,
+        content: idlTypeFlatHydrate(field.content, genericsBySymbol, typedefs),
+      })),
     );
   },
   unnamed: (
@@ -256,16 +252,10 @@ const visitorHydrateFields = {
     typedefs?: Map<string, IdlTypedef>,
   ): IdlTypeFullFields => {
     return IdlTypeFullFields.unnamed(
-      self.map((field, index) => {
-        return {
-          position: index,
-          content: idlTypeFlatHydrate(
-            field.content,
-            genericsBySymbol,
-            typedefs,
-          ),
-        };
-      }),
+      self.map((field, index) => ({
+        position: index,
+        content: idlTypeFlatHydrate(field.content, genericsBySymbol, typedefs),
+      })),
     );
   },
 };

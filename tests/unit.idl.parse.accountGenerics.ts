@@ -122,6 +122,19 @@ it("run", () => {
               repr: undefined,
               content: IdlTypeFull.enum({
                 prefix: IdlTypePrefix.u8,
+                mask: 1n,
+                indexByName: new Map([
+                  ["CaseA", 0],
+                  ["CaseB", 1],
+                ]),
+                indexByCodeBigInt: new Map([
+                  [0n, 0],
+                  [1n, 1],
+                ]),
+                indexByCodeString: new Map([
+                  ["0", 0],
+                  ["1", 1],
+                ]),
                 variants: [
                   {
                     name: "CaseA",

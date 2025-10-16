@@ -283,9 +283,51 @@ function objectStructJsonDecoder(value: JsonValue): IdlTypeFlat {
 }
 
 function objectEnumJsonDecoder(prefix: IdlTypePrefix) {
-  return jsonDecoderTransform(variantsJsonDecoder, (variants) =>
-    IdlTypeFlat.enum({ prefix, variants }),
-  );
+  return jsonDecoderTransform(variantsJsonDecoder, (variantsRaw) => {
+    const variantsSorted = variantsRaw.sort((a, b) => {
+      if (a.code < b.code) {
+        return -1;
+      }
+      if (a.code > b.code) {
+        return 1;
+      }
+      return 0;
+    });
+    let mask = 0n;
+    for (const variant of variantsSorted) {
+      mask |= variant.code;
+    }
+    const indexByName = new Map<string, number>();
+    const indexByCodeBigInt = new Map<bigint, number>();
+    const indexByCodeString = new Map<string, number>();
+    for (
+      let variantSortedIndex = 0;
+      variantSortedIndex < variantsSorted.length;
+      variantSortedIndex++
+    ) {
+      const variant = variantsSorted[variantSortedIndex]!;
+      if (indexByName.has(variant.name)) {
+        throw new Error(`Duplicate enum variant name: ${variant.name}`);
+      }
+      if (indexByCodeBigInt.has(variant.code)) {
+        throw new Error(`Duplicate enum variant code: ${variant.code}`);
+      }
+      if (indexByCodeString.has(variant.code.toString())) {
+        throw new Error(`Duplicate enum variant code: ${variant.code}`);
+      }
+      indexByName.set(variant.name, variantSortedIndex);
+      indexByCodeBigInt.set(variant.code, variantSortedIndex);
+      indexByCodeString.set(variant.code.toString(), variantSortedIndex);
+    }
+    return IdlTypeFlat.enum({
+      prefix,
+      mask,
+      indexByName,
+      indexByCodeBigInt,
+      indexByCodeString,
+      variants: variantsSorted,
+    });
+  });
 }
 
 const objectPadInfoJsonDecoder = jsonDecoderObjectWithKeysSnakeEncoded({
