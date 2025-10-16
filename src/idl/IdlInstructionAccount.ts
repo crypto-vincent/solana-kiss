@@ -82,6 +82,7 @@ export function idlInstructionAccountParse(
 ): Array<IdlInstructionAccount> {
   const decoded = jsonDecoder(instructionAccountValue);
   if (decoded.accounts !== undefined) {
+    // TODO - docs field is lost in this case ?
     if (
       decoded.signer !== undefined ||
       decoded.isSigner !== undefined ||
@@ -136,9 +137,9 @@ export function idlInstructionAccountParse(
   );
   return [
     {
-      name: casingConvertToSnake(
-        [...instructionAccountGroups, decoded.name].join("."),
-      ),
+      name: [...instructionAccountGroups, decoded.name]
+        .map(casingConvertToSnake)
+        .join("."),
       docs: decoded.docs,
       writable: decoded.writable ?? decoded.isMut ?? false,
       signer: decoded.signer ?? decoded.isSigner ?? decoded.signing ?? false,

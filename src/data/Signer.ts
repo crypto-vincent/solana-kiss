@@ -13,12 +13,12 @@ export async function signerGenerate(): Promise<Signer> {
   ]);
   const publicSpki = await crypto.subtle.exportKey("spki", keypair.publicKey);
   const address = pubkeyFromBytes(new Uint8Array(publicSpki).slice(-32));
-  return signerFromKeys(keypair.privateKey, address);
+  return signerFromPrivateKey(keypair.privateKey, address);
 }
 
 export async function signerFromSecret(
   secret: Uint8Array,
-  options?: { skipVerify?: boolean },
+  options?: { skipVerification?: boolean },
 ): Promise<Signer> {
   if (secret.length != 64) {
     throw new Error(
@@ -44,7 +44,7 @@ export async function signerFromSecret(
     0x20,
     ...secret.slice(0, 32),
   ]);
-  const cryptoKey = await crypto.subtle.importKey(
+  const privateKey = await crypto.subtle.importKey(
     "pkcs8",
     pkcs8Bytes,
     { name: "Ed25519" },
@@ -52,8 +52,8 @@ export async function signerFromSecret(
     ["sign"],
   );
   const address = pubkeyFromBytes(secret.slice(32, 64));
-  const signer = signerFromKeys(cryptoKey, address);
-  if (options?.skipVerify) {
+  const signer = signerFromPrivateKey(privateKey, address);
+  if (options?.skipVerification) {
     return signer;
   }
   const message = new Uint8Array([1, 2, 3, 4, 5]);
@@ -65,13 +65,13 @@ export async function signerFromSecret(
   return signer;
 }
 
-function signerFromKeys(cryptoKey: CryptoKey, address: Pubkey): Signer {
+function signerFromPrivateKey(privateKey: CryptoKey, address: Pubkey): Signer {
   return {
     address,
     sign: async (message: Uint8Array) => {
       const output = await crypto.subtle.sign(
         "Ed25519",
-        cryptoKey,
+        privateKey,
         message as BufferSource,
       );
       return signatureFromBytes(new Uint8Array(output));

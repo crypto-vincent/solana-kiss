@@ -91,8 +91,8 @@ it("run", () => {
       {
         name: "MyEvent",
         fields: [
-          { name: "field1", type: "u64", index: false },
-          { name: "field2", type: "u32", index: true },
+          { name: "field1", type: "u64" },
+          { name: "field2", type: "u32" },
         ],
       },
     ],
