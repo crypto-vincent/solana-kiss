@@ -34,5 +34,5 @@ it("run", async () => {
   expect(instructionDecoded.instructionAddresses["deal"]).toStrictEqual(
     "7uZHNgrXDz2NeUBY7g21CUi3LGmCPPn4rFwpnbujA9n4",
   );
-  expect(instructionDecoded.instructionPayload).toStrictEqual(null);
+  expect(instructionDecoded.instructionPayload).toStrictEqual(undefined);
 });

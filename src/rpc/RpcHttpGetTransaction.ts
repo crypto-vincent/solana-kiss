@@ -72,8 +72,8 @@ export async function rpcHttpGetTransaction(
     },
     message: {
       payerAddress: accountKeys[0]!,
-      instructions: messageInstructions,
       recentBlockHash: message.recentBlockhash,
+      instructions: messageInstructions,
     },
     logs: meta.logMessages,
     error: meta.err, // TODO - parse error to find custom program errors ?

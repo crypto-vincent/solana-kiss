@@ -263,7 +263,12 @@ const visitorFieldsEncode = {
     const object = jsonCodecObjectRaw.decoder(value);
     for (const field of self) {
       withContext(`Encode: Field: ${field.name}`, () => {
-        idlTypeFullEncode(field.content, object[field.name], blobs, prefixed);
+        idlTypeFullEncode(
+          field.content,
+          objectGetOwnProperty(object, field.name),
+          blobs,
+          prefixed,
+        );
       });
     }
   },

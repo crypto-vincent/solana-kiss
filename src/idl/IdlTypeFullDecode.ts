@@ -161,15 +161,16 @@ const visitorDecode = {
       );
     }
     const variant = self.variants[variantIndex]!;
-    if (variant.fields.isNothing()) {
-      return [dataSize, variant.name];
-    }
     const [dataVariantSize, dataVariant] = withContext(
       `Decode: Enum Variant: ${variant.name} (offset: ${dataVariantOffset})`,
       () => idlTypeFullFieldsDecode(variant.fields, data, dataVariantOffset),
     );
     dataSize += dataVariantSize;
-    return [dataSize, { [variant.name]: dataVariant }];
+    if (dataVariant === undefined) {
+      return [dataSize, variant.name];
+    } else {
+      return [dataSize, { [variant.name]: dataVariant }];
+    }
   },
   pad: (
     self: IdlTypeFullPad,
@@ -206,7 +207,7 @@ const visitorDecode = {
         );
       }
     }
-    return [self.bytes.length, null];
+    return [self.bytes.length, undefined];
   },
   primitive: (
     self: IdlTypePrimitive,
@@ -223,7 +224,7 @@ const visitorFieldsDecode = {
     _data: DataView,
     _dataOffset: number,
   ): [number, JsonValue] => {
-    return [0, null];
+    return [0, undefined];
   },
   named: (
     self: Array<IdlTypeFullFieldNamed>,
@@ -239,7 +240,9 @@ const visitorFieldsDecode = {
         () => idlTypeFullDecode(field.content, data, dataFieldOffset),
       );
       dataSize += dataFieldSize;
-      dataFields[field.name] = dataField;
+      if (dataField !== undefined) {
+        dataFields[field.name] = dataField;
+      }
     }
     return [dataSize, dataFields];
   },

@@ -17,7 +17,6 @@ import {
 } from "../data/Json";
 import { messageCompile, messageSign } from "../data/Message";
 import { Pubkey, pubkeyDefault } from "../data/Pubkey";
-import { signatureFromBytes } from "../data/Signature";
 import { Signer } from "../data/Signer";
 import { RpcHttp } from "./RpcHttp";
 import { RpcTransactionExecution } from "./RpcTransaction";
@@ -59,7 +58,7 @@ export async function rpcHttpSimulateInstructions(
     }
   }
   const signers = new Array<Signer>();
-  let payerSigner: Signer;
+  let payerAddress: Pubkey;
   let recentBlockHash: BlockHash;
   let replaceRecentBlockhash: boolean;
   let sigVerify: boolean;
@@ -70,26 +69,25 @@ export async function rpcHttpSimulateInstructions(
         signers.push(signer);
       }
     }
-    payerSigner = context.payerSigner;
+    payerAddress = context.payerSigner.address;
     recentBlockHash = context.recentBlockHash;
     replaceRecentBlockhash = false;
     sigVerify = true;
   } else {
-    for (const instructionAddress of instructionsAddresses) {
-      signers.push(signerFaked(instructionAddress));
-    }
-    payerSigner = signerFaked(context.payerAddress);
+    payerAddress = context.payerAddress;
     recentBlockHash = blockHashFromBytes(new Uint8Array(32).fill(0));
     replaceRecentBlockhash = true;
     sigVerify = false;
   }
   const message = {
-    payerAddress: payerSigner.address,
+    payerAddress,
     instructions,
     recentBlockHash,
   };
   const messageCompiled = messageCompile(message);
-  const messageSigned = await messageSign(messageCompiled, signers);
+  const messageSigned = await messageSign(messageCompiled, signers, {
+    fillMissingSigners: sigVerify === false,
+  });
   const afterAccountsAddresses = options?.simulatedAccountsAddresses
     ? [...options.simulatedAccountsAddresses]
     : [];
@@ -167,10 +165,3 @@ const resultJsonDecoder = jsonDecoderObject({
     ),
   }),
 });
-
-function signerFaked(address: Pubkey): Signer {
-  return {
-    address,
-    sign: async () => signatureFromBytes(new Uint8Array(64).fill(0)),
-  };
-}

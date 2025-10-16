@@ -27,17 +27,27 @@ it("run", async () => {
   const generatedInstruction1 = generateInstruction(
     pubkeyFromBase58(signer1Reference.publicKey.toBase58()),
     signer2Current.address,
+    42,
   );
   const generatedInstruction2 = generateInstruction(
     signer1Current.address,
     pubkeyFromBase58(signer2Reference.publicKey.toBase58()),
+    300,
   );
+  const dummyProgramAddress = pubkeyNewDummy();
+  const generatedDummyInstructions = [];
+  for (let count = 0; count < 155; count++) {
+    generatedDummyInstructions.push(
+      generateInstructionDummy(dummyProgramAddress),
+    );
+  }
   const referenceCompiledMessage = new TransactionMessage({
     payerKey: payerReference.publicKey,
     recentBlockhash: blockHashToBase58(blockHash),
     instructions: [
       generatedInstruction1.reference,
       generatedInstruction2.reference,
+      ...generatedDummyInstructions.map((ix) => ix.reference),
     ],
   }).compileToV0Message([]); // TODO (ALT) - handle address lookup tables
   const referenceSignedMessage = new VersionedTransaction(
@@ -51,11 +61,12 @@ it("run", async () => {
   const referenceCompiledBytes = referenceCompiledMessage.serialize();
   const currentCompiledBytes = messageCompile({
     payerAddress: payerCurrent.address,
+    recentBlockHash: blockHash,
     instructions: [
       generatedInstruction1.current,
       generatedInstruction2.current,
+      ...generatedDummyInstructions.map((ix) => ix.current),
     ],
-    recentBlockHash: blockHash,
   });
   expect(currentCompiledBytes).toStrictEqual(referenceCompiledBytes);
   const referenceSignedBytes = referenceSignedMessage.serialize();
@@ -70,37 +81,29 @@ it("run", async () => {
 function generateInstruction(
   signerWritableAddress: Pubkey,
   signerReadonlyAddress: Pubkey,
+  dataLength: number,
 ) {
   const programAddress = pubkeyNewDummy();
   const writableAddress = pubkeyNewDummy();
   const readonlyAddress = pubkeyNewDummy();
-  const data = new Uint8Array(10);
+  const data = new Uint8Array(dataLength);
   for (let index = 0; index < data.length; index++) {
     data[index] = Math.floor(Math.random() * 256);
+  }
+  function meta(address: Pubkey, isSigner: boolean, isWritable: boolean) {
+    return {
+      pubkey: new PublicKey(address),
+      isSigner,
+      isWritable,
+    };
   }
   const reference = {
     programId: new PublicKey(programAddress),
     keys: [
-      {
-        pubkey: new PublicKey(signerWritableAddress),
-        isSigner: true,
-        isWritable: true,
-      },
-      {
-        pubkey: new PublicKey(signerReadonlyAddress),
-        isSigner: true,
-        isWritable: false,
-      },
-      {
-        pubkey: new PublicKey(writableAddress),
-        isSigner: false,
-        isWritable: true,
-      },
-      {
-        pubkey: new PublicKey(readonlyAddress),
-        isSigner: false,
-        isWritable: false,
-      },
+      meta(signerWritableAddress, true, true),
+      meta(signerReadonlyAddress, true, false),
+      meta(writableAddress, false, true),
+      meta(readonlyAddress, false, false),
     ],
     data: Buffer.from(data),
   };
@@ -113,6 +116,20 @@ function generateInstruction(
       { address: readonlyAddress, signing: false, writable: false },
     ],
     data,
+  };
+  return { reference, current };
+}
+
+function generateInstructionDummy(programAddress: Pubkey) {
+  const reference = {
+    programId: new PublicKey(programAddress),
+    keys: [],
+    data: Buffer.from([]),
+  };
+  const current = {
+    programAddress,
+    inputs: [],
+    data: new Uint8Array([]),
   };
   return { reference, current };
 }

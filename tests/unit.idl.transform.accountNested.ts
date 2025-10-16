@@ -26,7 +26,7 @@ it("run", () => {
         fields: [
           { name: "name", type: "string" },
           { name: "struct", type: "MyStruct" },
-          { name: "never", variants: [] },
+          { name: "never", variants8: [] },
           { name: "array", type: ["u16", 3] },
           { name: "vec", type: ["i16"] },
         ],
@@ -70,16 +70,8 @@ it("run", () => {
   // MyAccount2 prepared
   const accountIdl2 = expectDefined(programIdl.accounts.get("MyAccount2"));
   const accountState2 = {
-    val1: {
-      integer: 43,
-      my_enum: "Hello0",
-      byte: 78,
-    },
-    val2: {
-      integer: 44,
-      my_enum: "Hello2",
-      byte: 79,
-    },
+    val1: { integer: 43, my_enum: "Hello0", byte: 78 },
+    val2: { integer: 44, my_enum: "Hello2", byte: 79 },
   };
   // Check that we can use the manual IDL to encode/decode our account 2
   const accountData2 = idlAccountEncode(accountIdl2, accountState2);

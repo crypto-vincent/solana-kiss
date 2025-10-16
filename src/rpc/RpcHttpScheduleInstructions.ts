@@ -26,8 +26,8 @@ export async function rpcHttpScheduleInstructions(
   const signers = [context.payerSigner, ...(context?.extraSigners ?? [])];
   const messageCompiled = messageCompile({
     payerAddress: context.payerSigner.address,
-    instructions,
     recentBlockHash: context.recentBlockHash,
+    instructions,
   });
   const messageSigned = await messageSign(messageCompiled, signers);
   const transactionId = jsonCodecSignature.decoder(

@@ -192,10 +192,6 @@ export class IdlTypeFlatFields {
     return new IdlTypeFlatFields("unnamed", value);
   }
 
-  public isNothing(): boolean {
-    return this.discriminant === "nothing";
-  }
-
   public traverse<P1, P2, T>(
     visitor: {
       nothing: (value: null, p1: P1, p2: P2) => T;

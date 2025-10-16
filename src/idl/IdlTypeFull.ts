@@ -178,10 +178,6 @@ export class IdlTypeFullFields {
     return new IdlTypeFullFields("unnamed", value);
   }
 
-  public isNothing(): boolean {
-    return this.discriminant === "nothing";
-  }
-
   public traverse<P1, P2, P3, T>(
     visitor: {
       nothing: (value: null, p1: P1, p2: P2, p3: P3) => T;

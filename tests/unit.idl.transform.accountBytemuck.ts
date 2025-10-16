@@ -27,7 +27,7 @@ it("run", () => {
           { name: "bytemuck_enum_u8", type: "BytemuckEnumU8" },
           { name: "bytemuck_discriminant_c", type: "BytemuckDiscriminantC" },
           { name: "bytemuck_discriminant_u8", type: "BytemuckDiscriminantU8" },
-          { name: "bytemuck_never", variants: [] },
+          { name: "bytemuck_never", variants64: [] },
           { name: "bytemuck_field", type: "u8" },
         ],
       },
