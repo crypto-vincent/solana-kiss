@@ -15,8 +15,8 @@ import { IdlTypeFull } from "./IdlTypeFull";
 import { idlTypeFullDecode } from "./IdlTypeFullDecode";
 import { idlTypeFullEncode } from "./IdlTypeFullEncode";
 import {
+  idlUtilsAnchorDiscriminator,
   idlUtilsBytesJsonDecoder,
-  idlUtilsDiscriminator,
   idlUtilsExpectBlobAt,
   idlUtilsFlattenBlobs,
 } from "./IdlUtils";
@@ -63,7 +63,7 @@ export function idlEventParse(
 ): IdlEvent {
   const decoded = jsonDecoder(eventValue);
   const discriminator =
-    decoded.discriminator ?? idlUtilsDiscriminator(`event:${eventName}`);
+    decoded.discriminator ?? idlUtilsAnchorDiscriminator(`event:${eventName}`);
   const typeFlat = idlTypeFlatParseIsPossible(eventValue)
     ? idlTypeFlatParse(eventValue)
     : idlTypeFlatParse(eventName);

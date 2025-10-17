@@ -1,10 +1,11 @@
 import { expect, it } from "@jest/globals";
 import {
+  expectDefined,
   Instruction,
   Pubkey,
   pubkeyFromBase58,
   rpcHttpFromUrl,
-  rpcHttpWaitForTransaction,
+  rpcHttpGetTransaction,
   RpcTransactionCallStack,
   signatureFromBase58,
 } from "../src";
@@ -12,14 +13,14 @@ import {
 it("run", async () => {
   const rpcHttp = rpcHttpFromUrl("https://api.mainnet-beta.solana.com");
   // Complex transaction with many inner instructions nested
-  const { transactionExecution, transactionCallStack } =
-    await rpcHttpWaitForTransaction(
+  const { transactionExecution, transactionCallStack } = expectDefined(
+    await rpcHttpGetTransaction(
       rpcHttp,
       signatureFromBase58(
         "5c4TRGCXbv6ChbTpTnmFzt3WFqpWMMSAKdEqiqCFzG7hTFTWxdHpv2VxfQBzG3VwvQ2mMyG4rvV2eTN68jrLKy3U",
       ),
-      0,
-    );
+    ),
+  );
   expect(transactionExecution.message.payerAddress).toStrictEqual(
     "Ewfot2ZKhuGuEWaSRyFpe3LpK9xSEEUrDZk4AQpTazAR",
   );

@@ -126,15 +126,16 @@ export function rpcHttpWithRetryOnError(
   ) => Promise<boolean>,
 ): RpcHttp {
   return async function (method, params, config) {
-    let startTime = Date.now();
+    const startTime = Date.now();
     let retriedCounter = 0;
     while (true) {
       try {
         return await rpcHttp(method, params, config);
       } catch (error) {
+        const totalDurationMs = Date.now() - startTime;
         const retryApproved = await retryApprover(error, {
           retriedCounter,
-          totalDurationMs: Date.now() - startTime,
+          totalDurationMs,
         });
         if (!retryApproved) {
           throw error;

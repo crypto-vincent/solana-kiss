@@ -82,7 +82,7 @@ export async function messageSign(
   messageCompiled: Uint8Array,
   signers: Array<Signer>,
   options?: {
-    fillMissingSigners?: boolean;
+    ignoreMissingSigners?: boolean;
   },
 ): Promise<Uint8Array> {
   const signerPerAddress = new Map<Pubkey, Signer>();
@@ -112,13 +112,7 @@ export async function messageSign(
     const compiledSignatureOffset = 1 + signerIndex * 64;
     const signer = signerPerAddress.get(signerAddress);
     if (signer === undefined) {
-      if (options?.fillMissingSigners) {
-        messageSigned.fill(
-          0,
-          compiledSignatureOffset,
-          compiledSignatureOffset + 64,
-        );
-      } else {
+      if (!options?.ignoreMissingSigners) {
         throw new Error(
           `Message: Missing signer for address: ${signerAddress}`,
         );

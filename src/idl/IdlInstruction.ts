@@ -31,8 +31,8 @@ import {
   idlTypeFullFieldsEncode,
 } from "./IdlTypeFullEncode";
 import {
+  idlUtilsAnchorDiscriminator,
   idlUtilsBytesJsonDecoder,
-  idlUtilsDiscriminator,
   idlUtilsExpectBlobAt,
   idlUtilsFlattenBlobs,
 } from "./IdlUtils";
@@ -329,7 +329,7 @@ export function idlInstructionParse(
     docs: decoded.docs,
     discriminator:
       decoded.discriminator ??
-      idlUtilsDiscriminator(`global:${instructionName}`),
+      idlUtilsAnchorDiscriminator(`global:${instructionName}`),
     accounts,
     args: {
       typeFlatFields: argsTypeFlatFields,

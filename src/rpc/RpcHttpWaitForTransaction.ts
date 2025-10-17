@@ -9,21 +9,32 @@ import {
 export async function rpcHttpWaitForTransaction(
   rpcHttp: RpcHttp,
   transactionId: Signature,
-  timeoutMs: number,
+  retryApprover: (context: {
+    retriedCounter: number;
+    totalDurationMs: number;
+  }) => Promise<boolean>,
 ): Promise<{
   transactionExecution: RpcTransactionExecution;
   transactionCallStack: RpcTransactionCallStack | undefined;
 }> {
-  const start = Date.now();
+  const startTime = Date.now();
+  let retriedCounter = 0;
   while (true) {
     const response = await rpcHttpGetTransaction(rpcHttp, transactionId);
     if (response !== undefined) {
       return response;
     }
-    if (Date.now() - start > timeoutMs) {
+    const totalDurationMs = Date.now() - startTime;
+    if (
+      !(await retryApprover({
+        retriedCounter,
+        totalDurationMs,
+      }))
+    ) {
       throw new Error(
-        `RpcHttp: Timeout waiting for transaction: ${transactionId} (${timeoutMs}ms)`,
+        `RpcHttp: Transaction not found: ${transactionId} (after ${retriedCounter} retries, ${totalDurationMs}ms)`,
       );
     }
+    retriedCounter++;
   }
 }

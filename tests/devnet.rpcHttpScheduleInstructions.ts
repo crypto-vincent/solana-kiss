@@ -53,7 +53,7 @@ it("run", async () => {
   const { transactionExecution } = await rpcHttpWaitForTransaction(
     rpcHttp,
     transactionId,
-    3000,
+    async () => true,
   );
   expect(transactionExecution.chargedFeesLamports).toStrictEqual(
     lamportsFeePerSigner * 2n,

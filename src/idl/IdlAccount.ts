@@ -17,8 +17,8 @@ import { IdlTypeFull } from "./IdlTypeFull";
 import { idlTypeFullDecode } from "./IdlTypeFullDecode";
 import { idlTypeFullEncode } from "./IdlTypeFullEncode";
 import {
+  idlUtilsAnchorDiscriminator,
   idlUtilsBytesJsonDecoder,
-  idlUtilsDiscriminator,
   idlUtilsExpectBlobAt,
   idlUtilsFlattenBlobs,
 } from "./IdlUtils";
@@ -79,7 +79,8 @@ export function idlAccountParse(
 ): IdlAccount {
   const decoded = jsonDecoder(accountValue);
   const discriminator =
-    decoded.discriminator ?? idlUtilsDiscriminator(`account:${accountName}`);
+    decoded.discriminator ??
+    idlUtilsAnchorDiscriminator(`account:${accountName}`);
   const dataSpace = decoded.space;
   const dataBlobs = new Array<{ offset: number; bytes: Uint8Array }>();
   dataBlobs.push({ offset: 0, bytes: discriminator });

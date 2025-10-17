@@ -115,6 +115,6 @@ export function idlUtilsJsonRustedParse(jsonRusted: string): JsonValue {
   );
 }
 
-export function idlUtilsDiscriminator(name: string): Uint8Array {
+export function idlUtilsAnchorDiscriminator(name: string): Uint8Array {
   return sha256Hash([utf8Encode(name)]).slice(0, 8);
 }

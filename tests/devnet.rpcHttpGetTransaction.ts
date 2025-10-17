@@ -1,7 +1,8 @@
 import { expect, it } from "@jest/globals";
 import {
+  expectDefined,
   rpcHttpFromUrl,
-  rpcHttpWaitForTransaction,
+  rpcHttpGetTransaction,
   signatureFromBase58,
 } from "../src";
 
@@ -11,12 +12,13 @@ it("run", async () => {
   const {
     transactionExecution: transactionExecution1,
     transactionCallStack: transactionCallStack1,
-  } = await rpcHttpWaitForTransaction(
-    rpcHttp,
-    signatureFromBase58(
-      "2pqW2HvC2FqVr1GkSgLrPCp55THBzYWP6oMkaB6bZzaRXKYNJ2wfcBCu3M9r64SVcX3fEC5EomwxF939kn4pYXBW",
+  } = expectDefined(
+    await rpcHttpGetTransaction(
+      rpcHttp,
+      signatureFromBase58(
+        "2pqW2HvC2FqVr1GkSgLrPCp55THBzYWP6oMkaB6bZzaRXKYNJ2wfcBCu3M9r64SVcX3fEC5EomwxF939kn4pYXBW",
+      ),
     ),
-    0,
   );
   expect(transactionExecution1.message.payerAddress).toStrictEqual(
     "Eyh77zP5b7arPtPgpnCT8vsGmq9p5Z9HHnBSeQLnAFQi",
@@ -30,12 +32,13 @@ it("run", async () => {
   const {
     transactionExecution: transactionExecution2,
     transactionCallStack: transactionCallStack2,
-  } = await rpcHttpWaitForTransaction(
-    rpcHttp,
-    signatureFromBase58(
-      "3VBrBZQERLxdNjqLTzwx7TMQYbUr8ti4547CUK53WByooyJHJGmnkccw2pCQVv7D7Xi65S1E7mSFZETw6ECjxdmd",
+  } = expectDefined(
+    await rpcHttpGetTransaction(
+      rpcHttp,
+      signatureFromBase58(
+        "3VBrBZQERLxdNjqLTzwx7TMQYbUr8ti4547CUK53WByooyJHJGmnkccw2pCQVv7D7Xi65S1E7mSFZETw6ECjxdmd",
+      ),
     ),
-    0,
   );
   expect(transactionExecution2.message.payerAddress).toStrictEqual(
     "Eyh77zP5b7arPtPgpnCT8vsGmq9p5Z9HHnBSeQLnAFQi",
@@ -54,12 +57,13 @@ it("run", async () => {
   const {
     transactionExecution: transactionExecution3,
     transactionCallStack: transactionCallStack3,
-  } = await rpcHttpWaitForTransaction(
-    rpcHttp,
-    signatureFromBase58(
-      "2MZyi9uezffec3YyAHpkC33r8Nmgwf3cBHKH1Y9H4EHfoKtZ8sQEKVCHF2Rwb17qQCrUDXS1u1wpNnxgz79U6yWY",
+  } = expectDefined(
+    await rpcHttpGetTransaction(
+      rpcHttp,
+      signatureFromBase58(
+        "2MZyi9uezffec3YyAHpkC33r8Nmgwf3cBHKH1Y9H4EHfoKtZ8sQEKVCHF2Rwb17qQCrUDXS1u1wpNnxgz79U6yWY",
+      ),
     ),
-    0,
   );
   expect(transactionExecution3.message.payerAddress).toStrictEqual(
     "8sQEYJA7f5k3LrTDDkRDj46tWayc1fAdhurh61BtfUxF",

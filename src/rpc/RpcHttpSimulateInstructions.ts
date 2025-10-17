@@ -86,7 +86,7 @@ export async function rpcHttpSimulateInstructions(
   };
   const messageCompiled = messageCompile(message);
   const messageSigned = await messageSign(messageCompiled, signers, {
-    fillMissingSigners: sigVerify === false,
+    ignoreMissingSigners: sigVerify === false,
   });
   const afterAccountsAddresses = options?.simulatedAccountsAddresses
     ? [...options.simulatedAccountsAddresses]

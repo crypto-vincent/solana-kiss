@@ -4,7 +4,7 @@ import {
   pubkeyFromBase58,
   rpcHttpFindAccountTransactions,
   rpcHttpFromUrl,
-  rpcHttpWaitForTransaction,
+  rpcHttpGetTransaction,
 } from "../src";
 
 it("run", async () => {
@@ -15,10 +15,11 @@ it("run", async () => {
     4200,
   );
   expect(backwardTransactionsIds.length).toBeGreaterThan(0);
-  const { transactionExecution } = await rpcHttpWaitForTransaction(
-    rpcHttp,
-    expectDefined(backwardTransactionsIds[0]),
-    0,
+  const { transactionExecution } = expectDefined(
+    await rpcHttpGetTransaction(
+      rpcHttp,
+      expectDefined(backwardTransactionsIds[0]),
+    ),
   );
   expect(transactionExecution.blockInfo.time?.toISOString()).toStrictEqual(
     "2025-08-21T15:26:48.000Z",
