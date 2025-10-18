@@ -18,7 +18,7 @@ import { idlTypeFlatParse } from "./IdlTypeFlatParse";
 import { IdlTypeFull, IdlTypeFullFields } from "./IdlTypeFull";
 import { idlTypeFullEncode } from "./IdlTypeFullEncode";
 import { idlTypeFullFieldsGetAt, idlTypeFullGetAt } from "./IdlTypeFullGetAt";
-import { idlUtilsFlattenBlobs, idlUtilsInferValueTypeFlat } from "./IdlUtils";
+import { idlUtilsInferValueTypeFlat } from "./IdlUtils";
 
 export type IdlInstructionBlobContext = {
   instructionProgramAddress: Pubkey;
@@ -137,10 +137,8 @@ export function idlInstructionBlobParseConst(
     new Map(),
     typedefsIdls,
   );
-  const blobs = new Array<Uint8Array>();
-  idlTypeFullEncode(typeFull, instructionBlobValue, blobs, false);
   return IdlInstructionBlob.const({
-    bytes: idlUtilsFlattenBlobs(blobs),
+    bytes: idlTypeFullEncode(typeFull, instructionBlobValue, false),
   });
 }
 
@@ -219,9 +217,7 @@ const computeVisitor = {
     const value = jsonGetAt(context.instructionPayload, self.pointer, {
       throwOnMissing: true,
     });
-    const blobs = new Array<Uint8Array>();
-    idlTypeFullEncode(self.typeFull, value, blobs, false);
-    return idlUtilsFlattenBlobs(blobs);
+    return idlTypeFullEncode(self.typeFull, value, false);
   },
   account: (
     self: IdlInstructionBlobAccount,
@@ -250,10 +246,8 @@ const computeVisitor = {
         const stateValue = jsonGetAt(instructionAccountState, statePointer, {
           throwOnMissing: true,
         });
-        const blobs = new Array<Uint8Array>();
         if (self.typeFull !== undefined) {
-          idlTypeFullEncode(self.typeFull, stateValue, blobs, false);
-          return idlUtilsFlattenBlobs(blobs);
+          return idlTypeFullEncode(self.typeFull, stateValue, false);
         }
         const stateTypeFull = objectGetOwnProperty(
           context.instructionAccountsTypes,
@@ -264,13 +258,11 @@ const computeVisitor = {
             `Could not find content type for account: ${instructionAccountName}`,
           );
         }
-        idlTypeFullEncode(
+        return idlTypeFullEncode(
           idlTypeFullGetAt(stateTypeFull, statePointer),
           stateValue,
-          blobs,
           false,
         );
-        return idlUtilsFlattenBlobs(blobs);
       }
     }
     throw new Error(`Could not resolve blob value for account: ${self.path}`);

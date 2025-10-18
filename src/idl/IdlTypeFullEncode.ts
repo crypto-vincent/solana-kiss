@@ -32,17 +32,45 @@ import { idlUtilsBytesJsonDecoder } from "./IdlUtils";
 export function idlTypeFullEncode(
   typeFull: IdlTypeFull,
   value: JsonValue,
-  blobs: Array<Uint8Array>,
   prefixed: boolean,
-) {
-  typeFull.traverse(visitorEncode, value, blobs, prefixed);
+  discriminator?: Uint8Array,
+): Uint8Array {
+  const blobs = new Array<Uint8Array>();
+  if (discriminator !== undefined) {
+    blobs.push(discriminator);
+  }
+  typeFullEncode(typeFull, value, prefixed, blobs);
+  return blobsFlatten(blobs);
 }
 
 export function idlTypeFullFieldsEncode(
   typeFullFields: IdlTypeFullFields,
   value: JsonValue,
-  blobs: Array<Uint8Array>,
   prefixed: boolean,
+  discriminator?: Uint8Array,
+): Uint8Array {
+  const blobs = new Array<Uint8Array>();
+  if (discriminator !== undefined) {
+    blobs.push(discriminator);
+  }
+  typeFullFieldsEncode(typeFullFields, value, prefixed, blobs);
+  return blobsFlatten(blobs);
+}
+
+function typeFullEncode(
+  typeFull: IdlTypeFull,
+  value: JsonValue,
+  prefixed: boolean,
+  blobs: Array<Uint8Array>,
+) {
+  typeFull.traverse(visitorEncode, value, blobs, prefixed);
+}
+
+function typeFullFieldsEncode(
+  typeFullFields: IdlTypeFullFields,
+  value: JsonValue,
+  prefixed: boolean,
+  blobs: Array<Uint8Array>,
 ) {
   typeFullFields.traverse(visitorFieldsEncode, value, blobs, prefixed);
 }
@@ -55,7 +83,7 @@ const visitorEncode = {
     prefixed: boolean,
   ) => {
     withContext(`Encode: Typedef: ${self.name}`, () => {
-      return idlTypeFullEncode(self.content, value, blobs, prefixed);
+      return typeFullEncode(self.content, value, prefixed, blobs);
     });
   },
   option: (
@@ -69,7 +97,7 @@ const visitorEncode = {
       return;
     }
     idlTypePrefixEncode(self.prefix, 1n, blobs);
-    idlTypeFullEncode(self.content, value, blobs, prefixed);
+    typeFullEncode(self.content, value, prefixed, blobs);
   },
   vec: (
     self: IdlTypeFullVec,
@@ -90,7 +118,7 @@ const visitorEncode = {
       idlTypePrefixEncode(self.prefix, BigInt(array.length), blobs);
     }
     for (const item of array) {
-      idlTypeFullEncode(self.items, item, blobs, prefixed);
+      typeFullEncode(self.items, item, prefixed, blobs);
     }
   },
   array: (
@@ -116,7 +144,7 @@ const visitorEncode = {
       );
     }
     for (const item of array) {
-      idlTypeFullEncode(self.items, item, blobs, prefixed);
+      typeFullEncode(self.items, item, prefixed, blobs);
     }
   },
   string: (
@@ -137,7 +165,7 @@ const visitorEncode = {
     blobs: Array<Uint8Array>,
     prefixed: boolean,
   ) => {
-    idlTypeFullFieldsEncode(self.fields, value, blobs, prefixed);
+    typeFullFieldsEncode(self.fields, value, prefixed, blobs);
   },
   enum: (
     self: IdlTypeFullEnum,
@@ -157,7 +185,7 @@ const visitorEncode = {
     ) {
       withContext(`Encode: Enum Variant: ${variant.name}`, () => {
         idlTypePrefixEncode(self.prefix, variant.code, blobs);
-        idlTypeFullFieldsEncode(variant.fields, value, blobs, prefixed);
+        typeFullFieldsEncode(variant.fields, value, prefixed, blobs);
       });
     }
     const number = jsonAsNumber(value);
@@ -209,7 +237,7 @@ const visitorEncode = {
     }
     let contentSize = 0;
     const contentBlobs = new Array<Uint8Array>();
-    idlTypeFullEncode(self.content, value, contentBlobs, prefixed);
+    typeFullEncode(self.content, value, prefixed, contentBlobs);
     for (const contentBlob of contentBlobs) {
       blobs.push(contentBlob);
       contentSize += contentBlob.length;
@@ -263,11 +291,11 @@ const visitorFieldsEncode = {
     const object = jsonCodecObjectRaw.decoder(value);
     for (const field of self) {
       withContext(`Encode: Field: ${field.name}`, () => {
-        idlTypeFullEncode(
+        typeFullEncode(
           field.content,
           objectGetOwnProperty(object, field.name),
-          blobs,
           prefixed,
+          blobs,
         );
       });
     }
@@ -281,13 +309,22 @@ const visitorFieldsEncode = {
     const array = jsonCodecArrayRaw.decoder(value);
     for (const field of self) {
       withContext(`Encode: Field: ${field.position}`, () => {
-        idlTypeFullEncode(
-          field.content,
-          array[field.position],
-          blobs,
-          prefixed,
-        );
+        typeFullEncode(field.content, array[field.position], prefixed, blobs);
       });
     }
   },
 };
+
+function blobsFlatten(blobs: Array<Uint8Array>): Uint8Array {
+  let length = 0;
+  for (const blob of blobs) {
+    length += blob.length;
+  }
+  const bytes = new Uint8Array(length);
+  let offset = 0;
+  for (const blob of blobs) {
+    bytes.set(blob, offset);
+    offset += blob.length;
+  }
+  return bytes;
+}

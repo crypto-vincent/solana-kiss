@@ -44,9 +44,7 @@ export const idlUtilsBytesJsonDecoder = jsonDecoderByKind({
       (info) => {
         const typeFlat = info.type ?? idlUtilsInferValueTypeFlat(info.value);
         const typeFull = idlTypeFlatHydrate(typeFlat, new Map());
-        const blobs = new Array<Uint8Array>();
-        idlTypeFullEncode(typeFull, info.value, blobs, info.prefixed === true);
-        return idlUtilsFlattenBlobs(blobs);
+        return idlTypeFullEncode(typeFull, info.value, info.prefixed === true);
       },
     ),
   }),
@@ -85,20 +83,6 @@ export function idlUtilsExpectBlobAt(
       );
     }
   }
-}
-
-export function idlUtilsFlattenBlobs(blobs: Array<Uint8Array>): Uint8Array {
-  let length = 0;
-  for (const blob of blobs) {
-    length += blob.length;
-  }
-  const bytes = new Uint8Array(length);
-  let offset = 0;
-  for (const blob of blobs) {
-    bytes.set(blob, offset);
-    offset += blob.length;
-  }
-  return bytes;
 }
 
 export function idlUtilsJsonRustedParse(jsonRusted: string): JsonValue {

@@ -18,7 +18,6 @@ import {
   idlUtilsAnchorDiscriminator,
   idlUtilsBytesJsonDecoder,
   idlUtilsExpectBlobAt,
-  idlUtilsFlattenBlobs,
 } from "./IdlUtils";
 
 export type IdlEvent = {
@@ -33,10 +32,12 @@ export function idlEventEncode(
   eventIdl: IdlEvent,
   eventPayload: JsonValue,
 ): Uint8Array {
-  const blobs = new Array<Uint8Array>();
-  blobs.push(eventIdl.discriminator);
-  idlTypeFullEncode(eventIdl.typeFull, eventPayload, blobs, true);
-  return idlUtilsFlattenBlobs(blobs);
+  return idlTypeFullEncode(
+    eventIdl.typeFull,
+    eventPayload,
+    true,
+    eventIdl.discriminator,
+  );
 }
 
 export function idlEventDecode(

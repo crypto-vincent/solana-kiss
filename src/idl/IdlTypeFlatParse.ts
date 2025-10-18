@@ -59,13 +59,13 @@ export function idlTypeFlatParseIsPossible(value: JsonValue): boolean {
     object.hasOwnProperty("option32") ||
     object.hasOwnProperty("option64") ||
     object.hasOwnProperty("option128") ||
-    object.hasOwnProperty("vec") ||
+    object.hasOwnProperty("vec") || // TODO - support for svec and varint primitives ?
     object.hasOwnProperty("vec8") ||
     object.hasOwnProperty("vec16") ||
     object.hasOwnProperty("vec32") ||
     object.hasOwnProperty("vec64") ||
     object.hasOwnProperty("vec128") ||
-    object.hasOwnProperty("array") ||
+    object.hasOwnProperty("array") || // TODO - somehow array "rest" support
     object.hasOwnProperty("fields") ||
     object.hasOwnProperty("variants") ||
     object.hasOwnProperty("variants8") ||
@@ -255,7 +255,7 @@ const objectCOptionJsonDecoder = jsonDecoderTransform(
   idlTypeFlatParse,
   (content) =>
     IdlTypeFlat.defined({
-      name: "$C",
+      name: "$C", // TODO - should the option content be aligned to 4 ?
       generics: [IdlTypeFlat.option({ prefix: IdlTypePrefix.u32, content })],
     }),
 );

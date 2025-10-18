@@ -12,6 +12,10 @@ import {
 it("run", () => {
   // Create IDLs on the fly
   const programIdl1 = idlProgramParse({
+    metadata: {
+      name: "MyProgram",
+      version: "0.0.1",
+    },
     instructions: {
       my_ix: {
         docs: ["my ix doc"],
@@ -59,6 +63,8 @@ it("run", () => {
     },
   });
   const programIdl2 = idlProgramParse({
+    name: "MyProgram",
+    version: "0.0.1",
     instructions: [
       {
         name: "my_ix",
@@ -114,6 +120,17 @@ it("run", () => {
   });
   // Assert that both versions are equivalent
   expect(programIdl1).toStrictEqual(programIdl2);
+  // Assert metadata was parsed correctly
+  expect(programIdl1.metadata).toStrictEqual({
+    name: "MyProgram",
+    description: undefined,
+    repository: undefined,
+    contact: undefined,
+    address: undefined,
+    version: "0.0.1",
+    spec: undefined,
+    docs: undefined,
+  });
   // Assert instruction was parsed correctly
   expect(programIdl1.instructions.get("my_ix")).toStrictEqual({
     name: "my_ix",

@@ -943,6 +943,23 @@ export function jsonDecoderForked<
     return decoders.map((decoder) => decoder(encoded)) as any;
   };
 }
+export function jsonDecoderFailover<Content>(
+  decoders: Array<JsonDecoder<Content>>,
+): JsonDecoder<Content> {
+  return (encoded: JsonValue) => {
+    const errors = [];
+    for (const decoder of decoders) {
+      try {
+        return decoder(encoded);
+      } catch (error) {
+        errors.push(error);
+      }
+    }
+    throw new Error(
+      `JSON: No matching decoder found. Errors:\n- ${errors.join("\n- ")}`,
+    );
+  };
+}
 
 function objectKeyEncoder<Shape extends { [key: string]: any }>(
   keyDecoded: Extract<keyof Shape, string>,

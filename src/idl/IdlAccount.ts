@@ -20,7 +20,6 @@ import {
   idlUtilsAnchorDiscriminator,
   idlUtilsBytesJsonDecoder,
   idlUtilsExpectBlobAt,
-  idlUtilsFlattenBlobs,
 } from "./IdlUtils";
 
 export type IdlAccount = {
@@ -37,10 +36,12 @@ export function idlAccountEncode(
   accountIdl: IdlAccount,
   accountState: JsonValue,
 ): Uint8Array {
-  const blobs = new Array<Uint8Array>();
-  blobs.push(accountIdl.discriminator);
-  idlTypeFullEncode(accountIdl.typeFull, accountState, blobs, true);
-  return idlUtilsFlattenBlobs(blobs);
+  return idlTypeFullEncode(
+    accountIdl.typeFull,
+    accountState,
+    true,
+    accountIdl.discriminator,
+  );
 }
 
 export function idlAccountDecode(

@@ -34,7 +34,6 @@ import {
   idlUtilsAnchorDiscriminator,
   idlUtilsBytesJsonDecoder,
   idlUtilsExpectBlobAt,
-  idlUtilsFlattenBlobs,
 } from "./IdlUtils";
 
 export type IdlInstruction = {
@@ -194,15 +193,12 @@ export function idlInstructionArgsEncode(
   instructionIdl: IdlInstruction,
   instructionPayload: JsonValue,
 ): Uint8Array {
-  const blobs = new Array<Uint8Array>();
-  blobs.push(instructionIdl.discriminator);
-  idlTypeFullFieldsEncode(
+  return idlTypeFullFieldsEncode(
     instructionIdl.args.typeFullFields,
     instructionPayload,
-    blobs,
     true,
+    instructionIdl.discriminator,
   );
-  return idlUtilsFlattenBlobs(blobs);
 }
 
 export function idlInstructionArgsDecode(
@@ -230,14 +226,11 @@ export function idlInstructionReturnEncode(
   instructionIdl: IdlInstruction,
   instructionResult: JsonValue,
 ): Uint8Array {
-  const blobs = new Array<Uint8Array>();
-  idlTypeFullEncode(
+  return idlTypeFullEncode(
     instructionIdl.return.typeFull,
     instructionResult,
-    blobs,
     true,
   );
-  return idlUtilsFlattenBlobs(blobs);
 }
 
 export function idlInstructionReturnDecode(
