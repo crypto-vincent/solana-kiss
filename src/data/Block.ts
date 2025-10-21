@@ -1,12 +1,8 @@
 import { base58Decode, base58Encode } from "./Base58";
+import { Branded } from "./Utils";
 
-export type BlockSlot =
-  | (number & { readonly __brand: unique symbol })
-  | { readonly __brand: unique symbol };
-
-export type BlockHash =
-  | (string & { readonly __brand: unique symbol })
-  | { readonly __brand: unique symbol };
+export type BlockSlot = Branded<number, "BlockSlot">;
+export type BlockHash = Branded<string, "BlockHash">;
 
 export function blockSlotFromNumber(value: number): BlockSlot {
   return value as BlockSlot;

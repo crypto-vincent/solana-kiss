@@ -13,7 +13,7 @@ import {
   jsonDecoderObjectToMap,
   jsonDecoderTransform,
 } from "../data/Json";
-import { withContext } from "../data/Utils";
+import { withErrorContext } from "../data/Utils";
 import { IdlAccount, idlAccountCheck, idlAccountParse } from "./IdlAccount";
 import { IdlConstant, idlConstantParse } from "./IdlConstant";
 import { IdlError, idlErrorParse } from "./IdlError";
@@ -161,7 +161,7 @@ function parseScopedNamedValues<Content, Param>(
     }
     values.set(
       itemName,
-      withContext(`Idl: Parse: ${collectionName}: ${itemName}`, () =>
+      withErrorContext(`Idl: Parse: ${collectionName}: ${itemName}`, () =>
         parsingFunction(itemName, value, param),
       ),
     );

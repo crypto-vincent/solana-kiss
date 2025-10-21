@@ -6,7 +6,7 @@ import {
   jsonDecoderOptional,
 } from "../data/Json";
 import { Pubkey } from "../data/Pubkey";
-import { objectGetOwnProperty, withContext } from "../data/Utils";
+import { objectGetOwnProperty, withErrorContext } from "../data/Utils";
 import { IdlDocs, idlDocsParse } from "./IdlDocs";
 import {
   IdlInstructionAccount,
@@ -264,7 +264,7 @@ export function idlInstructionAddressesFind(
         continue;
       }
       try {
-        withContext(
+        withErrorContext(
           `Idl: Finding address for instruction account ${instructionAccountIdl.name}`,
           () => {
             let instructionAddress = idlInstructionAccountFind(

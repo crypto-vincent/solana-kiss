@@ -1,4 +1,8 @@
-export function withContext<T>(message: string, fn: () => T): T {
+export type Branded<T, Name> =
+  | (T & { readonly __brand: Name })
+  | { readonly __brand: Name };
+
+export function withErrorContext<T>(message: string, fn: () => T): T {
   try {
     return fn();
   } catch (error) {

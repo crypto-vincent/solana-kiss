@@ -8,7 +8,7 @@ import {
   JsonValue,
 } from "../data/Json";
 import { utf8Encode } from "../data/Utf8";
-import { objectGetOwnProperty, withContext } from "../data/Utils";
+import { objectGetOwnProperty, withErrorContext } from "../data/Utils";
 import {
   IdlTypeFull,
   IdlTypeFullArray,
@@ -82,7 +82,7 @@ const visitorEncode = {
     blobs: Array<Uint8Array>,
     prefixed: boolean,
   ) => {
-    withContext(`Encode: Typedef: ${self.name}`, () => {
+    withErrorContext(`Encode: Typedef: ${self.name}`, () => {
       return typeFullEncode(self.content, value, prefixed, blobs);
     });
   },
@@ -183,7 +183,7 @@ const visitorEncode = {
       variant: IdlTypeFullEnumVariant,
       value: JsonValue,
     ) {
-      withContext(`Encode: Enum Variant: ${variant.name}`, () => {
+      withErrorContext(`Encode: Enum Variant: ${variant.name}`, () => {
         idlTypePrefixEncode(self.prefix, variant.code, blobs);
         typeFullFieldsEncode(variant.fields, value, prefixed, blobs);
       });
@@ -290,7 +290,7 @@ const visitorFieldsEncode = {
   ) => {
     const object = jsonCodecObjectRaw.decoder(value);
     for (const field of self) {
-      withContext(`Encode: Field: ${field.name}`, () => {
+      withErrorContext(`Encode: Field: ${field.name}`, () => {
         typeFullEncode(
           field.content,
           objectGetOwnProperty(object, field.name),
@@ -308,7 +308,7 @@ const visitorFieldsEncode = {
   ) => {
     const array = jsonCodecArrayRaw.decoder(value);
     for (const field of self) {
-      withContext(`Encode: Field: ${field.position}`, () => {
+      withErrorContext(`Encode: Field: ${field.position}`, () => {
         typeFullEncode(field.content, array[field.position], prefixed, blobs);
       });
     }

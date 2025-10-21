@@ -11,7 +11,7 @@ import { casingConvertToSnake } from "./Casing";
 import { pubkeyFromBase58, pubkeyToBase58 } from "./Pubkey";
 import { signatureFromBase58, signatureToBase58 } from "./Signature";
 import { utf8Decode, utf8Encode } from "./Utf8";
-import { objectGetOwnProperty, withContext } from "./Utils";
+import { objectGetOwnProperty, withErrorContext } from "./Utils";
 
 export type JsonValue = JsonPrimitive | JsonArray | JsonObject;
 export type JsonPrimitive = boolean | number | string | null | undefined;
@@ -518,7 +518,9 @@ export function jsonDecoderArray<Item>(
       );
     }
     return array.map((item, index) =>
-      withContext(`JSON: Decode Array[${index}] =>`, () => itemDecoder(item)),
+      withErrorContext(`JSON: Decode Array[${index}] =>`, () =>
+        itemDecoder(item),
+      ),
     );
   };
 }
@@ -554,8 +556,9 @@ export function jsonDecoderArrayToObject<
     const array = jsonCodecArrayRaw.decoder(encoded);
     let index = 0;
     for (const keyDecoded in shape) {
-      const valueDecoded = withContext(`JSON: Decode Array[${index}] =>`, () =>
-        shape[keyDecoded]!(array[index++]),
+      const valueDecoded = withErrorContext(
+        `JSON: Decode Array[${index}] =>`,
+        () => shape[keyDecoded]!(array[index++]),
       );
       if (valueDecoded !== undefined) {
         decoded[keyDecoded] = valueDecoded;
@@ -616,7 +619,7 @@ export function jsonDecoderObject<
     for (const keyDecoded in shape) {
       const keyEncoded = objectKeyEncoder(keyDecoded, keyEncoding);
       const valueEncoded = objectGetOwnProperty(object, keyEncoded);
-      const valueDecoded = withContext(
+      const valueDecoded = withErrorContext(
         `JSON: Decode Object["${keyEncoded}"] =>`,
         () => shape[keyDecoded]!(valueEncoded),
       );
@@ -697,7 +700,7 @@ export function jsonDecoderObjectToMap<Key, Value>(params: {
     for (const keyEncoded of Object.keys(object)) {
       const keyDecoded = params.keyDecoder(keyEncoded);
       const valueEncoded = objectGetOwnProperty(object, keyEncoded);
-      const valueDecoded = withContext(
+      const valueDecoded = withErrorContext(
         `JSON: Decode Object["${keyEncoded}"] =>`,
         () => params.valueDecoder(valueEncoded),
       );
@@ -919,11 +922,14 @@ export function jsonDecoderAsEnum<
       }
     }
     if (foundKey !== undefined) {
-      return withContext(`JSON: Decode Enum["${foundKey.encoded}"] =>`, () => {
-        return shape[foundKey.decoded]!(
-          objectGetOwnProperty(object, foundKey.encoded),
-        );
-      });
+      return withErrorContext(
+        `JSON: Decode Enum["${foundKey.encoded}"] =>`,
+        () => {
+          return shape[foundKey.decoded]!(
+            objectGetOwnProperty(object, foundKey.encoded),
+          );
+        },
+      );
     }
     const expectedKeys = Object.keys(shape).join("/");
     const foundKeys = Object.keys(object).join("/");

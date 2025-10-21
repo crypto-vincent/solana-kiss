@@ -1,5 +1,5 @@
 import { JsonObject, JsonValue } from "../data/Json";
-import { withContext } from "../data/Utils";
+import { withErrorContext } from "../data/Utils";
 import {
   IdlTypeFull,
   IdlTypeFullArray,
@@ -45,7 +45,7 @@ const visitorDecode = {
     data: DataView,
     dataOffset: number,
   ): [number, JsonValue] => {
-    return withContext(
+    return withErrorContext(
       `Decode: Typedef: ${self.name} (offset: ${dataOffset})`,
       () => idlTypeFullDecode(self.content, data, dataOffset),
     );
@@ -161,7 +161,7 @@ const visitorDecode = {
       );
     }
     const variant = self.variants[variantIndex]!;
-    const [dataVariantSize, dataVariant] = withContext(
+    const [dataVariantSize, dataVariant] = withErrorContext(
       `Decode: Enum Variant: ${variant.name} (offset: ${dataVariantOffset})`,
       () => idlTypeFullFieldsDecode(variant.fields, data, dataVariantOffset),
     );
@@ -235,7 +235,7 @@ const visitorFieldsDecode = {
     const dataFields: JsonObject = {};
     for (const field of self) {
       const dataFieldOffset = dataOffset + dataSize;
-      const [dataFieldSize, dataField] = withContext(
+      const [dataFieldSize, dataField] = withErrorContext(
         `Decode: Field: ${field.name} (offset: ${dataFieldOffset})`,
         () => idlTypeFullDecode(field.content, data, dataFieldOffset),
       );
@@ -255,7 +255,7 @@ const visitorFieldsDecode = {
     const dataFields = new Array<JsonValue>();
     for (const field of self) {
       const dataFieldOffset = dataOffset + dataSize;
-      const [dataFieldSize, dataField] = withContext(
+      const [dataFieldSize, dataField] = withErrorContext(
         `Decode: Field: ${field.position} (offset: ${dataFieldOffset})`,
         () => idlTypeFullDecode(field.content, data, dataFieldOffset),
       );

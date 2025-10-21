@@ -1,9 +1,10 @@
+import { MessageCompiled } from "./Message";
 import { Pubkey, pubkeyFromBytes, pubkeyToVerifier } from "./Pubkey";
 import { Signature, signatureFromBytes } from "./Signature";
 
 export type Signer = {
   address: Pubkey;
-  sign: (message: Uint8Array) => Promise<Signature>;
+  sign: (data: MessageCompiled | Uint8Array) => Promise<Signature>;
 };
 
 export async function signerGenerate(): Promise<Signer> {
@@ -68,11 +69,11 @@ export async function signerFromSecret(
 function signerFromPrivateKey(privateKey: CryptoKey, address: Pubkey): Signer {
   return {
     address,
-    sign: async (message: Uint8Array) => {
+    sign: async (data: MessageCompiled | Uint8Array) => {
       const output = await crypto.subtle.sign(
         "Ed25519",
         privateKey,
-        message as BufferSource,
+        data as BufferSource,
       );
       return signatureFromBytes(new Uint8Array(output));
     },

@@ -1,5 +1,10 @@
 import { expect, it } from "@jest/globals";
-import { Keypair, PublicKey, Transaction } from "@solana/web3.js";
+import {
+  Keypair,
+  PublicKey,
+  TransactionMessage,
+  VersionedTransaction,
+} from "@solana/web3.js";
 import {
   blockHashFromBytes,
   blockHashToBase58,
@@ -36,15 +41,23 @@ it("run", async () => {
       generateInstructionDummy(dummyProgramAddress),
     );
   }
-  const referenceTransaction = new Transaction();
-  referenceTransaction.feePayer = payerReference.publicKey;
-  referenceTransaction.recentBlockhash = blockHashToBase58(blockHash);
-  referenceTransaction.add(
-    generatedInstruction1.reference,
-    generatedInstruction2.reference,
-    ...generatedDummyInstructions.map((ix) => ix.reference),
+  const referenceTransactionMessage = new TransactionMessage({
+    payerKey: payerReference.publicKey,
+    recentBlockhash: blockHashToBase58(blockHash),
+    instructions: [
+      generatedInstruction1.reference,
+      generatedInstruction2.reference,
+      ...generatedDummyInstructions.map((ix) => ix.reference),
+    ],
+  }).compileToV0Message([]);
+  const referenceTransaction = new VersionedTransaction(
+    referenceTransactionMessage,
   );
-  referenceTransaction.sign(payerReference, signer1Reference, signer2Reference);
+  referenceTransaction.sign([
+    payerReference,
+    signer1Reference,
+    signer2Reference,
+  ]);
   const currentMessage = {
     payerAddress: payerCurrent.address,
     recentBlockHash: blockHash,
@@ -54,11 +67,9 @@ it("run", async () => {
       ...generatedDummyInstructions.map((ix) => ix.current),
     ],
   };
-  const referenceCompiledBytes = new Uint8Array(
-    referenceTransaction.serializeMessage(),
-  );
-  const referenceSignedBytes = new Uint8Array(referenceTransaction.serialize());
-  const currentCompiledBytes = messageCompile(currentMessage);
+  const referenceCompiledBytes = referenceTransactionMessage.serialize();
+  const referenceSignedBytes = referenceTransaction.serialize();
+  const currentCompiledBytes = messageCompile(currentMessage, []);
   const currentSignedBytes = await messageSignWithSigners(
     currentCompiledBytes,
     [payerCurrent, signer1Current, signer2Current],

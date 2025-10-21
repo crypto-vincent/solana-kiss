@@ -16,7 +16,7 @@ import {
   jsonDecoderObject,
   jsonDecoderOptional,
 } from "../data/Json";
-import { messageCompile, messageSignedBySigners } from "../data/Message";
+import { messageCompile, messageSignWithSigners } from "../data/Message";
 import { Pubkey, pubkeyDefault } from "../data/Pubkey";
 import { Signer } from "../data/Signer";
 import { RpcHttp } from "./RpcHttp";
@@ -86,7 +86,7 @@ export async function rpcHttpSimulateInstructions(
     recentBlockHash,
   };
   const messageCompiled = messageCompile(message);
-  const messageSigned = await messageSignedBySigners(messageCompiled, signers, {
+  const messageSigned = await messageSignWithSigners(messageCompiled, signers, {
     ignoreMissingSignatures: sigVerify === false,
   });
   const afterAccountsAddresses = options?.simulatedAccountsAddresses

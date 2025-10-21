@@ -11,7 +11,7 @@ import {
   JsonValue,
 } from "../data/Json";
 import { Pubkey, pubkeyFindPdaAddress, pubkeyFromBytes } from "../data/Pubkey";
-import { objectGetOwnProperty, withContext } from "../data/Utils";
+import { objectGetOwnProperty, withErrorContext } from "../data/Utils";
 import { IdlDocs, idlDocsParse } from "./IdlDocs";
 import {
   IdlInstructionBlob,
@@ -111,7 +111,7 @@ export function idlInstructionAccountParse(
     }
     return nestedAccounts;
   }
-  const pda = withContext(
+  const pda = withErrorContext(
     `Idl: Instruction Account: Pda: ${decoded.name}`,
     () => {
       if (decoded.pda === undefined) {

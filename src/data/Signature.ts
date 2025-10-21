@@ -1,8 +1,7 @@
 import { base58Decode, base58Encode } from "./Base58";
+import { Branded } from "./Utils";
 
-export type Signature =
-  | (string & { readonly __brand: unique symbol })
-  | { readonly __brand: unique symbol };
+export type Signature = Branded<string, "Signature">;
 
 export function signatureFromBase58(base58: string): Signature {
   const bytes = base58Decode(base58);

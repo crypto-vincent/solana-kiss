@@ -8,23 +8,28 @@ import {
 } from "./Pubkey";
 import { Signature, signatureToBytes } from "./Signature";
 import { Signer } from "./Signer";
+import { Branded } from "./Utils";
 
-// TODO (naming) - have a branded type for a compiled message and/or decompiling utilities ?
+// TODO (naming) - should this be named MessageInfo ?
 export type Message = {
   payerAddress: Pubkey;
   recentBlockHash: BlockHash;
   instructions: Array<Instruction>;
 };
+export type MessageCompiled = Branded<Uint8Array, "MessageCompiled">;
 
-// TODO - handle decompiler and legacy support ?
-export function messageCompile(message: Message): Uint8Array {
+export function messageCompile(
+  message: Message,
+  addressLookupTables?: Array<any>, // TODO (ALT) - handle LUTs
+): MessageCompiled {
   const {
     writableSigners,
     readonlySigners,
     writableNonSigners,
     readonlyNonSigners,
-  } = messageAddressesMetasByCategory(message, { legacySorting: true });
-  // TODO (ALT) - handle LUTs
+  } = messageAddressesMetasByCategory(message, {
+    legacyAddressSorting: addressLookupTables === undefined,
+  });
   const staticAddresses = [
     ...writableSigners.map(([address]) => address),
     ...readonlySigners.map(([address]) => address),
@@ -35,23 +40,25 @@ export function messageCompile(message: Message): Uint8Array {
   for (let index = 0; index < staticAddresses.length; index++) {
     staticIndexByAddress.set(staticAddresses[index]!, index);
   }
-  const bytes = new Array<number>();
-  // bytes.push(0x80); // TODO (ALT) - handle versioning
-  bytes.push(writableSigners.length + readonlySigners.length);
-  bytes.push(readonlySigners.length);
-  bytes.push(readonlyNonSigners.length);
-  bytes.push(staticAddresses.length);
+  const messageCompiledBytes = new Array<number>();
+  if (addressLookupTables !== undefined) {
+    messageCompiledBytes.push(0x80);
+  }
+  messageCompiledBytes.push(writableSigners.length + readonlySigners.length);
+  messageCompiledBytes.push(readonlySigners.length);
+  messageCompiledBytes.push(readonlyNonSigners.length);
+  messageCompiledBytes.push(staticAddresses.length);
   for (const staticAddress of staticAddresses) {
     const staticAddressBytes = pubkeyToBytes(staticAddress);
     for (const byte of staticAddressBytes) {
-      bytes.push(byte);
+      messageCompiledBytes.push(byte);
     }
   }
   const recentBlockHashBytes = blockHashToBytes(message.recentBlockHash);
   for (const byte of recentBlockHashBytes) {
-    bytes.push(byte);
+    messageCompiledBytes.push(byte);
   }
-  messageBytesPushShortVec16(bytes, message.instructions.length);
+  messageBytesPushShortVec16(messageCompiledBytes, message.instructions.length);
   for (const instruction of message.instructions) {
     const programIndex = staticIndexByAddress.get(instruction.programAddress);
     if (programIndex === undefined) {
@@ -59,8 +66,8 @@ export function messageCompile(message: Message): Uint8Array {
         `Message: Could not find program address in static addresses: ${instruction.programAddress}`,
       );
     }
-    bytes.push(programIndex);
-    bytes.push(instruction.inputs.length);
+    messageCompiledBytes.push(programIndex);
+    messageCompiledBytes.push(instruction.inputs.length);
     for (const input of instruction.inputs) {
       const inputIndex = staticIndexByAddress.get(input.address);
       if (inputIndex === undefined) {
@@ -68,79 +75,106 @@ export function messageCompile(message: Message): Uint8Array {
           `Message: Could not find input address in static addresses: ${input.address}`,
         );
       }
-      bytes.push(inputIndex);
+      messageCompiledBytes.push(inputIndex);
     }
-    messageBytesPushShortVec16(bytes, instruction.data.length);
+    messageBytesPushShortVec16(messageCompiledBytes, instruction.data.length);
     for (const byte of instruction.data) {
-      bytes.push(byte);
+      messageCompiledBytes.push(byte);
     }
   }
-  // TODO (ALT) - handle address lookup tables
-  // bytes.push(0);
-  return new Uint8Array(bytes);
+  if (addressLookupTables !== undefined) {
+    // TODO (ALT) - handle address lookup tables
+    messageCompiledBytes.push(0);
+  }
+  return new Uint8Array(messageCompiledBytes) as MessageCompiled;
 }
 
-export function messageDecompileHeader(messageCompiled: Uint8Array) {
-  if (messageCompiled.length === 0) {
-    throw new Error(
-      "Message: Cannot get metadata of an empty compiled message",
-    );
+export function messageDecompileVersion(
+  messageCompiled: MessageCompiled,
+): "legacy" | number {
+  const messageCompiledBytes = messageCompiled as Uint8Array;
+  if (messageCompiledBytes.length === 0) {
+    throw new Error("Message: Cannot get version of an empty compiled message");
   }
-  let version = "legacy";
-  let startOffset = 0;
-  const firstByte = messageCompiled[0]!;
+  const firstByte = messageCompiledBytes[0]!;
   if ((firstByte & 0b10000000) !== 0) {
-    version = (firstByte & 0b01111111).toString();
-    startOffset = 1;
+    return firstByte & 0b01111111;
   }
-  const headerLength = startOffset + 4;
-  if (messageCompiled.length < headerLength) {
-    throw new Error(
-      `Message: Expected valid compiled message with at least ${headerLength} bytes (found ${messageCompiled.length} bytes)`,
-    );
-  }
-  return {
-    version,
-    headerLength,
-    numRequiredSignatures: messageCompiled[startOffset + 0]!,
-    numReadonlySignedAccounts: messageCompiled[startOffset + 1]!,
-    numReadonlyUnsignedAccounts: messageCompiled[startOffset + 2]!,
-    staticAccountCount: messageCompiled[startOffset + 3]!,
-  };
+  return "legacy";
 }
 
-export function messageSignedWithSignatures(
-  messageCompiled: Uint8Array,
+export function messageDecompileSignersAddresses(
+  messageCompiled: MessageCompiled,
+): Array<Pubkey> {
+  const messageVersion = messageDecompileVersion(messageCompiled);
+  const messageHeaderOffset = messageVersion === "legacy" ? 0 : 1;
+  const messageHeaderLength = messageHeaderOffset + 4;
+  const messageCompiledBytes = messageCompiled as Uint8Array;
+  if (messageCompiledBytes.length < messageHeaderLength) {
+    throw new Error(
+      `Message: Expected valid compiled message header (found ${messageCompiledBytes.length} bytes)`,
+    );
+  }
+  const signerCount = messageCompiledBytes[messageHeaderOffset + 0]!;
+  if (messageCompiledBytes.length < messageHeaderLength + signerCount * 32) {
+    throw new Error(
+      `Message: Expected valid compiled message with at least ${signerCount} accounts (found ${messageCompiledBytes.length} bytes)`,
+    );
+  }
+  const signersAddresses = new Array<Pubkey>();
+  for (let signerIndex = 0; signerIndex < signerCount; signerIndex++) {
+    const signerAddressOffset = messageHeaderLength + signerIndex * 32;
+    const signerAddressBytes = messageCompiledBytes.slice(
+      signerAddressOffset,
+      signerAddressOffset + 32,
+    );
+    signersAddresses.push(pubkeyFromBytes(signerAddressBytes));
+  }
+  return signersAddresses;
+}
+
+export async function messageSignWithSigners(
+  messageCompiled: MessageCompiled,
+  signers: Array<Signer>,
+  options?: { ignoreMissingSignatures?: boolean },
+): Promise<Uint8Array> {
+  const signaturesBySignerAddress = new Map<Pubkey, Signature>();
+  for (const signer of signers) {
+    signaturesBySignerAddress.set(
+      signer.address,
+      await signer.sign(messageCompiled),
+    );
+  }
+  return messageSignedBySignatures(
+    messageCompiled,
+    signaturesBySignerAddress,
+    options,
+  );
+}
+
+export function messageSignedBySignatures(
+  messageCompiled: MessageCompiled,
   signaturesBySignerAddress: Map<Pubkey, Signature>,
   options?: { ignoreMissingSignatures?: boolean },
 ): Uint8Array {
-  const messageHeader = messageDecompileHeader(messageCompiled);
-  if (
-    messageCompiled.length <
-    messageHeader.headerLength + messageHeader.numRequiredSignatures * 32
-  ) {
+  const signersAddresses = messageDecompileSignersAddresses(messageCompiled);
+  const messageCompiledBytes = messageCompiled as Uint8Array;
+  const messageSignaturesLength = 1 + 64 * signersAddresses.length;
+  const messageSignedTotalLength =
+    messageSignaturesLength + messageCompiledBytes.length;
+  if (messageSignedTotalLength > 1232) {
     throw new Error(
-      `Message: Expected valid compiled message with at least ${messageHeader.numRequiredSignatures} accounts (found ${messageCompiled.length} bytes)`,
+      `Message: Signed message is too large: ${messageSignedTotalLength} bytes (max: 1232 bytes)`,
     );
   }
-  const messageSignaturesLength = 1 + 64 * messageHeader.numRequiredSignatures;
-  const messageSignedLength = messageSignaturesLength + messageCompiled.length;
-  if (messageSignedLength > 1232) {
-    throw new Error(
-      `Message: Signed message is too large: ${messageSignedLength} bytes (max: 1232 bytes)`,
-    );
-  }
-  const messageSigned = new Uint8Array(messageSignedLength);
-  messageSigned[0] = messageHeader.numRequiredSignatures;
+  const messageSigned = new Uint8Array(messageSignedTotalLength);
+  messageSigned[0] = signersAddresses.length;
   for (
     let signerIndex = 0;
-    signerIndex < messageHeader.numRequiredSignatures;
+    signerIndex < signersAddresses.length;
     signerIndex++
   ) {
-    const signerAddressOffset = messageHeader.headerLength + signerIndex * 32;
-    const signerAddress = pubkeyFromBytes(
-      messageCompiled.slice(signerAddressOffset, signerAddressOffset + 32),
-    );
+    const signerAddress = signersAddresses[signerIndex]!;
     const signatureOffset = 1 + signerIndex * 64;
     const signature = signaturesBySignerAddress.get(signerAddress);
     if (signature === undefined) {
@@ -153,27 +187,8 @@ export function messageSignedWithSignatures(
       messageSigned.set(signatureToBytes(signature), signatureOffset);
     }
   }
-  messageSigned.set(messageCompiled, messageSignaturesLength);
+  messageSigned.set(messageCompiledBytes, messageSignaturesLength);
   return messageSigned;
-}
-
-export async function messageSignedBySigners(
-  messageCompiled: Uint8Array,
-  signers: Array<Signer>,
-  options?: { ignoreMissingSignatures?: boolean },
-): Promise<Uint8Array> {
-  const signaturesBySignerAddress = new Map<Pubkey, Signature>();
-  for (const signer of signers) {
-    signaturesBySignerAddress.set(
-      signer.address,
-      await signer.sign(messageCompiled),
-    );
-  }
-  return messageSignedWithSignatures(
-    messageCompiled,
-    signaturesBySignerAddress,
-    options,
-  );
 }
 
 function messageBytesPushShortVec16(bytes: Array<number>, length: number) {
@@ -190,7 +205,7 @@ function messageBytesPushShortVec16(bytes: Array<number>, length: number) {
 
 function messageAddressesMetasByCategory(
   message: Message,
-  options?: { legacySorting?: boolean },
+  options?: { legacyAddressSorting?: boolean },
 ) {
   const metaByAddress = new Map<
     Pubkey,
@@ -221,7 +236,7 @@ function messageAddressesMetasByCategory(
     }
   }
   const addressesWithMeta = [...metaByAddress.entries()];
-  if (options?.legacySorting) {
+  if (options?.legacyAddressSorting) {
     addressesWithMeta.sort(([addressA, _metaA], [addressB, _metaB]) => {
       if (addressA === message.payerAddress) {
         return -1;

@@ -1,4 +1,4 @@
-import { withContext } from "../data/Utils";
+import { withErrorContext } from "../data/Utils";
 import {
   IdlTypeFull,
   IdlTypeFullArray,
@@ -35,7 +35,7 @@ type IdlTypeFullPodFields = {
 export function idlTypeFullTypedefBytemuck(
   typeFullTypedef: IdlTypeFullTypedef,
 ): IdlTypeFullPod {
-  return withContext(`Bytemuck: Typedef: ${typeFullTypedef.name}`, () => {
+  return withErrorContext(`Bytemuck: Typedef: ${typeFullTypedef.name}`, () => {
     let contentPod;
     if (typeFullTypedef.repr === undefined) {
       contentPod = bytemuckRust(typeFullTypedef.content);
@@ -149,7 +149,7 @@ const visitorBytemuckC = {
     let size = 0;
     const variantsReprC = [];
     for (const variant of self.variants) {
-      const variantFieldsPod = withContext(
+      const variantFieldsPod = withErrorContext(
         `Bytemuck: Repr(C): Enum Variant: ${variant.name}`,
         () => bytemuckFields(variant.fields, 0, false),
       );
@@ -272,7 +272,7 @@ const visitorBytemuckRust = {
     let size = self.prefix.size;
     const variantsReprRust = [];
     for (const variant of self.variants) {
-      const variantFieldsPod = withContext(
+      const variantFieldsPod = withErrorContext(
         `Bytemuck: Repr(Rust): Enum Variant: ${variant.name}`,
         () => bytemuckFields(variant.fields, self.prefix.size, true),
       );
@@ -350,8 +350,9 @@ const visitorBytemuckFields = {
     rustReorder: boolean,
   ): IdlTypeFullPodFields => {
     const fieldsInfosPods = self.map((field, index) => {
-      const contentPod = withContext(`Bytemuck: Field: ${field.name}`, () =>
-        bytemuckRust(field.content),
+      const contentPod = withErrorContext(
+        `Bytemuck: Field: ${field.name}`,
+        () => bytemuckRust(field.content),
       );
       return {
         index: index,
@@ -385,8 +386,9 @@ const visitorBytemuckFields = {
     rustReorder: boolean,
   ): IdlTypeFullPodFields => {
     const fieldsInfosPods = self.map((field, index) => {
-      const contentPod = withContext(`Bytemuck: Field: ${field.position}`, () =>
-        bytemuckRust(field.content),
+      const contentPod = withErrorContext(
+        `Bytemuck: Field: ${field.position}`,
+        () => bytemuckRust(field.content),
       );
       return {
         index: index,
