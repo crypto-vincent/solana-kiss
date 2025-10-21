@@ -16,7 +16,7 @@ export type RpcTransactionExecution = {
   logs: Array<string> | undefined;
   error: JsonValue | undefined;
   consumedComputeUnits: number;
-  chargedFeesLamports: bigint;
+  chargedFeesLamports: bigint | undefined;
 };
 
 export type RpcTransactionInvoke = {

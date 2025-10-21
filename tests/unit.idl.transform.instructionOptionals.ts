@@ -44,10 +44,10 @@ it("run", () => {
     acc_5_3,
   };
   const caseEmptyInputs = [
-    { address: acc_0_0, signing: false, writable: false },
-    { address: acc_1_1, signing: false, writable: false },
-    { address: acc_4_2, signing: false, writable: false },
-    { address: acc_5_3, signing: false, writable: false },
+    { address: acc_0_0, signer: false, writable: false },
+    { address: acc_1_1, signer: false, writable: false },
+    { address: acc_4_2, signer: false, writable: false },
+    { address: acc_5_3, signer: false, writable: false },
   ];
   expect(
     idlInstructionAccountsEncode(instructionIdl, caseEmptyAddresses),
@@ -67,14 +67,14 @@ it("run", () => {
     acc_7_3,
   };
   const caseFullInputs = [
-    { address: acc_0_0, signing: false, writable: false },
-    { address: acc_1_1, signing: false, writable: false },
-    { address: acc_2_1, signing: false, writable: false },
-    { address: acc_3_1, signing: false, writable: false },
-    { address: acc_4_2, signing: false, writable: false },
-    { address: acc_5_3, signing: false, writable: false },
-    { address: acc_6_3, signing: false, writable: false },
-    { address: acc_7_3, signing: false, writable: false },
+    { address: acc_0_0, signer: false, writable: false },
+    { address: acc_1_1, signer: false, writable: false },
+    { address: acc_2_1, signer: false, writable: false },
+    { address: acc_3_1, signer: false, writable: false },
+    { address: acc_4_2, signer: false, writable: false },
+    { address: acc_5_3, signer: false, writable: false },
+    { address: acc_6_3, signer: false, writable: false },
+    { address: acc_7_3, signer: false, writable: false },
   ];
   expect(
     idlInstructionAccountsEncode(instructionIdl, caseFullAddresses),
@@ -91,11 +91,11 @@ it("run", () => {
     acc_5_3,
   };
   const casePartial1Inputs = [
-    { address: acc_0_0, signing: false, writable: false },
-    { address: acc_1_1, signing: false, writable: false },
-    { address: acc_2_1, signing: false, writable: false },
-    { address: acc_4_2, signing: false, writable: false },
-    { address: acc_5_3, signing: false, writable: false },
+    { address: acc_0_0, signer: false, writable: false },
+    { address: acc_1_1, signer: false, writable: false },
+    { address: acc_2_1, signer: false, writable: false },
+    { address: acc_4_2, signer: false, writable: false },
+    { address: acc_5_3, signer: false, writable: false },
   ];
   expect(
     idlInstructionAccountsEncode(instructionIdl, casePartial1Addresses),
@@ -114,13 +114,13 @@ it("run", () => {
     acc_6_3,
   };
   const casePartial3Inputs = [
-    { address: acc_0_0, signing: false, writable: false },
-    { address: acc_1_1, signing: false, writable: false },
-    { address: acc_2_1, signing: false, writable: false },
-    { address: acc_3_1, signing: false, writable: false },
-    { address: acc_4_2, signing: false, writable: false },
-    { address: acc_5_3, signing: false, writable: false },
-    { address: acc_6_3, signing: false, writable: false },
+    { address: acc_0_0, signer: false, writable: false },
+    { address: acc_1_1, signer: false, writable: false },
+    { address: acc_2_1, signer: false, writable: false },
+    { address: acc_3_1, signer: false, writable: false },
+    { address: acc_4_2, signer: false, writable: false },
+    { address: acc_5_3, signer: false, writable: false },
+    { address: acc_6_3, signer: false, writable: false },
   ];
   expect(
     idlInstructionAccountsEncode(instructionIdl, casePartial3Addresses),

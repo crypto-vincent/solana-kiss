@@ -87,7 +87,6 @@ export function idlInstructionAccountParse(
     if (
       decoded.signer !== undefined ||
       decoded.isSigner !== undefined ||
-      decoded.signing !== undefined ||
       decoded.writable !== undefined ||
       decoded.isMut !== undefined ||
       decoded.optional !== undefined ||
@@ -143,7 +142,7 @@ export function idlInstructionAccountParse(
         .join("."),
       docs: decoded.docs,
       writable: decoded.writable ?? decoded.isMut ?? false,
-      signer: decoded.signer ?? decoded.isSigner ?? decoded.signing ?? false,
+      signer: decoded.signer ?? decoded.isSigner ?? false,
       optional: decoded.optional ?? decoded.isOptional ?? false,
       address: decoded.address,
       pda,
@@ -156,9 +155,8 @@ const jsonDecoder = jsonDecoderObject({
   docs: idlDocsParse,
   accounts: jsonDecoderOptional(jsonCodecArrayRaw.decoder),
   signer: jsonDecoderOptional(jsonCodecBoolean.decoder),
-  isSigner: jsonDecoderOptional(jsonCodecBoolean.decoder),
-  signing: jsonDecoderOptional(jsonCodecBoolean.decoder),
   writable: jsonDecoderOptional(jsonCodecBoolean.decoder),
+  isSigner: jsonDecoderOptional(jsonCodecBoolean.decoder),
   isMut: jsonDecoderOptional(jsonCodecBoolean.decoder),
   optional: jsonDecoderOptional(jsonCodecBoolean.decoder),
   isOptional: jsonDecoderOptional(jsonCodecBoolean.decoder),

@@ -1,15 +1,10 @@
 import { expect, it } from "@jest/globals";
-import {
-  Keypair,
-  PublicKey,
-  TransactionMessage,
-  VersionedTransaction,
-} from "@solana/web3.js";
+import { Keypair, PublicKey, Transaction } from "@solana/web3.js";
 import {
   blockHashFromBytes,
   blockHashToBase58,
   messageCompile,
-  messageSign,
+  messageSignedBySigners,
   Pubkey,
   pubkeyFromBase58,
   pubkeyNewDummy,
@@ -27,12 +22,12 @@ it("run", async () => {
   const generatedInstruction1 = generateInstruction(
     pubkeyFromBase58(signer1Reference.publicKey.toBase58()),
     signer2Current.address,
-    42,
+    22,
   );
   const generatedInstruction2 = generateInstruction(
     signer1Current.address,
     pubkeyFromBase58(signer2Reference.publicKey.toBase58()),
-    300,
+    170,
   );
   const dummyProgramAddress = pubkeyNewDummy();
   const generatedDummyInstructions = [];
@@ -41,25 +36,16 @@ it("run", async () => {
       generateInstructionDummy(dummyProgramAddress),
     );
   }
-  const referenceCompiledMessage = new TransactionMessage({
-    payerKey: payerReference.publicKey,
-    recentBlockhash: blockHashToBase58(blockHash),
-    instructions: [
-      generatedInstruction1.reference,
-      generatedInstruction2.reference,
-      ...generatedDummyInstructions.map((ix) => ix.reference),
-    ],
-  }).compileToV0Message([]); // TODO (ALT) - handle address lookup tables
-  const referenceSignedMessage = new VersionedTransaction(
-    referenceCompiledMessage,
+  const referenceTransaction = new Transaction();
+  referenceTransaction.feePayer = payerReference.publicKey;
+  referenceTransaction.recentBlockhash = blockHashToBase58(blockHash);
+  referenceTransaction.add(
+    generatedInstruction1.reference,
+    generatedInstruction2.reference,
+    ...generatedDummyInstructions.map((ix) => ix.reference),
   );
-  referenceSignedMessage.sign([
-    payerReference,
-    signer1Reference,
-    signer2Reference,
-  ]);
-  const referenceCompiledBytes = referenceCompiledMessage.serialize();
-  const currentCompiledBytes = messageCompile({
+  referenceTransaction.sign(payerReference, signer1Reference, signer2Reference);
+  const currentMessage = {
     payerAddress: payerCurrent.address,
     recentBlockHash: blockHash,
     instructions: [
@@ -67,14 +53,17 @@ it("run", async () => {
       generatedInstruction2.current,
       ...generatedDummyInstructions.map((ix) => ix.current),
     ],
-  });
+  };
+  const referenceCompiledBytes = new Uint8Array(
+    referenceTransaction.serializeMessage(),
+  );
+  const referenceSignedBytes = new Uint8Array(referenceTransaction.serialize());
+  const currentCompiledBytes = messageCompile(currentMessage);
+  const currentSignedBytes = await messageSignedBySigners(
+    currentCompiledBytes,
+    [payerCurrent, signer1Current, signer2Current],
+  );
   expect(currentCompiledBytes).toStrictEqual(referenceCompiledBytes);
-  const referenceSignedBytes = referenceSignedMessage.serialize();
-  const currentSignedBytes = await messageSign(currentCompiledBytes, [
-    payerCurrent,
-    signer1Current,
-    signer2Current,
-  ]);
   expect(currentSignedBytes).toStrictEqual(referenceSignedBytes);
 });
 
@@ -110,10 +99,10 @@ function generateInstruction(
   const current = {
     programAddress,
     inputs: [
-      { address: signerWritableAddress, signing: true, writable: true },
-      { address: signerReadonlyAddress, signing: true, writable: false },
-      { address: writableAddress, signing: false, writable: true },
-      { address: readonlyAddress, signing: false, writable: false },
+      { address: signerWritableAddress, signer: true, writable: true },
+      { address: signerReadonlyAddress, signer: true, writable: false },
+      { address: writableAddress, signer: false, writable: true },
+      { address: readonlyAddress, signer: false, writable: false },
     ],
     data,
   };

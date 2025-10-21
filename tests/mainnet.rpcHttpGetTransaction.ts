@@ -2,7 +2,7 @@ import { expect, it } from "@jest/globals";
 import {
   expectDefined,
   Instruction,
-  Pubkey,
+  InstructionInput,
   pubkeyFromBase58,
   rpcHttpFromUrl,
   rpcHttpGetTransaction,
@@ -47,8 +47,8 @@ it("run", async () => {
       instruction: instruction({
         programAddress: "11111111111111111111111111111111",
         inputs: [
-          input("Ewfot2ZKhuGuEWaSRyFpe3LpK9xSEEUrDZk4AQpTazAR", "ws"),
-          input("DttWaMuVvTiduZRnguLF7jNxTgiMBZ1hyAumKUiL2KRL", "w"),
+          i("Ewfot2ZKhuGuEWaSRyFpe3LpK9xSEEUrDZk4AQpTazAR", "ws"),
+          i("DttWaMuVvTiduZRnguLF7jNxTgiMBZ1hyAumKUiL2KRL", "w"),
         ],
         data: [2, 0, 0, 0, 160, 134, 1, 0, 0, 0, 0, 0],
       }),
@@ -57,19 +57,19 @@ it("run", async () => {
       instruction: instruction({
         programAddress: "SQDS4ep65T869zMMBKyuUq6aD6EgTu8psMjkvj52pCf",
         inputs: [
-          input("95YsCnu6P89y8N52qLLTbRog42eypUNqzDi4JYCSCuA", ""),
-          input("9HLo1KDmyY8xkqz6wyd31qUdBHLK5jyxtkEkguXdaZ24", "w"),
-          input("FnapEgNwU7rbxZEbTmi3TjQHGcMx5USufajmqtsHSqth", ""),
-          input("Ewfot2ZKhuGuEWaSRyFpe3LpK9xSEEUrDZk4AQpTazAR", "ws"),
-          input("45AMNJMGuojexK1rEBHJSSVFDpTUcoHRcAUmRfLF8hrm", ""),
-          input("8PDYaC2zz9UYN3qVoAyZvAF7qRkmTByBT5TnT2mHGPuZ", "w"),
-          input("8sWsVPJpjcBrmmuAQCk1Tp6BgAmEc8A5UM8RhJn1qzED", "w"),
-          input("BLv19rpwzGkZoJndnR3FXMhkdpqaWiW2i2PvgGzh7kRD", "w"),
-          input("PsyMP8fXEEMo2C6C84s8eXuRUrvzQnZyquyjipDRohf", ""),
-          input("EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v", ""),
-          input("ATokenGPvbdGVxr1b2hvZbsiqW5xWH25efTNsLJA8knL", ""),
-          input("TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA", ""),
-          input("11111111111111111111111111111111", ""),
+          i("95YsCnu6P89y8N52qLLTbRog42eypUNqzDi4JYCSCuA", ""),
+          i("9HLo1KDmyY8xkqz6wyd31qUdBHLK5jyxtkEkguXdaZ24", "w"),
+          i("FnapEgNwU7rbxZEbTmi3TjQHGcMx5USufajmqtsHSqth", ""),
+          i("Ewfot2ZKhuGuEWaSRyFpe3LpK9xSEEUrDZk4AQpTazAR", "ws"),
+          i("45AMNJMGuojexK1rEBHJSSVFDpTUcoHRcAUmRfLF8hrm", ""),
+          i("8PDYaC2zz9UYN3qVoAyZvAF7qRkmTByBT5TnT2mHGPuZ", "w"),
+          i("8sWsVPJpjcBrmmuAQCk1Tp6BgAmEc8A5UM8RhJn1qzED", "w"),
+          i("BLv19rpwzGkZoJndnR3FXMhkdpqaWiW2i2PvgGzh7kRD", "w"),
+          i("PsyMP8fXEEMo2C6C84s8eXuRUrvzQnZyquyjipDRohf", ""),
+          i("EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v", ""),
+          i("ATokenGPvbdGVxr1b2hvZbsiqW5xWH25efTNsLJA8knL", ""),
+          i("TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA", ""),
+          i("11111111111111111111111111111111", ""),
         ],
         data: [194, 8, 161, 87, 153, 164, 25, 171],
       }),
@@ -79,14 +79,14 @@ it("run", async () => {
           instruction: instruction({
             programAddress: "PsyMP8fXEEMo2C6C84s8eXuRUrvzQnZyquyjipDRohf",
             inputs: [
-              input("8PDYaC2zz9UYN3qVoAyZvAF7qRkmTByBT5TnT2mHGPuZ", "w"),
-              input("8PDYaC2zz9UYN3qVoAyZvAF7qRkmTByBT5TnT2mHGPuZ", "w"),
-              input("8sWsVPJpjcBrmmuAQCk1Tp6BgAmEc8A5UM8RhJn1qzED", "w"),
-              input("BLv19rpwzGkZoJndnR3FXMhkdpqaWiW2i2PvgGzh7kRD", "w"),
-              input("EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v", ""),
-              input("ATokenGPvbdGVxr1b2hvZbsiqW5xWH25efTNsLJA8knL", ""),
-              input("TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA", ""),
-              input("11111111111111111111111111111111", ""),
+              i("8PDYaC2zz9UYN3qVoAyZvAF7qRkmTByBT5TnT2mHGPuZ", "w"),
+              i("8PDYaC2zz9UYN3qVoAyZvAF7qRkmTByBT5TnT2mHGPuZ", "w"),
+              i("8sWsVPJpjcBrmmuAQCk1Tp6BgAmEc8A5UM8RhJn1qzED", "w"),
+              i("BLv19rpwzGkZoJndnR3FXMhkdpqaWiW2i2PvgGzh7kRD", "w"),
+              i("EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v", ""),
+              i("ATokenGPvbdGVxr1b2hvZbsiqW5xWH25efTNsLJA8knL", ""),
+              i("TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA", ""),
+              i("11111111111111111111111111111111", ""),
             ],
             data: [
               [55, 151, 27, 224, 136, 247, 199, 235],
@@ -99,8 +99,8 @@ it("run", async () => {
               instruction: instruction({
                 programAddress: "11111111111111111111111111111111",
                 inputs: [
-                  input("8PDYaC2zz9UYN3qVoAyZvAF7qRkmTByBT5TnT2mHGPuZ", "w"),
-                  input("8sWsVPJpjcBrmmuAQCk1Tp6BgAmEc8A5UM8RhJn1qzED", "w"),
+                  i("8PDYaC2zz9UYN3qVoAyZvAF7qRkmTByBT5TnT2mHGPuZ", "w"),
+                  i("8sWsVPJpjcBrmmuAQCk1Tp6BgAmEc8A5UM8RhJn1qzED", "w"),
                 ],
                 data: [
                   0, 0, 0, 0, 128, 55, 72, 0, 0, 0, 0, 0, 40, 2, 0, 0, 0, 0, 0,
@@ -114,12 +114,12 @@ it("run", async () => {
               instruction: instruction({
                 programAddress: "ATokenGPvbdGVxr1b2hvZbsiqW5xWH25efTNsLJA8knL",
                 inputs: [
-                  input("8PDYaC2zz9UYN3qVoAyZvAF7qRkmTByBT5TnT2mHGPuZ", "w"),
-                  input("BLv19rpwzGkZoJndnR3FXMhkdpqaWiW2i2PvgGzh7kRD", "w"),
-                  input("8sWsVPJpjcBrmmuAQCk1Tp6BgAmEc8A5UM8RhJn1qzED", "w"),
-                  input("EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v", ""),
-                  input("11111111111111111111111111111111", ""),
-                  input("TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA", ""),
+                  i("8PDYaC2zz9UYN3qVoAyZvAF7qRkmTByBT5TnT2mHGPuZ", "w"),
+                  i("BLv19rpwzGkZoJndnR3FXMhkdpqaWiW2i2PvgGzh7kRD", "w"),
+                  i("8sWsVPJpjcBrmmuAQCk1Tp6BgAmEc8A5UM8RhJn1qzED", "w"),
+                  i("EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v", ""),
+                  i("11111111111111111111111111111111", ""),
+                  i("TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA", ""),
                 ],
                 data: [0],
               }),
@@ -130,7 +130,7 @@ it("run", async () => {
                     programAddress:
                       "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA",
                     inputs: [
-                      input("EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v", ""),
+                      i("EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v", ""),
                     ],
                     data: [21, 7, 0],
                   }),
@@ -144,14 +144,8 @@ it("run", async () => {
                   instruction: instruction({
                     programAddress: "11111111111111111111111111111111",
                     inputs: [
-                      input(
-                        "8PDYaC2zz9UYN3qVoAyZvAF7qRkmTByBT5TnT2mHGPuZ",
-                        "w",
-                      ),
-                      input(
-                        "BLv19rpwzGkZoJndnR3FXMhkdpqaWiW2i2PvgGzh7kRD",
-                        "w",
-                      ),
+                      i("8PDYaC2zz9UYN3qVoAyZvAF7qRkmTByBT5TnT2mHGPuZ", "w"),
+                      i("BLv19rpwzGkZoJndnR3FXMhkdpqaWiW2i2PvgGzh7kRD", "w"),
                     ],
                     data: [
                       0, 0, 0, 0, 240, 29, 31, 0, 0, 0, 0, 0, 165, 0, 0, 0, 0,
@@ -167,10 +161,7 @@ it("run", async () => {
                     programAddress:
                       "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA",
                     inputs: [
-                      input(
-                        "BLv19rpwzGkZoJndnR3FXMhkdpqaWiW2i2PvgGzh7kRD",
-                        "w",
-                      ),
+                      i("BLv19rpwzGkZoJndnR3FXMhkdpqaWiW2i2PvgGzh7kRD", "w"),
                     ],
                     data: [22],
                   }),
@@ -189,11 +180,8 @@ it("run", async () => {
                     programAddress:
                       "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA",
                     inputs: [
-                      input(
-                        "BLv19rpwzGkZoJndnR3FXMhkdpqaWiW2i2PvgGzh7kRD",
-                        "w",
-                      ),
-                      input("EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v", ""),
+                      i("BLv19rpwzGkZoJndnR3FXMhkdpqaWiW2i2PvgGzh7kRD", "w"),
+                      i("EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v", ""),
                     ],
                     data: [
                       18, 116, 242, 159, 166, 19, 7, 185, 227, 29, 234, 100,
@@ -240,7 +228,7 @@ function invoke(value: {
 
 function instruction(value: {
   programAddress: string;
-  inputs?: Array<{ address: Pubkey; signing: boolean; writable: boolean }>;
+  inputs?: Array<InstructionInput>;
   data?: Array<number>;
 }): Instruction {
   return {
@@ -250,10 +238,10 @@ function instruction(value: {
   };
 }
 
-function input(address: string, mode: string) {
+function i(address: string, mode: string) {
   return {
     address: pubkeyFromBase58(address),
-    signing: mode.includes("s"),
+    signer: mode.includes("s"),
     writable: mode.includes("w"),
   };
 }

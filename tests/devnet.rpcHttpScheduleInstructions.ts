@@ -80,8 +80,8 @@ const secret = new Uint8Array([
 const instructionIdl = idlInstructionParse("create", {
   discriminator: { encode: { value: 0, type: "u32" } },
   accounts: [
-    { name: "payer", signing: true, writable: true },
-    { name: "owned", signing: true, writable: true },
+    { name: "payer", signer: true, writable: true },
+    { name: "owned", signer: true, writable: true },
   ],
   args: [
     { name: "lamports", type: "u64" },

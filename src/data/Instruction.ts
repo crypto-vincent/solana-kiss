@@ -8,6 +8,6 @@ export type Instruction = {
 
 export type InstructionInput = {
   address: Pubkey;
-  signing: boolean;
+  signer: boolean;
   writable: boolean;
 };

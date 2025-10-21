@@ -58,12 +58,12 @@ it("run", () => {
     inputs: [
       {
         address: expectDefined(instructionAddresses["signer"]),
-        signing: true,
+        signer: true,
         writable: false,
       },
       {
         address: expectDefined(instructionAddresses["writable"]),
-        signing: false,
+        signer: false,
         writable: true,
       },
     ],

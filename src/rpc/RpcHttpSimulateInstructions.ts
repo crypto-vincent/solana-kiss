@@ -12,10 +12,11 @@ import {
   jsonDecoderArray,
   jsonDecoderArrayToObject,
   jsonDecoderConst,
+  jsonDecoderNullable,
   jsonDecoderObject,
   jsonDecoderOptional,
 } from "../data/Json";
-import { messageCompile, messageSign } from "../data/Message";
+import { messageCompile, messageSignedBySigners } from "../data/Message";
 import { Pubkey, pubkeyDefault } from "../data/Pubkey";
 import { Signer } from "../data/Signer";
 import { RpcHttp } from "./RpcHttp";
@@ -85,8 +86,8 @@ export async function rpcHttpSimulateInstructions(
     recentBlockHash,
   };
   const messageCompiled = messageCompile(message);
-  const messageSigned = await messageSign(messageCompiled, signers, {
-    ignoreMissingSigners: sigVerify === false,
+  const messageSigned = await messageSignedBySigners(messageCompiled, signers, {
+    ignoreMissingSignatures: sigVerify === false,
   });
   const afterAccountsAddresses = options?.simulatedAccountsAddresses
     ? [...options.simulatedAccountsAddresses]
@@ -112,7 +113,9 @@ export async function rpcHttpSimulateInstructions(
     logs: result.value.logs,
     error: result.value.err,
     consumedComputeUnits: result.value.unitsConsumed,
-    chargedFeesLamports: BigInt(result.value.fee),
+    chargedFeesLamports: result.value.fee
+      ? BigInt(result.value.fee)
+      : undefined,
   };
   const afterAccountsByAddress = new Map(
     afterAccountsAddresses.map((afterAccountAddress, afterAccountIndex) => {
@@ -145,7 +148,7 @@ const resultJsonDecoder = jsonDecoderObject({
   context: jsonDecoderObject({ slot: jsonCodecBlockSlot.decoder }),
   value: jsonDecoderObject({
     unitsConsumed: jsonCodecNumber.decoder,
-    fee: jsonCodecNumber.decoder,
+    fee: jsonDecoderNullable(jsonCodecNumber.decoder),
     err: jsonCodecRaw.decoder,
     logs: jsonDecoderOptional(jsonDecoderArray(jsonCodecString.decoder)),
     accounts: jsonDecoderOptional(

@@ -129,7 +129,7 @@ export function idlInstructionAccountsEncode(
     }
     instructionInputs.push({
       address: instructionAddress,
-      signing: instructionAccountIdl.signer,
+      signer: instructionAccountIdl.signer,
       writable: instructionAccountIdl.writable,
     });
   }

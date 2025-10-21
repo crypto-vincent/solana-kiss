@@ -114,12 +114,12 @@ it("run", () => {
 function expectInput(
   instructionInput: InstructionInput | undefined,
   address: Pubkey,
-  signing: boolean,
+  signer: boolean,
   writable: boolean,
 ) {
   expect(instructionInput).toStrictEqual({
     address,
-    signing,
+    signer,
     writable,
   });
 }

@@ -78,7 +78,7 @@ export async function rpcHttpGetTransaction(
     logs: meta.logMessages,
     error: meta.err, // TODO - parse error to find custom program errors ?
     consumedComputeUnits: meta.computeUnitsConsumed,
-    chargedFeesLamports: BigInt(meta.fee),
+    chargedFeesLamports: meta.fee ? BigInt(meta.fee) : undefined,
   };
   if (
     options?.skipCallStack ||
@@ -139,13 +139,13 @@ function decompileInstructionsInputs(
   loadedWritableAddresses: Array<Pubkey>,
   loadedReadonlyAddresses: Array<Pubkey>,
 ) {
-  const signingAddresses = new Set<Pubkey>();
+  const signersAddresses = new Set<Pubkey>();
   for (
     let signerIndex = 0;
     signerIndex < requiredSignaturesCount;
     signerIndex++
   ) {
-    signingAddresses.add(expectItemInArray(staticAddresses, signerIndex));
+    signersAddresses.add(expectItemInArray(staticAddresses, signerIndex));
   }
   const readonlyAddresses = new Set<Pubkey>();
   for (
@@ -173,7 +173,7 @@ function decompileInstructionsInputs(
   for (const inputAddress of inputsAddresses) {
     instructionsInputs.push({
       address: inputAddress,
-      signing: signingAddresses.has(inputAddress),
+      signer: signersAddresses.has(inputAddress),
       writable: !readonlyAddresses.has(inputAddress),
     });
   }
@@ -398,7 +398,7 @@ const resultJsonDecoder = jsonDecoderOptional(
     meta: jsonDecoderObject({
       computeUnitsConsumed: jsonCodecNumber.decoder,
       err: jsonDecoderNullable(jsonCodecRaw.decoder),
-      fee: jsonCodecNumber.decoder,
+      fee: jsonDecoderNullable(jsonCodecNumber.decoder),
       innerInstructions: jsonDecoderOptional(
         jsonDecoderArray(
           jsonDecoderObject({
