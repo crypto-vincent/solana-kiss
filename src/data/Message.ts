@@ -8,15 +8,15 @@ import {
 } from "./Pubkey";
 import { Signature, signatureToBytes } from "./Signature";
 import { Signer } from "./Signer";
-import { Branded } from "./Utils";
+import { BrandedType } from "./Utils";
 
-// TODO (naming) - should this be named MessageInfo ?
 export type Message = {
   payerAddress: Pubkey;
   recentBlockHash: BlockHash;
   instructions: Array<Instruction>;
 };
-export type MessageCompiled = Branded<Uint8Array, "MessageCompiled">;
+
+export type MessageCompiled = BrandedType<Uint8Array, "MessageCompiled">;
 
 export function messageCompile(
   message: Message,

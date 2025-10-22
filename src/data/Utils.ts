@@ -1,16 +1,6 @@
-export type Branded<T, Name> =
+export type BrandedType<T, Name> =
   | (T & { readonly __brand: Name })
   | { readonly __brand: Name };
-
-export function withErrorContext<T>(message: string, fn: () => T): T {
-  try {
-    return fn();
-  } catch (error) {
-    throw new Error(
-      `${message}\n > ${error instanceof Error ? error.message : String(error)}`,
-    );
-  }
-}
 
 export function expectDefined<T>(value: T | undefined, name?: string): T {
   if (value === undefined) {
@@ -33,6 +23,22 @@ export function objectGetOwnProperty<
     return object[key];
   }
   return undefined;
+}
+
+export function withErrorContext<T>(message: string, fn: () => T): T {
+  try {
+    return fn();
+  } catch (error) {
+    throw new ErrorWithContext(message, error);
+  }
+}
+
+export class ErrorWithContext extends Error {
+  constructor(message: string, error: any) {
+    super(
+      `${message}\n > ${error instanceof Error ? error.message : String(error)}`,
+    );
+  }
 }
 
 // TODO - error stacking util (for what except the find account loop ?)

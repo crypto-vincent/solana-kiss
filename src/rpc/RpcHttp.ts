@@ -14,6 +14,7 @@ export type RpcHttp = (
   config: JsonObject | undefined,
 ) => Promise<JsonValue>;
 
+// TODO - testing on the retry strategies and concurrency strategy
 export function rpcHttpFromUrl(
   url: string,
   context?: { commitment?: "confirmed" | "finalized" },
@@ -117,13 +118,11 @@ export function rpcHttpWithMaxConcurrentRequests(
 
 export function rpcHttpWithRetryOnError(
   rpcHttp: RpcHttp,
-  retryApprover: (
-    error: any,
-    context: {
-      retriedCounter: number;
-      totalDurationMs: number;
-    },
-  ) => Promise<boolean>,
+  retryApprover: (context: {
+    retriedCounter: number;
+    totalDurationMs: number;
+    lastError: any;
+  }) => Promise<boolean>,
 ): RpcHttp {
   return async function (method, params, config) {
     const startTime = Date.now();
@@ -133,9 +132,10 @@ export function rpcHttpWithRetryOnError(
         return await rpcHttp(method, params, config);
       } catch (error) {
         const totalDurationMs = Date.now() - startTime;
-        const retryApproved = await retryApprover(error, {
+        const retryApproved = await retryApprover({
           retriedCounter,
           totalDurationMs,
+          lastError: error,
         });
         if (!retryApproved) {
           throw error;

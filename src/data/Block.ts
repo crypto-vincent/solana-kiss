@@ -1,8 +1,8 @@
 import { base58Decode, base58Encode } from "./Base58";
-import { Branded } from "./Utils";
+import { BrandedType } from "./Utils";
 
-export type BlockSlot = Branded<number, "BlockSlot">;
-export type BlockHash = Branded<string, "BlockHash">;
+export type BlockSlot = BrandedType<number, "BlockSlot">;
+export type BlockHash = BrandedType<string, "BlockHash">;
 
 export function blockSlotFromNumber(value: number): BlockSlot {
   return value as BlockSlot;

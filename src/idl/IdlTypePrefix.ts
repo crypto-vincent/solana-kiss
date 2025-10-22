@@ -59,7 +59,7 @@ export function idlTypePrefixDecode(
   data: DataView,
   dataOffset: number,
 ): [number, bigint] {
-  return [prefix.size, prefix.traverse(visitorDecode, data, dataOffset)];
+  return prefix.traverse(visitorDecode, data, dataOffset);
 }
 
 const visitorEncode = {
@@ -86,21 +86,21 @@ const visitorEncode = {
 };
 
 const visitorDecode = {
-  u8: (data: DataView, dataOffset: number): bigint => {
-    return BigInt(data.getUint8(dataOffset));
+  u8: (data: DataView, dataOffset: number): [number, bigint] => {
+    return [1, BigInt(data.getUint8(dataOffset))];
   },
-  u16: (data: DataView, dataOffset: number): bigint => {
-    return BigInt(data.getUint16(dataOffset, true));
+  u16: (data: DataView, dataOffset: number): [number, bigint] => {
+    return [2, BigInt(data.getUint16(dataOffset, true))];
   },
-  u32: (data: DataView, dataOffset: number): bigint => {
-    return BigInt(data.getUint32(dataOffset, true));
+  u32: (data: DataView, dataOffset: number): [number, bigint] => {
+    return [4, BigInt(data.getUint32(dataOffset, true))];
   },
-  u64: (data: DataView, dataOffset: number): bigint => {
-    return data.getBigUint64(dataOffset, true);
+  u64: (data: DataView, dataOffset: number): [number, bigint] => {
+    return [8, data.getBigUint64(dataOffset, true)];
   },
-  u128: (data: DataView, dataOffset: number): bigint => {
+  u128: (data: DataView, dataOffset: number): [number, bigint] => {
     const low = data.getBigUint64(dataOffset, true);
     const high = data.getBigUint64(dataOffset + 8, true);
-    return low | (high << 64n);
+    return [16, low | (high << 64n)];
   },
 };

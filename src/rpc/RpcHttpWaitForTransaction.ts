@@ -25,12 +25,11 @@ export async function rpcHttpWaitForTransaction(
       return response;
     }
     const totalDurationMs = Date.now() - startTime;
-    if (
-      !(await retryApprover({
-        retriedCounter,
-        totalDurationMs,
-      }))
-    ) {
+    const retryApproved = await retryApprover({
+      retriedCounter,
+      totalDurationMs,
+    });
+    if (!retryApproved) {
       throw new Error(
         `RpcHttp: Transaction not found: ${transactionId} (after ${retriedCounter} retries, ${totalDurationMs}ms)`,
       );

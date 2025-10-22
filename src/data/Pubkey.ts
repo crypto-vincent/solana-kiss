@@ -2,9 +2,9 @@ import { base58Decode, base58Encode } from "./Base58";
 import { sha256Hash } from "./Sha256";
 import { Signature, signatureToBytes } from "./Signature";
 import { utf8Encode } from "./Utf8";
-import { Branded } from "./Utils";
+import { BrandedType } from "./Utils";
 
-export type Pubkey = Branded<string, "Pubkey">;
+export type Pubkey = BrandedType<string, "Pubkey">;
 
 export const pubkeyDefault = pubkeyFromBytes(new Uint8Array(32));
 
