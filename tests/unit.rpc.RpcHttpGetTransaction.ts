@@ -6,13 +6,13 @@ import {
   pubkeyFromBase58,
   rpcHttpGetTransaction,
   Signature,
-  TransactionCallStack,
+  TransactionFlow,
 } from "../src";
 
 // TODO (test) - simulate transaction case
 
 it("run", async () => {
-  const { transactionRequest, transactionExecution, transactionCallStack } =
+  const { transactionRequest, transactionExecution, transactionFlow } =
     expectDefined(
       await rpcHttpGetTransaction(
         () => require("./fixtures/RpcHttpGetTransaction.json"),
@@ -46,20 +46,20 @@ it("run", async () => {
     "4nTobZxuiA9xZDuSMfSQE6WJSswAkoVoF7ycve42iiy2",
   );
   // Check the invocations content
-  expect(transactionCallStack).toStrictEqual([
-    invoke({
+  expect(transactionFlow).toStrictEqual([
+    invocation({
       instruction: instruction({
         programAddress: "ComputeBudget111111111111111111111111111111",
         data: [2, 32, 161, 7, 0],
       }),
     }),
-    invoke({
+    invocation({
       instruction: instruction({
         programAddress: "ComputeBudget111111111111111111111111111111",
         data: [3, 236, 214, 0, 0, 0, 0, 0, 0],
       }),
     }),
-    invoke({
+    invocation({
       instruction: instruction({
         programAddress: "11111111111111111111111111111111",
         inputs: [
@@ -69,7 +69,7 @@ it("run", async () => {
         data: [2, 0, 0, 0, 160, 134, 1, 0, 0, 0, 0, 0],
       }),
     }),
-    invoke({
+    invocation({
       instruction: instruction({
         programAddress: "SQDS4ep65T869zMMBKyuUq6aD6EgTu8psMjkvj52pCf",
         inputs: [
@@ -87,9 +87,9 @@ it("run", async () => {
         ],
         data: [194, 8, 161, 87, 153, 164, 25, 171],
       }),
-      callStack: [
+      flow: [
         { log: "Instruction: VaultTransactionExecute" },
-        invoke({
+        invocation({
           instruction: instruction({
             programAddress: "PsyMP8fXEEMo2C6C84s8eXuRUrvzQnZyquyjipDRohf",
             inputs: [
@@ -101,9 +101,9 @@ it("run", async () => {
             ],
             data: [11, 36, 247, 105, 0, 212, 165, 190, 42, 0, 0, 0, 0, 0, 0, 0],
           }),
-          callStack: [
+          flow: [
             { log: "Instruction: PoolExtract" },
-            invoke({
+            invocation({
               instruction: instruction({
                 programAddress: "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA",
                 inputs: [
@@ -113,9 +113,9 @@ it("run", async () => {
                 ],
                 data: [3, 42, 0, 0, 0, 0, 0, 0, 0],
               }),
-              callStack: [
+              flow: [
                 { log: "Instruction: Transfer" },
-                invoke({
+                invocation({
                   instruction: instruction({
                     programAddress: "11111111111111111111111111111111",
                   }),
@@ -126,7 +126,7 @@ it("run", async () => {
           ],
           result: { consumedComputeUnits: 13848 },
         }),
-        invoke({
+        invocation({
           instruction: instruction({
             programAddress: "11111111111111111111111111111111",
           }),
@@ -137,9 +137,9 @@ it("run", async () => {
   ]);
 });
 
-function invoke(value: {
+function invocation(value: {
   instruction: Instruction;
-  callStack?: TransactionCallStack;
+  flow?: TransactionFlow;
   result?: {
     error?: string | undefined;
     returnData?: Uint8Array | undefined;
@@ -147,9 +147,9 @@ function invoke(value: {
   };
 }) {
   return {
-    invoke: {
+    invocation: {
       instruction: value.instruction,
-      callStack: value.callStack ?? [],
+      flow: value.flow ?? [],
       error: value.result?.error,
       returnData: value.result?.returnData,
       consumedComputeUnits: value.result?.consumedComputeUnits,

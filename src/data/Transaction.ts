@@ -32,15 +32,15 @@ export type TransactionExecution = {
   chargedFeesLamports: bigint | undefined;
 };
 
-export type TransactionCallStack = Array<
-  | { invoke: TransactionInvocation }
+export type TransactionFlow = Array<
+  | { invocation: TransactionInvocation }
   | { data: Uint8Array }
   | { log: string }
   | { unknown: string }
 >;
 export type TransactionInvocation = {
   instruction: Instruction;
-  callStack: TransactionCallStack;
+  flow: TransactionFlow;
   error: string | undefined;
   returnData: Uint8Array | undefined;
   consumedComputeUnits: number | undefined;
@@ -149,7 +149,7 @@ export function transactionCompileOnly(
 export function transactionInspect(transactionPacket: TransactionPacket): {
   transactionVersion: "legacy" | number;
   transactionMessage: TransactionMessage;
-  transactionSignersAddresses: Array<Pubkey>;
+  signersAddresses: Array<Pubkey>;
 } {
   const packetBytes = transactionPacket as Uint8Array;
   if (packetBytes.length === 0) {
@@ -186,7 +186,7 @@ export function transactionInspect(transactionPacket: TransactionPacket): {
   return {
     transactionVersion: version,
     transactionMessage: messageBytes as TransactionMessage,
-    transactionSignersAddresses: signersAddresses,
+    signersAddresses: signersAddresses,
   };
 }
 
@@ -194,7 +194,7 @@ export async function transactionSign(
   transactionPacket: TransactionPacket,
   signers: Array<Signer>,
 ) {
-  const { transactionMessage, transactionSignersAddresses } =
+  const { transactionMessage, signersAddresses } =
     transactionInspect(transactionPacket);
   const signaturesBySignerAddress = new Map<Pubkey, Signature>();
   for (const signer of signers) {
@@ -206,10 +206,10 @@ export async function transactionSign(
   const packetBytes = transactionPacket as Uint8Array;
   for (
     let signerIndex = 0;
-    signerIndex < transactionSignersAddresses.length;
+    signerIndex < signersAddresses.length;
     signerIndex++
   ) {
-    const signerAddress = transactionSignersAddresses[signerIndex]!;
+    const signerAddress = signersAddresses[signerIndex]!;
     const signature = signaturesBySignerAddress.get(signerAddress);
     if (signature !== undefined) {
       packetBytes.set(signatureToBytes(signature), 1 + signerIndex * 64);
@@ -218,15 +218,15 @@ export async function transactionSign(
 }
 
 export async function transactionVerify(transactionPacket: TransactionPacket) {
-  const { transactionMessage, transactionSignersAddresses } =
+  const { transactionMessage, signersAddresses } =
     transactionInspect(transactionPacket);
   const packetBytes = transactionPacket as Uint8Array;
   for (
     let signerIndex = 0;
-    signerIndex < transactionSignersAddresses.length;
+    signerIndex < signersAddresses.length;
     signerIndex++
   ) {
-    const signerAddress = transactionSignersAddresses[signerIndex]!;
+    const signerAddress = signersAddresses[signerIndex]!;
     const signatureOffset = 1 + signerIndex * 64;
     const signatureBytes = packetBytes.slice(
       signatureOffset,
@@ -234,8 +234,7 @@ export async function transactionVerify(transactionPacket: TransactionPacket) {
     );
     const signature = signatureFromBytes(signatureBytes);
     const verifier = await pubkeyToVerifier(signerAddress);
-    const verified = await verifier(signature, transactionMessage);
-    if (!verified) {
+    if (!(await verifier(signature, transactionMessage))) {
       throw new Error(
         `Transaction: Signature verification failed for signer: ${signerAddress}`,
       );

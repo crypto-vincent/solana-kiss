@@ -7,13 +7,13 @@ import {
   rpcHttpFromUrl,
   rpcHttpGetTransaction,
   signatureFromBase58,
-  TransactionCallStack,
+  TransactionFlow,
 } from "../src";
 
 it("run", async () => {
   const rpcHttp = rpcHttpFromUrl("https://api.mainnet-beta.solana.com");
   // Complex transaction with many inner instructions nested
-  const { transactionRequest, transactionExecution, transactionCallStack } =
+  const { transactionRequest, transactionExecution, transactionFlow } =
     expectDefined(
       await rpcHttpGetTransaction(
         rpcHttp,
@@ -31,20 +31,20 @@ it("run", async () => {
   expect(transactionExecution.error).toStrictEqual(null);
   // Check the invocations tree shape
   const createParams = new Uint8Array(410);
-  expect(transactionCallStack).toStrictEqual([
-    invoke({
+  expect(transactionFlow).toStrictEqual([
+    invocation({
       instruction: instruction({
         programAddress: "ComputeBudget111111111111111111111111111111",
         data: [2, 32, 161, 7, 0],
       }),
     }),
-    invoke({
+    invocation({
       instruction: instruction({
         programAddress: "ComputeBudget111111111111111111111111111111",
         data: [3, 112, 17, 1, 0, 0, 0, 0, 0],
       }),
     }),
-    invoke({
+    invocation({
       instruction: instruction({
         programAddress: "11111111111111111111111111111111",
         inputs: [
@@ -54,7 +54,7 @@ it("run", async () => {
         data: [2, 0, 0, 0, 160, 134, 1, 0, 0, 0, 0, 0],
       }),
     }),
-    invoke({
+    invocation({
       instruction: instruction({
         programAddress: "SQDS4ep65T869zMMBKyuUq6aD6EgTu8psMjkvj52pCf",
         inputs: [
@@ -74,9 +74,9 @@ it("run", async () => {
         ],
         data: [194, 8, 161, 87, 153, 164, 25, 171],
       }),
-      callStack: [
+      flow: [
         { log: "Instruction: VaultTransactionExecute" },
-        invoke({
+        invocation({
           instruction: instruction({
             programAddress: "PsyMP8fXEEMo2C6C84s8eXuRUrvzQnZyquyjipDRohf",
             inputs: [
@@ -94,9 +94,9 @@ it("run", async () => {
               Array.from(createParams),
             ].flat(),
           }),
-          callStack: [
+          flow: [
             { log: "Instruction: PoolCreate" },
-            invoke({
+            invocation({
               instruction: instruction({
                 programAddress: "11111111111111111111111111111111",
                 inputs: [
@@ -111,7 +111,7 @@ it("run", async () => {
                 ],
               }),
             }),
-            invoke({
+            invocation({
               instruction: instruction({
                 programAddress: "ATokenGPvbdGVxr1b2hvZbsiqW5xWH25efTNsLJA8knL",
                 inputs: [
@@ -124,9 +124,9 @@ it("run", async () => {
                 ],
                 data: [0],
               }),
-              callStack: [
+              flow: [
                 { log: "Create" },
-                invoke({
+                invocation({
                   instruction: instruction({
                     programAddress:
                       "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA",
@@ -135,13 +135,13 @@ it("run", async () => {
                     ],
                     data: [21, 7, 0],
                   }),
-                  callStack: [{ log: "Instruction: GetAccountDataSize" }],
+                  flow: [{ log: "Instruction: GetAccountDataSize" }],
                   result: {
                     returnData: [165, 0, 0, 0, 0, 0, 0, 0],
                     consumedComputeUnits: 1622,
                   },
                 }),
-                invoke({
+                invocation({
                   instruction: instruction({
                     programAddress: "11111111111111111111111111111111",
                     inputs: [
@@ -157,7 +157,7 @@ it("run", async () => {
                   }),
                 }),
                 { log: "Initialize the associated token account" },
-                invoke({
+                invocation({
                   instruction: instruction({
                     programAddress:
                       "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA",
@@ -166,7 +166,7 @@ it("run", async () => {
                     ],
                     data: [22],
                   }),
-                  callStack: [
+                  flow: [
                     {
                       log: "Instruction: InitializeImmutableOwner",
                     },
@@ -176,7 +176,7 @@ it("run", async () => {
                   ],
                   result: { consumedComputeUnits: 1405 },
                 }),
-                invoke({
+                invocation({
                   instruction: instruction({
                     programAddress:
                       "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA",
@@ -190,7 +190,7 @@ it("run", async () => {
                       194, 157, 194, 135, 102, 47, 149, 8, 226,
                     ],
                   }),
-                  callStack: [{ log: "Instruction: InitializeAccount3" }],
+                  flow: [{ log: "Instruction: InitializeAccount3" }],
                   result: { consumedComputeUnits: 4241 },
                 }),
               ],
@@ -205,9 +205,9 @@ it("run", async () => {
   ]);
 });
 
-function invoke(value: {
+function invocation(value: {
   instruction: Instruction;
-  callStack?: TransactionCallStack;
+  flow?: TransactionFlow;
   result?: {
     error?: string | undefined;
     returnData?: Array<number> | undefined;
@@ -215,9 +215,9 @@ function invoke(value: {
   };
 }) {
   return {
-    invoke: {
+    invocation: {
       instruction: value.instruction,
-      callStack: value.callStack ?? [],
+      flow: value.flow ?? [],
       error: value.result?.error,
       returnData: value.result?.returnData
         ? new Uint8Array(value.result.returnData)

@@ -17,8 +17,8 @@ import {
 import { Pubkey, pubkeyFromBase58 } from "../data/Pubkey";
 import { Signature, signatureToBase58 } from "../data/Signature";
 import {
-  TransactionCallStack,
   TransactionExecution,
+  TransactionFlow,
   TransactionInvocation,
   TransactionRequest,
 } from "../data/Transaction";
@@ -27,12 +27,12 @@ import { RpcHttp } from "./RpcHttp";
 export async function rpcHttpGetTransaction(
   rpcHttp: RpcHttp,
   transactionId: Signature,
-  options?: { skipCallStack?: boolean },
+  options?: { skipTransactionFlow?: boolean },
 ): Promise<
   | {
       transactionRequest: TransactionRequest;
       transactionExecution: TransactionExecution;
-      transactionCallStack: TransactionCallStack | undefined;
+      transactionFlow: TransactionFlow | undefined;
     }
   | undefined
 > {
@@ -81,14 +81,14 @@ export async function rpcHttpGetTransaction(
     chargedFeesLamports: meta.fee ? BigInt(meta.fee) : undefined,
   };
   if (
-    options?.skipCallStack ||
+    options?.skipTransactionFlow ||
     meta.innerInstructions === undefined ||
     meta.logMessages === undefined
   ) {
     return {
       transactionRequest,
       transactionExecution,
-      transactionCallStack: undefined,
+      transactionFlow: undefined,
     };
   }
   const instructionsInvocations = decompileInstructionsInvocations(
@@ -96,32 +96,32 @@ export async function rpcHttpGetTransaction(
     instructionsInputs,
     meta.innerInstructions,
   );
-  const rootInvoke = {
+  const rootInvocation = {
     instruction: {} as Instruction,
-    callStack: [],
+    flow: [],
     error: undefined,
     returnData: undefined,
     consumedComputeUnits: undefined,
   };
   const afterParsing = parseTransactionCallstack(
-    rootInvoke,
+    rootInvocation,
     instructionsInvocations,
     meta.logMessages,
     -1,
   );
-  if (rootInvoke.error !== undefined) {
+  if (rootInvocation.error !== undefined) {
     throw new Error(
-      `RpcHttp: Unable to parse transaction callstack (found error at root level: ${rootInvoke.error})`,
+      `RpcHttp: Unable to parse transaction callstack (found error at root level: ${rootInvocation.error})`,
     );
   }
-  if (rootInvoke.returnData !== undefined) {
+  if (rootInvocation.returnData !== undefined) {
     throw new Error(
-      `RpcHttp: Unable to parse transaction callstack (found return data at root level: ${rootInvoke.returnData})`,
+      `RpcHttp: Unable to parse transaction callstack (found return data at root level: ${rootInvocation.returnData})`,
     );
   }
-  if (rootInvoke.consumedComputeUnits !== undefined) {
+  if (rootInvocation.consumedComputeUnits !== undefined) {
     throw new Error(
-      `RpcHttp: Unable to parse transaction callstack (found consumed compute units at root level: ${rootInvoke.consumedComputeUnits})`,
+      `RpcHttp: Unable to parse transaction callstack (found consumed compute units at root level: ${rootInvocation.consumedComputeUnits})`,
     );
   }
   if (afterParsing.logIndex + 1 !== meta.logMessages.length) {
@@ -132,7 +132,7 @@ export async function rpcHttpGetTransaction(
   return {
     transactionRequest,
     transactionExecution,
-    transactionCallStack: rootInvoke.callStack,
+    transactionFlow: rootInvocation.flow,
   };
 }
 
@@ -284,7 +284,7 @@ function decompileInstructionsInvocations(
 
 function parseTransactionCallstack(
   invocation: TransactionInvocation,
-  instructionsCallStack: Array<InstructionInvocation>,
+  instructionsInvocations: Array<InstructionInvocation>,
   logs: Array<string>,
   logIndex: number,
 ): { logIndex: number } {
@@ -297,12 +297,12 @@ function parseTransactionCallstack(
     const logLine = logs[logIndex]!;
     const logRegular = stripPrefix(logLine, "Program log: ");
     if (logRegular !== undefined) {
-      invocation.callStack.push({ log: logRegular });
+      invocation.flow.push({ log: logRegular });
       continue;
     }
     const logData = stripPrefix(logLine, "Program data: ");
     if (logData !== undefined) {
-      invocation.callStack.push({ data: base64Decode(logData) });
+      invocation.flow.push({ data: base64Decode(logData) });
       continue;
     }
     const logReturn = stripPrefix(logLine, "Program return: ");
@@ -327,7 +327,8 @@ function parseTransactionCallstack(
         const logProgramAddress = pubkeyFromBase58(logsProgramParts[0]!);
         const logProgramKind = logsProgramParts[1]!;
         if (logProgramKind === "invoke") {
-          const instructionInvocation = instructionsCallStack[invocationIndex];
+          const instructionInvocation =
+            instructionsInvocations[invocationIndex];
           invocationIndex++;
           if (instructionInvocation === undefined) {
             throw new Error(`RpcHttp: Unexpected invoke log: ${logLine}`);
@@ -340,21 +341,21 @@ function parseTransactionCallstack(
               `RpcHttp: Unexpected invoke log program address (expected ${instructionInvocation.instruction.programAddress}, found ${logProgramAddress}): ${logLine}`,
             );
           }
-          const innerInvoke = {
+          const innerInvocation = {
             instruction: instructionInvocation.instruction,
-            callStack: [],
+            flow: [],
             error: undefined,
             returnData: undefined,
             consumedComputeUnits: undefined,
           };
           const afterParsing = parseTransactionCallstack(
-            innerInvoke,
+            innerInvocation,
             instructionInvocation.invocations,
             logs,
             logIndex,
           );
           logIndex = afterParsing.logIndex;
-          invocation.callStack.push({ invoke: innerInvoke });
+          invocation.flow.push({ invocation: innerInvocation });
           continue;
         }
         if (logProgramKind === "consumed") {
@@ -371,7 +372,7 @@ function parseTransactionCallstack(
         }
       }
     }
-    invocation.callStack.push({ unknown: logLine });
+    invocation.flow.push({ unknown: logLine });
   }
   return { logIndex };
 }

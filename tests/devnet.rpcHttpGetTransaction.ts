@@ -12,7 +12,7 @@ it("run", async () => {
   const {
     transactionRequest: transactionRequest1,
     transactionExecution: transactionExecution1,
-    transactionCallStack: transactionCallStack1,
+    transactionFlow: transactionFlow1,
   } = expectDefined(
     await rpcHttpGetTransaction(
       rpcHttp,
@@ -28,12 +28,12 @@ it("run", async () => {
     "EZY4BjNgBeSKEnCV2DycDchJg1kjqiwJ3cb9GFc5Avhy",
   );
   expect(transactionExecution1.error).toStrictEqual(null);
-  expect(transactionCallStack1?.length).toStrictEqual(1);
+  expect(transactionFlow1?.length).toStrictEqual(1);
   // This should be a failure with error
   const {
     transactionRequest: transactionRequest2,
     transactionExecution: transactionExecution2,
-    transactionCallStack: transactionCallStack2,
+    transactionFlow: transactionFlow2,
   } = expectDefined(
     await rpcHttpGetTransaction(
       rpcHttp,
@@ -51,15 +51,15 @@ it("run", async () => {
   expect(transactionExecution2.error).toEqual({
     InstructionError: [1, { Custom: 3012 }],
   });
-  expect(transactionCallStack2?.length).toStrictEqual(2);
-  expect((transactionCallStack2 as any)[1].invoke.error).toStrictEqual(
+  expect(transactionFlow2?.length).toStrictEqual(2);
+  expect((transactionFlow2 as any)[1].invocation.error).toStrictEqual(
     "custom program error: 0xbc4",
   );
   // This should be a transaction with many instructions (> 50)
   const {
     transactionRequest: transactionRequest3,
     transactionExecution: transactionExecution3,
-    transactionCallStack: transactionCallStack3,
+    transactionFlow: transactionFlow3,
   } = expectDefined(
     await rpcHttpGetTransaction(
       rpcHttp,
@@ -75,5 +75,5 @@ it("run", async () => {
     "6gtmFZxPgbkS5b2Wxw9bk5XUGZXqwjRTwn2rLVYJiRJS",
   );
   expect(transactionExecution3.error).toStrictEqual(null);
-  expect(transactionCallStack3?.length).toStrictEqual(50);
+  expect(transactionFlow3?.length).toStrictEqual(50);
 });

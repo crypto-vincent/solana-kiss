@@ -1,7 +1,7 @@
 import { Signature } from "../data/Signature";
 import {
-  TransactionCallStack,
   TransactionExecution,
+  TransactionFlow,
   TransactionRequest,
 } from "../data/Transaction";
 import { RpcHttp } from "./RpcHttp";
@@ -17,7 +17,7 @@ export async function rpcHttpWaitForTransaction(
 ): Promise<{
   transactionRequest: TransactionRequest;
   transactionExecution: TransactionExecution;
-  transactionCallStack: TransactionCallStack | undefined;
+  transactionFlow: TransactionFlow | undefined;
 }> {
   const startTime = Date.now();
   let retriedCounter = 0;
