@@ -5,17 +5,20 @@ import {
   InstructionInput,
   pubkeyFromBase58,
   rpcHttpGetTransaction,
-  RpcTransactionCallStack,
   Signature,
+  TransactionCallStack,
 } from "../src";
 
+// TODO (test) - simulate transaction case
+
 it("run", async () => {
-  const { transactionExecution, transactionCallStack } = expectDefined(
-    await rpcHttpGetTransaction(
-      () => require("./fixtures/RpcHttpGetTransaction.json"),
-      "!" as Signature,
-    ),
-  );
+  const { transactionRequest, transactionExecution, transactionCallStack } =
+    expectDefined(
+      await rpcHttpGetTransaction(
+        () => require("./fixtures/RpcHttpGetTransaction.json"),
+        "!" as Signature,
+      ),
+    );
   // Check basic stuff about the transaction
   expect(transactionExecution.blockInfo.time?.toISOString()).toStrictEqual(
     "2025-03-24T14:28:45.000Z",
@@ -29,17 +32,17 @@ it("run", async () => {
   );
   expect(transactionExecution.error).toStrictEqual(null);
   // Check the message content
-  expect(transactionExecution.message.payerAddress).toStrictEqual(
+  expect(transactionRequest.payerAddress).toStrictEqual(
     "Hc3EobqKYuqndAYmPzEhokBab3trofMWDafj4PJxFYUL",
   );
-  expect(transactionExecution.message.instructions.length).toStrictEqual(4);
-  expect(
-    transactionExecution.message.instructions[0]!.programAddress,
-  ).toStrictEqual("ComputeBudget111111111111111111111111111111");
-  expect(transactionExecution.message.instructions[0]!.data).toStrictEqual(
+  expect(transactionRequest.instructions.length).toStrictEqual(4);
+  expect(transactionRequest.instructions[0]!.programAddress).toStrictEqual(
+    "ComputeBudget111111111111111111111111111111",
+  );
+  expect(transactionRequest.instructions[0]!.data).toStrictEqual(
     new Uint8Array([2, 32, 161, 7, 0]),
   );
-  expect(transactionExecution.message.recentBlockHash).toStrictEqual(
+  expect(transactionRequest.recentBlockHash).toStrictEqual(
     "4nTobZxuiA9xZDuSMfSQE6WJSswAkoVoF7ycve42iiy2",
   );
   // Check the invocations content
@@ -136,7 +139,7 @@ it("run", async () => {
 
 function invoke(value: {
   instruction: Instruction;
-  callStack?: RpcTransactionCallStack;
+  callStack?: TransactionCallStack;
   result?: {
     error?: string | undefined;
     returnData?: Uint8Array | undefined;

@@ -1,14 +1,19 @@
 import { expect, it } from "@jest/globals";
-import { Keypair, PublicKey, Transaction } from "@solana/web3.js";
+import {
+  Keypair,
+  PublicKey,
+  TransactionMessage,
+  VersionedTransaction,
+} from "@solana/web3.js";
 import {
   blockHashFromBytes,
   blockHashToBase58,
-  messageCompile,
-  messageSignWithSigners,
   Pubkey,
   pubkeyFromBase58,
   pubkeyNewDummy,
   signerFromSecret,
+  transactionCompileAndSign,
+  transactionInspect,
 } from "../src";
 
 it("run", async () => {
@@ -36,35 +41,42 @@ it("run", async () => {
       generateInstructionDummy(dummyProgramAddress),
     );
   }
-  const referenceTransaction = new Transaction();
-  referenceTransaction.feePayer = payerReference.publicKey;
-  referenceTransaction.recentBlockhash = blockHashToBase58(blockHash);
-  referenceTransaction.add(
-    generatedInstruction1.reference,
-    generatedInstruction2.reference,
-    ...generatedDummyInstructions.map((ix) => ix.reference),
-  );
-  referenceTransaction.sign(payerReference, signer1Reference, signer2Reference);
-  const currentMessage = {
-    payerAddress: payerCurrent.address,
-    recentBlockHash: blockHash,
+  const referenceTransactionMessage = new TransactionMessage({
+    payerKey: payerReference.publicKey,
+    recentBlockhash: blockHashToBase58(blockHash),
     instructions: [
-      generatedInstruction1.current,
-      generatedInstruction2.current,
-      ...generatedDummyInstructions.map((ix) => ix.current),
+      generatedInstruction1.reference,
+      generatedInstruction2.reference,
+      ...generatedDummyInstructions.map((ix) => ix.reference),
     ],
-  };
-  const referenceCompiledBytes = new Uint8Array(
-    referenceTransaction.serializeMessage(),
+  }).compileToV0Message([]);
+  const referenceTransaction = new VersionedTransaction(
+    referenceTransactionMessage,
   );
-  const referenceSignedBytes = new Uint8Array(referenceTransaction.serialize());
-  const currentCompiledBytes = messageCompile(currentMessage);
-  const currentSignedBytes = await messageSignWithSigners(
-    currentCompiledBytes,
+  referenceTransaction.sign([
+    payerReference,
+    signer1Reference,
+    signer2Reference,
+  ]);
+  const referenceMessageBytes = referenceTransactionMessage.serialize();
+  const referencePacketBytes = referenceTransaction.serialize();
+  const currentPacket = await transactionCompileAndSign(
     [payerCurrent, signer1Current, signer2Current],
+    {
+      payerAddress: payerCurrent.address,
+      recentBlockHash: blockHash,
+      instructions: [
+        generatedInstruction1.current,
+        generatedInstruction2.current,
+        ...generatedDummyInstructions.map((ix) => ix.current),
+      ],
+    },
+    [],
   );
-  expect(currentCompiledBytes).toStrictEqual(referenceCompiledBytes);
-  expect(currentSignedBytes).toStrictEqual(referenceSignedBytes);
+  const { transactionMessage: currentMessage } =
+    transactionInspect(currentPacket);
+  expect(currentMessage).toStrictEqual(referenceMessageBytes);
+  expect(currentPacket).toStrictEqual(referencePacketBytes);
 });
 
 function generateInstruction(

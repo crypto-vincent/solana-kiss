@@ -10,6 +10,7 @@ it("run", async () => {
   const rpcHttp = rpcHttpFromUrl("https://api.devnet.solana.com");
   // This should be a simple success
   const {
+    transactionRequest: transactionRequest1,
     transactionExecution: transactionExecution1,
     transactionCallStack: transactionCallStack1,
   } = expectDefined(
@@ -20,16 +21,17 @@ it("run", async () => {
       ),
     ),
   );
-  expect(transactionExecution1.message.payerAddress).toStrictEqual(
+  expect(transactionRequest1.payerAddress).toStrictEqual(
     "Eyh77zP5b7arPtPgpnCT8vsGmq9p5Z9HHnBSeQLnAFQi",
   );
-  expect(transactionExecution1.message.recentBlockHash).toStrictEqual(
+  expect(transactionRequest1.recentBlockHash).toStrictEqual(
     "EZY4BjNgBeSKEnCV2DycDchJg1kjqiwJ3cb9GFc5Avhy",
   );
   expect(transactionExecution1.error).toStrictEqual(null);
   expect(transactionCallStack1?.length).toStrictEqual(1);
   // This should be a failure with error
   const {
+    transactionRequest: transactionRequest2,
     transactionExecution: transactionExecution2,
     transactionCallStack: transactionCallStack2,
   } = expectDefined(
@@ -40,10 +42,10 @@ it("run", async () => {
       ),
     ),
   );
-  expect(transactionExecution2.message.payerAddress).toStrictEqual(
+  expect(transactionRequest2.payerAddress).toStrictEqual(
     "Eyh77zP5b7arPtPgpnCT8vsGmq9p5Z9HHnBSeQLnAFQi",
   );
-  expect(transactionExecution2.message.recentBlockHash).toStrictEqual(
+  expect(transactionRequest2.recentBlockHash).toStrictEqual(
     "EEkjZAAnF3qd5VRRt62GXjcoBqQYm2ezt9vNVZgZi6xQ",
   );
   expect(transactionExecution2.error).toEqual({
@@ -55,6 +57,7 @@ it("run", async () => {
   );
   // This should be a transaction with many instructions (> 50)
   const {
+    transactionRequest: transactionRequest3,
     transactionExecution: transactionExecution3,
     transactionCallStack: transactionCallStack3,
   } = expectDefined(
@@ -65,10 +68,10 @@ it("run", async () => {
       ),
     ),
   );
-  expect(transactionExecution3.message.payerAddress).toStrictEqual(
+  expect(transactionRequest3.payerAddress).toStrictEqual(
     "8sQEYJA7f5k3LrTDDkRDj46tWayc1fAdhurh61BtfUxF",
   );
-  expect(transactionExecution3.message.recentBlockHash).toStrictEqual(
+  expect(transactionRequest3.recentBlockHash).toStrictEqual(
     "6gtmFZxPgbkS5b2Wxw9bk5XUGZXqwjRTwn2rLVYJiRJS",
   );
   expect(transactionExecution3.error).toStrictEqual(null);

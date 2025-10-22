@@ -15,7 +15,7 @@ it("run", async () => {
   // Parse IDL from file JSON directly
   const programIdl = idlProgramParse(require("./fixtures/idl_anchor_29.json"));
   // Download an arbitrary instruction we should be able to decode
-  const { transactionExecution } = expectDefined(
+  const { transactionRequest } = expectDefined(
     await rpcHttpGetTransaction(
       rpcHttp,
       signatureFromBase58(
@@ -24,9 +24,7 @@ it("run", async () => {
     ),
   );
   // Check we can decode the instruction correctly
-  const instruction = expectDefined(
-    transactionExecution.message.instructions[2],
-  );
+  const instruction = expectDefined(transactionRequest.instructions[2]);
   const instructionIdl = expectDefined(
     idlProgramGuessInstruction(programIdl, instruction),
   );

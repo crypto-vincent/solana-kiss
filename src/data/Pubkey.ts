@@ -1,6 +1,7 @@
 import { base58Decode, base58Encode } from "./Base58";
 import { sha256Hash } from "./Sha256";
 import { Signature, signatureToBytes } from "./Signature";
+import { TransactionMessage } from "./Transaction";
 import { utf8Encode } from "./Utf8";
 import { BrandedType } from "./Utils";
 
@@ -136,12 +137,15 @@ export async function pubkeyToVerifier(pubkey: Pubkey) {
     true,
     ["verify"],
   );
-  return async (signature: Signature, message: Uint8Array) => {
+  return async (
+    signature: Signature,
+    data: Uint8Array | TransactionMessage,
+  ) => {
     return await crypto.subtle.verify(
       "Ed25519",
       cryptoKey,
       signatureToBytes(signature) as BufferSource,
-      message as BufferSource,
+      data as BufferSource,
     );
   };
 }

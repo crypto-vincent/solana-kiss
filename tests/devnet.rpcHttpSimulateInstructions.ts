@@ -1,5 +1,6 @@
 import { expect, it } from "@jest/globals";
 import {
+  blockHashDefault,
   expectDefined,
   idlInstructionAddressesFind,
   idlInstructionEncode,
@@ -14,6 +15,8 @@ import {
   rpcHttpSimulateInstructions,
   signerFromSecret,
   signerGenerate,
+  transactionCompileAndSign,
+  transactionCompileOnly,
   utf8Encode,
 } from "../src";
 
@@ -57,15 +60,19 @@ it("run", async () => {
   );
   const pledgeAddress = expectDefined(instructionAddresses["pledge"]);
   // Run the simulation without verifying the signers
+  const transactionPacketNoVerify = transactionCompileOnly({
+    payerAddress: payerSigner.address,
+    recentBlockHash: blockHashDefault,
+    instructions: [instruction],
+  });
   const resultNoVerify = await rpcHttpSimulateInstructions(
     rpcHttp,
-    [instruction],
-    { payerAddress: payerSigner.address },
-    { simulatedAccountsAddresses: new Set([pledgeAddress]) },
+    transactionPacketNoVerify,
+    {
+      verifySignaturesAndBlockHash: false,
+      simulatedAccountsAddresses: new Set([pledgeAddress]),
+    },
   );
-  expect(
-    resultNoVerify.transactionExecution.message.payerAddress,
-  ).toStrictEqual(payerSigner.address);
   expect(resultNoVerify.transactionExecution.error).toStrictEqual(null);
   expect(resultNoVerify.transactionExecution.logs?.length).toStrictEqual(6);
   expect(resultNoVerify.transactionExecution.chargedFeesLamports).toStrictEqual(
@@ -84,22 +91,19 @@ it("run", async () => {
   // Run the simulation with verifying the signers (and recent block hash)
   const { blockInfo: recentBlockInfo } =
     await rpcHttpGetLatestBlockHash(rpcHttp);
+  const transactionPacketWithVerify = await transactionCompileAndSign(
+    [payerSigner, userSigner],
+    {
+      payerAddress: payerSigner.address,
+      recentBlockHash: recentBlockInfo.hash,
+      instructions: [instruction],
+    },
+  );
   const resultWithVerify = await rpcHttpSimulateInstructions(
     rpcHttp,
-    [instruction],
-    {
-      payerSigner,
-      extraSigners: [userSigner],
-      recentBlockHash: recentBlockInfo.hash,
-    },
+    transactionPacketWithVerify,
     { simulatedAccountsAddresses: new Set([pledgeAddress]) },
   );
-  expect(
-    resultWithVerify.transactionExecution.message.payerAddress,
-  ).toStrictEqual(payerSigner.address);
-  expect(
-    resultWithVerify.transactionExecution.message.recentBlockHash,
-  ).toStrictEqual(recentBlockInfo.hash);
   expect(resultWithVerify.transactionExecution.error).toStrictEqual(null);
   expect(resultWithVerify.transactionExecution.logs?.length).toStrictEqual(6);
   expect(

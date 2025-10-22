@@ -12,6 +12,8 @@ export function blockSlotToNumber(value: BlockSlot): number {
   return value as number;
 }
 
+export const blockHashDefault = blockHashFromBytes(new Uint8Array(32));
+
 export function blockHashFromBase58(base58: string): BlockHash {
   const bytes = base58Decode(base58);
   blockHashBytesCheck(bytes);

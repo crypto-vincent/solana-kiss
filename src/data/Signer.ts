@@ -1,10 +1,10 @@
-import { MessageCompiled } from "./Message";
 import { Pubkey, pubkeyFromBytes, pubkeyToVerifier } from "./Pubkey";
 import { Signature, signatureFromBytes } from "./Signature";
+import { TransactionMessage } from "./Transaction";
 
 export type Signer = {
   address: Pubkey;
-  sign: (data: MessageCompiled | Uint8Array) => Promise<Signature>;
+  sign: (data: TransactionMessage | Uint8Array) => Promise<Signature>;
 };
 
 export async function signerGenerate(): Promise<Signer> {
@@ -57,10 +57,10 @@ export async function signerFromSecret(
   if (options?.skipVerification) {
     return signer;
   }
-  const message = new Uint8Array([1, 2, 3, 4, 5]);
-  const signature = await signer.sign(message);
+  const data = new Uint8Array([1, 2, 3, 4, 5]);
+  const signature = await signer.sign(data);
   const verifier = await pubkeyToVerifier(address);
-  if (!(await verifier(signature, message))) {
+  if (!(await verifier(signature, data))) {
     throw new Error(`Signer: Secret public key and private key mismatch`);
   }
   return signer;
@@ -69,7 +69,7 @@ export async function signerFromSecret(
 function signerFromPrivateKey(privateKey: CryptoKey, address: Pubkey): Signer {
   return {
     address,
-    sign: async (data: MessageCompiled | Uint8Array) => {
+    sign: async (data: TransactionMessage | Uint8Array) => {
       const output = await crypto.subtle.sign(
         "Ed25519",
         privateKey,

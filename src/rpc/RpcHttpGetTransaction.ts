@@ -16,23 +16,23 @@ import {
 } from "../data/Json";
 import { Pubkey, pubkeyFromBase58 } from "../data/Pubkey";
 import { Signature, signatureToBase58 } from "../data/Signature";
-import { RpcHttp } from "./RpcHttp";
 import {
-  RpcTransactionCallStack,
-  RpcTransactionExecution,
-  RpcTransactionInvoke,
-} from "./RpcTransaction";
+  TransactionCallStack,
+  TransactionExecution,
+  TransactionInvocation,
+  TransactionRequest,
+} from "../data/Transaction";
+import { RpcHttp } from "./RpcHttp";
 
 export async function rpcHttpGetTransaction(
   rpcHttp: RpcHttp,
   transactionId: Signature,
-  options?: {
-    skipCallStack?: boolean;
-  },
+  options?: { skipCallStack?: boolean },
 ): Promise<
   | {
-      transactionExecution: RpcTransactionExecution;
-      transactionCallStack: RpcTransactionCallStack | undefined;
+      transactionRequest: TransactionRequest;
+      transactionExecution: TransactionExecution;
+      transactionCallStack: TransactionCallStack | undefined;
     }
   | undefined
 > {
@@ -61,19 +61,19 @@ export async function rpcHttpGetTransaction(
     loadedAddresses?.writable ?? [],
     loadedAddresses?.readonly ?? [],
   );
-  const messageInstructions = decompileMessageInstructions(
+  const instructions = decompileInstructions(
     instructionsInputs,
     message.instructions,
   );
+  const transactionRequest = {
+    payerAddress: accountKeys[0]!,
+    recentBlockHash: message.recentBlockhash,
+    instructions,
+  };
   const transactionExecution = {
     blockInfo: {
       time: result.blockTime ? new Date(result.blockTime * 1000) : undefined,
       slot: result.slot,
-    },
-    message: {
-      payerAddress: accountKeys[0]!,
-      recentBlockHash: message.recentBlockhash,
-      instructions: messageInstructions,
     },
     logs: meta.logMessages,
     error: meta.err, // TODO - parse error to find custom program errors ?
@@ -85,10 +85,14 @@ export async function rpcHttpGetTransaction(
     meta.innerInstructions === undefined ||
     meta.logMessages === undefined
   ) {
-    return { transactionExecution, transactionCallStack: undefined };
+    return {
+      transactionRequest,
+      transactionExecution,
+      transactionCallStack: undefined,
+    };
   }
-  const instructionsCallStack = decompileInstructionsTree(
-    messageInstructions,
+  const instructionsInvocations = decompileInstructionsInvocations(
+    instructions,
     instructionsInputs,
     meta.innerInstructions,
   );
@@ -101,7 +105,7 @@ export async function rpcHttpGetTransaction(
   };
   const afterParsing = parseTransactionCallstack(
     rootInvoke,
-    instructionsCallStack,
+    instructionsInvocations,
     meta.logMessages,
     -1,
   );
@@ -126,37 +130,34 @@ export async function rpcHttpGetTransaction(
     );
   }
   return {
+    transactionRequest,
     transactionExecution,
     transactionCallStack: rootInvoke.callStack,
   };
 }
 
 function decompileInstructionsInputs(
-  requiredSignaturesCount: number,
-  readonlySignedAccountsCount: number,
-  readonlyUnsignedAccountsCount: number,
+  signatureCount: number,
+  readonlySignedCount: number,
+  readonlyUnsignedCount: number,
   staticAddresses: Array<Pubkey>,
   loadedWritableAddresses: Array<Pubkey>,
   loadedReadonlyAddresses: Array<Pubkey>,
 ) {
   const signersAddresses = new Set<Pubkey>();
-  for (
-    let signerIndex = 0;
-    signerIndex < requiredSignaturesCount;
-    signerIndex++
-  ) {
+  for (let signerIndex = 0; signerIndex < signatureCount; signerIndex++) {
     signersAddresses.add(expectItemInArray(staticAddresses, signerIndex));
   }
   const readonlyAddresses = new Set<Pubkey>();
   for (
-    let readonlyIndex = requiredSignaturesCount - readonlySignedAccountsCount;
-    readonlyIndex < requiredSignaturesCount;
+    let readonlyIndex = signatureCount - readonlySignedCount;
+    readonlyIndex < signatureCount;
     readonlyIndex++
   ) {
     readonlyAddresses.add(expectItemInArray(staticAddresses, readonlyIndex));
   }
   for (
-    let readonlyIndex = staticAddresses.length - readonlyUnsignedAccountsCount;
+    let readonlyIndex = staticAddresses.length - readonlyUnsignedCount;
     readonlyIndex < staticAddresses.length;
     readonlyIndex++
   ) {
@@ -187,7 +188,7 @@ type CompiledInstruction = {
   dataBase58: string;
 };
 
-function decompileMessageInstructions(
+function decompileInstructions(
   instructionsInputs: Array<InstructionInput>,
   compiledInstructions: Array<CompiledInstruction>,
 ): Array<Instruction> {
@@ -200,13 +201,13 @@ function decompileMessageInstructions(
       );
     }
     instructions.push(
-      decompileMessageInstruction(compiledInstruction, instructionsInputs),
+      decompileInstruction(compiledInstruction, instructionsInputs),
     );
   }
   return instructions;
 }
 
-function decompileMessageInstruction(
+function decompileInstruction(
   compiledInstruction: CompiledInstruction,
   instructionsInputs: Array<InstructionInput>,
 ): Instruction {
@@ -230,8 +231,8 @@ type InstructionInvocation = {
   invocations: Array<InstructionInvocation>;
 };
 
-function decompileInstructionsTree(
-  messageInstructions: Array<Instruction>,
+function decompileInstructionsInvocations(
+  instructions: Array<Instruction>,
   instructionsInputs: Array<InstructionInput>,
   compiledInnerInstructions: Array<{
     index: number;
@@ -239,9 +240,9 @@ function decompileInstructionsTree(
   }>,
 ): Array<InstructionInvocation> {
   const rootInvocations = new Array<InstructionInvocation>();
-  for (let index = 0; index < messageInstructions.length; index++) {
+  for (let index = 0; index < instructions.length; index++) {
     rootInvocations.push({
-      instruction: messageInstructions[index]!,
+      instruction: instructions[index]!,
       invocations: [],
     });
   }
@@ -254,7 +255,7 @@ function decompileInstructionsTree(
     stackInvocation.push(rootInvocation);
     for (const compiledInnerInstruction of compiledInnerInstructionBlock.instructions) {
       const innerInvocation = {
-        instruction: decompileMessageInstruction(
+        instruction: decompileInstruction(
           compiledInnerInstruction,
           instructionsInputs,
         ),
@@ -282,7 +283,7 @@ function decompileInstructionsTree(
 }
 
 function parseTransactionCallstack(
-  invoked: RpcTransactionInvoke,
+  invocation: TransactionInvocation,
   instructionsCallStack: Array<InstructionInvocation>,
   logs: Array<string>,
   logIndex: number,
@@ -296,12 +297,12 @@ function parseTransactionCallstack(
     const logLine = logs[logIndex]!;
     const logRegular = stripPrefix(logLine, "Program log: ");
     if (logRegular !== undefined) {
-      invoked.callStack.push({ log: logRegular });
+      invocation.callStack.push({ log: logRegular });
       continue;
     }
     const logData = stripPrefix(logLine, "Program data: ");
     if (logData !== undefined) {
-      invoked.callStack.push({ data: base64Decode(logData) });
+      invocation.callStack.push({ data: base64Decode(logData) });
       continue;
     }
     const logReturn = stripPrefix(logLine, "Program return: ");
@@ -311,12 +312,12 @@ function parseTransactionCallstack(
         throw new Error(`RpcHttp: Unexpected return log: ${logLine}`);
       }
       const returnProgramAddress = pubkeyFromBase58(parts[0]!);
-      if (invoked.instruction.programAddress !== returnProgramAddress) {
+      if (invocation.instruction.programAddress !== returnProgramAddress) {
         throw new Error(
-          `RpcHttp: Unexpected return log program address (expected ${invoked.instruction.programAddress}, found ${returnProgramAddress}): ${logLine}`,
+          `RpcHttp: Unexpected return log program address (expected ${invocation.instruction.programAddress}, found ${returnProgramAddress}): ${logLine}`,
         );
       }
-      invoked.returnData = base64Decode(parts[1]!);
+      invocation.returnData = base64Decode(parts[1]!);
       continue;
     }
     const logProgram = stripPrefix(logLine, "Program ");
@@ -353,24 +354,24 @@ function parseTransactionCallstack(
             logIndex,
           );
           logIndex = afterParsing.logIndex;
-          invoked.callStack.push({ invoke: innerInvoke });
+          invocation.callStack.push({ invoke: innerInvoke });
           continue;
         }
         if (logProgramKind === "consumed") {
-          invoked.consumedComputeUnits = Number(logsProgramParts[2]);
+          invocation.consumedComputeUnits = Number(logsProgramParts[2]);
           continue;
         }
         if (logProgramKind === "success") {
-          invoked.error = undefined;
+          invocation.error = undefined;
           return { logIndex };
         }
         if (logProgramKind === "failed:") {
-          invoked.error = logsProgramParts.slice(2).join(" ");
+          invocation.error = logsProgramParts.slice(2).join(" ");
           return { logIndex };
         }
       }
     }
-    invoked.callStack.push({ unknown: logLine });
+    invocation.callStack.push({ unknown: logLine });
   }
   return { logIndex };
 }

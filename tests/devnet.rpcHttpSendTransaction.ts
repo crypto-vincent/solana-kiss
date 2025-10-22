@@ -10,10 +10,12 @@ import {
   rpcHttpFromUrl,
   rpcHttpGetAccountMetadata,
   rpcHttpGetLatestBlockHash,
-  rpcHttpScheduleInstructions,
+  rpcHttpSendTransaction,
   rpcHttpWaitForTransaction,
   signerFromSecret,
   signerGenerate,
+  transactionCompileAndSign,
+  transactionVerify,
 } from "../src";
 
 it("run", async () => {
@@ -41,20 +43,23 @@ it("run", async () => {
       owner: pubkeyToBase58(ownerAddress),
     },
   );
-  const { transactionId } = await rpcHttpScheduleInstructions(
-    rpcHttp,
-    [instruction],
-    {
-      payerSigner,
-      extraSigners: [ownedSigner],
-      recentBlockHash: recentBlockInfo.hash,
-    },
+  const originalRequest = {
+    payerAddress: payerSigner.address,
+    recentBlockHash: recentBlockInfo.hash,
+    instructions: [instruction],
+  };
+  const transactionPacket = await transactionCompileAndSign(
+    [payerSigner, ownedSigner],
+    originalRequest,
   );
-  const { transactionExecution } = await rpcHttpWaitForTransaction(
+  await transactionVerify(transactionPacket); // TODO (test) - dedicated test?
+  const { transactionId } = await rpcHttpSendTransaction(
     rpcHttp,
-    transactionId,
-    async () => true,
+    transactionPacket,
   );
+  const { transactionRequest, transactionExecution } =
+    await rpcHttpWaitForTransaction(rpcHttp, transactionId, async () => true);
+  expect(transactionRequest).toStrictEqual(originalRequest);
   expect(transactionExecution.chargedFeesLamports).toStrictEqual(
     lamportsFeePerSigner * 2n,
   );

@@ -221,7 +221,7 @@ export function idlInstructionArgsCheck(
   idlUtilsExpectBlobAt(0, instructionIdl.discriminator, instructionData);
 }
 
-// TODO - test this return decoding/encoding ?
+// TODO (test) - test this return decoding/encoding ?
 export function idlInstructionReturnEncode(
   instructionIdl: IdlInstruction,
   instructionResult: JsonValue,

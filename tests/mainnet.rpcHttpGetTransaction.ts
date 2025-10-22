@@ -6,25 +6,26 @@ import {
   pubkeyFromBase58,
   rpcHttpFromUrl,
   rpcHttpGetTransaction,
-  RpcTransactionCallStack,
   signatureFromBase58,
+  TransactionCallStack,
 } from "../src";
 
 it("run", async () => {
   const rpcHttp = rpcHttpFromUrl("https://api.mainnet-beta.solana.com");
   // Complex transaction with many inner instructions nested
-  const { transactionExecution, transactionCallStack } = expectDefined(
-    await rpcHttpGetTransaction(
-      rpcHttp,
-      signatureFromBase58(
-        "5c4TRGCXbv6ChbTpTnmFzt3WFqpWMMSAKdEqiqCFzG7hTFTWxdHpv2VxfQBzG3VwvQ2mMyG4rvV2eTN68jrLKy3U",
+  const { transactionRequest, transactionExecution, transactionCallStack } =
+    expectDefined(
+      await rpcHttpGetTransaction(
+        rpcHttp,
+        signatureFromBase58(
+          "5c4TRGCXbv6ChbTpTnmFzt3WFqpWMMSAKdEqiqCFzG7hTFTWxdHpv2VxfQBzG3VwvQ2mMyG4rvV2eTN68jrLKy3U",
+        ),
       ),
-    ),
-  );
-  expect(transactionExecution.message.payerAddress).toStrictEqual(
+    );
+  expect(transactionRequest.payerAddress).toStrictEqual(
     "Ewfot2ZKhuGuEWaSRyFpe3LpK9xSEEUrDZk4AQpTazAR",
   );
-  expect(transactionExecution.message.recentBlockHash).toStrictEqual(
+  expect(transactionRequest.recentBlockHash).toStrictEqual(
     "ETzLkjyxUNupAQxQRnTuG2u7wnQCWEgtdTLegeQycCPv",
   );
   expect(transactionExecution.error).toStrictEqual(null);
@@ -206,7 +207,7 @@ it("run", async () => {
 
 function invoke(value: {
   instruction: Instruction;
-  callStack?: RpcTransactionCallStack;
+  callStack?: TransactionCallStack;
   result?: {
     error?: string | undefined;
     returnData?: Array<number> | undefined;
