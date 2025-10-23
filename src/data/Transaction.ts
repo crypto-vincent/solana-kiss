@@ -18,8 +18,19 @@ export type TransactionRequest = {
   instructions: Array<Instruction>;
 };
 
-export type TransactionMessage = BrandedType<Uint8Array, "TransactionMessage">;
-export type TransactionPacket = BrandedType<Uint8Array, "TransactionPacket">;
+export type TransactionVersion = "legacy" | number;
+export type TransactionMessage = BrandedType<
+  Uint8Array,
+  "TransactionMessage"
+> & {
+  length: number;
+};
+export type TransactionPacket = BrandedType<Uint8Array, "TransactionPacket"> & {
+  length: number;
+};
+
+// TODO - should this be a branded type ?
+export type TransactionId = Signature;
 
 export type TransactionExecution = {
   blockInfo: {
@@ -147,7 +158,7 @@ export function transactionCompileOnly(
 }
 
 export function transactionInspect(transactionPacket: TransactionPacket): {
-  transactionVersion: "legacy" | number;
+  transactionVersion: TransactionVersion;
   transactionMessage: TransactionMessage;
   signersAddresses: Array<Pubkey>;
 } {
@@ -163,15 +174,22 @@ export function transactionInspect(transactionPacket: TransactionPacket): {
     );
   }
   const messageBytes = packetBytes.slice(messageOffset);
-  let version: "legacy" | number = "legacy";
+  let version: TransactionVersion = "legacy";
   const firstMessageByte = messageBytes[0]!;
   if ((firstMessageByte & 0b10000000) !== 0) {
     version = firstMessageByte & 0b01111111;
   }
-  const signersOffset = (version === "legacy" ? 0 : 1) + 4;
+  const headerOffset = version === "legacy" ? 0 : 1;
+  const signersOffset = headerOffset + 4;
   if (messageBytes.length <= signersOffset + signatureCount * 32) {
     throw new Error(
       `Transaction: Expected valid message with at least ${signatureCount} signers (found ${messageBytes.length} bytes)`,
+    );
+  }
+  const signatureCountInner = messageBytes[headerOffset + 0]!;
+  if (signatureCount != signatureCountInner) {
+    throw new Error(
+      `Transaction: Mismatch in signature count between packet (${signatureCount}) and message (${signatureCountInner})`,
     );
   }
   let signersAddresses = new Array<Pubkey>();

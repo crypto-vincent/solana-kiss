@@ -15,10 +15,11 @@ import {
   jsonDecoderOptional,
 } from "../data/Json";
 import { Pubkey, pubkeyFromBase58 } from "../data/Pubkey";
-import { Signature, signatureToBase58 } from "../data/Signature";
+import { signatureToBase58 } from "../data/Signature";
 import {
   TransactionExecution,
   TransactionFlow,
+  TransactionId,
   TransactionInvocation,
   TransactionRequest,
 } from "../data/Transaction";
@@ -26,7 +27,7 @@ import { RpcHttp } from "./RpcHttp";
 
 export async function rpcHttpGetTransaction(
   rpcHttp: RpcHttp,
-  transactionId: Signature,
+  transactionId: TransactionId,
   options?: { skipTransactionFlow?: boolean },
 ): Promise<
   | {

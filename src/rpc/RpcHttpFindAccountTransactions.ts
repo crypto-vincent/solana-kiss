@@ -4,7 +4,8 @@ import {
   jsonDecoderObject,
 } from "../data/Json";
 import { Pubkey, pubkeyToBase58 } from "../data/Pubkey";
-import { Signature, signatureToBase58 } from "../data/Signature";
+import { signatureToBase58 } from "../data/Signature";
+import { TransactionId } from "../data/Transaction";
 import { RpcHttp } from "./RpcHttp";
 
 export async function rpcHttpFindAccountTransactions(
@@ -12,11 +13,11 @@ export async function rpcHttpFindAccountTransactions(
   accountAddress: Pubkey,
   maxResultLength: number,
   pagination?: {
-    startBeforeTransactionId?: Signature;
-    rewindUntilTransactionId?: Signature;
+    startBeforeTransactionId?: TransactionId;
+    rewindUntilTransactionId?: TransactionId;
   },
-): Promise<{ backwardTransactionsIds: Array<Signature> }> {
-  const backwardTransactionsIds = new Array<Signature>();
+): Promise<{ backwardTransactionsIds: Array<TransactionId> }> {
+  const backwardTransactionsIds = new Array<TransactionId>();
   const requestLimit = 1000;
   const rewindUntilTransactionId = pagination?.rewindUntilTransactionId;
   let startBeforeTransactionId = pagination?.startBeforeTransactionId;

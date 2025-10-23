@@ -1,7 +1,7 @@
-import { Signature } from "../data/Signature";
 import {
   TransactionExecution,
   TransactionFlow,
+  TransactionId,
   TransactionRequest,
 } from "../data/Transaction";
 import { RpcHttp } from "./RpcHttp";
@@ -9,7 +9,7 @@ import { rpcHttpGetTransaction } from "./RpcHttpGetTransaction";
 
 export async function rpcHttpWaitForTransaction(
   rpcHttp: RpcHttp,
-  transactionId: Signature,
+  transactionId: TransactionId,
   retryApprover: (context: {
     retriedCounter: number;
     totalDurationMs: number;
