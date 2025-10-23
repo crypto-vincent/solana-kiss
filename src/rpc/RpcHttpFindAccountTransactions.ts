@@ -4,7 +4,6 @@ import {
   jsonDecoderObject,
 } from "../data/Json";
 import { Pubkey, pubkeyToBase58 } from "../data/Pubkey";
-import { signatureToBase58 } from "../data/Signature";
 import { TransactionId } from "../data/Transaction";
 import { RpcHttp } from "./RpcHttp";
 
@@ -29,7 +28,7 @@ export async function rpcHttpFindAccountTransactions(
         {
           limit: requestLimit,
           before: startBeforeTransactionId
-            ? signatureToBase58(startBeforeTransactionId)
+            ? startBeforeTransactionId
             : undefined,
         },
       ),

@@ -6,7 +6,6 @@ import {
   pubkeyFromBytes,
   pubkeyToBase58,
   pubkeyToBytes,
-  pubkeyToVerifier,
 } from "./Pubkey";
 import { Signature, signatureFromBytes, signatureToBytes } from "./Signature";
 import { Signer } from "./Signer";
@@ -160,7 +159,10 @@ export function transactionCompileOnly(
 export function transactionInspect(transactionPacket: TransactionPacket): {
   transactionVersion: TransactionVersion;
   transactionMessage: TransactionMessage;
-  signersAddresses: Array<Pubkey>;
+  transactionSigning: Array<{
+    signerAddress: Pubkey;
+    signature: Signature;
+  }>;
 } {
   const packetBytes = transactionPacket as Uint8Array;
   if (packetBytes.length === 0) {
@@ -192,19 +194,27 @@ export function transactionInspect(transactionPacket: TransactionPacket): {
       `Transaction: Mismatch in signature count between packet (${signatureCount}) and message (${signatureCountInner})`,
     );
   }
-  let signersAddresses = new Array<Pubkey>();
+  const signing = new Array<{
+    signerAddress: Pubkey;
+    signature: Signature;
+  }>();
   for (let signerIndex = 0; signerIndex < signatureCount; signerIndex++) {
-    const signatureOffset = signersOffset + signerIndex * 32;
-    const signerBytes = messageBytes.slice(
+    const signatureOffset = 1 + signerIndex * 64;
+    const signatureBytes = packetBytes.slice(
       signatureOffset,
-      signatureOffset + 32,
+      signatureOffset + 64,
     );
-    signersAddresses.push(pubkeyFromBytes(signerBytes));
+    const signerOffset = signersOffset + signerIndex * 32;
+    const signerBytes = messageBytes.slice(signerOffset, signerOffset + 32);
+    signing.push({
+      signerAddress: pubkeyFromBytes(signerBytes),
+      signature: signatureFromBytes(signatureBytes),
+    });
   }
   return {
     transactionVersion: version,
     transactionMessage: messageBytes as TransactionMessage,
-    signersAddresses: signersAddresses,
+    transactionSigning: signing,
   };
 }
 
@@ -212,7 +222,7 @@ export async function transactionSign(
   transactionPacket: TransactionPacket,
   signers: Array<Signer>,
 ) {
-  const { transactionMessage, signersAddresses } =
+  const { transactionMessage, transactionSigning } =
     transactionInspect(transactionPacket);
   const signaturesBySignerAddress = new Map<Pubkey, Signature>();
   for (const signer of signers) {
@@ -224,38 +234,14 @@ export async function transactionSign(
   const packetBytes = transactionPacket as Uint8Array;
   for (
     let signerIndex = 0;
-    signerIndex < signersAddresses.length;
+    signerIndex < transactionSigning.length;
     signerIndex++
   ) {
-    const signerAddress = signersAddresses[signerIndex]!;
+    const { signerAddress } = transactionSigning[signerIndex]!;
     const signature = signaturesBySignerAddress.get(signerAddress);
     if (signature !== undefined) {
-      packetBytes.set(signatureToBytes(signature), 1 + signerIndex * 64);
-    }
-  }
-}
-
-export async function transactionVerify(transactionPacket: TransactionPacket) {
-  const { transactionMessage, signersAddresses } =
-    transactionInspect(transactionPacket);
-  const packetBytes = transactionPacket as Uint8Array;
-  for (
-    let signerIndex = 0;
-    signerIndex < signersAddresses.length;
-    signerIndex++
-  ) {
-    const signerAddress = signersAddresses[signerIndex]!;
-    const signatureOffset = 1 + signerIndex * 64;
-    const signatureBytes = packetBytes.slice(
-      signatureOffset,
-      signatureOffset + 64,
-    );
-    const signature = signatureFromBytes(signatureBytes);
-    const verifier = await pubkeyToVerifier(signerAddress);
-    if (!(await verifier(signature, transactionMessage))) {
-      throw new Error(
-        `Transaction: Signature verification failed for signer: ${signerAddress}`,
-      );
+      const signatureOffset = 1 + signerIndex * 64;
+      packetBytes.set(signatureToBytes(signature), signatureOffset);
     }
   }
 }

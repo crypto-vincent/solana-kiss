@@ -15,7 +15,6 @@ import {
   signerFromSecret,
   signerGenerate,
   transactionCompileAndSign,
-  transactionVerify,
 } from "../src";
 
 it("run", async () => {
@@ -52,7 +51,6 @@ it("run", async () => {
     [payerSigner, ownedSigner],
     originalRequest,
   );
-  await transactionVerify(transactionPacket); // TODO (test) - dedicated test?
   const { transactionId } = await rpcHttpSendTransaction(
     rpcHttp,
     transactionPacket,

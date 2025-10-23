@@ -18,8 +18,8 @@ export function base58Encode(decoded: Uint8Array): string {
     return "";
   }
   const digits = new Array<number>();
-  for (const byte of decoded) {
-    let carry = byte;
+  for (let byteIndex = 0; byteIndex < decoded.length; byteIndex++) {
+    let carry = decoded[byteIndex]!;
     for (let digitIndex = 0; digitIndex < digits.length; digitIndex++) {
       carry += digits[digitIndex]! << 8;
       digits[digitIndex] = carry % 58;

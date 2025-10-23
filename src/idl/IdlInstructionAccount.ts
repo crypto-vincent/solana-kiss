@@ -51,7 +51,7 @@ export function idlInstructionAccountFind(
   if (instructionAccountIdl.address !== undefined) {
     return instructionAccountIdl.address;
   }
-  // TODO - support from seed with a base address ?
+  // TODO - support from seed with a base address, or something more generic ?
   if (instructionAccountIdl.pda !== undefined) {
     const seedsBytes = new Array<Uint8Array>();
     for (const instructionBlobIdl of instructionAccountIdl.pda.seeds) {

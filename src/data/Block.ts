@@ -36,7 +36,7 @@ export function blockHashToBase58(value: BlockHash): string {
   return value as string;
 }
 
-function blockHashBytesCheck(bytes: Uint8Array) {
+function blockHashBytesCheck(bytes: Uint8Array): void {
   if (bytes.length !== 32) {
     throw new Error(
       `BlockHash: Expected block hash spanning 32 bytes (found: ${bytes.length})`,

@@ -4,7 +4,7 @@ import { TransactionPacket } from "./Transaction";
 
 export type WalletAccount = {
   address: Pubkey;
-  signBytes: (data: Uint8Array) => Promise<Signature>;
+  signMessage: (message: Uint8Array) => Promise<Signature>;
   signTransaction: (
     transactionPacket: TransactionPacket,
   ) => Promise<TransactionPacket>;
@@ -17,37 +17,61 @@ export type WalletProvider = {
   disconnect: () => Promise<void>;
 };
 
-export function walletProviderList(): Array<WalletProvider> {
-  if (walletProvidersCached !== undefined) {
-    return walletProvidersCached;
+// TODO (test) - somehow test this
+let walletProvidersDiscovering = false;
+const walletProvidersListeners = new Array<
+  (walletProviders: Array<WalletProvider>) => void
+>();
+
+export const walletProvidersObservable = {
+  subscribe: (
+    onUpdatedWalletProviders: (walletProviders: Array<WalletProvider>) => void,
+  ) => {
+    if (!walletProvidersDiscovering) {
+      walletProvidersDiscovering = true;
+      walletProvidersDiscover();
+    }
+    walletProvidersListeners.push(onUpdatedWalletProviders);
+    return () => {
+      const index = walletProvidersListeners.indexOf(onUpdatedWalletProviders);
+      if (index >= 0) {
+        walletProvidersListeners.splice(index, 1);
+      }
+    };
+  },
+};
+
+function walletProvidersDiscover() {
+  if (window === undefined) {
+    throw new Error("WalletProvider discovery requires a window object");
   }
-  walletProvidersCached = new Array<WalletProvider>();
+  const walletProviders = new Array<WalletProvider>();
+  function registerWalletObject(walletObject: any) {
+    const walletProvider = makeWalletProvider(walletObject);
+    if (walletProvider === undefined) {
+      return;
+    }
+    // TODO - make this nicer with dedup/throttling
+    walletProviders.push(walletProvider);
+    for (const walletProvidersListener of walletProvidersListeners) {
+      walletProvidersListener(walletProviders.slice());
+    }
+  }
   class AppReadyEvent extends Event {
     constructor() {
       super("wallet-standard:app-ready");
     }
     get detail() {
-      return {
-        register: (walletObject: any) => {
-          const walletProvider = makeWalletProvider(walletObject);
-          if (walletProvider === undefined) {
-            return;
-          }
-          walletProvidersCached!.push(walletProvider);
-        },
-      };
+      return { register: registerWalletObject };
     }
   }
-  if (window === undefined) {
-    throw new Error("Wallet discovery requires a window object");
-  }
+  window.addEventListener("wallet-standard:register-wallet", (event: any) => {
+    event.detail({ register: registerWalletObject });
+  });
   window.dispatchEvent(new AppReadyEvent());
-  return walletProvidersCached;
 }
 
-let walletProvidersCached: Array<WalletProvider> | undefined = undefined;
-
-// TODO - cleanup and naming on those
+// TODO - cleanup implementation and naming on those
 function makeWalletProvider(walletObject: any): WalletProvider | undefined {
   if (!walletObject || !walletObject.chains || !walletObject.features) {
     return;
@@ -108,14 +132,14 @@ function getWalletFeatureFunction(
   return callable;
 }
 
-function walletAccountSignBytes(
+function walletAccountSignMessage(
   walletAccountObject: any,
   providerSignMessage: Function,
 ) {
-  return async (data: Uint8Array) => {
+  return async (message: Uint8Array) => {
     const resultSignMessage = await providerSignMessage({
       account: walletAccountObject,
-      message: data,
+      message: message,
     });
     const signatureBytes = resultSignMessage[0]?.signature;
     if (!(signatureBytes instanceof Uint8Array)) {
@@ -134,11 +158,11 @@ function walletAccountSignTransaction(
       account: providerAccount,
       transaction: transactionPacket,
     });
-    const signedTransactionPacket = resultSignTransaction[0]?.signedTransaction;
-    if (!(signedTransactionPacket instanceof Uint8Array)) {
+    const signedTransactionBytes = resultSignTransaction[0]?.signedTransaction;
+    if (!(signedTransactionBytes instanceof Uint8Array)) {
       throw new Error("Invalid transaction returned from wallet provider");
     }
-    return signedTransactionPacket as TransactionPacket;
+    return signedTransactionBytes as TransactionPacket;
   };
 }
 
@@ -149,23 +173,30 @@ function walletProviderConnect(
 ) {
   return async () => {
     let providerAccounts: Array<any>;
-    const resultConnectSilent = await providerConnect({ silent: true });
-    if (!resultConnectSilent.accounts) {
-      const resultConnectRegular = await providerConnect({ silent: false });
-      if (!resultConnectRegular.accounts) {
-        throw new Error("No accounts returned from wallet");
-      } else {
-        providerAccounts = resultConnectRegular.accounts;
-      }
-    } else {
-      providerAccounts = resultConnectSilent.accounts;
+    let resultConnectSilent: any = undefined;
+    try {
+      resultConnectSilent = await providerConnect({ silent: true });
+    } catch (e) {
+      console.log("WalletProvider: silent connect failed", e);
     }
-    console.log("provider accounts", providerAccounts);
+    if (resultConnectSilent?.accounts) {
+      providerAccounts = resultConnectSilent.accounts;
+    } else {
+      const resultConnectRegular = await providerConnect({ silent: false });
+      if (resultConnectRegular?.accounts) {
+        providerAccounts = resultConnectRegular.accounts;
+      } else {
+        throw new Error("No accounts returned from wallet");
+      }
+    }
     const walletAccounts = new Array<WalletAccount>();
     for (const providerAccount of providerAccounts) {
       walletAccounts.push({
         address: pubkeyFromBase58(providerAccount.address),
-        signBytes: walletAccountSignBytes(providerAccount, providerSignMessage),
+        signMessage: walletAccountSignMessage(
+          providerAccount,
+          providerSignMessage,
+        ),
         signTransaction: walletAccountSignTransaction(
           providerAccount,
           providerSignTransaction,

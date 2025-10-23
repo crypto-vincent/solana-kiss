@@ -5,8 +5,8 @@ import {
   InstructionInput,
   pubkeyFromBase58,
   rpcHttpGetTransaction,
-  Signature,
   TransactionFlow,
+  TransactionId,
 } from "../src";
 
 // TODO (test) - simulate transaction case
@@ -16,7 +16,7 @@ it("run", async () => {
     expectDefined(
       await rpcHttpGetTransaction(
         () => require("./fixtures/RpcHttpGetTransaction.json"),
-        "!" as Signature,
+        "!" as TransactionId,
       ),
     );
   // Check basic stuff about the transaction

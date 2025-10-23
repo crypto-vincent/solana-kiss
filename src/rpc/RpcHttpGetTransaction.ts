@@ -15,7 +15,6 @@ import {
   jsonDecoderOptional,
 } from "../data/Json";
 import { Pubkey, pubkeyFromBase58 } from "../data/Pubkey";
-import { signatureToBase58 } from "../data/Signature";
 import {
   TransactionExecution,
   TransactionFlow,
@@ -38,7 +37,7 @@ export async function rpcHttpGetTransaction(
   | undefined
 > {
   const result = resultJsonDecoder(
-    await rpcHttp("getTransaction", [signatureToBase58(transactionId)], {
+    await rpcHttp("getTransaction", [transactionId], {
       encoding: "json",
       maxSupportedTransactionVersion: 0,
     }),

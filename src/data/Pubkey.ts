@@ -139,13 +139,13 @@ export async function pubkeyToVerifier(pubkey: Pubkey) {
   );
   return async (
     signature: Signature,
-    data: Uint8Array | TransactionMessage,
+    message: TransactionMessage | Uint8Array,
   ) => {
     return await crypto.subtle.verify(
       "Ed25519",
       cryptoKey,
       signatureToBytes(signature) as BufferSource,
-      data as BufferSource,
+      message as BufferSource,
     );
   };
 }

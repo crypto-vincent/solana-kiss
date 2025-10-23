@@ -18,7 +18,8 @@ for (let digit = 0; digit < alphabetUpper.length; digit++) {
 export function base16Encode(decoded: Uint8Array): string {
   const codes = new Uint8Array(decoded.length * 2);
   let codeIndex = 0;
-  for (const byte of decoded) {
+  for (let byteIndex = 0; byteIndex < decoded.length; byteIndex++) {
+    const byte = decoded[byteIndex]!;
     codes[codeIndex++] = digitToCode[byte >> 4]!;
     codes[codeIndex++] = digitToCode[byte & 0x0f]!;
   }

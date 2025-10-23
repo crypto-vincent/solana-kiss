@@ -8,9 +8,7 @@ export async function rpcHttpSendTransaction(
   rpcHttp: RpcHttp,
   transactionPacket: TransactionPacket,
   options?: { skipPreflight?: boolean },
-): Promise<{
-  transactionId: TransactionId;
-}> {
+): Promise<{ transactionId: TransactionId }> {
   const transactionId = jsonCodecSignature.decoder(
     await rpcHttp(
       "sendTransaction",
