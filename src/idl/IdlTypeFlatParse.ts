@@ -16,7 +16,6 @@ import {
   jsonDecoderForked,
   jsonDecoderObject,
   jsonDecoderObjectToMap,
-  jsonDecoderObjectWithKeysSnakeEncoded,
   jsonDecoderOptional,
   jsonDecoderTransform,
 } from "../data/Json";
@@ -330,17 +329,15 @@ function objectEnumJsonDecoder(prefix: IdlTypePrefix) {
   });
 }
 
-const objectPadInfoJsonDecoder = jsonDecoderObjectWithKeysSnakeEncoded({
+const objectPadInfoJsonDecoder = jsonDecoderObject({
   before: jsonDecoderOptional(jsonCodecNumber.decoder),
-  minSize: jsonDecoderOptional(jsonCodecNumber.decoder),
-  after: jsonDecoderOptional(jsonCodecNumber.decoder),
+  end: jsonDecoderOptional(jsonCodecNumber.decoder),
 });
 function objectPadJsonDecoder(value: JsonValue): IdlTypeFlat {
   const info = objectPadInfoJsonDecoder(value);
   return IdlTypeFlat.pad({
     before: info.before ?? 0,
-    minSize: info.minSize ?? 0,
-    after: info.after ?? 0,
+    end: info.end ?? 0,
     content: idlTypeFlatParseIsPossible(value)
       ? idlTypeFlatParse(value)
       : IdlTypeFlat.structNothing(),

@@ -6,6 +6,7 @@ it("run", async () => {
     { in: "", out: "" },
     { in: "UPPERCASE", out: "uppercase" },
     { in: "Lowercase", out: "lowercase" },
+    { in: "camelCase", out: "camelCase" },
     { in: "Capitalized", out: "capitalized" },
     { in: "PascalCase", out: "pascalCase" },
     { in: "snake_case", out: "snakeCase" },

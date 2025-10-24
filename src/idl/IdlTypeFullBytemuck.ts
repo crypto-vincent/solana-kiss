@@ -99,8 +99,7 @@ const visitorBytemuckC = {
       size,
       value: IdlTypeFull.pad({
         before: 0,
-        minSize: size,
-        after: 0,
+        end: size,
         content: IdlTypeFull.option({
           prefix: internalPrefixFromAlignment(alignment),
           content: contentPod.value,
@@ -167,8 +166,7 @@ const visitorBytemuckC = {
       size,
       value: IdlTypeFull.pad({
         before: 0,
-        minSize: size,
-        after: 0,
+        end: size,
         content: IdlTypeFull.enum({
           prefix: internalPrefixFromAlignment(alignment),
           mask: self.mask,
@@ -184,11 +182,10 @@ const visitorBytemuckC = {
     const contentPod = bytemuckC(self.content);
     return {
       alignment: 1,
-      size: self.before + Math.max(contentPod.size, self.minSize) + self.after,
+      size: self.before + Math.max(contentPod.size, self.end),
       value: IdlTypeFull.pad({
         before: self.before,
-        minSize: self.minSize,
-        after: self.after,
+        end: self.end,
         content: contentPod.value,
       }),
     };
@@ -222,8 +219,7 @@ const visitorBytemuckRust = {
       size,
       value: IdlTypeFull.pad({
         before: 0,
-        minSize: size,
-        after: 0,
+        end: size,
         content: IdlTypeFull.option({
           prefix: internalPrefixFromAlignment(alignment),
           content: contentPod.value,
@@ -290,8 +286,7 @@ const visitorBytemuckRust = {
       size,
       value: IdlTypeFull.pad({
         before: 0,
-        minSize: size,
-        after: 0,
+        end: size,
         content: IdlTypeFull.enum({
           prefix: self.prefix,
           mask: self.mask,
@@ -307,11 +302,10 @@ const visitorBytemuckRust = {
     const contentPod = bytemuckRust(self.content);
     return {
       alignment: 1,
-      size: self.before + Math.max(contentPod.size, self.minSize) + self.after,
+      size: self.before + Math.max(contentPod.size, self.end),
       value: IdlTypeFull.pad({
         before: self.before,
-        minSize: self.minSize,
-        after: self.after,
+        end: self.end,
         content: contentPod.value,
       }),
     };
@@ -455,8 +449,7 @@ function internalFieldsInfoAligned<T>(
         meta: fieldMeta,
         type: IdlTypeFull.pad({
           before: paddingBefore,
-          minSize: fieldSize,
-          after: paddingAfter,
+          end: fieldSize + paddingAfter,
           content: fieldType,
         }),
       });

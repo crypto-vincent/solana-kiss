@@ -674,6 +674,7 @@ export function jsonCodecObject<
   } as JsonCodec<{ [K in keyof Shape]: JsonCodecContent<Shape[K]> }>;
 }
 
+// TODO - get rid of the need for this ?
 export function jsonDecoderObjectWithKeysSnakeEncoded<
   Shape extends { [key: string]: JsonDecoder<any> },
 >(shape: Shape) {

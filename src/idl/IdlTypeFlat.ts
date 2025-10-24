@@ -37,8 +37,7 @@ export type IdlTypeFlatEnum = {
 };
 export type IdlTypeFlatPad = {
   before: number;
-  minSize: number;
-  after: number;
+  end: number;
   content: IdlTypeFlat;
 };
 export type IdlTypeFlatBlob = {
