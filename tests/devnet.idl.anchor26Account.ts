@@ -48,7 +48,7 @@ it("run", async () => {
     programIdl,
     programStateAddress,
     "ProgramState",
-    "credix_multisig_key",
+    "credix_multisig_key", // TODO - really consider camel casing everywhere?
     "Ej5zJzej7rrUoDngsJ3jcpfuvfVyWpcDcK7uv9cE2LdL",
   );
   // Read the market admins content using the IDL

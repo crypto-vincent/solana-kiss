@@ -9,8 +9,6 @@ import {
   TransactionId,
 } from "../src";
 
-// TODO (test) - simulate transaction case
-
 it("run", async () => {
   const { transactionRequest, transactionExecution, transactionFlow } =
     expectDefined(

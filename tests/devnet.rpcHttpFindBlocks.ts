@@ -29,17 +29,17 @@ it("run", async () => {
     highBlockSlot,
   );
 
-  const { blocksSlots: blocksSlotsFromLowToHigh } = await rpcHttpFindBlocks(
-    rpcHttp,
-    blockDistance,
-    { startBlockSlot: lowBlockSlot, endBlockSlot: highBlockSlot },
-  );
-  expect(blocksSlotsFromLowToHigh).toStrictEqual(blocksSlotsFromLow);
-
   const { blocksSlots: blocksSlotsFromHighToLow } = await rpcHttpFindBlocks(
     rpcHttp,
     blockDistance,
     { startBlockSlot: highBlockSlot, endBlockSlot: lowBlockSlot },
   );
   expect(blocksSlotsFromHighToLow).toStrictEqual(blocksSlotsFromHigh);
+
+  const { blocksSlots: blocksSlotsFromLowToHigh } = await rpcHttpFindBlocks(
+    rpcHttp,
+    blockDistance,
+    { startBlockSlot: lowBlockSlot, endBlockSlot: highBlockSlot },
+  );
+  expect(blocksSlotsFromLowToHigh).toStrictEqual(blocksSlotsFromLow);
 });

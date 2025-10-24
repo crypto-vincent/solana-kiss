@@ -38,10 +38,8 @@ export async function rpcHttpFindBlocks(
       highBlockSlot = startBlockSlot;
     }
   }
-
   const batchSize = Math.min(500_000, maxResultLength * 2);
   const blocksSlots = new Array<BlockSlot>();
-
   if (backward) {
     while (true) {
       const result = resultJsonDecoder(
@@ -51,6 +49,9 @@ export async function rpcHttpFindBlocks(
           {},
         ),
       );
+      if (result.length === 0) {
+        return { blocksSlots };
+      }
       result.reverse();
       for (const blockSlot of result) {
         if (blockSlot < highBlockSlot) {
@@ -66,7 +67,6 @@ export async function rpcHttpFindBlocks(
       }
     }
   }
-
   while (true) {
     const result = resultJsonDecoder(
       await rpcHttp(
@@ -75,6 +75,9 @@ export async function rpcHttpFindBlocks(
         {},
       ),
     );
+    if (result.length === 0) {
+      return { blocksSlots };
+    }
     for (const blockSlot of result) {
       if (blockSlot > lowBlockSlot) {
         lowBlockSlot = blockSlot;

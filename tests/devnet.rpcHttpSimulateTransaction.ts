@@ -12,7 +12,7 @@ import {
   rpcHttpFromUrl,
   rpcHttpGetAccountWithData,
   rpcHttpGetLatestBlockHash,
-  rpcHttpSimulateInstructions,
+  rpcHttpSimulateTransaction,
   signerFromSecret,
   signerGenerate,
   transactionCompileAndSign,
@@ -65,7 +65,7 @@ it("run", async () => {
     recentBlockHash: blockHashDefault,
     instructions: [instruction],
   });
-  const resultNoVerify = await rpcHttpSimulateInstructions(
+  const resultNoVerify = await rpcHttpSimulateTransaction(
     rpcHttp,
     transactionPacketNoVerify,
     {
@@ -99,7 +99,7 @@ it("run", async () => {
       instructions: [instruction],
     },
   );
-  const resultWithVerify = await rpcHttpSimulateInstructions(
+  const resultWithVerify = await rpcHttpSimulateTransaction(
     rpcHttp,
     transactionPacketWithVerify,
     { simulatedAccountsAddresses: new Set([pledgeAddress]) },

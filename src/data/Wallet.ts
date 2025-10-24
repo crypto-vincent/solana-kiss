@@ -158,7 +158,12 @@ function walletProviderConnectFactory(
     let walletAccountsObjects: Array<any>;
     let resultConnectSilent: any = undefined;
     try {
-      resultConnectSilent = await walletConnectFunction({ silent: true });
+      resultConnectSilent = await Promise.race([
+        walletConnectFunction({ silent: true }),
+        new Promise((_, reject) =>
+          setTimeout(() => reject(new Error("Silent connect timed out")), 1000),
+        ),
+      ]);
     } catch (error) {
       console.log(
         "WalletProvider: silent connect failed, retrying non-silent",

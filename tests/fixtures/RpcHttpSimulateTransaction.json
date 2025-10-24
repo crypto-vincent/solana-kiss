@@ -2,19 +2,17 @@
   "context": { "apiVersion": "3.0.2", "slot": 412853857 },
   "value": {
     "accounts": [
-      [
-        {
-          "data": [
-            "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
-            "base64"
-          ],
-          "executable": false,
-          "lamports": 1183200,
-          "owner": "Dummy1Lt6vKTjNUWvktsufk3aUS9yDspXnzgr4TAe3y",
-          "rentEpoch": 18446744073709552000,
-          "space": 42
-        }
-      ]
+      {
+        "data": [
+          "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
+          "base64"
+        ],
+        "executable": false,
+        "lamports": 1183200,
+        "owner": "Dummy1Lt6vKTjNUWvktsufk3aUS9yDspXnzgr4TAe3y",
+        "rentEpoch": 18446744073709552000,
+        "space": 42
+      }
     ],
     "err": null,
     "fee": 10000,

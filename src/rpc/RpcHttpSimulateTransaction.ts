@@ -18,7 +18,7 @@ import { Pubkey, pubkeyDefault } from "../data/Pubkey";
 import { TransactionExecution, TransactionPacket } from "../data/Transaction";
 import { RpcHttp } from "./RpcHttp";
 
-export async function rpcHttpSimulateInstructions(
+export async function rpcHttpSimulateTransaction(
   rpcHttp: RpcHttp,
   transactionPacket: TransactionPacket,
   options?: {
