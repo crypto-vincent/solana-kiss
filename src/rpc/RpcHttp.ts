@@ -121,6 +121,9 @@ export function rpcHttpWithRetryOnError(
   retryApprover: (context: {
     retriedCounter: number;
     totalDurationMs: number;
+    requestMethod: string;
+    requestParams: Array<JsonValue>;
+    requestConfig: JsonObject | undefined;
     lastError: any;
   }) => Promise<boolean>,
 ): RpcHttp {
@@ -135,6 +138,9 @@ export function rpcHttpWithRetryOnError(
         const retryApproved = await retryApprover({
           retriedCounter,
           totalDurationMs,
+          requestMethod: method,
+          requestParams: params,
+          requestConfig: config,
           lastError: error,
         });
         if (!retryApproved) {

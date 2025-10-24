@@ -5,6 +5,7 @@ import { TransactionPacket } from "./Transaction";
 export type WalletAccount = {
   address: Pubkey;
   signMessage: (message: Uint8Array) => Promise<Signature>;
+  // TODO - how to handle partial signing, because phantom already sends everything?
   signTransaction: (
     transactionPacket: TransactionPacket,
   ) => Promise<TransactionPacket>;
@@ -18,7 +19,7 @@ export type WalletProvider = {
 };
 
 // TODO (test) - somehow test this
-let walletProvidersDispatched = false;
+let walletProvidersDiscovering = false;
 const walletProvidersCached = new Array<WalletProvider>();
 const walletProvidersListeners = new Array<
   (walletProvider: WalletProvider) => void
@@ -31,9 +32,9 @@ export function walletProvidersDiscover(
     onWalletProvider(walletProvider);
   }
   walletProvidersListeners.push(onWalletProvider);
-  if (!walletProvidersDispatched) {
-    walletProvidersDispatched = true;
-    walletProvidersDispatch();
+  if (!walletProvidersDiscovering) {
+    walletProvidersDiscovering = true;
+    walletProvidersEventDispatch();
   }
   return () => {
     const index = walletProvidersListeners.indexOf(onWalletProvider);
@@ -43,12 +44,12 @@ export function walletProvidersDiscover(
   };
 }
 
-function walletProvidersDispatch() {
+function walletProvidersEventDispatch() {
   if (window === undefined) {
     throw new Error("WalletProvider discovery requires a window object");
   }
-  function registerWalletObject(walletObject: any) {
-    const walletProvider = makeWalletProvider(walletObject);
+  function onWalletPlugin(walletPlugin: any) {
+    const walletProvider = walletProviderFactory(walletPlugin);
     if (walletProvider === undefined) {
       return;
     }
@@ -62,28 +63,28 @@ function walletProvidersDispatch() {
       super("wallet-standard:app-ready");
     }
     get detail() {
-      return { register: registerWalletObject };
+      return { register: onWalletPlugin };
     }
   }
   window.addEventListener("wallet-standard:register-wallet", (event: any) => {
-    event.detail({ register: registerWalletObject });
+    event.detail({ register: onWalletPlugin });
   });
   window.dispatchEvent(new AppReadyEvent());
 }
 
 // TODO - cleanup implementation and naming on those
-function makeWalletProvider(walletObject: any): WalletProvider | undefined {
-  if (!walletObject || !walletObject.chains || !walletObject.features) {
+function walletProviderFactory(walletPlugin: any): WalletProvider | undefined {
+  if (!walletPlugin || !walletPlugin.chains || !walletPlugin.features) {
     return;
   }
   if (
-    typeof walletObject.name !== "string" ||
-    typeof walletObject.icon !== "string"
+    typeof walletPlugin.name !== "string" ||
+    typeof walletPlugin.icon !== "string"
   ) {
     return;
   }
   let supportsSolana = false;
-  for (const chain of walletObject.chains) {
+  for (const chain of walletPlugin.chains) {
     if (typeof chain === "string" && chain.startsWith("solana:")) {
       supportsSolana = true;
     }
@@ -91,34 +92,47 @@ function makeWalletProvider(walletObject: any): WalletProvider | undefined {
   if (!supportsSolana) {
     return;
   }
-  const connect = getWalletFeatureFunction(walletObject, "standard", "connect");
-  const disconnect = getWalletFeatureFunction(
-    walletObject,
+  const walletConnectFunction = walletPluginFeatureFunction(
+    walletPlugin,
+    "standard",
+    "connect",
+  );
+  const walletDisconnectFunction = walletPluginFeatureFunction(
+    walletPlugin,
     "standard",
     "disconnect",
   );
-  const signMessage = getWalletFeatureFunction(
-    walletObject,
+  const walletSignMessageFunction = walletPluginFeatureFunction(
+    walletPlugin,
     "solana",
     "signMessage",
   );
-  const signTransaction = getWalletFeatureFunction(
-    walletObject,
+  const walletSignTransactionFunction = walletPluginFeatureFunction(
+    walletPlugin,
     "solana",
     "signTransaction",
   );
-  if (!connect || !disconnect || !signMessage || !signTransaction) {
+  if (
+    !walletConnectFunction ||
+    !walletDisconnectFunction ||
+    !walletSignMessageFunction ||
+    !walletSignTransactionFunction
+  ) {
     return;
   }
   return {
-    name: walletObject.name,
-    icon: walletObject.icon,
-    connect: walletProviderConnect(connect, signMessage, signTransaction),
-    disconnect: disconnect as () => Promise<void>,
+    name: walletPlugin.name,
+    icon: walletPlugin.icon,
+    connect: walletProviderConnectFactory(
+      walletConnectFunction,
+      walletSignMessageFunction,
+      walletSignTransactionFunction,
+    ),
+    disconnect: walletDisconnectFunction as () => Promise<void>,
   };
 }
 
-function getWalletFeatureFunction(
+function walletPluginFeatureFunction(
   walletObject: any,
   featureCategory: string,
   featureName: string,
@@ -135,53 +149,72 @@ function getWalletFeatureFunction(
   return callable;
 }
 
-function walletProviderConnect(
-  providerConnect: Function,
-  providerSignMessage: Function,
-  providerSignTransaction: Function,
+function walletProviderConnectFactory(
+  walletConnectFunction: Function,
+  walletSignMessageFunction: Function,
+  walletSignTransactionFunction: Function,
 ) {
   return async () => {
-    let providerAccounts: Array<any>;
+    let walletAccountsObjects: Array<any>;
     let resultConnectSilent: any = undefined;
     try {
-      resultConnectSilent = await providerConnect({ silent: true });
-    } catch (e) {
-      console.log("WalletProvider: silent connect failed", e);
+      resultConnectSilent = await walletConnectFunction({ silent: true });
+    } catch (error) {
+      console.log(
+        "WalletProvider: silent connect failed, retrying non-silent",
+        error,
+      );
     }
     if (resultConnectSilent?.accounts) {
-      providerAccounts = resultConnectSilent.accounts;
+      walletAccountsObjects = resultConnectSilent.accounts;
     } else {
-      const resultConnectRegular = await providerConnect({ silent: false });
+      const resultConnectRegular = await walletConnectFunction({
+        silent: false,
+      });
       if (resultConnectRegular?.accounts) {
-        providerAccounts = resultConnectRegular.accounts;
+        walletAccountsObjects = resultConnectRegular.accounts;
       } else {
         throw new Error("No accounts returned from wallet");
       }
     }
     const walletAccounts = new Array<WalletAccount>();
-    for (const providerAccount of providerAccounts) {
-      walletAccounts.push({
-        address: pubkeyFromBase58(providerAccount.address),
-        signMessage: walletAccountSignMessage(
-          providerAccount,
-          providerSignMessage,
+    for (const walletAccountObject of walletAccountsObjects) {
+      walletAccounts.push(
+        walletAccountFactory(
+          walletAccountObject,
+          walletSignMessageFunction,
+          walletSignTransactionFunction,
         ),
-        signTransaction: walletAccountSignTransaction(
-          providerAccount,
-          providerSignTransaction,
-        ),
-      });
+      );
     }
     return walletAccounts;
   };
 }
 
-function walletAccountSignMessage(
+function walletAccountFactory(
   walletAccountObject: any,
-  providerSignMessage: Function,
+  walletSignMessageFunction: Function,
+  walletSignTransactionFunction: Function,
+) {
+  return {
+    address: pubkeyFromBase58(walletAccountObject.address),
+    signMessage: walletAccountSignMessageFactory(
+      walletAccountObject,
+      walletSignMessageFunction,
+    ),
+    signTransaction: walletAccountSignTransactionFactory(
+      walletAccountObject,
+      walletSignTransactionFunction,
+    ),
+  };
+}
+
+function walletAccountSignMessageFactory(
+  walletAccountObject: any,
+  walletSignMessageFunction: Function,
 ) {
   return async (message: Uint8Array) => {
-    const resultSignMessage = await providerSignMessage({
+    const resultSignMessage = await walletSignMessageFunction({
       account: walletAccountObject,
       message: message,
     });
@@ -193,13 +226,13 @@ function walletAccountSignMessage(
   };
 }
 
-function walletAccountSignTransaction(
-  providerAccount: any,
-  providerSignTransaction: Function,
+function walletAccountSignTransactionFactory(
+  walletAccountObject: any,
+  walletSignTransactionFunction: Function,
 ) {
   return async (transactionPacket: TransactionPacket) => {
-    const resultSignTransaction = await providerSignTransaction({
-      account: providerAccount,
+    const resultSignTransaction = await walletSignTransactionFunction({
+      account: walletAccountObject,
       transaction: transactionPacket,
     });
     const signedTransactionBytes = resultSignTransaction[0]?.signedTransaction;
