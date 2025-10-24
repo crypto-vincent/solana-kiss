@@ -18,43 +18,43 @@ export type WalletProvider = {
 };
 
 // TODO (test) - somehow test this
-let walletProvidersDiscovering = false;
+let walletProvidersDispatched = false;
+const walletProvidersCached = new Array<WalletProvider>();
 const walletProvidersListeners = new Array<
-  (walletProviders: Array<WalletProvider>) => void
+  (walletProvider: WalletProvider) => void
 >();
 
-export const walletProvidersObservable = {
-  subscribe: (
-    onUpdatedWalletProviders: (walletProviders: Array<WalletProvider>) => void,
-  ) => {
-    if (!walletProvidersDiscovering) {
-      walletProvidersDiscovering = true;
-      walletProvidersDiscover();
+export function walletProvidersDiscover(
+  onWalletProvider: (walletProvider: WalletProvider) => void,
+) {
+  for (const walletProvider of walletProvidersCached) {
+    onWalletProvider(walletProvider);
+  }
+  walletProvidersListeners.push(onWalletProvider);
+  if (!walletProvidersDispatched) {
+    walletProvidersDispatched = true;
+    walletProvidersDispatch();
+  }
+  return () => {
+    const index = walletProvidersListeners.indexOf(onWalletProvider);
+    if (index >= 0) {
+      walletProvidersListeners.splice(index, 1);
     }
-    walletProvidersListeners.push(onUpdatedWalletProviders);
-    return () => {
-      const index = walletProvidersListeners.indexOf(onUpdatedWalletProviders);
-      if (index >= 0) {
-        walletProvidersListeners.splice(index, 1);
-      }
-    };
-  },
-};
+  };
+}
 
-function walletProvidersDiscover() {
+function walletProvidersDispatch() {
   if (window === undefined) {
     throw new Error("WalletProvider discovery requires a window object");
   }
-  const walletProviders = new Array<WalletProvider>();
   function registerWalletObject(walletObject: any) {
     const walletProvider = makeWalletProvider(walletObject);
     if (walletProvider === undefined) {
       return;
     }
-    // TODO - make this nicer with dedup/throttling
-    walletProviders.push(walletProvider);
+    walletProvidersCached.push(walletProvider);
     for (const walletProvidersListener of walletProvidersListeners) {
-      walletProvidersListener(walletProviders.slice());
+      walletProvidersListener(walletProvider);
     }
   }
   class AppReadyEvent extends Event {
@@ -82,10 +82,13 @@ function makeWalletProvider(walletObject: any): WalletProvider | undefined {
   ) {
     return;
   }
+  let supportsSolana = false;
   for (const chain of walletObject.chains) {
     if (typeof chain === "string" && chain.startsWith("solana:")) {
-      continue;
+      supportsSolana = true;
     }
+  }
+  if (!supportsSolana) {
     return;
   }
   const connect = getWalletFeatureFunction(walletObject, "standard", "connect");
@@ -132,40 +135,6 @@ function getWalletFeatureFunction(
   return callable;
 }
 
-function walletAccountSignMessage(
-  walletAccountObject: any,
-  providerSignMessage: Function,
-) {
-  return async (message: Uint8Array) => {
-    const resultSignMessage = await providerSignMessage({
-      account: walletAccountObject,
-      message: message,
-    });
-    const signatureBytes = resultSignMessage[0]?.signature;
-    if (!(signatureBytes instanceof Uint8Array)) {
-      throw new Error("Invalid signature returned from wallet provider");
-    }
-    return signatureFromBytes(signatureBytes);
-  };
-}
-
-function walletAccountSignTransaction(
-  providerAccount: any,
-  providerSignTransaction: Function,
-) {
-  return async (transactionPacket: TransactionPacket) => {
-    const resultSignTransaction = await providerSignTransaction({
-      account: providerAccount,
-      transaction: transactionPacket,
-    });
-    const signedTransactionBytes = resultSignTransaction[0]?.signedTransaction;
-    if (!(signedTransactionBytes instanceof Uint8Array)) {
-      throw new Error("Invalid transaction returned from wallet provider");
-    }
-    return signedTransactionBytes as TransactionPacket;
-  };
-}
-
 function walletProviderConnect(
   providerConnect: Function,
   providerSignMessage: Function,
@@ -204,5 +173,39 @@ function walletProviderConnect(
       });
     }
     return walletAccounts;
+  };
+}
+
+function walletAccountSignMessage(
+  walletAccountObject: any,
+  providerSignMessage: Function,
+) {
+  return async (message: Uint8Array) => {
+    const resultSignMessage = await providerSignMessage({
+      account: walletAccountObject,
+      message: message,
+    });
+    const signatureBytes = resultSignMessage[0]?.signature;
+    if (!(signatureBytes instanceof Uint8Array)) {
+      throw new Error("Invalid signature returned from wallet provider");
+    }
+    return signatureFromBytes(signatureBytes);
+  };
+}
+
+function walletAccountSignTransaction(
+  providerAccount: any,
+  providerSignTransaction: Function,
+) {
+  return async (transactionPacket: TransactionPacket) => {
+    const resultSignTransaction = await providerSignTransaction({
+      account: providerAccount,
+      transaction: transactionPacket,
+    });
+    const signedTransactionBytes = resultSignTransaction[0]?.signedTransaction;
+    if (!(signedTransactionBytes instanceof Uint8Array)) {
+      throw new Error("Invalid transaction returned from wallet provider");
+    }
+    return signedTransactionBytes as TransactionPacket;
   };
 }

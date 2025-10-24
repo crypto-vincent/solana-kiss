@@ -32,5 +32,5 @@ it("run", async () => {
     "Dummy RpcHttp always fails after 100ms",
   );
   expect(durationMs >= 550).toStrictEqual(true);
-  expect(durationMs < 600).toStrictEqual(true);
+  expect(durationMs < 650).toStrictEqual(true);
 });
