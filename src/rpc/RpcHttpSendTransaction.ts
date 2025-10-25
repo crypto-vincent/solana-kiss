@@ -9,6 +9,7 @@ export async function rpcHttpSendTransaction(
   transactionPacket: TransactionPacket,
   options?: { skipPreflight?: boolean },
 ): Promise<{ transactionId: TransactionId }> {
+  // TODO - support wallet account signed sending ?
   const transactionId = jsonCodecSignature.decoder(
     await rpcHttp(
       "sendTransaction",

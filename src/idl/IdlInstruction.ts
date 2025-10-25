@@ -59,6 +59,7 @@ export function idlInstructionEncode(
   instructionPayload: JsonValue,
 ): Instruction {
   // TODO (service) - auto resolve the program address from the program idl when possible ?
+  // TODO - run find addresses if some are missing ?
   const instructionInputs = idlInstructionAccountsEncode(
     instructionIdl,
     instructionAddresses,

@@ -72,7 +72,6 @@ function walletProvidersEventDispatch() {
   window.dispatchEvent(new AppReadyEvent());
 }
 
-// TODO - cleanup implementation and naming on those
 function walletProviderFactory(walletPlugin: any): WalletProvider | undefined {
   if (!walletPlugin || !walletPlugin.chains || !walletPlugin.features) {
     return;

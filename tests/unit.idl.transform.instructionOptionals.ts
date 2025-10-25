@@ -1,6 +1,7 @@
 import { expect, it } from "@jest/globals";
 import {
   expectDefined,
+  idlInstructionAccountsCheck,
   idlInstructionAccountsDecode,
   idlInstructionAccountsEncode,
   idlProgramParse,
@@ -55,6 +56,7 @@ it("run", () => {
   expect(
     idlInstructionAccountsDecode(instructionIdl, caseEmptyInputs),
   ).toStrictEqual(caseEmptyAddresses);
+  idlInstructionAccountsCheck(instructionIdl, caseEmptyInputs);
   // Check that we we can encode the instruction with all of the optional accounts
   const caseFullAddresses = {
     acc_0_0,
@@ -82,6 +84,7 @@ it("run", () => {
   expect(
     idlInstructionAccountsDecode(instructionIdl, caseFullInputs),
   ).toStrictEqual(caseFullAddresses);
+  idlInstructionAccountsCheck(instructionIdl, caseFullInputs);
   // Check that we we can encode the instruction with all of the optional accounts
   const casePartial1Addresses = {
     acc_0_0,
@@ -103,6 +106,7 @@ it("run", () => {
   expect(
     idlInstructionAccountsDecode(instructionIdl, casePartial1Inputs),
   ).toStrictEqual(casePartial1Addresses);
+  idlInstructionAccountsCheck(instructionIdl, casePartial1Inputs);
   // Check that we we can encode the instruction with all of the optional accounts
   const casePartial3Addresses = {
     acc_0_0,
@@ -128,4 +132,5 @@ it("run", () => {
   expect(
     idlInstructionAccountsDecode(instructionIdl, casePartial3Inputs),
   ).toStrictEqual(casePartial3Addresses);
+  idlInstructionAccountsCheck(instructionIdl, casePartial3Inputs);
 });

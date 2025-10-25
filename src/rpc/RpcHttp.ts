@@ -14,7 +14,6 @@ export type RpcHttp = (
   config: JsonObject | undefined,
 ) => Promise<JsonValue>;
 
-// TODO (test) - testing on the retry strategies and concurrency strategy
 export function rpcHttpFromUrl(
   url: string,
   context?: { commitment?: "confirmed" | "finalized" },

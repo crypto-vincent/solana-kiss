@@ -16,7 +16,6 @@ it("run", async () => {
   const programIdl = idlProgramParse(require("./fixtures/idl_anchor_26.json"));
   // Download an arbitrary instruction we should be able to decode
   const { transactionRequest } = expectDefined(
-    // TODO (test) - check the callstack invocation too
     await rpcHttpGetTransaction(
       rpcHttp,
       signatureFromBase58(
