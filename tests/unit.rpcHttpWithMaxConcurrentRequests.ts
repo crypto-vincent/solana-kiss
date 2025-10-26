@@ -1,11 +1,10 @@
 import { it } from "@jest/globals";
 import { JsonValue, RpcHttp, rpcHttpWithMaxConcurrentRequests } from "../src";
 
-async function dummyRpcHttp(method: string, params: Array<JsonValue>) {
-  if (method === "delay") {
-    const delayMs = Number(params[0]);
-    await new Promise((resolve) => setTimeout(resolve, delayMs));
-    return [delayMs];
+async function rpcHttp(method: string, params: Array<JsonValue>) {
+  if (method === "delayMs") {
+    await new Promise((resolve) => setTimeout(resolve, params[0] as number));
+    return undefined;
   }
   throw new Error(`Unknown method: ${method}`);
 }
@@ -16,49 +15,51 @@ async function expectParallelDelaysDurationMs(context: {
   expectedDurationMs: number;
 }) {
   const startTimeMs = Date.now();
-  const promises = context.delaysMs.map((delayMs) =>
-    context.rpcHttp("delay", [delayMs], {}),
+  await Promise.all(
+    context.delaysMs.map((delayMs) =>
+      context.rpcHttp("delayMs", [delayMs], {}),
+    ),
   );
-  await Promise.all(promises);
-  const endTimeMs = Date.now();
-  const durationMs = endTimeMs - startTimeMs;
-  expect(durationMs >= context.expectedDurationMs).toStrictEqual(true);
-  expect(durationMs < context.expectedDurationMs + 50).toStrictEqual(true);
+  const durationMs = Date.now() - startTimeMs;
+  expect(durationMs).toBeGreaterThanOrEqual(context.expectedDurationMs);
+  expect(durationMs).toBeLessThan(
+    context.expectedDurationMs * 1.2 + 20 /* ms jitter */,
+  );
 }
 
 it("run", async () => {
   await expectParallelDelaysDurationMs({
-    rpcHttp: rpcHttpWithMaxConcurrentRequests(dummyRpcHttp, 2),
-    delaysMs: [1, 50, 100, 50],
+    rpcHttp: rpcHttpWithMaxConcurrentRequests(rpcHttp, 2),
+    delaysMs: [0, 50, 100, 50],
     expectedDurationMs: 100,
   });
   await expectParallelDelaysDurationMs({
-    rpcHttp: rpcHttpWithMaxConcurrentRequests(dummyRpcHttp, 2),
-    delaysMs: [50, 50, 1, 100],
+    rpcHttp: rpcHttpWithMaxConcurrentRequests(rpcHttp, 2),
+    delaysMs: [50, 50, 100, 100],
     expectedDurationMs: 150,
   });
   await expectParallelDelaysDurationMs({
-    rpcHttp: rpcHttpWithMaxConcurrentRequests(dummyRpcHttp, 2),
-    delaysMs: [100, 20, 20, 20, 20, 20],
+    rpcHttp: rpcHttpWithMaxConcurrentRequests(rpcHttp, 2),
+    delaysMs: [100, 33, 33, 33],
     expectedDurationMs: 100,
   });
   await expectParallelDelaysDurationMs({
-    rpcHttp: rpcHttpWithMaxConcurrentRequests(dummyRpcHttp, 2),
+    rpcHttp: rpcHttpWithMaxConcurrentRequests(rpcHttp, 2),
     delaysMs: [100, 100, 100, 100, 100, 100],
     expectedDurationMs: 300,
   });
   await expectParallelDelaysDurationMs({
-    rpcHttp: rpcHttpWithMaxConcurrentRequests(dummyRpcHttp, 4),
+    rpcHttp: rpcHttpWithMaxConcurrentRequests(rpcHttp, 4),
     delaysMs: [100, 100, 100, 100, 100, 100],
     expectedDurationMs: 200,
   });
   await expectParallelDelaysDurationMs({
-    rpcHttp: rpcHttpWithMaxConcurrentRequests(dummyRpcHttp, 6),
+    rpcHttp: rpcHttpWithMaxConcurrentRequests(rpcHttp, 6),
     delaysMs: [100, 100, 100, 100, 100, 100],
     expectedDurationMs: 100,
   });
   await expectParallelDelaysDurationMs({
-    rpcHttp: rpcHttpWithMaxConcurrentRequests(dummyRpcHttp, 10),
+    rpcHttp: rpcHttpWithMaxConcurrentRequests(rpcHttp, 10),
     delaysMs: [100, 100, 100, 100, 100, 100],
     expectedDurationMs: 100,
   });

@@ -1,6 +1,15 @@
 import { Pubkey, pubkeyFromBase58 } from "./Pubkey";
+import { rxBehaviourSubject, RxObservable } from "./Rx";
 import { Signature, signatureFromBytes } from "./Signature";
 import { TransactionPacket } from "./Transaction";
+
+export type WalletProvider = {
+  name: string;
+  icon: string;
+  accounts: RxObservable<Array<WalletAccount>>;
+  connect: () => Promise<Array<WalletAccount>>;
+  disconnect: () => Promise<void>;
+};
 
 export type WalletAccount = {
   address: Pubkey;
@@ -11,65 +20,48 @@ export type WalletAccount = {
   ) => Promise<TransactionPacket>;
 };
 
-export type WalletProvider = {
-  name: string;
-  icon: string;
-  connect: () => Promise<Array<WalletAccount>>;
-  disconnect: () => Promise<void>;
+const walletProvidersSubject = rxBehaviourSubject<Array<WalletProvider>>([]);
+let walletProvidersDiscovering = false;
+
+export const walletProviders: RxObservable<Array<WalletProvider>> = {
+  subscribe: (listener) => {
+    if (!walletProvidersDiscovering) {
+      walletProvidersDiscovering = true;
+      walletProvidersDiscovery();
+    }
+    return walletProvidersSubject.subscribe(listener);
+  },
 };
 
-// TODO (test) - somehow test this
-let walletProvidersDiscovering = false;
-const walletProvidersCached = new Array<WalletProvider>();
-const walletProvidersListeners = new Array<
-  (walletProvider: WalletProvider) => void
->();
-
-export function walletProvidersDiscover(
-  onWalletProvider: (walletProvider: WalletProvider) => void,
-) {
-  for (const walletProvider of walletProvidersCached) {
-    onWalletProvider(walletProvider);
+function walletProvidersDiscovery() {
+  if (globalThis.window === undefined) {
+    return;
   }
-  walletProvidersListeners.push(onWalletProvider);
-  if (!walletProvidersDiscovering) {
-    walletProvidersDiscovering = true;
-    walletProvidersEventDispatch();
-  }
-  return () => {
-    const index = walletProvidersListeners.indexOf(onWalletProvider);
-    if (index >= 0) {
-      walletProvidersListeners.splice(index, 1);
-    }
-  };
-}
-
-function walletProvidersEventDispatch() {
-  if (window === undefined) {
-    throw new Error("WalletProvider discovery requires a window object");
-  }
-  function onWalletPlugin(walletPlugin: any) {
+  function walletPluginRegister(walletPlugin: any) {
     const walletProvider = walletProviderFactory(walletPlugin);
     if (walletProvider === undefined) {
       return;
     }
-    walletProvidersCached.push(walletProvider);
-    for (const walletProvidersListener of walletProvidersListeners) {
-      walletProvidersListener(walletProvider);
-    }
+    walletProvidersSubject.notify([
+      ...walletProvidersSubject.get(),
+      walletProvider,
+    ]);
   }
   class AppReadyEvent extends Event {
     constructor() {
       super("wallet-standard:app-ready");
     }
     get detail() {
-      return { register: onWalletPlugin };
+      return { register: walletPluginRegister };
     }
   }
-  window.addEventListener("wallet-standard:register-wallet", (event: any) => {
-    event.detail({ register: onWalletPlugin });
-  });
-  window.dispatchEvent(new AppReadyEvent());
+  globalThis.window.addEventListener(
+    "wallet-standard:register-wallet",
+    (event: any) => {
+      event.detail({ register: walletPluginRegister });
+    },
+  );
+  globalThis.window.dispatchEvent(new AppReadyEvent());
 }
 
 function walletProviderFactory(walletPlugin: any): WalletProvider | undefined {
@@ -93,35 +85,58 @@ function walletProviderFactory(walletPlugin: any): WalletProvider | undefined {
   }
   const walletConnectFunction = walletPluginFeatureFunction(
     walletPlugin,
-    "standard",
+    "standard:connect",
     "connect",
   );
   const walletDisconnectFunction = walletPluginFeatureFunction(
     walletPlugin,
-    "standard",
+    "standard:disconnect",
     "disconnect",
+  );
+  const walletOnChangeFunction = walletPluginFeatureFunction(
+    walletPlugin,
+    "standard:events",
+    "on",
   );
   const walletSignMessageFunction = walletPluginFeatureFunction(
     walletPlugin,
-    "solana",
+    "solana:signMessage",
     "signMessage",
   );
   const walletSignTransactionFunction = walletPluginFeatureFunction(
     walletPlugin,
-    "solana",
+    "solana:signTransaction",
     "signTransaction",
   );
   if (
     !walletConnectFunction ||
     !walletDisconnectFunction ||
+    !walletOnChangeFunction ||
     !walletSignMessageFunction ||
     !walletSignTransactionFunction
   ) {
     return;
   }
+  const walletAccountsSubject = rxBehaviourSubject(new Array<WalletAccount>());
+  walletOnChangeFunction("change", async (changed: any) => {
+    if (changed.accounts === undefined) {
+      return;
+    }
+    const walletAccountsObjects = changed.accounts;
+    walletAccountsSubject.notify(
+      walletAccountsObjects.map((walletAccountObject: any) => {
+        return walletAccountFactory(
+          walletAccountObject,
+          walletSignMessageFunction,
+          walletSignTransactionFunction,
+        );
+      }),
+    );
+  });
   return {
     name: walletPlugin.name,
     icon: walletPlugin.icon,
+    accounts: walletAccountsSubject,
     connect: walletProviderConnectFactory(
       walletConnectFunction,
       walletSignMessageFunction,
@@ -133,15 +148,14 @@ function walletProviderFactory(walletPlugin: any): WalletProvider | undefined {
 
 function walletPluginFeatureFunction(
   walletObject: any,
-  featureCategory: string,
   featureName: string,
+  featureCallKey: string,
 ): Function | undefined {
-  const featureKey = `${featureCategory}:${featureName}`;
-  const feature = walletObject.features[featureKey];
+  const feature = walletObject.features[featureName];
   if (!feature || !feature.version) {
     return undefined;
   }
-  const callable = feature[featureName];
+  const callable = feature[featureCallKey];
   if (typeof callable !== "function") {
     return undefined;
   }
@@ -154,7 +168,7 @@ function walletProviderConnectFactory(
   walletSignTransactionFunction: Function,
 ) {
   return async () => {
-    let walletAccountsObjects: Array<any>;
+    let walletAccountsObjects = [];
     let resultConnectSilent: any = undefined;
     try {
       resultConnectSilent = await Promise.race([
@@ -181,17 +195,13 @@ function walletProviderConnectFactory(
         throw new Error("No accounts returned from wallet");
       }
     }
-    const walletAccounts = new Array<WalletAccount>();
-    for (const walletAccountObject of walletAccountsObjects) {
-      walletAccounts.push(
-        walletAccountFactory(
-          walletAccountObject,
-          walletSignMessageFunction,
-          walletSignTransactionFunction,
-        ),
+    return walletAccountsObjects.map((walletAccountObject: any) => {
+      return walletAccountFactory(
+        walletAccountObject,
+        walletSignMessageFunction,
+        walletSignTransactionFunction,
       );
-    }
-    return walletAccounts;
+    });
   };
 }
 
@@ -199,7 +209,7 @@ function walletAccountFactory(
   walletAccountObject: any,
   walletSignMessageFunction: Function,
   walletSignTransactionFunction: Function,
-) {
+): WalletAccount {
   return {
     address: pubkeyFromBase58(walletAccountObject.address),
     signMessage: walletAccountSignMessageFactory(
