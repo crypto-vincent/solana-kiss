@@ -7,6 +7,7 @@ export * from "./data/Instruction";
 export * from "./data/Json";
 export * from "./data/Lamports";
 export * from "./data/Pubkey";
+export * from "./data/Rx";
 export * from "./data/Sha256";
 export * from "./data/Signature";
 export * from "./data/Signer";

@@ -93,7 +93,7 @@ function walletProviderFactory(walletPlugin: any): WalletProvider | undefined {
     "standard:disconnect",
     "disconnect",
   );
-  const walletOnChangeFunction = walletPluginFeatureFunction(
+  const walletEventOnFunction = walletPluginFeatureFunction(
     walletPlugin,
     "standard:events",
     "on",
@@ -111,14 +111,14 @@ function walletProviderFactory(walletPlugin: any): WalletProvider | undefined {
   if (
     !walletConnectFunction ||
     !walletDisconnectFunction ||
-    !walletOnChangeFunction ||
+    !walletEventOnFunction ||
     !walletSignMessageFunction ||
     !walletSignTransactionFunction
   ) {
     return;
   }
   const walletAccountsSubject = rxBehaviourSubject(new Array<WalletAccount>());
-  walletOnChangeFunction("change", async (changed: any) => {
+  walletEventOnFunction("change", async (changed: any) => {
     if (changed.accounts === undefined) {
       return;
     }
@@ -169,31 +169,18 @@ function walletProviderConnectFactory(
 ) {
   return async () => {
     let walletAccountsObjects = [];
-    let resultConnectSilent: any = undefined;
     try {
-      resultConnectSilent = await Promise.race([
-        walletConnectFunction({ silent: true }),
-        new Promise((_, reject) =>
-          setTimeout(() => reject(new Error("Silent connect timed out")), 1000),
-        ),
-      ]);
+      const resultConnectSilent = await walletConnectFunction({ silent: true });
+      walletAccountsObjects = resultConnectSilent?.accounts || [];
     } catch (error) {
       console.log(
         "WalletProvider: silent connect failed, retrying non-silent",
         error,
       );
-    }
-    if (resultConnectSilent?.accounts) {
-      walletAccountsObjects = resultConnectSilent.accounts;
-    } else {
       const resultConnectRegular = await walletConnectFunction({
         silent: false,
       });
-      if (resultConnectRegular?.accounts) {
-        walletAccountsObjects = resultConnectRegular.accounts;
-      } else {
-        throw new Error("No accounts returned from wallet");
-      }
+      walletAccountsObjects = resultConnectRegular?.accounts || [];
     }
     return walletAccountsObjects.map((walletAccountObject: any) => {
       return walletAccountFactory(
