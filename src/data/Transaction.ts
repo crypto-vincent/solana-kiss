@@ -65,8 +65,7 @@ export async function transactionCompileAndSign(
     transactionRequest,
     addressLookupTables,
   );
-  await transactionSign(transactionPacket, signers);
-  return transactionPacket;
+  return await transactionSign(transactionPacket, signers);
 }
 
 export function transactionCompileOnly(
@@ -231,7 +230,7 @@ export async function transactionSign(
       await signer.sign(transactionMessage),
     );
   }
-  const packetBytes = transactionPacket as Uint8Array;
+  const packetBytes = new Uint8Array(transactionPacket);
   for (
     let signerIndex = 0;
     signerIndex < transactionSigning.length;
@@ -244,6 +243,7 @@ export async function transactionSign(
       packetBytes.set(signatureToBytes(signature), signatureOffset);
     }
   }
+  return packetBytes as TransactionPacket;
 }
 
 function bytesPushShortVec16(bytes: Array<number>, length: number) {
