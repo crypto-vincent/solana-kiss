@@ -16,7 +16,7 @@ import {
   signerFromSecret,
   signerGenerate,
   transactionCompileAndSign,
-  transactionCompileOnly,
+  transactionCompileUnsigned,
   utf8Encode,
 } from "../src";
 
@@ -60,7 +60,7 @@ it("run", async () => {
   );
   const pledgeAddress = expectDefined(instructionAddresses["pledge"]);
   // Run the simulation without verifying the signers
-  const transactionPacketNoVerify = transactionCompileOnly({
+  const transactionPacketNoVerify = transactionCompileUnsigned({
     payerAddress: payerSigner.address,
     recentBlockHash: blockHashDefault,
     instructions: [instruction],

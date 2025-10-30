@@ -13,7 +13,8 @@ import {
   pubkeyNewDummy,
   signerFromSecret,
   transactionCompileAndSign,
-  transactionInspect,
+  transactionDecompileRequest,
+  transactionGetMessage,
 } from "../src";
 
 it("run", async () => {
@@ -60,23 +61,26 @@ it("run", async () => {
   ]);
   const referenceMessageBytes = referenceTransactionMessage.serialize();
   const referencePacketBytes = referenceTransaction.serialize();
+  const currentRequest = {
+    payerAddress: payerCurrent.address,
+    recentBlockHash: blockHash,
+    instructions: [
+      generatedInstruction1.current,
+      generatedInstruction2.current,
+      ...generatedDummyInstructions.map((ix) => ix.current),
+    ],
+  };
   const currentPacket = await transactionCompileAndSign(
     [payerCurrent, signer1Current, signer2Current],
-    {
-      payerAddress: payerCurrent.address,
-      recentBlockHash: blockHash,
-      instructions: [
-        generatedInstruction1.current,
-        generatedInstruction2.current,
-        ...generatedDummyInstructions.map((ix) => ix.current),
-      ],
-    },
+    currentRequest,
     [],
   );
-  const { transactionMessage: currentMessage } =
-    transactionInspect(currentPacket);
+  const currentMessage = transactionGetMessage(currentPacket);
   expect(currentMessage).toStrictEqual(referenceMessageBytes);
   expect(currentPacket).toStrictEqual(referencePacketBytes);
+  expect(transactionDecompileRequest(currentMessage)).toStrictEqual(
+    currentRequest,
+  );
 });
 
 function generateInstruction(

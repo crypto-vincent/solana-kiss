@@ -7,7 +7,7 @@ export type WalletProvider = {
   name: string;
   icon: string;
   accounts: RxObservable<Array<WalletAccount>>;
-  connect: () => Promise<Array<WalletAccount>>;
+  connect: (options?: { silent?: boolean }) => Promise<Array<WalletAccount>>;
   disconnect: () => Promise<void>;
 };
 
@@ -20,9 +20,6 @@ export type WalletAccount = {
   ) => Promise<TransactionPacket>;
 };
 
-const walletProvidersSubject = rxBehaviourSubject<Array<WalletProvider>>([]);
-let walletProvidersDiscovering = false;
-
 export const walletProviders: RxObservable<Array<WalletProvider>> = {
   subscribe: (listener) => {
     if (!walletProvidersDiscovering) {
@@ -32,6 +29,9 @@ export const walletProviders: RxObservable<Array<WalletProvider>> = {
     return walletProvidersSubject.subscribe(listener);
   },
 };
+
+let walletProvidersDiscovering = false;
+const walletProvidersSubject = rxBehaviourSubject<Array<WalletProvider>>([]);
 
 function walletProvidersDiscovery() {
   if (globalThis.window === undefined) {
@@ -119,12 +119,11 @@ function walletProviderFactory(walletPlugin: any): WalletProvider | undefined {
   }
   const walletAccountsSubject = rxBehaviourSubject(new Array<WalletAccount>());
   walletEventOnFunction("change", async (changed: any) => {
-    if (changed.accounts === undefined) {
+    if (!changed?.accounts) {
       return;
     }
-    const walletAccountsObjects = changed.accounts;
     walletAccountsSubject.notify(
-      walletAccountsObjects.map((walletAccountObject: any) => {
+      changed.accounts.map((walletAccountObject: any) => {
         return walletAccountFactory(
           walletAccountObject,
           walletSignMessageFunction,
@@ -143,7 +142,8 @@ function walletProviderFactory(walletPlugin: any): WalletProvider | undefined {
       walletSignTransactionFunction,
     ),
     disconnect: walletDisconnectFunction as () => Promise<void>,
-  };
+    adapter: walletPlugin,
+  } as WalletProvider;
 }
 
 function walletPluginFeatureFunction(
@@ -167,22 +167,14 @@ function walletProviderConnectFactory(
   walletSignMessageFunction: Function,
   walletSignTransactionFunction: Function,
 ) {
-  return async () => {
-    let walletAccountsObjects = [];
-    try {
-      const resultConnectSilent = await walletConnectFunction({ silent: true });
-      walletAccountsObjects = resultConnectSilent?.accounts || [];
-    } catch (error) {
-      console.log(
-        "WalletProvider: silent connect failed, retrying non-silent",
-        error,
-      );
-      const resultConnectRegular = await walletConnectFunction({
-        silent: false,
-      });
-      walletAccountsObjects = resultConnectRegular?.accounts || [];
+  return async (options?: { silent?: boolean }) => {
+    const result = await walletConnectFunction({
+      silent: options?.silent ?? false,
+    });
+    if (!result?.accounts) {
+      throw new Error("WalletProvider: connect failed");
     }
-    return walletAccountsObjects.map((walletAccountObject: any) => {
+    return result.accounts.map((walletAccountObject: any) => {
       return walletAccountFactory(
         walletAccountObject,
         walletSignMessageFunction,
