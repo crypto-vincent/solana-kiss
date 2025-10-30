@@ -35,7 +35,7 @@ export async function rpcHttpSendTransaction(
     const transactionSigning = transactionExtractSigning(transactionPacket);
     const transactionHandle = transactionSigning[0]!.signature;
     const startTimeMs = Date.now();
-    while (Date.now() - startTimeMs < 1000) {
+    while (Date.now() - startTimeMs < 3000) {
       const result = await rpcHttpGetTransaction(rpcHttp, transactionHandle, {
         skipTransactionFlow: true,
       });
