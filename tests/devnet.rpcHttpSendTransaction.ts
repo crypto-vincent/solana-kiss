@@ -4,6 +4,7 @@ import {
   idlInstructionParse,
   lamportsFeePerSigner,
   lamportsRentExemptionMinimumForSpace,
+  Pubkey,
   pubkeyDefault,
   pubkeyNewDummy,
   pubkeyToBase58,
@@ -12,9 +13,12 @@ import {
   rpcHttpGetLatestBlockHash,
   rpcHttpSendTransaction,
   rpcHttpWaitForTransaction,
+  Signer,
   signerFromSecret,
   signerGenerate,
   transactionCompileAndSign,
+  TransactionPacket,
+  transactionSign,
 } from "../src";
 
 it("run", async () => {
@@ -22,14 +26,98 @@ it("run", async () => {
     commitment: "confirmed",
   });
   const programAddress = pubkeyDefault;
-  const payerSigner = await signerFromSecret(secret);
-  const ownedSigner = await signerGenerate();
   const ownerAddress = pubkeyNewDummy();
-  const { blockInfo: recentBlockInfo } =
-    await rpcHttpGetLatestBlockHash(rpcHttp);
   const requestedSpace = 42;
   const transferLamports = lamportsRentExemptionMinimumForSpace(requestedSpace);
-  const instruction = idlInstructionEncode(
+  const payerSigner = await signerFromSecret(secret);
+  const owned1Signer = await signerGenerate();
+  const owned2Signer = await signerGenerate();
+  const { blockInfo: recentBlockInfo } =
+    await rpcHttpGetLatestBlockHash(rpcHttp);
+  const originalRequest = {
+    payerAddress: payerSigner.address,
+    recentBlockHash: recentBlockInfo.hash,
+    instructions: [
+      makeCreateInstruction(
+        programAddress,
+        ownerAddress,
+        transferLamports,
+        requestedSpace,
+        payerSigner,
+        owned1Signer,
+      ),
+      makeCreateInstruction(
+        programAddress,
+        ownerAddress,
+        transferLamports + 42n,
+        requestedSpace - 1,
+        payerSigner,
+        owned2Signer,
+      ),
+    ],
+  };
+  const transactionPacket = await transactionCompileAndSign(
+    [owned1Signer],
+    originalRequest,
+  );
+  const { transactionHandle } = await rpcHttpSendTransaction(
+    rpcHttp,
+    transactionPacket,
+    {
+      skipPreflight: false,
+      withExtraSigners: [owned2Signer],
+      withWalletAccountsSigners: [
+        {
+          address: payerSigner.address,
+          signMessage: async (message: Uint8Array) => {
+            return await payerSigner.sign(message);
+          },
+          signTransaction: async (transactionPacket: TransactionPacket) => {
+            return await transactionSign(transactionPacket, [payerSigner]);
+          },
+        },
+      ],
+    },
+  );
+  const { transactionRequest, transactionExecution } =
+    await rpcHttpWaitForTransaction(
+      rpcHttp,
+      transactionHandle,
+      async () => true,
+    );
+  expect(transactionRequest).toStrictEqual(originalRequest);
+  expect(transactionExecution.chargedFeesLamports).toStrictEqual(
+    lamportsFeePerSigner * 3n,
+  );
+  expect(transactionExecution.logs?.length).toStrictEqual(4);
+  expect(transactionExecution.error).toStrictEqual(null);
+  const { accountInfo: owned1Info } = await rpcHttpGetAccountMetadata(
+    rpcHttp,
+    owned1Signer.address,
+  );
+  expect(owned1Info.executable).toStrictEqual(false);
+  expect(owned1Info.lamports).toStrictEqual(transferLamports);
+  expect(owned1Info.owner).toStrictEqual(ownerAddress);
+  expect(owned1Info.space).toStrictEqual(requestedSpace);
+  const { accountInfo: owned2Info } = await rpcHttpGetAccountMetadata(
+    rpcHttp,
+    owned2Signer.address,
+  );
+  expect(owned2Info.executable).toStrictEqual(false);
+  expect(owned2Info.lamports).toStrictEqual(transferLamports + 42n);
+  expect(owned2Info.owner).toStrictEqual(ownerAddress);
+  expect(owned2Info.space).toStrictEqual(requestedSpace - 1);
+});
+
+function makeCreateInstruction(
+  programAddress: Pubkey,
+  ownerAddress: Pubkey,
+  transferLamports: bigint,
+  requestedSpace: number,
+  payerSigner: Signer,
+  ownedSigner: Signer,
+) {
+  return idlInstructionEncode(
     instructionIdl,
     programAddress,
     {
@@ -42,43 +130,7 @@ it("run", async () => {
       owner: pubkeyToBase58(ownerAddress),
     },
   );
-  const originalRequest = {
-    payerAddress: payerSigner.address,
-    recentBlockHash: recentBlockInfo.hash,
-    instructions: [instruction],
-  };
-  const transactionPacket = await transactionCompileAndSign(
-    [payerSigner, ownedSigner],
-    originalRequest,
-  );
-  const { transactionId } = await rpcHttpSendTransaction(
-    rpcHttp,
-    transactionPacket,
-  );
-  const { transactionRequest, transactionExecution } =
-    await rpcHttpWaitForTransaction(rpcHttp, transactionId, async () => true);
-  expect(transactionRequest).toStrictEqual(originalRequest);
-  expect(transactionExecution.chargedFeesLamports).toStrictEqual(
-    lamportsFeePerSigner * 2n,
-  );
-  expect(transactionExecution.logs?.length).toStrictEqual(2);
-  expect(transactionExecution.error).toStrictEqual(null);
-  const { accountInfo: ownedAccountInfo } = await rpcHttpGetAccountMetadata(
-    rpcHttp,
-    ownedSigner.address,
-  );
-  expect(ownedAccountInfo.executable).toStrictEqual(false);
-  expect(ownedAccountInfo.lamports).toStrictEqual(transferLamports);
-  expect(ownedAccountInfo.owner).toStrictEqual(ownerAddress);
-  expect(ownedAccountInfo.space).toStrictEqual(requestedSpace);
-});
-
-const secret = new Uint8Array([
-  96, 11, 209, 132, 49, 92, 144, 135, 105, 211, 34, 171, 125, 156, 217, 148, 65,
-  233, 239, 86, 149, 37, 180, 226, 120, 139, 152, 126, 199, 116, 104, 184, 10,
-  85, 215, 5, 230, 110, 192, 255, 29, 27, 96, 27, 203, 56, 119, 189, 226, 99,
-  13, 150, 68, 70, 138, 190, 182, 126, 125, 69, 25, 66, 190, 239,
-]);
+}
 
 const instructionIdl = idlInstructionParse("create", {
   discriminator: { encode: { value: 0, type: "u32" } },
@@ -92,3 +144,10 @@ const instructionIdl = idlInstructionParse("create", {
     { name: "owner", type: "pubkey" },
   ],
 });
+
+const secret = new Uint8Array([
+  96, 11, 209, 132, 49, 92, 144, 135, 105, 211, 34, 171, 125, 156, 217, 148, 65,
+  233, 239, 86, 149, 37, 180, 226, 120, 139, 152, 126, 199, 116, 104, 184, 10,
+  85, 215, 5, 230, 110, 192, 255, 29, 27, 96, 27, 203, 56, 119, 189, 226, 99,
+  13, 150, 68, 70, 138, 190, 182, 126, 125, 69, 25, 66, 190, 239,
+]);

@@ -40,7 +40,7 @@ it("run", async () => {
   });
   await expectParallelDelaysDurationMs({
     rpcHttp: rpcHttpWithMaxConcurrentRequests(rpcHttp, 2),
-    delaysMs: [100, 33, 33, 33],
+    delaysMs: [100, 34, 33, 33],
     expectedDurationMs: 100,
   });
   await expectParallelDelaysDurationMs({

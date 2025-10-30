@@ -34,16 +34,15 @@ it("run", async () => {
     0,
     3,
   )) {
-    const ownedAccountResult = await rpcHttpGetAccountWithData(
+    const { accountInfo: ownedInfo } = await rpcHttpGetAccountWithData(
       rpcHttp,
       ownedAddress,
     );
-    const ownedAccountInfo = ownedAccountResult.accountInfo;
-    expect(ownedAccountInfo.data.length).toStrictEqual(32);
-    expect(ownedAccountInfo.data.slice(0, 8)).toStrictEqual(
+    expect(ownedInfo.data.length).toStrictEqual(32);
+    expect(ownedInfo.data.slice(0, 8)).toStrictEqual(
       expectedDiscriminatorBytes,
     );
-    expect(ownedAccountInfo.owner).toStrictEqual(
+    expect(ownedInfo.owner).toStrictEqual(
       "vVeH6Xd43HAScbxjVtvfwDGqBMaMvNDLsAxwM5WK1pG",
     );
   }

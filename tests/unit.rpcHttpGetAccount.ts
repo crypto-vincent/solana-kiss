@@ -6,26 +6,26 @@ import {
 } from "../src";
 
 it("run", async () => {
-  const { accountInfo: withDataAccountInfo } = await rpcHttpGetAccountWithData(
+  const { accountInfo: withDataInfo } = await rpcHttpGetAccountWithData(
     () => require("./fixtures/RpcHttpGetAccountInfo.json"),
     pubkeyNewDummy(),
   );
-  expect(withDataAccountInfo.executable).toStrictEqual(true);
-  expect(withDataAccountInfo.lamports).toStrictEqual(42_000_000_000_000n);
-  expect(withDataAccountInfo.owner).toStrictEqual(
+  expect(withDataInfo.executable).toStrictEqual(true);
+  expect(withDataInfo.lamports).toStrictEqual(42_000_000_000_000n);
+  expect(withDataInfo.owner).toStrictEqual(
     "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA",
   );
-  expect(withDataAccountInfo.data).toStrictEqual(
+  expect(withDataInfo.data).toStrictEqual(
     new Uint8Array([42, 42, 42, 42, 42, 42, 42, 42]),
   );
-  const { accountInfo: metadataAccountInfo } = await rpcHttpGetAccountMetadata(
+  const { accountInfo: metadataInfo } = await rpcHttpGetAccountMetadata(
     () => require("./fixtures/RpcHttpGetAccountInfo.json"),
     null as any,
   );
-  expect(metadataAccountInfo.executable).toStrictEqual(true);
-  expect(metadataAccountInfo.lamports).toStrictEqual(42_000_000_000_000n);
-  expect(metadataAccountInfo.owner).toStrictEqual(
+  expect(metadataInfo.executable).toStrictEqual(true);
+  expect(metadataInfo.lamports).toStrictEqual(42_000_000_000_000n);
+  expect(metadataInfo.owner).toStrictEqual(
     "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA",
   );
-  expect(metadataAccountInfo.space).toStrictEqual(8);
+  expect(metadataInfo.space).toStrictEqual(8);
 });

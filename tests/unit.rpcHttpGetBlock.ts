@@ -23,7 +23,7 @@ it("run", async () => {
   const {
     previousBlockSlot: withTransactionPreviousBlockSlot,
     blockInfo: withTransactionBlockInfo,
-    transactionsIds,
+    transactionsHandles,
   } = await rpcHttpGetBlockWithTransactions(
     () => require("./fixtures/RpcHttpGetBlock.json"),
     null as any,
@@ -32,8 +32,8 @@ it("run", async () => {
     metadataPreviousBlockSlot,
   );
   expect(withTransactionBlockInfo).toStrictEqual(metadataBlockInfo);
-  expect(transactionsIds.length).toStrictEqual(44);
-  expect(transactionsIds[0]).toStrictEqual(
+  expect(transactionsHandles.length).toStrictEqual(44);
+  expect(transactionsHandles[0]).toStrictEqual(
     "2ekepJV7psmVsBsWhFRw9JeSMpqzemtR2F3kFxTQ5uHYEEFto7FsZAVnhzAwhP9sgJwDukcmLYRUT7m9DGgt6sq8",
   );
 });

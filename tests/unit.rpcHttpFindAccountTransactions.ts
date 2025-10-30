@@ -2,16 +2,16 @@ import { expect, it } from "@jest/globals";
 import { pubkeyNewDummy, rpcHttpFindAccountTransactions } from "../src";
 
 it("run", async () => {
-  const { backwardTransactionsIds } = await rpcHttpFindAccountTransactions(
+  const { rewindingTransactionsHandles } = await rpcHttpFindAccountTransactions(
     () => require("./fixtures/RpcHttpGetSignaturesForAddress.json"),
     pubkeyNewDummy(),
     15,
   );
-  expect(backwardTransactionsIds.length).toStrictEqual(15);
-  expect(backwardTransactionsIds[0]).toStrictEqual(
+  expect(rewindingTransactionsHandles.length).toStrictEqual(15);
+  expect(rewindingTransactionsHandles[0]).toStrictEqual(
     "ap239tUavGE8jWq9NKxTYqbwznBPxc4TTfcVWi6S5pJwnvEGjEZQrXqZ4SX44aPrAptwd1rG4f7JJwHRRwXrqNL",
   );
-  expect(backwardTransactionsIds[5]).toStrictEqual(
+  expect(rewindingTransactionsHandles[5]).toStrictEqual(
     "4xCgKR42j964F97d9KzFzUzucX9QMWxdrWuF3FYz5WhexjrzzXvSycxeNcz2TnUkGazWskG3rgjC5eaVfR8ncgC7",
   );
 });

@@ -18,7 +18,7 @@ import { Pubkey, pubkeyFromBase58 } from "../data/Pubkey";
 import {
   TransactionExecution,
   TransactionFlow,
-  TransactionId,
+  TransactionHandle,
   TransactionInvocation,
   TransactionRequest,
 } from "../data/Transaction";
@@ -26,7 +26,7 @@ import { RpcHttp } from "./RpcHttp";
 
 export async function rpcHttpGetTransaction(
   rpcHttp: RpcHttp,
-  transactionId: TransactionId,
+  transactionHandle: TransactionHandle,
   options?: { skipTransactionFlow?: boolean },
 ): Promise<
   | {
@@ -37,7 +37,7 @@ export async function rpcHttpGetTransaction(
   | undefined
 > {
   const result = resultJsonDecoder(
-    await rpcHttp("getTransaction", [transactionId], {
+    await rpcHttp("getTransaction", [transactionHandle], {
       encoding: "json",
       maxSupportedTransactionVersion: 0,
     }),

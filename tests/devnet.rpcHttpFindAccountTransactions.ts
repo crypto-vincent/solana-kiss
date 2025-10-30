@@ -9,16 +9,16 @@ import {
 
 it("run", async () => {
   const rpcHttp = rpcHttpFromUrl("https://api.devnet.solana.com");
-  const { backwardTransactionsIds } = await rpcHttpFindAccountTransactions(
+  const { rewindingTransactionsHandles } = await rpcHttpFindAccountTransactions(
     rpcHttp,
     pubkeyFromBase58("vVeH6Xd43HAScbxjVtvfwDGqBMaMvNDLsAxwM5WK1pG"),
     4200,
   );
-  expect(backwardTransactionsIds.length).toBeGreaterThan(0);
+  expect(rewindingTransactionsHandles.length).toBeGreaterThan(0);
   const { transactionExecution } = expectDefined(
     await rpcHttpGetTransaction(
       rpcHttp,
-      expectDefined(backwardTransactionsIds[0]),
+      expectDefined(rewindingTransactionsHandles[0]),
     ),
   );
   expect(transactionExecution.blockInfo.time?.toISOString()).toStrictEqual(

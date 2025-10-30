@@ -8,7 +8,7 @@ import {
   jsonDecoderObject,
   jsonDecoderOptional,
 } from "../data/Json";
-import { Signature } from "../data/Signature";
+import { TransactionHandle } from "../data/Transaction";
 import { RpcHttp } from "./RpcHttp";
 
 export async function rpcHttpGetBlockWithTransactions(
@@ -21,7 +21,7 @@ export async function rpcHttpGetBlockWithTransactions(
     time: Date | undefined;
     hash: BlockHash;
   };
-  transactionsIds: Array<Signature>;
+  transactionsHandles: Array<TransactionHandle>;
 }> {
   const result = resultJsonDecoder(
     await rpcHttp("getBlock", [blockSlotToNumber(blockSlot)], {
@@ -38,7 +38,7 @@ export async function rpcHttpGetBlockWithTransactions(
       time: result.blockTime ? new Date(result.blockTime * 1000) : undefined,
       hash: result.blockhash,
     },
-    transactionsIds: result.signatures,
+    transactionsHandles: result.signatures,
   };
 }
 

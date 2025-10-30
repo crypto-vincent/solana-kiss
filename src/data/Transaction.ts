@@ -11,6 +11,7 @@ import {
   pubkeyFromBytes,
   pubkeyToBase58,
   pubkeyToBytes,
+  pubkeyToVerifier,
 } from "./Pubkey";
 import { Signature, signatureFromBytes, signatureToBytes } from "./Signature";
 import { Signer } from "./Signer";
@@ -33,8 +34,8 @@ export type TransactionPacket = BrandedType<Uint8Array, "TransactionPacket"> & {
   length: number;
 };
 
-// TODO (naming) - rename TransactionId to TransactionSignature or TransactionHandle?
-export type TransactionId = Signature;
+export type TransactionHandle = Signature;
+
 export type TransactionExecution = {
   blockInfo: {
     time: Date | undefined;
@@ -157,10 +158,25 @@ export async function transactionSign(
     const signature = signaturesBySignerAddress.get(signerAddress);
     if (signature !== undefined) {
       bytes.set(signatureToBytes(signature), offset);
-      offset += 64;
     }
+    offset += 64;
   }
   return bytes as TransactionPacket;
+}
+
+export async function transactionVerify(
+  transactionPacket: TransactionPacket,
+): Promise<void> {
+  const message = transactionExtractMessage(transactionPacket);
+  const signing = transactionExtractSigning(transactionPacket);
+  for (const { signerAddress, signature } of signing) {
+    const signerVerifier = await pubkeyToVerifier(signerAddress);
+    if (!(await signerVerifier(signature, message))) {
+      throw new Error(
+        `Transaction: invalid signature for signer: ${signerAddress}`,
+      );
+    }
+  }
 }
 
 export function transactionExtractMessage(
@@ -201,7 +217,7 @@ export function transactionExtractSigning(
     signerAddress: Pubkey;
     signature: Signature;
   }>();
-  for (let i = 0; i < packetSignaturesCount; i++) {
+  for (let i = 0; i < messageSignaturesCount; i++) {
     const signerAddressBytes = bytesRead(transactionMessage, messageOffset, 32);
     const signatureBytes = bytesRead(transactionPacket, packetOffset, 64);
     messageOffset += 32;

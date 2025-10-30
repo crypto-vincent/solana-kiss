@@ -10,6 +10,7 @@ import {
   transactionCompileAndSign,
   transactionDecompileRequest,
   transactionExtractMessage,
+  transactionVerify,
 } from "../src";
 
 it("run", async () => {
@@ -69,6 +70,7 @@ it("run", async () => {
   expect(transactionDecompileRequest(currentMessage)).toStrictEqual(
     currentRequest,
   );
+  await transactionVerify(currentPacket);
 });
 
 function generateInstruction(

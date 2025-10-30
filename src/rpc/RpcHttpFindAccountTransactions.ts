@@ -4,7 +4,7 @@ import {
   jsonDecoderObject,
 } from "../data/Json";
 import { Pubkey, pubkeyToBase58 } from "../data/Pubkey";
-import { TransactionId } from "../data/Transaction";
+import { TransactionHandle } from "../data/Transaction";
 import { RpcHttp } from "./RpcHttp";
 
 export async function rpcHttpFindAccountTransactions(
@@ -12,40 +12,43 @@ export async function rpcHttpFindAccountTransactions(
   accountAddress: Pubkey,
   maxResultLength: number,
   pagination?: {
-    startBeforeTransactionId?: TransactionId;
-    rewindUntilTransactionId?: TransactionId;
+    startBeforeTransactionHandle?: TransactionHandle;
+    rewindUntilTransactionHandle?: TransactionHandle;
   },
-): Promise<{ backwardTransactionsIds: Array<TransactionId> }> {
-  const backwardTransactionsIds = new Array<TransactionId>();
-  const requestLimit = 1000;
-  const rewindUntilTransactionId = pagination?.rewindUntilTransactionId;
-  let startBeforeTransactionId = pagination?.startBeforeTransactionId;
+): Promise<{ rewindingTransactionsHandles: Array<TransactionHandle> }> {
+  const rewindingTransactionsHandles = new Array<TransactionHandle>();
+  const batchSize = Math.min(
+    1000,
+    maxResultLength - rewindingTransactionsHandles.length,
+  );
+  const rewindUntilTransactionHandle = pagination?.rewindUntilTransactionHandle;
+  let startBeforeTransactionHandle = pagination?.startBeforeTransactionHandle;
   while (true) {
     const result = resultJsonDecoder(
       await rpcHttp(
         "getSignaturesForAddress",
         [pubkeyToBase58(accountAddress)],
         {
-          limit: requestLimit,
-          before: startBeforeTransactionId
-            ? startBeforeTransactionId
+          limit: batchSize,
+          before: startBeforeTransactionHandle
+            ? startBeforeTransactionHandle
             : undefined,
         },
       ),
     );
     for (const item of result) {
-      const transactionId = item.signature;
-      backwardTransactionsIds.push(transactionId);
-      if (backwardTransactionsIds.length >= maxResultLength) {
-        return { backwardTransactionsIds };
+      const transactionHandle = item.signature;
+      rewindingTransactionsHandles.push(transactionHandle);
+      if (rewindingTransactionsHandles.length >= maxResultLength) {
+        return { rewindingTransactionsHandles };
       }
-      if (transactionId === rewindUntilTransactionId) {
-        return { backwardTransactionsIds };
+      if (transactionHandle === rewindUntilTransactionHandle) {
+        return { rewindingTransactionsHandles };
       }
-      startBeforeTransactionId = transactionId;
+      startBeforeTransactionHandle = transactionHandle;
     }
-    if (result.length < requestLimit) {
-      return { backwardTransactionsIds };
+    if (result.length < batchSize) {
+      return { rewindingTransactionsHandles };
     }
   }
 }

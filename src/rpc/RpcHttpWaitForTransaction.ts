@@ -1,7 +1,7 @@
 import {
   TransactionExecution,
   TransactionFlow,
-  TransactionId,
+  TransactionHandle,
   TransactionRequest,
 } from "../data/Transaction";
 import { RpcHttp } from "./RpcHttp";
@@ -9,7 +9,7 @@ import { rpcHttpGetTransaction } from "./RpcHttpGetTransaction";
 
 export async function rpcHttpWaitForTransaction(
   rpcHttp: RpcHttp,
-  transactionId: TransactionId,
+  transactionHandle: TransactionHandle,
   retryApprover: (context: {
     retriedCounter: number;
     totalDurationMs: number;
@@ -22,7 +22,7 @@ export async function rpcHttpWaitForTransaction(
   const startTime = Date.now();
   let retriedCounter = 0;
   while (true) {
-    const response = await rpcHttpGetTransaction(rpcHttp, transactionId);
+    const response = await rpcHttpGetTransaction(rpcHttp, transactionHandle);
     if (response !== undefined) {
       return response;
     }
@@ -33,7 +33,7 @@ export async function rpcHttpWaitForTransaction(
     });
     if (!retryApproved) {
       throw new Error(
-        `RpcHttp: Transaction not found: ${transactionId} (after ${retriedCounter} retries, ${totalDurationMs}ms)`,
+        `RpcHttp: Transaction not found: ${transactionHandle} (after ${retriedCounter} retries, ${totalDurationMs}ms)`,
       );
     }
     retriedCounter++;

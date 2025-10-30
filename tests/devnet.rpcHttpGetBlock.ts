@@ -25,14 +25,14 @@ it("run", async () => {
   const {
     previousBlockSlot: withTransactionPreviousBlockSlot,
     blockInfo: withTransactionBlockInfo,
-    transactionsIds,
+    transactionsHandles,
   } = await rpcHttpGetBlockWithTransactions(rpcHttp, blockSlot);
   expect(withTransactionPreviousBlockSlot).toStrictEqual(
     metadataPreviousBlockSlot,
   );
   expect(withTransactionBlockInfo).toStrictEqual(metadataBlockInfo);
-  expect(transactionsIds.length).toStrictEqual(17);
-  expect(transactionsIds[0]).toStrictEqual(
+  expect(transactionsHandles.length).toStrictEqual(17);
+  expect(transactionsHandles[0]).toStrictEqual(
     "3g4afiLu3KW1G2eYhvP1h3aKx2Pp54CCtqZTRX9q7daY84TQ6RcKMERNk56QJPi5CrhV5dYTHJzSrk6z4aLWKKrd",
   );
   const { blockInfo: dateBlockInfo } = await rpcHttpGetBlockTime(

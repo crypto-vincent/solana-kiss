@@ -6,7 +6,7 @@ import {
   pubkeyFromBase58,
   rpcHttpGetTransaction,
   TransactionFlow,
-  TransactionId,
+  TransactionHandle,
 } from "../src";
 
 it("run", async () => {
@@ -14,7 +14,7 @@ it("run", async () => {
     expectDefined(
       await rpcHttpGetTransaction(
         () => require("./fixtures/RpcHttpGetTransaction.json"),
-        "!" as TransactionId,
+        "!" as TransactionHandle,
       ),
     );
   // Check basic stuff about the transaction

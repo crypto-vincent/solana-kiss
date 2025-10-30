@@ -13,32 +13,24 @@ it("run", async () => {
   const accountAddress = pubkeyFromBase58(
     "DL8WvebR4WVMu8WDv42zyzWuH9UZELYZ8kdhCaa83skB",
   );
-  const { accountInfo: withDataAccountInfo } = await rpcHttpGetAccountWithData(
+  const { accountInfo: withDataInfo } = await rpcHttpGetAccountWithData(
     rpcHttp,
     accountAddress,
   );
-  const { accountInfo: lamportsAccountInfo } = await rpcHttpGetAccountLamports(
+  const { accountInfo: lamportsInfo } = await rpcHttpGetAccountLamports(
     rpcHttp,
     accountAddress,
   );
-  const { accountInfo: metadataAccountInfo } = await rpcHttpGetAccountMetadata(
+  const { accountInfo: metadataInfo } = await rpcHttpGetAccountMetadata(
     rpcHttp,
     accountAddress,
   );
-  expect(withDataAccountInfo.lamports).toBeGreaterThan(0n);
-  expect(withDataAccountInfo.owner).not.toBe(pubkeyDefault);
-  expect(withDataAccountInfo.data.length).toBeGreaterThan(0);
-  expect(withDataAccountInfo.lamports).toStrictEqual(
-    lamportsAccountInfo.lamports,
-  );
-  expect(withDataAccountInfo.lamports).toStrictEqual(
-    metadataAccountInfo.lamports,
-  );
-  expect(withDataAccountInfo.owner).toStrictEqual(metadataAccountInfo.owner);
-  expect(withDataAccountInfo.executable).toStrictEqual(
-    metadataAccountInfo.executable,
-  );
-  expect(withDataAccountInfo.data.length).toStrictEqual(
-    metadataAccountInfo.space,
-  );
+  expect(withDataInfo.lamports).toBeGreaterThan(0n);
+  expect(withDataInfo.owner).not.toBe(pubkeyDefault);
+  expect(withDataInfo.data.length).toBeGreaterThan(0);
+  expect(withDataInfo.lamports).toStrictEqual(lamportsInfo.lamports);
+  expect(withDataInfo.lamports).toStrictEqual(metadataInfo.lamports);
+  expect(withDataInfo.owner).toStrictEqual(metadataInfo.owner);
+  expect(withDataInfo.executable).toStrictEqual(metadataInfo.executable);
+  expect(withDataInfo.data.length).toStrictEqual(metadataInfo.space);
 });
