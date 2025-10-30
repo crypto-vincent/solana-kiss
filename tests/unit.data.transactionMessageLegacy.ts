@@ -9,7 +9,7 @@ import {
   signerFromSecret,
   transactionCompileAndSign,
   transactionDecompileRequest,
-  transactionGetMessage,
+  transactionExtractMessage,
 } from "../src";
 
 it("run", async () => {
@@ -63,7 +63,7 @@ it("run", async () => {
     [payerCurrent, signer1Current, signer2Current],
     currentRequest,
   );
-  const currentMessage = transactionGetMessage(currentPacket);
+  const currentMessage = transactionExtractMessage(currentPacket);
   expect(currentMessage).toStrictEqual(referenceMessageBytes);
   expect(currentPacket).toStrictEqual(referencePacketBytes);
   expect(transactionDecompileRequest(currentMessage)).toStrictEqual(

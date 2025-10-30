@@ -14,7 +14,7 @@ import {
 } from "./Pubkey";
 import { Signature, signatureFromBytes, signatureToBytes } from "./Signature";
 import { Signer } from "./Signer";
-import { BrandedType, expectDefined } from "./Utils";
+import { BrandedType } from "./Utils";
 
 export type TransactionRequest = {
   payerAddress: Pubkey;
@@ -33,9 +33,8 @@ export type TransactionPacket = BrandedType<Uint8Array, "TransactionPacket"> & {
   length: number;
 };
 
-// TODO - should this be a branded type ?
+// TODO (naming) - rename TransactionId to TransactionSignature or TransactionHandle?
 export type TransactionId = Signature;
-
 export type TransactionExecution = {
   blockInfo: {
     time: Date | undefined;
@@ -96,82 +95,85 @@ export function transactionCompileUnsigned(
     staticIndexByAddress.set(staticAddresses[index]!, index);
   }
   const signaturesCount = writableSigners.length + readonlySigners.length;
-  const packetBytes = new Array<number>();
-  packetBytes.push(signaturesCount);
+  const bytes = new Array<number>();
+  bytes.push(signaturesCount);
   for (let i = 0; i < signaturesCount * 64; i++) {
-    packetBytes.push(0);
+    bytes.push(0);
   }
   if (addressLookupTables !== undefined) {
-    packetBytes.push(0x80);
+    bytes.push(0x80);
   }
-  packetBytes.push(signaturesCount);
-  packetBytes.push(readonlySigners.length);
-  packetBytes.push(readonlyNonSigners.length);
-  packetBytes.push(staticAddresses.length);
+  bytes.push(signaturesCount);
+  bytes.push(readonlySigners.length);
+  bytes.push(readonlyNonSigners.length);
+  bytes.push(staticAddresses.length);
   for (const staticAddress of staticAddresses) {
     for (const staticAddressByte of pubkeyToBytes(staticAddress)) {
-      packetBytes.push(staticAddressByte);
+      bytes.push(staticAddressByte);
     }
   }
   for (const recentBlockHashByte of blockHashToBytes(
     transactionRequest.recentBlockHash,
   )) {
-    packetBytes.push(recentBlockHashByte);
+    bytes.push(recentBlockHashByte);
   }
-  varIntWrite(packetBytes, transactionRequest.instructions.length);
+  varIntWrite(bytes, transactionRequest.instructions.length);
   for (const instruction of transactionRequest.instructions) {
-    packetBytes.push(staticIndexByAddress.get(instruction.programAddress)!);
-    packetBytes.push(instruction.inputs.length);
+    bytes.push(staticIndexByAddress.get(instruction.programAddress)!);
+    bytes.push(instruction.inputs.length);
     for (const input of instruction.inputs) {
-      packetBytes.push(staticIndexByAddress.get(input.address)!);
+      bytes.push(staticIndexByAddress.get(input.address)!);
     }
-    varIntWrite(packetBytes, instruction.data.length);
-    for (const byte of instruction.data) {
-      packetBytes.push(byte);
+    varIntWrite(bytes, instruction.data.length);
+    for (const dataByte of instruction.data) {
+      bytes.push(dataByte);
     }
   }
   if (addressLookupTables !== undefined) {
     // TODO (ALT) - handle address lookup tables
-    packetBytes.push(0);
+    bytes.push(0);
   }
-  if (packetBytes.length > 1232) {
+  if (bytes.length > 1232) {
     throw new Error(
-      `Transaction: Too big: ${packetBytes.length} bytes (max: 1232 bytes)`,
+      `Transaction: Too large: ${bytes.length} bytes (max: 1232 bytes)`,
     );
   }
-  return new Uint8Array(packetBytes) as TransactionPacket;
+  return new Uint8Array(bytes) as TransactionPacket;
 }
 
 export async function transactionSign(
   transactionPacket: TransactionPacket,
   signers: Array<Signer>,
 ) {
-  const message = transactionGetMessage(transactionPacket);
+  const message = transactionExtractMessage(transactionPacket);
   const signing = transactionExtractSigning(transactionPacket);
   const signaturesBySignerAddress = new Map<Pubkey, Signature>();
   for (const signer of signers) {
     signaturesBySignerAddress.set(signer.address, await signer.sign(message));
   }
-  const packetBytes = new Uint8Array(transactionPacket);
-  let packetOffset = 1;
+  const bytes = new Uint8Array(transactionPacket);
+  let offset = 1;
   for (const { signerAddress } of signing) {
     const signature = signaturesBySignerAddress.get(signerAddress);
     if (signature !== undefined) {
-      packetBytes.set(signatureToBytes(signature), packetOffset);
-      packetOffset += 64;
+      bytes.set(signatureToBytes(signature), offset);
+      offset += 64;
     }
   }
-  return packetBytes as TransactionPacket;
+  return bytes as TransactionPacket;
 }
 
-export function transactionGetMessage(
+export function transactionExtractMessage(
   transactionPacket: TransactionPacket,
 ): TransactionMessage {
-  const bytes = transactionPacket as Uint8Array;
   let offset = 0;
-  const signaturesCount = byteRead(bytes, offset++);
+  const signaturesCount = byteRead(transactionPacket, offset++);
   offset += signaturesCount * 64;
-  return bytesRead(bytes, offset, bytes.length - offset) as TransactionMessage;
+  return bytesRead(
+    transactionPacket,
+    offset,
+    transactionPacket.length - offset,
+  ) as TransactionMessage;
 }
 
 export function transactionExtractSigning(
@@ -180,18 +182,19 @@ export function transactionExtractSigning(
   signerAddress: Pubkey;
   signature: Signature;
 }> {
-  const packetBytes = transactionPacket as Uint8Array;
   let packetOffset = 0;
-  const packetSignaturesCount = byteRead(packetBytes, packetOffset++);
-  const messageBytes = transactionGetMessage(transactionPacket) as Uint8Array;
+  const packetSignaturesCount = byteRead(transactionPacket, packetOffset++);
+  const transactionMessage = transactionExtractMessage(transactionPacket);
   let messageOffset = 0;
-  const firstMessageByte = byteRead(messageBytes, messageOffset);
+  const firstMessageByte = byteRead(transactionMessage, messageOffset);
   if ((firstMessageByte & 0b10000000) !== 0) {
     messageOffset++;
   }
-  const messageSignaturesCount = byteRead(messageBytes, messageOffset++);
+  const messageSignaturesCount = byteRead(transactionMessage, messageOffset++);
   if (packetSignaturesCount != messageSignaturesCount) {
-    throw new Error(``);
+    throw new Error(
+      `Transaction: Mismatched signatures count between packet (${packetSignaturesCount}) and message (${messageSignaturesCount})`,
+    );
   }
   messageOffset += 3;
   const signing = new Array<{
@@ -199,8 +202,8 @@ export function transactionExtractSigning(
     signature: Signature;
   }>();
   for (let i = 0; i < packetSignaturesCount; i++) {
-    const signerAddressBytes = bytesRead(messageBytes, messageOffset, 32);
-    const signatureBytes = bytesRead(packetBytes, packetOffset, 64);
+    const signerAddressBytes = bytesRead(transactionMessage, messageOffset, 32);
+    const signatureBytes = bytesRead(transactionPacket, packetOffset, 64);
     messageOffset += 32;
     packetOffset += 64;
     signing.push({
@@ -214,23 +217,22 @@ export function transactionExtractSigning(
 export function transactionDecompileRequest(
   transactionMessage: TransactionMessage,
 ): TransactionRequest {
-  let bytes = transactionMessage as Uint8Array;
   let offset = 0;
-  const firstByte = byteRead(bytes, offset);
+  const firstByte = byteRead(transactionMessage, offset);
   if ((firstByte & 0b10000000) !== 0) {
     offset++;
   }
-  const signatureCount = byteRead(bytes, offset++);
-  const readonlySignersCount = byteRead(bytes, offset++);
-  const readonlyNonSignersCount = byteRead(bytes, offset++);
-  const staticAddressesCount = byteRead(bytes, offset++);
+  const signatureCount = byteRead(transactionMessage, offset++);
+  const readonlySignersCount = byteRead(transactionMessage, offset++);
+  const readonlyNonSignersCount = byteRead(transactionMessage, offset++);
+  const staticAddressesCount = byteRead(transactionMessage, offset++);
   const instructionsInputs = new Array<InstructionInput>();
   for (
     let staticAddressIndex = 0;
     staticAddressIndex < staticAddressesCount;
     staticAddressIndex++
   ) {
-    const staticAddressBytes = bytesRead(bytes, offset, 32);
+    const staticAddressBytes = bytesRead(transactionMessage, offset, 32);
     offset += 32;
     const address = pubkeyFromBytes(staticAddressBytes);
     if (staticAddressIndex < signatureCount - readonlySignersCount) {
@@ -246,9 +248,11 @@ export function transactionDecompileRequest(
       instructionsInputs.push({ address, signer: false, writable: false });
     }
   }
-  const recentBlockHash = blockHashFromBytes(bytesRead(bytes, offset, 32));
+  const recentBlockHash = blockHashFromBytes(
+    bytesRead(transactionMessage, offset, 32),
+  );
   offset += 32;
-  const instructionCount = varIntRead(bytes, offset);
+  const instructionCount = varIntRead(transactionMessage, offset);
   offset += instructionCount.size;
   const compiledInstructions = new Array<{
     programIndex: number;
@@ -256,36 +260,34 @@ export function transactionDecompileRequest(
     dataBytes: Uint8Array;
   }>();
   for (let i = 0; i < instructionCount.value; i++) {
-    const programIndex = byteRead(bytes, offset++);
-    const inputCount = byteRead(bytes, offset++);
+    const programIndex = byteRead(transactionMessage, offset++);
+    const inputCount = byteRead(transactionMessage, offset++);
     const inputsIndexes = new Array<number>();
     for (let j = 0; j < inputCount; j++) {
-      inputsIndexes.push(byteRead(bytes, offset++));
+      inputsIndexes.push(byteRead(transactionMessage, offset++));
     }
-    const dataLength = varIntRead(bytes, offset);
+    const dataLength = varIntRead(transactionMessage, offset);
     offset += dataLength.size;
-    const dataBytes = bytesRead(bytes, offset, dataLength.value);
+    const dataBytes = bytesRead(transactionMessage, offset, dataLength.value);
     offset += dataLength.value;
     compiledInstructions.push({ programIndex, inputsIndexes, dataBytes });
   }
   // TODO (ALT) - handle address lookup tables
+  const payerAddress = lookupInput(instructionsInputs, 0).address;
   const instructions = new Array<Instruction>();
   for (const compiledInstruction of compiledInstructions) {
     instructions.push({
-      programAddress: expectDefined(
-        instructionsInputs[compiledInstruction.programIndex]?.address,
-      ),
+      programAddress: lookupInput(
+        instructionsInputs,
+        compiledInstruction.programIndex,
+      ).address,
       inputs: compiledInstruction.inputsIndexes.map((inputIndex) =>
-        expectDefined(instructionsInputs[inputIndex]),
+        lookupInput(instructionsInputs, inputIndex),
       ),
       data: compiledInstruction.dataBytes,
     });
   }
-  return {
-    payerAddress: expectDefined(instructionsInputs[0]?.address),
-    recentBlockHash,
-    instructions,
-  };
+  return { payerAddress, recentBlockHash, instructions };
 }
 
 function addressesMetasByCategory(
@@ -373,32 +375,51 @@ function varIntWrite(bytes: Array<number>, value: number) {
 }
 
 function varIntRead(
-  bytes: Uint8Array,
+  data: TransactionMessage | TransactionPacket,
   offset: number,
 ): { value: number; size: number } {
-  const firstByte = byteRead(bytes, offset);
+  const firstByte = byteRead(data, offset);
   if ((firstByte & 0x80) === 0) {
     return { value: firstByte, size: 1 };
   }
-  const secondByte = byteRead(bytes, offset + 1);
+  const secondByte = byteRead(data, offset + 1);
   const length = (firstByte & 0x7f) | (secondByte << 7);
   return { value: length, size: 2 };
 }
 
-function byteRead(bytes: Uint8Array, offset: number): number {
+function byteRead(
+  bytes: TransactionMessage | TransactionPacket,
+  offset: number,
+): number {
   if (offset < 0 || offset > bytes.length) {
-    throw new Error(``);
+    throw new Error(
+      `Transaction: Invalid bytes, failed to read at offset ${offset} (found ${bytes.length} bytes)`,
+    );
   }
-  return bytes[offset]!;
+  return (bytes as Uint8Array)[offset]!;
 }
 
 function bytesRead(
-  bytes: Uint8Array,
+  bytes: TransactionMessage | TransactionPacket,
   offset: number,
   size: number,
 ): Uint8Array {
   if (offset + size > bytes.length) {
-    throw new Error(``);
+    throw new Error(
+      `Transaction: Invalid bytes, failed to read ${size} bytes at offset ${offset} (found ${bytes.length} bytes)`,
+    );
   }
-  return bytes.slice(offset, offset + size);
+  return (bytes as Uint8Array).slice(offset, offset + size);
+}
+
+function lookupInput(
+  inputs: Array<InstructionInput>,
+  index: number,
+): InstructionInput {
+  if (index < 0 || index >= inputs.length) {
+    throw new Error(
+      `Transaction: Invalid instruction input index ${index} (found ${inputs.length} inputs)`,
+    );
+  }
+  return inputs[index]!;
 }
