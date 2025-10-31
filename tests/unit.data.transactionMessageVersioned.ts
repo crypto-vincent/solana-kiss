@@ -74,7 +74,7 @@ it("run", async () => {
   const currentPacket = await transactionCompileAndSign(
     [payerCurrent, signer1Current, signer2Current],
     currentRequest,
-    new Map(),
+    [],
   );
   const currentMessage = transactionExtractMessage(currentPacket);
   expect(currentMessage).toStrictEqual(referenceMessageBytes);

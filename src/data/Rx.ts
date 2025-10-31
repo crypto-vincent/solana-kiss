@@ -1,3 +1,5 @@
+import { arraySpliceItem } from "./Utils";
+
 export type RxObservable<T> = {
   subscribe: (listener: RxListener<T>) => RxUnsubscriber;
 };
@@ -29,12 +31,7 @@ export function rxBehaviourSubject<T>(
     subscribe(listener: RxListener<T>): RxUnsubscriber {
       listener(lastValue);
       listeners.push(listener);
-      return () => {
-        const indexListener = listeners.indexOf(listener);
-        if (indexListener >= 0) {
-          listeners.splice(indexListener, 1);
-        }
-      };
+      return () => arraySpliceItem(listeners, listener);
     },
   };
 }

@@ -25,6 +25,13 @@ export function objectGetOwnProperty<
   return undefined;
 }
 
+export function arraySpliceItem<T>(array: Array<T>, item: T) {
+  const index = array.indexOf(item);
+  if (index >= 0) {
+    array.splice(index, 1);
+  }
+}
+
 export function withErrorContext<T>(message: string, fn: () => T): T {
   try {
     return fn();

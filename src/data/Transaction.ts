@@ -1,3 +1,4 @@
+import { AddressLookupTable } from "./AddressLookupTable";
 import {
   BlockHash,
   blockHashFromBytes,
@@ -66,7 +67,7 @@ export type TransactionInvocation = {
 export async function transactionCompileAndSign(
   signers: Array<Signer>,
   transactionRequest: TransactionRequest,
-  addressLookupTables?: Map<Pubkey, Array<Pubkey>>,
+  addressLookupTables?: Array<AddressLookupTable>,
 ): Promise<TransactionPacket> {
   const transactionPacket = transactionCompileUnsigned(
     transactionRequest,
@@ -77,9 +78,9 @@ export async function transactionCompileAndSign(
 
 export function transactionCompileUnsigned(
   transactionRequest: TransactionRequest,
-  addressLookupTables?: Map<Pubkey, Array<Pubkey>>, // TODO - For address lookup tables (ALT)
+  addressLookupTables?: Array<AddressLookupTable>,
 ): TransactionPacket {
-  const {
+  let {
     writableSigners,
     readonlySigners,
     writableNonSigners,
@@ -89,60 +90,43 @@ export function transactionCompileUnsigned(
   });
   const loadedWritableAddresses = new Array<Pubkey>();
   const loadedReadonlyAddresses = new Array<Pubkey>();
-  const loadedAddressLookupTables = new Map<
-    Pubkey,
-    {
-      writableIndexes: Array<number>;
-      readonlyIndexes: Array<number>;
-    }
-  >();
+  const loadedAddressLookupTables = new Array<{
+    tableAddress: Pubkey;
+    writableIndexes: Array<number>;
+    readonlyIndexes: Array<number>;
+  }>();
   if (addressLookupTables !== undefined) {
-    for (const [
-      addressLookupTableAddress,
-      addressLookupTableAddresses, // TODO - the naming is horendous here lol
-    ] of addressLookupTables) {
+    for (const addressLookupTable of addressLookupTables) {
+      const lookupAddresses = addressLookupTable.lookupAddresses;
       const writableIndexes = new Array<number>();
       const readonlyIndexes = new Array<number>();
-      for (
-        let writableNonSignerIndex = 0;
-        writableNonSignerIndex < writableNonSigners.length;
-        writableNonSignerIndex++
-      ) {
-        const writableNonSigner = writableNonSigners[writableNonSignerIndex]!;
-        if (writableNonSigner[1].invoked) {
-          continue;
+      writableNonSigners = writableNonSigners.filter(([address, meta]) => {
+        if (meta.invoked) {
+          return true;
         }
-        const addressLookupTableIndex = addressLookupTableAddresses.findIndex(
-          (address) => address === writableNonSigner[0],
-        );
-        if (addressLookupTableIndex !== -1) {
-          loadedWritableAddresses.push(writableNonSigner[0]);
-          writableIndexes.push(addressLookupTableIndex);
-          writableNonSigners.splice(writableNonSignerIndex, 1);
-          writableNonSignerIndex--; // TODO - this should be cleaner
+        const lookupAddressIndex = lookupAddresses.indexOf(address);
+        if (lookupAddressIndex !== -1) {
+          loadedWritableAddresses.push(address);
+          writableIndexes.push(lookupAddressIndex);
+          return false;
         }
-      }
-      for (
-        let readonlyNonSignerIndex = 0;
-        readonlyNonSignerIndex < readonlyNonSigners.length;
-        readonlyNonSignerIndex++
-      ) {
-        const readonlyNonSigner = readonlyNonSigners[readonlyNonSignerIndex]!;
-        if (readonlyNonSigner[1].invoked) {
-          continue;
+        return true;
+      });
+      readonlyNonSigners = readonlyNonSigners.filter(([address, meta]) => {
+        if (meta.invoked) {
+          return true;
         }
-        const addressLookupTableIndex = addressLookupTableAddresses.findIndex(
-          (address) => address === readonlyNonSigner[0],
-        );
-        if (addressLookupTableIndex !== -1) {
-          loadedReadonlyAddresses.push(readonlyNonSigner[0]);
-          readonlyIndexes.push(addressLookupTableIndex);
-          readonlyNonSigners.splice(readonlyNonSignerIndex, 1);
-          readonlyNonSignerIndex--;
+        const lookupAddressIndex = lookupAddresses.indexOf(address);
+        if (lookupAddressIndex !== -1) {
+          loadedReadonlyAddresses.push(address);
+          readonlyIndexes.push(lookupAddressIndex);
+          return false;
         }
-      }
+        return true;
+      });
       if (writableIndexes.length > 0 || readonlyIndexes.length > 0) {
-        loadedAddressLookupTables.set(addressLookupTableAddress, {
+        loadedAddressLookupTables.push({
+          tableAddress: addressLookupTable.tableAddress,
           writableIndexes,
           readonlyIndexes,
         });
@@ -166,51 +150,52 @@ export function transactionCompileUnsigned(
     indexByAddress.set(loadedReadonlyAddress, indexByAddress.size);
   }
   const signaturesCount = writableSigners.length + readonlySigners.length;
-  const bytes = new Array<number>();
-  bytes.push(signaturesCount);
+  const byteArray = new Array<number>();
+  byteArray.push(signaturesCount);
   for (let i = 0; i < signaturesCount * 64; i++) {
-    bytes.push(0);
+    byteArray.push(0);
   }
   if (addressLookupTables !== undefined) {
-    bytes.push(0x80);
+    byteArray.push(0x80);
   }
-  bytes.push(signaturesCount);
-  bytes.push(readonlySigners.length);
-  bytes.push(readonlyNonSigners.length);
-  bytes.push(staticAddresses.length);
+  byteArray.push(signaturesCount);
+  byteArray.push(readonlySigners.length);
+  byteArray.push(readonlyNonSigners.length);
+  byteArray.push(staticAddresses.length);
   for (const staticAddress of staticAddresses) {
-    bytes.push(...pubkeyToBytes(staticAddress));
+    byteArray.push(...pubkeyToBytes(staticAddress));
   }
-  bytes.push(...blockHashToBytes(transactionRequest.recentBlockHash));
-  varIntWrite(bytes, transactionRequest.instructions.length);
+  byteArray.push(...blockHashToBytes(transactionRequest.recentBlockHash));
+  varIntWrite(byteArray, transactionRequest.instructions.length);
   for (const instruction of transactionRequest.instructions) {
-    bytes.push(indexByAddress.get(instruction.programAddress)!);
-    bytes.push(instruction.inputs.length);
+    byteArray.push(indexByAddress.get(instruction.programAddress)!);
+    varIntWrite(byteArray, instruction.inputs.length);
     for (const input of instruction.inputs) {
-      bytes.push(indexByAddress.get(input.address)!);
+      byteArray.push(indexByAddress.get(input.address)!);
     }
-    varIntWrite(bytes, instruction.data.length);
-    bytes.push(...instruction.data);
+    varIntWrite(byteArray, instruction.data.length);
+    byteArray.push(...instruction.data);
   }
   if (addressLookupTables !== undefined) {
-    bytes.push(loadedAddressLookupTables.size);
-    for (const [
-      addressLookupTableAddress,
-      { writableIndexes, readonlyIndexes },
-    ] of loadedAddressLookupTables.entries()) {
-      bytes.push(...pubkeyToBytes(addressLookupTableAddress));
-      bytes.push(writableIndexes.length);
-      bytes.push(...writableIndexes);
-      bytes.push(readonlyIndexes.length);
-      bytes.push(...readonlyIndexes);
+    byteArray.push(loadedAddressLookupTables.length);
+    for (const {
+      tableAddress,
+      writableIndexes,
+      readonlyIndexes,
+    } of loadedAddressLookupTables) {
+      byteArray.push(...pubkeyToBytes(tableAddress));
+      byteArray.push(writableIndexes.length);
+      byteArray.push(...writableIndexes);
+      byteArray.push(readonlyIndexes.length);
+      byteArray.push(...readonlyIndexes);
     }
   }
-  if (bytes.length > 1232) {
+  if (byteArray.length > 1232) {
     throw new Error(
-      `Transaction: Too large: ${bytes.length} bytes (max: 1232 bytes)`,
+      `Transaction: Too large: ${byteArray.length} bytes (max: 1232 bytes)`,
     );
   }
-  return new Uint8Array(bytes) as TransactionPacket;
+  return new Uint8Array(byteArray) as TransactionPacket;
 }
 
 export async function transactionSign(
@@ -303,7 +288,7 @@ export function transactionExtractSigning(
 
 export function transactionDecompileRequest(
   transactionMessage: TransactionMessage,
-  addressLookupTables?: Map<Pubkey, Array<Pubkey>>,
+  addressLookupTables?: Array<AddressLookupTable>,
 ): TransactionRequest {
   let offset = 0;
   const firstByte = byteRead(transactionMessage, offset);
@@ -349,9 +334,10 @@ export function transactionDecompileRequest(
   }>();
   for (let i = 0; i < instructionCount.value; i++) {
     const programIndex = byteRead(transactionMessage, offset++);
-    const inputCount = byteRead(transactionMessage, offset++);
+    const inputCount = varIntRead(transactionMessage, offset);
+    offset += inputCount.size;
     const inputsIndexes = new Array<number>();
-    for (let j = 0; j < inputCount; j++) {
+    for (let j = 0; j < inputCount.value; j++) {
       inputsIndexes.push(byteRead(transactionMessage, offset++));
     }
     const dataLength = varIntRead(transactionMessage, offset);
@@ -368,19 +354,19 @@ export function transactionDecompileRequest(
       bytesRead(transactionMessage, offset, 32),
     );
     offset += 32;
-    const addressLookupTableAddresses = addressLookupTables?.get(
-      addressLookupTableAddress,
+    const addressLookupTable = addressLookupTables?.find(
+      (alt) => alt.tableAddress === addressLookupTableAddress,
     );
-    if (addressLookupTableAddresses === undefined) {
+    if (addressLookupTable === undefined) {
       throw new Error(
-        `Transaction: Missing address lookup table addresses: ${addressLookupTableAddress}`,
+        `Transaction: Missing address lookup table: ${addressLookupTableAddress}`,
       );
     }
     const loadedWritableCount = byteRead(transactionMessage, offset++);
     for (let j = 0; j < loadedWritableCount; j++) {
       loadedWritableAddresses.push(
         lookupLoadedAddress(
-          addressLookupTableAddresses,
+          addressLookupTable.lookupAddresses,
           byteRead(transactionMessage, offset++),
         ),
       );
@@ -389,7 +375,7 @@ export function transactionDecompileRequest(
     for (let j = 0; j < loadedReadonlyCount; j++) {
       loadedReadonlyAddresses.push(
         lookupLoadedAddress(
-          addressLookupTableAddresses,
+          addressLookupTable.lookupAddresses,
           byteRead(transactionMessage, offset++),
         ),
       );
@@ -501,13 +487,13 @@ const legacyCollatorOptions: Intl.CollatorOptions = {
   caseFirst: "lower",
 };
 
-function varIntWrite(bytes: Array<number>, value: number) {
+function varIntWrite(byteArray: Array<number>, value: number) {
   if (value < 128) {
-    bytes.push(value);
+    byteArray.push(value);
     return;
   }
-  bytes.push((value & 0x7f) | 0x80);
-  bytes.push(value >> 7);
+  byteArray.push((value & 0x7f) | 0x80);
+  byteArray.push(value >> 7);
 }
 
 function varIntRead(
