@@ -53,6 +53,16 @@ it("run", async () => {
       right: [1, [1], { key: "value" }],
       result: false,
     },
+    {
+      left: { key: undefined },
+      right: {},
+      result: true,
+    },
+    {
+      left: {},
+      right: { key: undefined },
+      result: true,
+    },
   ];
   for (const test of tests) {
     expect(test.result).toStrictEqual(jsonIsDeepEqual(test.left, test.right));

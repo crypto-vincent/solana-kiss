@@ -118,7 +118,6 @@ export function jsonPreview(value: JsonValue): string {
   }
   throw new Error(`JSON: Unknown value: ${value?.toString()}`);
 }
-
 export function jsonIsDeepEqual(
   foundValue: JsonValue,
   expectedValue: JsonValue,
@@ -148,22 +147,25 @@ export function jsonIsDeepEqual(
     if (foundObject === undefined) {
       return false;
     }
-    const expectedKeys = new Set<string>();
-    for (const expectedKey in expectedObject) {
-      expectedKeys.add(expectedKey);
-    }
     for (const foundKey in foundObject) {
-      if (
-        !jsonIsDeepEqual(
-          foundObject[foundKey],
-          objectGetOwnProperty(expectedObject, foundKey),
-        )
-      ) {
+      const valuesAreDeepEqual = jsonIsDeepEqual(
+        foundObject[foundKey],
+        objectGetOwnProperty(expectedObject, foundKey),
+      );
+      if (!valuesAreDeepEqual) {
         return false;
       }
-      expectedKeys.delete(foundKey);
     }
-    return expectedKeys.size === 0;
+    for (const expectedKey in expectedObject) {
+      const valuesAreDeepEqual = jsonIsDeepEqual(
+        expectedObject[expectedKey],
+        objectGetOwnProperty(foundObject, expectedKey),
+      );
+      if (!valuesAreDeepEqual) {
+        return false;
+      }
+    }
+    return true;
   }
   return false;
 }

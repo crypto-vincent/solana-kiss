@@ -38,6 +38,16 @@ it("run", async () => {
       },
       result: true,
     },
+    {
+      subset: { key: undefined },
+      superset: {},
+      result: true,
+    },
+    {
+      subset: {},
+      superset: { key: undefined },
+      result: true,
+    },
   ];
   for (const test of tests) {
     expect(test.result).toStrictEqual(
