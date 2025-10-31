@@ -29,21 +29,6 @@ export class IdlTypePrefix {
   }
 }
 
-export const idlTypePrefixBySize: ReadonlyMap<number, IdlTypePrefix> = (() => {
-  const prefixes = [
-    IdlTypePrefix.u8,
-    IdlTypePrefix.u16,
-    IdlTypePrefix.u32,
-    IdlTypePrefix.u64,
-    IdlTypePrefix.u128,
-  ];
-  const prefixesBySize = new Map<number, IdlTypePrefix>();
-  for (const prefix of prefixes) {
-    prefixesBySize.set(prefix.size, prefix);
-  }
-  return prefixesBySize;
-})();
-
 export function idlTypePrefixEncode(
   prefix: IdlTypePrefix,
   value: bigint,

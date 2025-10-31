@@ -1,4 +1,9 @@
-import { JsonArray, JsonObject, JsonValue } from "../data/Json";
+import {
+  JsonArray,
+  jsonIsDeepEqual,
+  JsonObject,
+  JsonValue,
+} from "../data/Json";
 import { withErrorContext } from "../data/Utils";
 import {
   IdlTypeFull,
@@ -112,7 +117,7 @@ const visitorDecode = {
         dataItemOffset,
       );
       dataSize += dataItemSize;
-      if (dataItem === self.until) {
+      if (jsonIsDeepEqual(dataItem, self.until)) {
         return [dataSize, dataItems];
       }
       dataItems.push(dataItem);

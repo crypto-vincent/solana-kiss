@@ -39,6 +39,7 @@ export function jsonAsString(value: JsonValue): string | undefined {
   }
   return undefined;
 }
+
 export function jsonAsArray(value: JsonValue): JsonArray | undefined {
   if (Array.isArray(value)) {
     return value as JsonArray;
