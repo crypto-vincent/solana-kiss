@@ -1,4 +1,5 @@
 import {
+  JsonArray,
   JsonPointer,
   JsonValue,
   jsonCodecRaw,
@@ -201,7 +202,7 @@ const jsonDecoder = jsonDecoderByKind<{
     kind: undefined,
     path: undefined,
   }),
-  array: (array: JsonValue[]) => ({
+  array: (array: JsonArray) => ({
     value: array,
     type: undefined,
     kind: undefined,

@@ -1,4 +1,4 @@
-import { JsonObject, JsonValue } from "../data/Json";
+import { JsonArray, JsonObject, JsonValue } from "../data/Json";
 import { withErrorContext } from "../data/Utils";
 import {
   IdlTypeFull,
@@ -8,6 +8,7 @@ import {
   IdlTypeFullFieldNamed,
   IdlTypeFullFields,
   IdlTypeFullFieldUnnamed,
+  IdlTypeFullLoop,
   IdlTypeFullOption,
   IdlTypeFullPad,
   IdlTypeFullString,
@@ -95,6 +96,27 @@ const visitorDecode = {
       dataItems.push(dataItem);
     }
     return [dataSize, dataItems];
+  },
+  loop: (
+    self: IdlTypeFullLoop,
+    data: DataView,
+    dataOffset: number,
+  ): [number, JsonValue] => {
+    let dataSize = 0;
+    const dataItems = [];
+    while (true) {
+      const dataItemOffset = dataOffset + dataSize;
+      const [dataItemSize, dataItem] = idlTypeFullDecode(
+        self.items,
+        data,
+        dataItemOffset,
+      );
+      dataSize += dataItemSize;
+      if (dataItem === self.until) {
+        return [dataSize, dataItems];
+      }
+      dataItems.push(dataItem);
+    }
   },
   array: (
     self: IdlTypeFullArray,
@@ -231,7 +253,7 @@ const visitorFieldsDecode = {
     dataOffset: number,
   ): [number, JsonValue] => {
     let dataSize = 0;
-    const dataFields: JsonObject = {};
+    const dataFields = {} as JsonObject;
     for (const field of self) {
       const dataFieldOffset = dataOffset + dataSize;
       const [dataFieldSize, dataField] = withErrorContext(
@@ -251,7 +273,7 @@ const visitorFieldsDecode = {
     dataOffset: number,
   ): [number, JsonValue] => {
     let dataSize = 0;
-    const dataFields = new Array<JsonValue>();
+    const dataFields = [] as JsonArray;
     for (const field of self) {
       const dataFieldOffset = dataOffset + dataSize;
       const [dataFieldSize, dataField] = withErrorContext(

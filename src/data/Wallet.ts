@@ -14,7 +14,6 @@ export type WalletProvider = {
 export type WalletAccount = {
   address: Pubkey;
   signMessage: (message: Uint8Array) => Promise<Signature>;
-  // TODO - how to handle partial signing, because phantom already sends everything?
   signTransaction: (
     transactionPacket: TransactionPacket,
   ) => Promise<TransactionPacket>;

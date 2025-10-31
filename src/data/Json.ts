@@ -14,6 +14,7 @@ import { utf8Decode, utf8Encode } from "./Utf8";
 import { objectGetOwnProperty, withErrorContext } from "./Utils";
 
 export type JsonValue = JsonPrimitive | JsonArray | JsonObject;
+// TODO - does this needs to contain 'undefined' ?
 export type JsonPrimitive = boolean | number | string | null | undefined;
 export type JsonArray = Array<JsonValue>;
 export interface JsonObject {
@@ -575,7 +576,7 @@ export function jsonEncoderArrayToObject<
   return (decoded: {
     [K in keyof Shape]: JsonEncoderContent<Shape[K]>;
   }): JsonValue => {
-    const encoded = new Array<JsonValue>();
+    const encoded = [] as JsonArray;
     for (const keyDecoded in shape) {
       const valueDecoded = objectGetOwnProperty(decoded, keyDecoded);
       const valueEncoded = shape[keyDecoded]!(valueDecoded);

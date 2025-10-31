@@ -12,6 +12,7 @@ import {
   IdlTypeFullFieldNamed,
   IdlTypeFullFields,
   IdlTypeFullFieldUnnamed,
+  IdlTypeFullLoop,
   IdlTypeFullOption,
   IdlTypeFullPad,
   IdlTypeFullString,
@@ -96,6 +97,19 @@ const visitorTypeFull = {
     }
     throw new Error(
       `Idl: Expected path ${jsonPointerPreview(pointer, tokenIndex)} to be able to index into a Vec`,
+    );
+  },
+  loop: (
+    self: IdlTypeFullLoop,
+    pointer: Array<number | string>,
+    tokenIndex: number,
+  ) => {
+    const token = pointer[tokenIndex]!;
+    if (jsonPointerTokenAsArrayIndex(token, Infinity) !== undefined) {
+      return visitTypeFull(self.items, pointer, tokenIndex + 1);
+    }
+    throw new Error(
+      `Idl: Expected path ${jsonPointerPreview(pointer, tokenIndex)} to be able to index into a Loop`,
     );
   },
   array: (

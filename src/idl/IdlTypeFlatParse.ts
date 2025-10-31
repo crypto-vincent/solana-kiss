@@ -8,6 +8,7 @@ import {
   jsonAsString,
   jsonCodecInteger,
   jsonCodecNumber,
+  jsonCodecRaw,
   jsonCodecString,
   jsonDecoderArray,
   jsonDecoderArrayToObject,
@@ -64,6 +65,7 @@ export function idlTypeFlatParseIsPossible(value: JsonValue): boolean {
     object.hasOwnProperty("vec32") ||
     object.hasOwnProperty("vec64") ||
     object.hasOwnProperty("vec128") ||
+    object.hasOwnProperty("loop") ||
     object.hasOwnProperty("array") || // TODO - somehow array "rest" support
     object.hasOwnProperty("fields") ||
     object.hasOwnProperty("variants") ||
@@ -276,6 +278,14 @@ function objectVecJsonDecoder(prefix: IdlTypePrefix) {
   );
 }
 
+const objectLoopJsonDecoder = jsonDecoderTransform(
+  jsonDecoderObject({
+    items: idlTypeFlatParse,
+    until: jsonCodecRaw.decoder,
+  }),
+  (content) => IdlTypeFlat.loop(content),
+);
+
 function objectStructJsonDecoder(value: JsonValue): IdlTypeFlat {
   const fields = fieldsJsonDecoder(value);
   return IdlTypeFlat.struct({ fields });
@@ -373,6 +383,7 @@ const objectJsonDecoder: JsonDecoder<IdlTypeFlat> = jsonDecoderAsEnum({
   vec32: objectVecJsonDecoder(IdlTypePrefix.u32),
   vec64: objectVecJsonDecoder(IdlTypePrefix.u64),
   vec128: objectVecJsonDecoder(IdlTypePrefix.u128),
+  loop: objectLoopJsonDecoder,
   array: arrayJsonDecoder,
   fields: objectStructJsonDecoder,
   variants: objectEnumJsonDecoder(IdlTypePrefix.u8),

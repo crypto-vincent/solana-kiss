@@ -1,3 +1,4 @@
+import { JsonValue } from "../data/Json";
 import { IdlTypePrefix } from "./IdlTypePrefix";
 import { IdlTypePrimitive } from "./IdlTypePrimitive";
 
@@ -15,6 +16,10 @@ export type IdlTypeFullOption = {
 export type IdlTypeFullVec = {
   prefix: IdlTypePrefix;
   items: IdlTypeFull;
+};
+export type IdlTypeFullLoop = {
+  items: IdlTypeFull;
+  until: JsonValue;
 };
 export type IdlTypeFullArray = {
   items: IdlTypeFull;
@@ -47,6 +52,7 @@ type IdlTypeFullDiscriminant =
   | "typedef"
   | "option"
   | "vec"
+  | "loop"
   | "array"
   | "string"
   | "struct"
@@ -58,6 +64,7 @@ type IdlTypeFullContent =
   | IdlTypeFullTypedef
   | IdlTypeFullOption
   | IdlTypeFullVec
+  | IdlTypeFullLoop
   | IdlTypeFullArray
   | IdlTypeFullString
   | IdlTypeFullStruct
@@ -86,6 +93,9 @@ export class IdlTypeFull {
   }
   public static vec(value: IdlTypeFullVec): IdlTypeFull {
     return new IdlTypeFull("vec", value);
+  }
+  public static loop(value: IdlTypeFullLoop): IdlTypeFull {
+    return new IdlTypeFull("loop", value);
   }
   public static array(value: IdlTypeFullArray): IdlTypeFull {
     return new IdlTypeFull("array", value);
@@ -124,6 +134,7 @@ export class IdlTypeFull {
       typedef: (value: IdlTypeFullTypedef, p1: P1, p2: P2, p3: P3) => T;
       option: (value: IdlTypeFullOption, p1: P1, p2: P2, p3: P3) => T;
       vec: (value: IdlTypeFullVec, p1: P1, p2: P2, p3: P3) => T;
+      loop: (value: IdlTypeFullLoop, p1: P1, p2: P2, p3: P3) => T;
       array: (value: IdlTypeFullArray, p1: P1, p2: P2, p3: P3) => T;
       string: (value: IdlTypeFullString, p1: P1, p2: P2, p3: P3) => T;
       struct: (value: IdlTypeFullStruct, p1: P1, p2: P2, p3: P3) => T;

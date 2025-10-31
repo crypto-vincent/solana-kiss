@@ -1,3 +1,4 @@
+import { JsonValue } from "../data/Json";
 import { IdlDocs } from "./IdlDocs";
 import { IdlTypePrefix } from "./IdlTypePrefix";
 import { IdlTypePrimitive } from "./IdlTypePrimitive";
@@ -16,6 +17,10 @@ export type IdlTypeFlatOption = {
 export type IdlTypeFlatVec = {
   prefix: IdlTypePrefix;
   items: IdlTypeFlat;
+};
+export type IdlTypeFlatLoop = {
+  items: IdlTypeFlat;
+  until: JsonValue;
 };
 export type IdlTypeFlatArray = {
   items: IdlTypeFlat;
@@ -52,6 +57,7 @@ type IdlTypeFlatDiscriminant =
   | "generic"
   | "option"
   | "vec"
+  | "loop"
   | "array"
   | "string"
   | "struct"
@@ -65,6 +71,7 @@ type IdlTypeFlatContent =
   | IdlTypeFlatGeneric
   | IdlTypeFlatOption
   | IdlTypeFlatVec
+  | IdlTypeFlatLoop
   | IdlTypeFlatArray
   | IdlTypeFlatString
   | IdlTypeFlatStruct
@@ -97,6 +104,9 @@ export class IdlTypeFlat {
   }
   public static vec(value: IdlTypeFlatVec): IdlTypeFlat {
     return new IdlTypeFlat("vec", value);
+  }
+  public static loop(value: IdlTypeFlatLoop): IdlTypeFlat {
+    return new IdlTypeFlat("loop", value);
   }
   public static array(value: IdlTypeFlatArray): IdlTypeFlat {
     return new IdlTypeFlat("array", value);
@@ -135,6 +145,7 @@ export class IdlTypeFlat {
       generic: (value: IdlTypeFlatGeneric, p1: P1, p2: P2) => T;
       option: (value: IdlTypeFlatOption, p1: P1, p2: P2) => T;
       vec: (value: IdlTypeFlatVec, p1: P1, p2: P2) => T;
+      loop: (value: IdlTypeFlatLoop, p1: P1, p2: P2) => T;
       array: (value: IdlTypeFlatArray, p1: P1, p2: P2) => T;
       string: (value: IdlTypeFlatString, p1: P1, p2: P2) => T;
       struct: (value: IdlTypeFlatStruct, p1: P1, p2: P2) => T;

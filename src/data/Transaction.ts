@@ -17,6 +17,8 @@ import { Signature, signatureFromBytes, signatureToBytes } from "./Signature";
 import { Signer } from "./Signer";
 import { BrandedType } from "./Utils";
 
+// TODO (feature) - explorer links ?
+
 export type TransactionRequest = {
   payerAddress: Pubkey;
   recentBlockHash: BlockHash;

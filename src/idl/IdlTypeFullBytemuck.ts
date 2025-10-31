@@ -7,6 +7,7 @@ import {
   IdlTypeFullFieldNamed,
   IdlTypeFullFields,
   IdlTypeFullFieldUnnamed,
+  IdlTypeFullLoop,
   IdlTypeFullOption,
   IdlTypeFullPad,
   IdlTypeFullString,
@@ -109,6 +110,9 @@ const visitorBytemuckC = {
   },
   vec: (_self: IdlTypeFullVec): IdlTypeFullPod => {
     throw new Error("Bytemuck: Repr(C): Vec is not supported");
+  },
+  loop: (_self: IdlTypeFullLoop): IdlTypeFullPod => {
+    throw new Error("Bytemuck: Repr(C): Loop is not supported");
   },
   array: (self: IdlTypeFullArray): IdlTypeFullPod => {
     const itemsPod = bytemuckC(self.items);
@@ -229,6 +233,9 @@ const visitorBytemuckRust = {
   },
   vec: (_self: IdlTypeFullVec): IdlTypeFullPod => {
     throw new Error("Bytemuck: Repr(Rust): Vec is not supported");
+  },
+  loop: (_self: IdlTypeFullLoop): IdlTypeFullPod => {
+    throw new Error("Bytemuck: Repr(Rust): Loop is not supported");
   },
   array: (self: IdlTypeFullArray): IdlTypeFullPod => {
     const itemsPod = bytemuckRust(self.items);

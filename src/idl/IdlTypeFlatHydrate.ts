@@ -10,6 +10,7 @@ import {
   IdlTypeFlatFields,
   IdlTypeFlatFieldUnnamed,
   IdlTypeFlatGeneric,
+  IdlTypeFlatLoop,
   IdlTypeFlatOption,
   IdlTypeFlatPad,
   IdlTypeFlatString,
@@ -131,6 +132,16 @@ const visitorHydrateOrConstLiteral = {
     return IdlTypeFull.vec({
       prefix: self.prefix,
       items: idlTypeFlatHydrate(self.items, genericsBySymbol, typedefs),
+    });
+  },
+  loop: (
+    self: IdlTypeFlatLoop,
+    genericsBySymbol: Map<string, IdlTypeFull | number>,
+    typedefs?: Map<string, IdlTypedef>,
+  ): IdlTypeFull | number => {
+    return IdlTypeFull.loop({
+      items: idlTypeFlatHydrate(self.items, genericsBySymbol, typedefs),
+      until: self.until,
     });
   },
   array: (

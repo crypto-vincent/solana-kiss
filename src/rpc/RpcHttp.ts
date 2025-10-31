@@ -1,4 +1,5 @@
 import {
+  JsonArray,
   JsonObject,
   JsonValue,
   jsonCodecNumber,
@@ -10,7 +11,7 @@ import {
 
 export type RpcHttp = (
   method: string,
-  params: Array<JsonValue>,
+  params: JsonArray,
   config: JsonObject | undefined,
 ) => Promise<JsonValue>;
 
@@ -121,7 +122,7 @@ export function rpcHttpWithRetryOnError(
     retriedCounter: number;
     totalDurationMs: number;
     requestMethod: string;
-    requestParams: Array<JsonValue>;
+    requestParams: JsonArray;
     requestConfig: JsonObject | undefined;
     lastError: any;
   }) => Promise<boolean>,

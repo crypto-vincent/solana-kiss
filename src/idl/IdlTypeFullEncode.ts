@@ -18,6 +18,7 @@ import {
   IdlTypeFullFieldNamed,
   IdlTypeFullFields,
   IdlTypeFullFieldUnnamed,
+  IdlTypeFullLoop,
   IdlTypeFullOption,
   IdlTypeFullPad,
   IdlTypeFullString,
@@ -120,6 +121,18 @@ const visitorEncode = {
     for (const item of array) {
       typeFullEncode(self.items, item, prefixed, blobs);
     }
+  },
+  loop: (
+    self: IdlTypeFullLoop,
+    value: JsonValue,
+    blobs: Array<Uint8Array>,
+    prefixed: boolean,
+  ) => {
+    const array = jsonCodecArrayRaw.decoder(value);
+    for (const item of array) {
+      typeFullEncode(self.items, item, prefixed, blobs);
+    }
+    typeFullEncode(self.items, self.until, prefixed, blobs);
   },
   array: (
     self: IdlTypeFullArray,

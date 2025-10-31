@@ -1,7 +1,7 @@
 import { it } from "@jest/globals";
-import { JsonValue, RpcHttp, rpcHttpWithMaxConcurrentRequests } from "../src";
+import { JsonArray, RpcHttp, rpcHttpWithMaxConcurrentRequests } from "../src";
 
-async function rpcHttp(method: string, params: Array<JsonValue>) {
+async function rpcHttp(method: string, params: JsonArray) {
   if (method === "delayMs") {
     await new Promise((resolve) => setTimeout(resolve, params[0] as number));
     return undefined;
