@@ -51,4 +51,6 @@ it("run", async () => {
   expect(
     transactionDecompileRequest(transactionMessage, addressLookupTables),
   ).toStrictEqual(transactionRequest);
+
+  // TODO - test compare with reference implementation (Solana web3.js)
 });

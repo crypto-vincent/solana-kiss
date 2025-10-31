@@ -179,15 +179,9 @@ export function transactionCompileUnsigned(
   bytes.push(readonlyNonSigners.length);
   bytes.push(staticAddresses.length);
   for (const staticAddress of staticAddresses) {
-    for (const staticAddressByte of pubkeyToBytes(staticAddress)) {
-      bytes.push(staticAddressByte);
-    }
+    bytes.push(...pubkeyToBytes(staticAddress));
   }
-  for (const recentBlockHashByte of blockHashToBytes(
-    transactionRequest.recentBlockHash,
-  )) {
-    bytes.push(recentBlockHashByte);
-  }
+  bytes.push(...blockHashToBytes(transactionRequest.recentBlockHash));
   varIntWrite(bytes, transactionRequest.instructions.length);
   for (const instruction of transactionRequest.instructions) {
     bytes.push(indexByAddress.get(instruction.programAddress)!);
@@ -196,9 +190,7 @@ export function transactionCompileUnsigned(
       bytes.push(indexByAddress.get(input.address)!);
     }
     varIntWrite(bytes, instruction.data.length);
-    for (const dataByte of instruction.data) {
-      bytes.push(dataByte);
-    }
+    bytes.push(...instruction.data);
   }
   if (addressLookupTables !== undefined) {
     bytes.push(loadedAddressLookupTables.size);
@@ -208,13 +200,9 @@ export function transactionCompileUnsigned(
     ] of loadedAddressLookupTables.entries()) {
       bytes.push(...pubkeyToBytes(addressLookupTableAddress));
       bytes.push(writableIndexes.length);
-      for (const writableIndex of writableIndexes) {
-        bytes.push(writableIndex);
-      }
+      bytes.push(...writableIndexes);
       bytes.push(readonlyIndexes.length);
-      for (const readonlyIndex of readonlyIndexes) {
-        bytes.push(readonlyIndex);
-      }
+      bytes.push(...readonlyIndexes);
     }
   }
   if (bytes.length > 1232) {
