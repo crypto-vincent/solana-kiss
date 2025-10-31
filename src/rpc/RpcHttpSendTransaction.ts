@@ -1,9 +1,13 @@
 import { base64Encode } from "../data/Base64";
 import {
+  jsonCodecBlockSlot,
+  jsonCodecNumber,
+  jsonCodecRaw,
   jsonCodecSignature,
+  jsonCodecString,
   jsonDecoderArray,
+  jsonDecoderNullable,
   jsonDecoderObject,
-  jsonDecoderOptional,
 } from "../data/Json";
 import { Signer } from "../data/Signer";
 import {
@@ -38,13 +42,7 @@ export async function rpcHttpSendTransaction(
     }
     const transactionSigning = transactionExtractSigning(transactionPacket);
     const transactionHandle = transactionSigning[0]!.signature;
-    await new Promise((resolve) => setTimeout(resolve, 500));
-    const statuses = statusesJsonDecoder(
-      await rpcHttp("getSignatureStatuses", [[transactionHandle]], {
-        searchTransactionHistory: true,
-      }),
-    );
-    if (statuses.value[0] !== null) {
+    if (await wasAlreadySentByWallet(rpcHttp, transactionHandle)) {
       return { transactionHandle };
     }
   }
@@ -58,8 +56,32 @@ export async function rpcHttpSendTransaction(
   return { transactionHandle };
 }
 
+async function wasAlreadySentByWallet(
+  rpcHttp: RpcHttp,
+  transactionHandle: TransactionHandle,
+): Promise<boolean> {
+  await new Promise((resolve) => setTimeout(resolve, 1000));
+  const statuses = statusesJsonDecoder(
+    await rpcHttp("getSignatureStatuses", [[transactionHandle]], {
+      searchTransactionHistory: false,
+    }),
+  );
+  return statuses.value[0] !== null;
+}
+
 // TODO - put this in a dedicated rpc function
 const statusesJsonDecoder = jsonDecoderObject({
-  context: jsonDecoderObject({}),
-  value: jsonDecoderArray(jsonDecoderOptional(jsonDecoderObject({}))),
+  context: jsonDecoderObject({
+    slot: jsonCodecBlockSlot.decoder,
+  }),
+  value: jsonDecoderArray(
+    jsonDecoderNullable(
+      jsonDecoderObject({
+        slot: jsonCodecBlockSlot.decoder,
+        confirmations: jsonDecoderNullable(jsonCodecNumber.decoder),
+        err: jsonDecoderNullable(jsonCodecRaw.decoder),
+        confirmationStatus: jsonDecoderNullable(jsonCodecString.decoder),
+      }),
+    ),
+  ),
 });

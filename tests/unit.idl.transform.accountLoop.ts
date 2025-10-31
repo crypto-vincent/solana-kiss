@@ -13,10 +13,10 @@ it("run", () => {
       MyAccount: {
         discriminator: [18],
         fields: [
-          { name: "bytes", loop: { items: "u8", postfix: { value: 0 } } },
+          { name: "bytes", loop: { items: "u8", stop: { value: 0 } } },
           {
             name: "strings",
-            loop: { items: "string", postfix: { value: "dudu" } },
+            loop: { items: "string", stop: { value: "dudu" } },
           },
           {
             name: "objects",
@@ -27,11 +27,11 @@ it("run", () => {
                   { name: "y", type: "u8" },
                 ],
               },
-              postfix: { value: { x: 0, y: 0 } },
+              stop: { value: { x: 0, y: 0 } },
             },
           },
           {
-            name: "eof",
+            name: "rest",
             loop: {
               items: {
                 fields: [
@@ -39,6 +39,7 @@ it("run", () => {
                   { name: "code", type: "u8" },
                 ],
               },
+              stop: "end",
             },
           },
         ],
@@ -55,7 +56,7 @@ it("run", () => {
       { x: 7, y: 13 },
       { x: 0, y: 43 },
     ],
-    eof: [
+    rest: [
       { name: 77, code: 87 },
       { name: 78, code: 88 },
       { name: 79, code: 89 },

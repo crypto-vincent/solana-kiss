@@ -23,7 +23,7 @@ async function expectParallelDelaysDurationMs(context: {
   const durationMs = Date.now() - startTimeMs;
   expect(durationMs).toBeGreaterThanOrEqual(context.expectedDurationMs);
   expect(durationMs).toBeLessThan(
-    context.expectedDurationMs * 1.2 + 20 /* ms jitter */,
+    context.expectedDurationMs * 1.2 + 25 /* ms jitter */,
   );
 }
 

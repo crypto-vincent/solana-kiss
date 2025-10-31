@@ -60,31 +60,31 @@ it("run", async () => {
     [owned1Signer],
     originalRequest,
   );
+  const fakePhantomWalletWithAutoSend = {
+    address: payerSigner.address,
+    signMessage: async (message: Uint8Array) => {
+      return await payerSigner.sign(message);
+    },
+    signTransaction: async (transactionPacket: TransactionPacket) => {
+      const signed = await transactionSign(transactionPacket, [payerSigner]);
+      await rpcHttpSendTransaction(rpcHttp, signed);
+      return signed;
+    },
+  };
   const { transactionHandle } = await rpcHttpSendTransaction(
     rpcHttp,
     transactionPacket,
     {
       skipPreflight: false,
       withExtraSigners: [owned2Signer],
-      withWalletAccountsSigners: [
-        {
-          address: payerSigner.address,
-          signMessage: async (message: Uint8Array) => {
-            return await payerSigner.sign(message);
-          },
-          signTransaction: async (transactionPacket: TransactionPacket) => {
-            return await transactionSign(transactionPacket, [payerSigner]);
-          },
-        },
-      ],
+      withWalletAccountsSigners: [fakePhantomWalletWithAutoSend],
     },
   );
   const { transactionRequest, transactionExecution } =
-    await rpcHttpWaitForTransaction(
-      rpcHttp,
-      transactionHandle,
-      async () => true,
-    );
+    await rpcHttpWaitForTransaction(rpcHttp, transactionHandle, async () => {
+      await new Promise((resolve) => setTimeout(resolve, 2000));
+      return true;
+    });
   expect(transactionRequest).toStrictEqual(originalRequest);
   expect(transactionExecution.chargedFeesLamports).toStrictEqual(
     lamportsFeePerSigner * 3n,
