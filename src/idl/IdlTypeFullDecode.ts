@@ -111,14 +111,19 @@ const visitorDecode = {
     const dataItems = [];
     while (true) {
       const dataItemOffset = dataOffset + dataSize;
+      if (self.stop === "end" && data.byteLength === dataItemOffset) {
+        return [dataSize, dataItems];
+      }
       const [dataItemSize, dataItem] = idlTypeFullDecode(
         self.items,
         data,
         dataItemOffset,
       );
       dataSize += dataItemSize;
-      if (jsonIsDeepEqual(dataItem, self.until)) {
-        return [dataSize, dataItems];
+      if (self.stop !== "end") {
+        if (jsonIsDeepEqual(dataItem, self.stop.value)) {
+          return [dataSize, dataItems];
+        }
       }
       dataItems.push(dataItem);
     }

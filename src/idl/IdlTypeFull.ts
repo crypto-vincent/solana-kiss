@@ -19,7 +19,7 @@ export type IdlTypeFullVec = {
 };
 export type IdlTypeFullLoop = {
   items: IdlTypeFull;
-  until: JsonValue;
+  stop: { value: JsonValue } | "end";
 };
 export type IdlTypeFullArray = {
   items: IdlTypeFull;

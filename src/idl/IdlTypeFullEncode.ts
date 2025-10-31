@@ -132,7 +132,9 @@ const visitorEncode = {
     for (const item of array) {
       typeFullEncode(self.items, item, prefixed, blobs);
     }
-    typeFullEncode(self.items, self.until, prefixed, blobs);
+    if (self.stop !== "end") {
+      typeFullEncode(self.items, self.stop.value, prefixed, blobs);
+    }
   },
   array: (
     self: IdlTypeFullArray,

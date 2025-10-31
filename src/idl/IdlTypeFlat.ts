@@ -20,7 +20,7 @@ export type IdlTypeFlatVec = {
 };
 export type IdlTypeFlatLoop = {
   items: IdlTypeFlat;
-  until: JsonValue;
+  stop: { value: JsonValue } | "end";
 };
 export type IdlTypeFlatArray = {
   items: IdlTypeFlat;

@@ -14,6 +14,7 @@ import {
   jsonDecoderArrayToObject,
   jsonDecoderAsEnum,
   jsonDecoderByKind,
+  jsonDecoderConst,
   jsonDecoderForked,
   jsonDecoderObject,
   jsonDecoderObjectToMap,
@@ -66,7 +67,7 @@ export function idlTypeFlatParseIsPossible(value: JsonValue): boolean {
     object.hasOwnProperty("vec64") ||
     object.hasOwnProperty("vec128") ||
     object.hasOwnProperty("loop") ||
-    object.hasOwnProperty("array") || // TODO - somehow array "rest" support
+    object.hasOwnProperty("array") ||
     object.hasOwnProperty("fields") ||
     object.hasOwnProperty("variants") ||
     object.hasOwnProperty("variants8") ||
@@ -278,10 +279,14 @@ function objectVecJsonDecoder(prefix: IdlTypePrefix) {
   );
 }
 
+// TODO - nit, more intuitive IDL format like "eof" or "rest"
 const objectLoopJsonDecoder = jsonDecoderTransform(
   jsonDecoderObject({
     items: idlTypeFlatParse,
-    until: jsonCodecRaw.decoder,
+    stop: jsonDecoderByKind<"end" | { value: JsonValue }>({
+      string: jsonDecoderConst("end"),
+      object: jsonDecoderObject({ value: jsonCodecRaw.decoder }),
+    }),
   }),
   (content) => IdlTypeFlat.loop(content),
 );

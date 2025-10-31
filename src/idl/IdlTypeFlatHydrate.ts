@@ -141,7 +141,7 @@ const visitorHydrateOrConstLiteral = {
   ): IdlTypeFull | number => {
     return IdlTypeFull.loop({
       items: idlTypeFlatHydrate(self.items, genericsBySymbol, typedefs),
-      until: self.until,
+      stop: self.stop,
     });
   },
   array: (

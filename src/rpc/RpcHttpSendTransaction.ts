@@ -1,5 +1,10 @@
 import { base64Encode } from "../data/Base64";
-import { jsonCodecSignature } from "../data/Json";
+import {
+  jsonCodecSignature,
+  jsonDecoderArray,
+  jsonDecoderObject,
+  jsonDecoderOptional,
+} from "../data/Json";
 import { Signer } from "../data/Signer";
 import {
   transactionExtractSigning,
@@ -9,7 +14,6 @@ import {
 } from "../data/Transaction";
 import { WalletAccount } from "../data/Wallet";
 import { RpcHttp } from "./RpcHttp";
-import { rpcHttpGetTransaction } from "./RpcHttpGetTransaction";
 
 // TODO (service) - provide a higher level function that handle block hash and wait for confirmation
 export async function rpcHttpSendTransaction(
@@ -34,14 +38,14 @@ export async function rpcHttpSendTransaction(
     }
     const transactionSigning = transactionExtractSigning(transactionPacket);
     const transactionHandle = transactionSigning[0]!.signature;
-    const startTimeMs = Date.now();
-    while (Date.now() - startTimeMs < 3000) {
-      const result = await rpcHttpGetTransaction(rpcHttp, transactionHandle, {
-        skipTransactionFlow: true,
-      });
-      if (result !== undefined) {
-        return { transactionHandle };
-      }
+    await new Promise((resolve) => setTimeout(resolve, 500));
+    const statuses = statusesJsonDecoder(
+      await rpcHttp("getSignatureStatuses", [[transactionHandle]], {
+        searchTransactionHistory: true,
+      }),
+    );
+    if (statuses.value[0] !== null) {
+      return { transactionHandle };
     }
   }
   const transactionHandle = jsonCodecSignature.decoder(
@@ -53,3 +57,9 @@ export async function rpcHttpSendTransaction(
   );
   return { transactionHandle };
 }
+
+// TODO - put this in a dedicated rpc function
+const statusesJsonDecoder = jsonDecoderObject({
+  context: jsonDecoderObject({}),
+  value: jsonDecoderArray(jsonDecoderOptional(jsonDecoderObject({}))),
+});
