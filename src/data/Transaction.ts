@@ -1,4 +1,3 @@
-import { AddressLookupTable } from "./AddressLookupTable";
 import {
   BlockHash,
   blockHashFromBytes,
@@ -25,6 +24,8 @@ export type TransactionRequest = {
   recentBlockHash: BlockHash;
   instructions: Array<Instruction>;
 };
+
+// TODO (naming) - better location/name and use map when possible ?
 export type TransactionLookupTable = {
   tableAddress: Pubkey;
   lookupAddresses: Array<Pubkey>;
@@ -71,18 +72,18 @@ export type TransactionInvocation = {
 export async function transactionCompileAndSign(
   signers: Array<Signer>,
   transactionRequest: TransactionRequest,
-  addressLookupTables?: Array<AddressLookupTable>,
+  transactionLookupTables?: Array<TransactionLookupTable>,
 ): Promise<TransactionPacket> {
   const transactionPacket = transactionCompileUnsigned(
     transactionRequest,
-    addressLookupTables,
+    transactionLookupTables,
   );
   return await transactionSign(transactionPacket, signers);
 }
 
 export function transactionCompileUnsigned(
   transactionRequest: TransactionRequest,
-  addressLookupTables?: Array<AddressLookupTable>,
+  transactionLookupTables?: Array<TransactionLookupTable>,
 ): TransactionPacket {
   let {
     writableSigners,
@@ -90,18 +91,18 @@ export function transactionCompileUnsigned(
     writableNonSigners,
     readonlyNonSigners,
   } = addressesMetasByCategory(transactionRequest, {
-    legacyAddressSorting: addressLookupTables === undefined,
+    legacyAddressSorting: transactionLookupTables === undefined,
   });
   const loadedWritableAddresses = new Array<Pubkey>();
   const loadedReadonlyAddresses = new Array<Pubkey>();
-  const loadedAddressLookupTables = new Array<{
+  const loadedLookupTables = new Array<{
     tableAddress: Pubkey;
     writableIndexes: Array<number>;
     readonlyIndexes: Array<number>;
   }>();
-  if (addressLookupTables !== undefined) {
-    for (const addressLookupTable of addressLookupTables) {
-      const lookupAddresses = addressLookupTable.lookupAddresses;
+  if (transactionLookupTables !== undefined) {
+    for (const transactionLookupTable of transactionLookupTables) {
+      const lookupAddresses = transactionLookupTable.lookupAddresses;
       const writableIndexes = new Array<number>();
       const readonlyIndexes = new Array<number>();
       writableNonSigners = writableNonSigners.filter(([address, meta]) => {
@@ -129,8 +130,8 @@ export function transactionCompileUnsigned(
         return true;
       });
       if (writableIndexes.length > 0 || readonlyIndexes.length > 0) {
-        loadedAddressLookupTables.push({
-          tableAddress: addressLookupTable.tableAddress,
+        loadedLookupTables.push({
+          tableAddress: transactionLookupTable.tableAddress,
           writableIndexes,
           readonlyIndexes,
         });
@@ -159,7 +160,7 @@ export function transactionCompileUnsigned(
   for (let i = 0; i < signaturesCount * 64; i++) {
     byteArray.push(0);
   }
-  if (addressLookupTables !== undefined) {
+  if (transactionLookupTables !== undefined) {
     byteArray.push(0x80);
   }
   byteArray.push(signaturesCount);
@@ -180,13 +181,13 @@ export function transactionCompileUnsigned(
     varIntWrite(byteArray, instruction.data.length);
     byteArray.push(...instruction.data);
   }
-  if (addressLookupTables !== undefined) {
-    byteArray.push(loadedAddressLookupTables.length);
+  if (transactionLookupTables !== undefined) {
+    byteArray.push(loadedLookupTables.length);
     for (const {
       tableAddress,
       writableIndexes,
       readonlyIndexes,
-    } of loadedAddressLookupTables) {
+    } of loadedLookupTables) {
       byteArray.push(...pubkeyToBytes(tableAddress));
       byteArray.push(writableIndexes.length);
       byteArray.push(...writableIndexes);
@@ -292,7 +293,7 @@ export function transactionExtractSigning(
 
 export function transactionDecompileRequest(
   transactionMessage: TransactionMessage,
-  addressLookupTables?: Array<AddressLookupTable>,
+  transactionLookupTables?: Array<TransactionLookupTable>,
 ): TransactionRequest {
   let offset = 0;
   const firstByte = byteRead(transactionMessage, offset);
@@ -353,25 +354,26 @@ export function transactionDecompileRequest(
   if (offset < transactionMessage.length) {
     const loadedWritableAddresses = new Array<Pubkey>();
     const loadedReadonlyAddresses = new Array<Pubkey>();
-    const addressLookupTablesCount = byteRead(transactionMessage, offset++);
-    for (let i = 0; i < addressLookupTablesCount; i++) {
-      const addressLookupTableAddress = pubkeyFromBytes(
+    const loadedLookupTablesCount = byteRead(transactionMessage, offset++);
+    for (let i = 0; i < loadedLookupTablesCount; i++) {
+      const loadedLookupTableAddress = pubkeyFromBytes(
         bytesRead(transactionMessage, offset, 32),
       );
       offset += 32;
-      const addressLookupTable = addressLookupTables?.find(
-        (alt) => alt.tableAddress === addressLookupTableAddress,
+      const transactionLookupTable = transactionLookupTables?.find(
+        (transactionLookupTable) =>
+          transactionLookupTable.tableAddress === loadedLookupTableAddress,
       );
-      if (addressLookupTable === undefined) {
+      if (transactionLookupTable === undefined) {
         throw new Error(
-          `Transaction: Missing address lookup table: ${addressLookupTableAddress}`,
+          `Transaction: Missing address lookup table: ${loadedLookupTableAddress}`,
         );
       }
       const loadedWritableCount = byteRead(transactionMessage, offset++);
       for (let j = 0; j < loadedWritableCount; j++) {
         loadedWritableAddresses.push(
           lookupLoadedAddress(
-            addressLookupTable.lookupAddresses,
+            transactionLookupTable.lookupAddresses,
             byteRead(transactionMessage, offset++),
           ),
         );
@@ -380,7 +382,7 @@ export function transactionDecompileRequest(
       for (let j = 0; j < loadedReadonlyCount; j++) {
         loadedReadonlyAddresses.push(
           lookupLoadedAddress(
-            addressLookupTable.lookupAddresses,
+            transactionLookupTable.lookupAddresses,
             byteRead(transactionMessage, offset++),
           ),
         );
@@ -553,13 +555,13 @@ function lookupInput(
 }
 
 function lookupLoadedAddress(
-  addressLookupTableAddresses: Array<Pubkey>,
+  transactionLookupTableAddresses: Array<Pubkey>,
   index: number,
 ): Pubkey {
-  if (index < 0 || index >= addressLookupTableAddresses.length) {
+  if (index < 0 || index >= transactionLookupTableAddresses.length) {
     throw new Error(
-      `Transaction: Invalid address lookup table index ${index} (found ${addressLookupTableAddresses.length} addresses)`,
+      `Transaction: Invalid address lookup table index ${index} (found ${transactionLookupTableAddresses.length} addresses)`,
     );
   }
-  return addressLookupTableAddresses[index]!;
+  return transactionLookupTableAddresses[index]!;
 }

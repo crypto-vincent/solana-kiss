@@ -14,8 +14,8 @@ import {
   transactionCompileAndSign,
   transactionDecompileRequest,
   transactionExtractMessage,
+  TransactionLookupTable,
 } from "../src";
-import { AddressLookupTable } from "../src/data/AddressLookupTable";
 
 it("run", async () => {
   const payerSigner = await signerFromSecret(payerSecret);
@@ -24,16 +24,16 @@ it("run", async () => {
   for (let count = 0; count < 200; count++) {
     dummyAddresses.push(pubkeyNewDummy());
   }
-  const addressLookupTables = new Array<AddressLookupTable>();
-  addressLookupTables.push({
+  const transactionLookupTables = new Array<TransactionLookupTable>();
+  transactionLookupTables.push({
     tableAddress: pubkeyNewDummy(),
     lookupAddresses: dummyAddresses.filter((_, i) => i % 2 === 1),
   });
-  addressLookupTables.push({
+  transactionLookupTables.push({
     tableAddress: pubkeyNewDummy(),
     lookupAddresses: [programAddress, pubkeyNewDummy()],
   });
-  addressLookupTables.push({
+  transactionLookupTables.push({
     tableAddress: pubkeyNewDummy(),
     lookupAddresses: dummyAddresses.filter((_, i) => i % 2 === 0),
   });
@@ -56,11 +56,11 @@ it("run", async () => {
   const currentPacket = await transactionCompileAndSign(
     [payerSigner],
     transactionRequest,
-    addressLookupTables,
+    transactionLookupTables,
   );
   const currentMessage = transactionExtractMessage(currentPacket);
   expect(
-    transactionDecompileRequest(currentMessage, addressLookupTables),
+    transactionDecompileRequest(currentMessage, transactionLookupTables),
   ).toStrictEqual(transactionRequest);
 
   const referenceMessage = new TransactionMessage({
@@ -76,7 +76,7 @@ it("run", async () => {
       data: Buffer.from(instruction.data),
     })),
   }).compileToV0Message(
-    addressLookupTables.map((alt) => ({
+    transactionLookupTables.map((alt) => ({
       key: new PublicKey(alt.tableAddress),
       state: {
         addresses: alt.lookupAddresses.map((address) => new PublicKey(address)),
