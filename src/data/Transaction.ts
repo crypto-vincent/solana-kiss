@@ -25,6 +25,10 @@ export type TransactionRequest = {
   recentBlockHash: BlockHash;
   instructions: Array<Instruction>;
 };
+export type TransactionLookupTable = {
+  tableAddress: Pubkey;
+  lookupAddresses: Array<Pubkey>;
+};
 
 export type TransactionVersion = "legacy" | number;
 export type TransactionMessage = BrandedType<
@@ -346,54 +350,56 @@ export function transactionDecompileRequest(
     offset += dataLength.value;
     compiledInstructions.push({ programIndex, inputsIndexes, dataBytes });
   }
-  const addressLookupTablesCount = byteRead(transactionMessage, offset++);
-  const loadedWritableAddresses = new Array<Pubkey>();
-  const loadedReadonlyAddresses = new Array<Pubkey>();
-  for (let i = 0; i < addressLookupTablesCount; i++) {
-    const addressLookupTableAddress = pubkeyFromBytes(
-      bytesRead(transactionMessage, offset, 32),
-    );
-    offset += 32;
-    const addressLookupTable = addressLookupTables?.find(
-      (alt) => alt.tableAddress === addressLookupTableAddress,
-    );
-    if (addressLookupTable === undefined) {
-      throw new Error(
-        `Transaction: Missing address lookup table: ${addressLookupTableAddress}`,
+  if (offset < transactionMessage.length) {
+    const loadedWritableAddresses = new Array<Pubkey>();
+    const loadedReadonlyAddresses = new Array<Pubkey>();
+    const addressLookupTablesCount = byteRead(transactionMessage, offset++);
+    for (let i = 0; i < addressLookupTablesCount; i++) {
+      const addressLookupTableAddress = pubkeyFromBytes(
+        bytesRead(transactionMessage, offset, 32),
       );
-    }
-    const loadedWritableCount = byteRead(transactionMessage, offset++);
-    for (let j = 0; j < loadedWritableCount; j++) {
-      loadedWritableAddresses.push(
-        lookupLoadedAddress(
-          addressLookupTable.lookupAddresses,
-          byteRead(transactionMessage, offset++),
-        ),
+      offset += 32;
+      const addressLookupTable = addressLookupTables?.find(
+        (alt) => alt.tableAddress === addressLookupTableAddress,
       );
+      if (addressLookupTable === undefined) {
+        throw new Error(
+          `Transaction: Missing address lookup table: ${addressLookupTableAddress}`,
+        );
+      }
+      const loadedWritableCount = byteRead(transactionMessage, offset++);
+      for (let j = 0; j < loadedWritableCount; j++) {
+        loadedWritableAddresses.push(
+          lookupLoadedAddress(
+            addressLookupTable.lookupAddresses,
+            byteRead(transactionMessage, offset++),
+          ),
+        );
+      }
+      const loadedReadonlyCount = byteRead(transactionMessage, offset++);
+      for (let j = 0; j < loadedReadonlyCount; j++) {
+        loadedReadonlyAddresses.push(
+          lookupLoadedAddress(
+            addressLookupTable.lookupAddresses,
+            byteRead(transactionMessage, offset++),
+          ),
+        );
+      }
     }
-    const loadedReadonlyCount = byteRead(transactionMessage, offset++);
-    for (let j = 0; j < loadedReadonlyCount; j++) {
-      loadedReadonlyAddresses.push(
-        lookupLoadedAddress(
-          addressLookupTable.lookupAddresses,
-          byteRead(transactionMessage, offset++),
-        ),
-      );
+    for (const loadedWritableAddress of loadedWritableAddresses) {
+      instructionsInputs.push({
+        address: loadedWritableAddress,
+        signer: false,
+        writable: true,
+      });
     }
-  }
-  for (const loadedWritableAddress of loadedWritableAddresses) {
-    instructionsInputs.push({
-      address: loadedWritableAddress,
-      signer: false,
-      writable: true,
-    });
-  }
-  for (const loadedReadonlyAddress of loadedReadonlyAddresses) {
-    instructionsInputs.push({
-      address: loadedReadonlyAddress,
-      signer: false,
-      writable: false,
-    });
+    for (const loadedReadonlyAddress of loadedReadonlyAddresses) {
+      instructionsInputs.push({
+        address: loadedReadonlyAddress,
+        signer: false,
+        writable: false,
+      });
+    }
   }
   const payerAddress = lookupInput(instructionsInputs, 0).address;
   const instructions = new Array<Instruction>();
@@ -513,7 +519,7 @@ function byteRead(
   bytes: TransactionMessage | TransactionPacket,
   offset: number,
 ): number {
-  if (offset < 0 || offset > bytes.length) {
+  if (offset < 0 || offset >= bytes.length) {
     throw new Error(
       `Transaction: Invalid bytes, failed to read at offset ${offset} (found ${bytes.length} bytes)`,
     );

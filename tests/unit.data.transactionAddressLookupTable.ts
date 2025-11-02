@@ -84,11 +84,8 @@ it("run", async () => {
       isActive: () => true,
     })),
   );
-  console.log("currentMessage", (currentMessage as Uint8Array).slice(100));
-  console.log("referenceMessage", referenceMessage.serialize().slice(100));
   const referencePacket = new VersionedTransaction(referenceMessage);
   referencePacket.sign([Keypair.fromSecretKey(payerSecret)]);
-  console.log("referenceMessage", referenceMessage.compiledInstructions[0]);
   expect(currentPacket).toStrictEqual(referencePacket.serialize());
   expect(currentMessage).toStrictEqual(referenceMessage.serialize());
 });

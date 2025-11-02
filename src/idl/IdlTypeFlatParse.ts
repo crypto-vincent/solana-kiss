@@ -279,7 +279,7 @@ function objectVecJsonDecoder(prefix: IdlTypePrefix) {
   );
 }
 
-// TODO - nit, more intuitive IDL format like "eof" or "rest"
+// TODO (naming) - nit, more intuitive IDL format like "eof" or "rest"
 const objectLoopJsonDecoder = jsonDecoderTransform(
   jsonDecoderObject({
     items: idlTypeFlatParse,

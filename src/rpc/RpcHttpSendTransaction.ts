@@ -69,7 +69,7 @@ async function wasAlreadySentByWallet(
   return statuses.value[0] !== null;
 }
 
-// TODO - put this in a dedicated rpc function
+// TODO - put this in a dedicated rpc function ?
 const statusesJsonDecoder = jsonDecoderObject({
   context: jsonDecoderObject({
     slot: jsonCodecBlockSlot.decoder,
