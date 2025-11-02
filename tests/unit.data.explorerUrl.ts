@@ -28,7 +28,6 @@ it("run", async () => {
   ).toStrictEqual(
     "https://explorer.solana.com/block/987654321?customUrl=https%3A%2F%2Fcustom.rpc.url",
   );
-
   const devnetRpcUrl = "https://api.devnet.solana.com";
   expect(
     explorerUrlBlock(devnetRpcUrl, blockSlotFromNumber(418711690)),
