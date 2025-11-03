@@ -38,6 +38,7 @@ export class IdlLibrary {
         this.cache.set(programAddress, programIdl);
         return programIdl;
       } catch (_error) {
+        console.log("error", _error);
         // TODO (error) - should this be an error combined instead ?
       }
     }
@@ -46,7 +47,7 @@ export class IdlLibrary {
   }
 }
 
-export function idlLibraryLoaderHttp(
+export function idlLibraryLoaderUrl(
   urlBuilder: (programAddress: Pubkey) => string,
   customFetcher?: (url: string) => Promise<JsonValue>,
 ): IdlLibraryLoader {
@@ -81,7 +82,7 @@ export function idlLibraryLoaderOnchain(
     const onchainAnchorString = utf8Decode(onchainAnchorBytes);
     const onchainAnchorJson = JSON.parse(onchainAnchorString) as JsonValue;
     const onchainAnchorIdl = idlProgramParse(onchainAnchorJson);
-    onchainAnchorIdl.metadata.address = onchainAnchorAddress;
+    onchainAnchorIdl.metadata.address = programAddress;
     onchainAnchorIdl.accounts.set(
       onchainAnchorAccountIdl.name,
       onchainAnchorAccountIdl,

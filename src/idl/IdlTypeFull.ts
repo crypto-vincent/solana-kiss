@@ -40,7 +40,7 @@ export type IdlTypeFullEnum = {
   variants: Array<IdlTypeFullEnumVariant>;
 };
 export type IdlTypeFullPad = {
-  before: number; // TODO - can this be deprecated when transparent padding is supported ?
+  before: number; // TODO (repr) - can this be deprecated when transparent padding is supported ?
   end: number;
   content: IdlTypeFull;
 };

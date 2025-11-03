@@ -278,8 +278,7 @@ export function idlInstructionAddressesFind(
           },
         );
       } catch (_) {
-        // TODO - better error handling and help with understanding what is missing
-        // Ignore errors, we might not have enough info yet
+        // TODO (error) - better error handling and help with understanding what is missing
       }
     }
     if (!madeProgress) {

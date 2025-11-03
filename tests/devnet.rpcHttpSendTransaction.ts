@@ -77,8 +77,8 @@ it("run", async () => {
     transactionPacket,
     {
       skipPreflight: false,
-      withExtraSigners: [owned2Signer],
-      withWalletAccountsSigners: [fakePhantomWalletWithAutoSend],
+      extraSigners: [owned2Signer],
+      walletAccountsSigners: [fakePhantomWalletWithAutoSend],
     },
   );
   const { transactionRequest, transactionExecution } =

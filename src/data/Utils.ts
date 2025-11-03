@@ -41,4 +41,4 @@ export class ErrorWithContext extends Error {
   }
 }
 
-// TODO - error stacking util (for what except the find account loop ?)
+// TODO (error) - error stacking util (for what except the find account loop ?)

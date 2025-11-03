@@ -25,18 +25,18 @@ export async function rpcHttpSendTransaction(
   transactionPacket: TransactionPacket,
   options?: {
     skipPreflight?: boolean;
-    withExtraSigners?: Array<Signer>;
-    withWalletAccountsSigners?: Array<WalletAccount>;
+    extraSigners?: Array<Signer>;
+    walletAccountsSigners?: Array<WalletAccount>;
   },
 ): Promise<{ transactionHandle: TransactionHandle }> {
-  if (options?.withExtraSigners !== undefined) {
+  if (options?.extraSigners !== undefined) {
     transactionPacket = await transactionSign(
       transactionPacket,
-      options.withExtraSigners,
+      options.extraSigners,
     );
   }
-  if (options?.withWalletAccountsSigners !== undefined) {
-    for (const walletAccount of options.withWalletAccountsSigners) {
+  if (options?.walletAccountsSigners !== undefined) {
+    for (const walletAccount of options.walletAccountsSigners) {
       transactionPacket =
         await walletAccount.signTransaction(transactionPacket);
     }
@@ -69,7 +69,6 @@ async function wasAlreadySentByWallet(
   return statuses.value[0] !== null;
 }
 
-// TODO - put this in a dedicated rpc function ?
 const statusesJsonDecoder = jsonDecoderObject({
   context: jsonDecoderObject({
     slot: jsonCodecBlockSlot.decoder,
