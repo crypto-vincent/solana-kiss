@@ -5,10 +5,11 @@ import {
   rpcHttpFindAccountTransactions,
   rpcHttpFromUrl,
   rpcHttpGetTransaction,
+  urlPublicRpcDevnet,
 } from "../src";
 
 it("run", async () => {
-  const rpcHttp = rpcHttpFromUrl("https://api.devnet.solana.com");
+  const rpcHttp = rpcHttpFromUrl(urlPublicRpcDevnet);
   const { rewindingTransactionsHandles } = await rpcHttpFindAccountTransactions(
     rpcHttp,
     pubkeyFromBase58("vVeH6Xd43HAScbxjVtvfwDGqBMaMvNDLsAxwM5WK1pG"),

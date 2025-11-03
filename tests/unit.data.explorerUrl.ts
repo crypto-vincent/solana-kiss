@@ -8,41 +8,43 @@ import {
   transactionCompileAndSign,
 } from "../src";
 import {
-  explorerUrlAccount,
-  explorerUrlBlock,
-  explorerUrlSimulation,
-  explorerUrlTransaction,
-} from "../src/data/Explorer";
+  urlExplorerAccount,
+  urlExplorerBlock,
+  urlExplorerSimulation,
+  urlExplorerTransaction,
+  urlPublicRpcDevnet,
+  urlPublicRpcMainnet,
+} from "../src/data/Url";
 
 it("run", async () => {
   expect(
-    explorerUrlBlock(
-      "https://api.mainnet-beta.solana.com",
-      blockSlotFromNumber(377349811),
-    ),
+    urlExplorerBlock(urlPublicRpcMainnet, blockSlotFromNumber(377349811)),
   ).toStrictEqual(
     "https://explorer.solana.com/block/377349811?cluster=mainnet-beta",
   );
   expect(
-    explorerUrlBlock("https://custom.rpc.url", blockSlotFromNumber(987654321)),
+    urlExplorerBlock("devnet", blockSlotFromNumber(377349811)),
+  ).toStrictEqual("https://explorer.solana.com/block/377349811?cluster=devnet");
+  expect(
+    urlExplorerBlock("https://custom.rpc.url", blockSlotFromNumber(987654321)),
   ).toStrictEqual(
     "https://explorer.solana.com/block/987654321?customUrl=https%3A%2F%2Fcustom.rpc.url",
   );
-  const devnetRpcUrl = "https://api.devnet.solana.com";
+
   expect(
-    explorerUrlBlock(devnetRpcUrl, blockSlotFromNumber(418711690)),
+    urlExplorerBlock(urlPublicRpcDevnet, blockSlotFromNumber(418711690)),
   ).toStrictEqual("https://explorer.solana.com/block/418711690?cluster=devnet");
   expect(
-    explorerUrlAccount(
-      devnetRpcUrl,
+    urlExplorerAccount(
+      urlPublicRpcDevnet,
       pubkeyFromBase58("4Nd1mY5Z6kR7q8U6z3v5X6ixkmKsg4xX6p6L7m3gH1oN"),
     ),
   ).toStrictEqual(
     "https://explorer.solana.com/address/4Nd1mY5Z6kR7q8U6z3v5X6ixkmKsg4xX6p6L7m3gH1oN?cluster=devnet",
   );
   expect(
-    explorerUrlTransaction(
-      devnetRpcUrl,
+    urlExplorerTransaction(
+      urlPublicRpcDevnet,
       signatureFromBase58(
         "5AVjDXZskdayztESDeaumG4E8s28Fn6ttEkM7oAVEcG62g8A6te4NMBuQtKNGg8dvxRatp8nw4tkh19AasLQZYFj",
       ),
@@ -59,7 +61,9 @@ it("run", async () => {
     recentBlockHash: blockHashFromBytes(new Uint8Array(32).fill(1)),
     instructions: [{ programAddress, inputs: [], data: new Uint8Array([42]) }],
   });
-  expect(explorerUrlSimulation(devnetRpcUrl, transactionPacket)).toStrictEqual(
+  expect(
+    urlExplorerSimulation(urlPublicRpcDevnet, transactionPacket),
+  ).toStrictEqual(
     "https://explorer.solana.com/tx/inspector?signatures=%5B%225Pk87GxZBwfk41CHdawMJWQNWQQhSUyjqVXzyLzKTXeg3mi3vh5Erq4UQBdmxXt2vimCRs2WDqFsUEaPYzTnXr8F%22%5D&message=AQABAj457ZZiOmUrAI5j%2BXTNkEsnj5JmxVAS2pv6Zs7I5eStC7wPwLtHyi90xBEulKsTz6PGNOXcF%2BrLA80aI81%2BeHwBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAAEq&cluster=devnet",
   );
 });

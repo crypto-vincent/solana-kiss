@@ -5,10 +5,11 @@ import {
   pubkeyFromBase58,
   rpcHttpFromUrl,
   rpcHttpGetAccountWithData,
+  urlPublicRpcDevnet,
 } from "../src";
 
 it("run", async () => {
-  const rpcHttp = rpcHttpFromUrl("https://api.devnet.solana.com");
+  const rpcHttp = rpcHttpFromUrl(urlPublicRpcDevnet);
   const onchainAnchorAddress = idlOnchainAnchorAddress(
     pubkeyFromBase58("UCNcQRtrbGmvuLKA3Jv719Cc6DS4r661ZRpyZduxu2j"),
   );

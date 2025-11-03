@@ -19,10 +19,11 @@ import {
   transactionCompileAndSign,
   TransactionPacket,
   transactionSign,
+  urlPublicRpcDevnet,
 } from "../src";
 
 it("run", async () => {
-  const rpcHttp = rpcHttpFromUrl("https://api.devnet.solana.com", {
+  const rpcHttp = rpcHttpFromUrl(urlPublicRpcDevnet, {
     commitment: "confirmed",
   });
   const programAddress = pubkeyDefault;

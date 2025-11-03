@@ -6,10 +6,11 @@ import {
   rpcHttpGetAccountLamports,
   rpcHttpGetAccountMetadata,
   rpcHttpGetAccountWithData,
+  urlPublicRpcDevnet,
 } from "../src";
 
 it("run", async () => {
-  const rpcHttp = rpcHttpFromUrl("https://api.devnet.solana.com");
+  const rpcHttp = rpcHttpFromUrl(urlPublicRpcDevnet);
   const accountAddress = pubkeyFromBase58(
     "DL8WvebR4WVMu8WDv42zyzWuH9UZELYZ8kdhCaa83skB",
   );

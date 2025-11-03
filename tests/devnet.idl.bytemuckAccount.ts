@@ -8,11 +8,12 @@ import {
   pubkeyFromBase58,
   rpcHttpFromUrl,
   rpcHttpGetAccountWithData,
+  urlPublicRpcDevnet,
 } from "../src";
 
 it("run", async () => {
   // Create the endpoint
-  const rpcHttp = rpcHttpFromUrl("https://api.devnet.solana.com");
+  const rpcHttp = rpcHttpFromUrl(urlPublicRpcDevnet);
   // Actually fetch our account
   const accountAddress = pubkeyFromBase58(
     "FdoXZqdMysWbzB8j5bK6U5J1Dczsos1vGwQi5Tur2mwk",

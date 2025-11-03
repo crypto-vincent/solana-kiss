@@ -12,6 +12,7 @@ export * from "./data/Sha256";
 export * from "./data/Signature";
 export * from "./data/Signer";
 export * from "./data/Transaction";
+export * from "./data/Url";
 export * from "./data/Utf8";
 export * from "./data/Utils";
 export * from "./data/Wallet";

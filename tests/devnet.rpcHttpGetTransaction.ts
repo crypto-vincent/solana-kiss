@@ -4,10 +4,11 @@ import {
   rpcHttpFromUrl,
   rpcHttpGetTransaction,
   signatureFromBase58,
+  urlPublicRpcDevnet,
 } from "../src";
 
 it("run", async () => {
-  const rpcHttp = rpcHttpFromUrl("https://api.devnet.solana.com");
+  const rpcHttp = rpcHttpFromUrl(urlPublicRpcDevnet);
   // This should be a simple success
   const {
     transactionRequest: transactionRequest1,

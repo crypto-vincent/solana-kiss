@@ -17,11 +17,12 @@ import {
   signerGenerate,
   transactionCompileAndSign,
   transactionCompileUnsigned,
+  urlPublicRpcDevnet,
   utf8Encode,
 } from "../src";
 
 it("run", async () => {
-  const rpcHttp = rpcHttpFromUrl("https://api.devnet.solana.com", {
+  const rpcHttp = rpcHttpFromUrl(urlPublicRpcDevnet, {
     commitment: "confirmed",
   });
   const programAddress = pubkeyFromBase58(

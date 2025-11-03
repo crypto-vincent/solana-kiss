@@ -9,30 +9,32 @@ import {
   TransactionPacket,
 } from "./Transaction";
 
-// TODO (naming) - better naming standards ?
+export const urlPublicRpcMainnet = "https://api.mainnet-beta.solana.com";
+export const urlPublicRpcDevnet = "https://api.devnet.solana.com";
+export const urlPublicRpcTestnet = "https://api.testnet.solana.com";
 
-export function explorerUrlAccount(rpcUrl: string, address: Pubkey) {
-  return computeUrl(rpcUrl, "address", pubkeyToBase58(address), {});
+export function urlExplorerAccount(urlRpc: string, address: Pubkey) {
+  return computeUrl(urlRpc, "address", pubkeyToBase58(address), {});
 }
 
-export function explorerUrlBlock(rpcUrl: string, blockSlot: BlockSlot) {
-  return computeUrl(rpcUrl, "block", blockSlot.toString(), {});
+export function urlExplorerBlock(urlRpc: string, blockSlot: BlockSlot) {
+  return computeUrl(urlRpc, "block", blockSlot.toString(), {});
 }
 
-export function explorerUrlTransaction(
-  rpcUrl: string,
+export function urlExplorerTransaction(
+  urlRpc: string,
   transactionHandle: TransactionHandle,
 ) {
-  return computeUrl(rpcUrl, "tx", signatureToBase58(transactionHandle), {});
+  return computeUrl(urlRpc, "tx", signatureToBase58(transactionHandle), {});
 }
 
-export function explorerUrlSimulation(
-  rpcUrl: string,
+export function urlExplorerSimulation(
+  urlRpc: string,
   transactionPacket: TransactionPacket,
 ) {
   const signing = transactionExtractSigning(transactionPacket);
   const message = transactionExtractMessage(transactionPacket);
-  return computeUrl(rpcUrl, "tx", "inspector", {
+  return computeUrl(urlRpc, "tx", "inspector", {
     signatures: JSON.stringify(
       signing.map(({ signature }) => signatureToBase58(signature)),
     ),
@@ -41,7 +43,7 @@ export function explorerUrlSimulation(
 }
 
 function computeUrl(
-  rpcUrl: string,
+  urlRpc: string,
   category: string,
   payload: string,
   params: Record<string, string>,
@@ -51,23 +53,17 @@ function computeUrl(
     args.push(`${encodeURIComponent(key)}=${encodeURIComponent(value)}`);
   }
   if (
-    rpcUrl === "https://api.mainnet-beta.solana.com" ||
-    rpcUrl === "mainnet" ||
-    rpcUrl === "mainnet-beta"
+    urlRpc === urlPublicRpcMainnet ||
+    urlRpc === "mainnet" ||
+    urlRpc === "mainnet-beta"
   ) {
     args.push("cluster=mainnet-beta");
-  } else if (
-    rpcUrl === "https://api.devnet.solana.com" ||
-    rpcUrl === "devnet"
-  ) {
+  } else if (urlRpc === urlPublicRpcDevnet || urlRpc === "devnet") {
     args.push("cluster=devnet");
-  } else if (
-    rpcUrl === "https://api.testnet.solana.com" ||
-    rpcUrl === "testnet"
-  ) {
+  } else if (urlRpc === urlPublicRpcTestnet || urlRpc === "testnet") {
     args.push("cluster=testnet");
   } else {
-    args.push(`customUrl=${encodeURIComponent(rpcUrl)}`);
+    args.push(`customUrl=${encodeURIComponent(urlRpc)}`);
   }
   return `https://explorer.solana.com/${category}/${payload}?${args.join("&")}`;
 }

@@ -15,12 +15,13 @@ import {
   RpcHttp,
   rpcHttpFromUrl,
   rpcHttpGetAccountWithData,
+  urlPublicRpcDevnet,
   utf8Encode,
 } from "../src";
 
 it("run", async () => {
   // Create the endpoint
-  const rpcHttp = rpcHttpFromUrl("https://api.devnet.solana.com");
+  const rpcHttp = rpcHttpFromUrl(urlPublicRpcDevnet);
   // Choosing our programAddress
   const programAddress = pubkeyFromBase58(
     "crdszSnZQu7j36KfsMJ4VEmMUTJgrNYXwoPVHUANpAu",

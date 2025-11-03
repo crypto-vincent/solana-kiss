@@ -30,7 +30,7 @@ export const walletProviders: RxObservable<Array<WalletProvider>> = {
 };
 
 let walletProvidersDiscovering = false;
-const walletProvidersSubject = rxBehaviourSubject<Array<WalletProvider>>([]);
+const walletProvidersSubject = rxBehaviourSubject(new Array<WalletProvider>());
 
 function walletProvidersDiscovery() {
   if (globalThis.window === undefined) {

@@ -7,11 +7,12 @@ import {
   rpcHttpFromUrl,
   rpcHttpGetTransaction,
   signatureFromBase58,
+  urlPublicRpcDevnet,
 } from "../src";
 
 it("run", async () => {
   // Create the endpoint
-  const rpcHttp = rpcHttpFromUrl("https://api.devnet.solana.com");
+  const rpcHttp = rpcHttpFromUrl(urlPublicRpcDevnet);
   // Parse IDL from file JSON directly
   const programIdl = idlProgramParse(require("./fixtures/idl_anchor_30.json"));
   // Download an arbitrary instruction we should be able to decode

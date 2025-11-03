@@ -1,11 +1,16 @@
-import { blockSlotFromNumber, rpcHttpFindBlocks, rpcHttpFromUrl } from "../src";
+import {
+  blockSlotFromNumber,
+  rpcHttpFindBlocks,
+  rpcHttpFromUrl,
+  urlPublicRpcDevnet,
+} from "../src";
 
 const highBlockSlot = blockSlotFromNumber(378967387);
 const lowBlockSlot = blockSlotFromNumber(378967287);
 const blockDistance = 100;
 
 it("run", async () => {
-  const rpcHttp = rpcHttpFromUrl("https://api.devnet.solana.com");
+  const rpcHttp = rpcHttpFromUrl(urlPublicRpcDevnet);
 
   const { blocksSlots: blocksSlotsFromHigh } = await rpcHttpFindBlocks(
     rpcHttp,

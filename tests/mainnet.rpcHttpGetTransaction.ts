@@ -8,10 +8,11 @@ import {
   rpcHttpGetTransaction,
   signatureFromBase58,
   TransactionFlow,
+  urlPublicRpcMainnet,
 } from "../src";
 
 it("run", async () => {
-  const rpcHttp = rpcHttpFromUrl("https://api.mainnet-beta.solana.com");
+  const rpcHttp = rpcHttpFromUrl(urlPublicRpcMainnet);
   // Complex transaction with many inner instructions nested
   const { transactionRequest, transactionExecution, transactionFlow } =
     expectDefined(
