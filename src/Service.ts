@@ -233,7 +233,7 @@ export class Service {
     return blockInfo.hash;
   }
 
-  public async prepareAndCompileAndSendTransaction(
+  public async prepareAndSendTransaction(
     payer: Signer | WalletAccount,
     instructions: Array<Instruction>,
     options?: {

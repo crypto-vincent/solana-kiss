@@ -16,7 +16,6 @@ import {
 } from "../data/Transaction";
 import { RpcHttp } from "./RpcHttp";
 
-// TODO (service) - provide a higher level function that handle block hash and wait for confirmation
 export async function rpcHttpSendTransaction(
   rpcHttp: RpcHttp,
   transactionPacket: TransactionPacket,
@@ -26,6 +25,7 @@ export async function rpcHttpSendTransaction(
   },
 ): Promise<{ transactionHandle: TransactionHandle }> {
   if (options?.skipAlreadySentCheck !== true) {
+    // TODO - find a better way to check already sent transactions ?
     const transactionSigning = transactionExtractSigning(transactionPacket);
     const transactionHandle = transactionSigning[0]!.signature;
     if (await wasAlreadySent(rpcHttp, transactionHandle)) {

@@ -58,6 +58,10 @@ it("run", async () => {
       ),
     ],
   };
+  const transactionPacket = await transactionCompileAndSign(
+    [payerSigner, owned2Signer],
+    originalRequest,
+  );
   const owned1FakePhantomWalletWithAutoSend: WalletAccount = {
     address: owned1Signer.address,
     signMessage: async (message: Uint8Array) => {
@@ -69,13 +73,11 @@ it("run", async () => {
       return signed;
     },
   };
-  const transactionPacket = await transactionCompileAndSign(
-    [payerSigner, owned1FakePhantomWalletWithAutoSend, owned2Signer],
-    originalRequest,
-  );
   const { transactionHandle } = await rpcHttpSendTransaction(
     rpcHttp,
-    transactionPacket,
+    await transactionSign(transactionPacket, [
+      owned1FakePhantomWalletWithAutoSend,
+    ]),
     { skipPreflight: false, skipAlreadySentCheck: false },
   );
   const { transactionRequest, transactionExecution } =
