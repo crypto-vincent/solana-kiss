@@ -19,13 +19,14 @@ export * from "./data/Wallet";
 
 export * from "./idl/IdlAccount";
 export * from "./idl/IdlConstant";
+export * from "./idl/IdlDocs";
 export * from "./idl/IdlError";
 export * from "./idl/IdlEvent";
 export * from "./idl/IdlInstruction";
 export * from "./idl/IdlInstructionAccount";
 export * from "./idl/IdlInstructionBlob";
+export * from "./idl/IdlLibrary";
 export * from "./idl/IdlMetadata";
-export * from "./idl/IdlOnchain";
 export * from "./idl/IdlProgram";
 export * from "./idl/IdlTypedef";
 export * from "./idl/IdlTypeFlat";

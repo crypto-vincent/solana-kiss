@@ -1,8 +1,8 @@
 import {
   expectDefined,
   idlAccountDecode,
-  idlOnchainAnchorAddress,
-  idlOnchainAnchorDecode,
+  IdlLibrary,
+  idlLibraryLoaderOnchain,
   idlProgramGuessAccount,
   jsonGetAt,
   pubkeyFromBase58,
@@ -14,6 +14,16 @@ import {
 it("run", async () => {
   // Create the endpoint
   const rpcHttp = rpcHttpFromUrl(urlPublicRpcDevnet);
+  // Create the IDL library with onchain loader
+  const libraryIdl = new IdlLibrary([
+    idlLibraryLoaderOnchain(async (programAddress) => {
+      const { accountInfo } = await rpcHttpGetAccountWithData(
+        rpcHttp,
+        programAddress,
+      );
+      return accountInfo.data;
+    }),
+  ]);
   // Actually fetch our account
   const accountAddress = pubkeyFromBase58(
     "FdoXZqdMysWbzB8j5bK6U5J1Dczsos1vGwQi5Tur2mwk",
@@ -23,12 +33,10 @@ it("run", async () => {
     accountAddress,
   );
   // Resolve the account's program IDL from onchain
-  const onchainAnchorAddress = idlOnchainAnchorAddress(accountInfo.owner);
-  const { accountInfo: onchainAnchorInfo } = await rpcHttpGetAccountWithData(
-    rpcHttp,
-    onchainAnchorAddress,
+  const programIdl = expectDefined(
+    await libraryIdl.getOrLoadProgramIdl(accountInfo.owner),
   );
-  const programIdl = idlOnchainAnchorDecode(onchainAnchorInfo.data);
+  // Guess the account IDL from the program IDL
   const accountIdl = expectDefined(
     idlProgramGuessAccount(programIdl, accountInfo.data),
   );

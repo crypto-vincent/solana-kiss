@@ -18,7 +18,7 @@ export type RpcHttp = (
 export function rpcHttpFromUrl(
   url: string,
   context?: { commitment?: "confirmed" | "finalized" },
-  customFetch?: (
+  customFetcher?: (
     url: string,
     request: {
       headers: { [key: string]: string };
@@ -28,7 +28,7 @@ export function rpcHttpFromUrl(
   ) => Promise<JsonValue>,
 ): RpcHttp {
   const fetcher =
-    customFetch ??
+    customFetcher ??
     (async (url, request) => {
       return (await fetch(url, request)).json();
     });
