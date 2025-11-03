@@ -17,23 +17,25 @@ export type RpcHttp = (
 
 export function rpcHttpFromUrl(
   url: string,
-  context?: { commitment?: "confirmed" | "finalized" },
-  customFetcher?: (
-    url: string,
-    request: {
-      headers: { [key: string]: string };
-      method: string;
-      body: string;
-    },
-  ) => Promise<JsonValue>,
+  options?: {
+    commitment?: "confirmed" | "finalized";
+    customFetcher?: (
+      url: string,
+      request: {
+        headers: { [key: string]: string };
+        method: string;
+        body: string;
+      },
+    ) => Promise<JsonValue>;
+  },
 ): RpcHttp {
   const fetcher =
-    customFetcher ??
+    options?.customFetcher ??
     (async (url, request) => {
       return (await fetch(url, request)).json();
     });
   return async function (method, params, config) {
-    const contextCommitment = context?.commitment;
+    const contextCommitment = options?.commitment;
     if (config !== undefined) {
       if (contextCommitment !== undefined) {
         config = {

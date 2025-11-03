@@ -1,45 +1,30 @@
 import {
-  expectDefined,
-  idlAccountDecode,
-  IdlLibrary,
-  idlLibraryLoaderUrl,
-  idlProgramGuessAccount,
   JsonValue,
   Pubkey,
   pubkeyFromBase58,
-  RpcHttp,
   rpcHttpFromUrl,
-  rpcHttpGetAccountWithData,
+  Service,
   urlPublicRpcDevnet,
 } from "../src";
 
 it("run", async () => {
-  const rpcHttp = rpcHttpFromUrl(urlPublicRpcDevnet);
-  const libraryIdl = new IdlLibrary([
-    idlLibraryLoaderUrl(
-      (programAddress) =>
-        `https://raw.githubusercontent.com/crypto-vincent/solana-idls/refs/heads/main/data/${programAddress}.json`,
-    ),
-  ]);
+  const service = new Service(rpcHttpFromUrl(urlPublicRpcDevnet));
   await assertAccountState(
-    rpcHttp,
-    libraryIdl,
+    service,
     pubkeyFromBase58("Ady55LhZxWFABzdg8NCNTAZv5XstBqyNZYCMfWqW3Rq9"),
     "system",
     "Wallet",
     undefined,
   );
   await assertAccountState(
-    rpcHttp,
-    libraryIdl,
+    service,
     pubkeyFromBase58("UCNcQRtrbGmvuLKA3Jv719Cc6DS4r661ZRpyZduxu2j"),
     "bpf_loader_upgradeable",
     "Program",
     { program_data: "9rtcXuviJngSZTRSCXxsHyd6qaWpqWSQ56SNumXAuLJ1" },
   );
   await assertAccountState(
-    rpcHttp,
-    libraryIdl,
+    service,
     pubkeyFromBase58("9rtcXuviJngSZTRSCXxsHyd6qaWpqWSQ56SNumXAuLJ1"),
     "bpf_loader_upgradeable",
     "ProgramData",
@@ -49,8 +34,7 @@ it("run", async () => {
     },
   );
   await assertAccountState(
-    rpcHttp,
-    libraryIdl,
+    service,
     pubkeyFromBase58("EsQycjp856vTPvrxMuH1L6ymd5K63xT7aULGepiTcgM3"),
     "spl_token",
     "TokenMint",
@@ -63,8 +47,7 @@ it("run", async () => {
     },
   );
   await assertAccountState(
-    rpcHttp,
-    libraryIdl,
+    service,
     pubkeyFromBase58("8EodedXFv8DAJ6jGTg4DVXaBVJTVL3o4T2BWwTJTTJjw"),
     "spl_name_service",
     "NameRecordHeader",
@@ -77,22 +60,15 @@ it("run", async () => {
 });
 
 async function assertAccountState(
-  rpcHttp: RpcHttp,
-  libraryIdl: IdlLibrary,
-  address: Pubkey,
+  service: Service,
+  accountAddress: Pubkey,
   expectedProgramName: string,
   expectedAccountName: string,
   expectedState: JsonValue,
 ) {
-  const { accountInfo } = await rpcHttpGetAccountWithData(rpcHttp, address);
-  const programIdl = expectDefined(
-    await libraryIdl.getOrLoadProgramIdl(accountInfo.owner),
-  );
-  const accountIdl = expectDefined(
-    idlProgramGuessAccount(programIdl, accountInfo.data),
-  );
-  const accountState = idlAccountDecode(accountIdl, accountInfo.data);
-  expect(programIdl.metadata.name).toStrictEqual(expectedProgramName);
-  expect(accountIdl.name).toStrictEqual(expectedAccountName);
-  expect(accountState).toStrictEqual(expectedState);
+  const { programInfo, accountInfo } =
+    await service.getAndInferAndDecodeAccountInfo(accountAddress);
+  expect(programInfo.idl.metadata.name).toStrictEqual(expectedProgramName);
+  expect(accountInfo.idl.name).toStrictEqual(expectedAccountName);
+  expect(accountInfo.state).toStrictEqual(expectedState);
 }

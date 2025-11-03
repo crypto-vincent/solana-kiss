@@ -6,15 +6,13 @@ import {
   signatureFromBase58,
   signerFromSecret,
   transactionCompileAndSign,
-} from "../src";
-import {
   urlExplorerAccount,
   urlExplorerBlock,
   urlExplorerSimulation,
   urlExplorerTransaction,
   urlPublicRpcDevnet,
   urlPublicRpcMainnet,
-} from "../src/data/Url";
+} from "../src";
 
 it("run", async () => {
   expect(

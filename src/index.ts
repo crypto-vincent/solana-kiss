@@ -25,7 +25,7 @@ export * from "./idl/IdlEvent";
 export * from "./idl/IdlInstruction";
 export * from "./idl/IdlInstructionAccount";
 export * from "./idl/IdlInstructionBlob";
-export * from "./idl/IdlLibrary";
+export * from "./idl/IdlLoader";
 export * from "./idl/IdlMetadata";
 export * from "./idl/IdlProgram";
 export * from "./idl/IdlTypedef";
@@ -56,3 +56,5 @@ export * from "./rpc/RpcHttpGetTransaction";
 export * from "./rpc/RpcHttpSendTransaction";
 export * from "./rpc/RpcHttpSimulateTransaction";
 export * from "./rpc/RpcHttpWaitForTransaction";
+
+export * from "./Service";

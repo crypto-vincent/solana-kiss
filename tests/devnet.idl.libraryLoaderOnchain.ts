@@ -1,29 +1,15 @@
 import { expect, it } from "@jest/globals";
 import {
-  expectDefined,
-  IdlLibrary,
-  idlLibraryLoaderOnchain,
   pubkeyFromBase58,
   rpcHttpFromUrl,
-  rpcHttpGetAccountWithData,
+  Service,
   urlPublicRpcDevnet,
 } from "../src";
 
 it("run", async () => {
-  const rpcHttp = rpcHttpFromUrl(urlPublicRpcDevnet);
-  const libraryIdl = new IdlLibrary([
-    idlLibraryLoaderOnchain(async (programAddress) => {
-      const { accountInfo } = await rpcHttpGetAccountWithData(
-        rpcHttp,
-        programAddress,
-      );
-      return accountInfo.data;
-    }),
-  ]);
-  const programIdl = expectDefined(
-    await libraryIdl.getOrLoadProgramIdl(
-      pubkeyFromBase58("UCNcQRtrbGmvuLKA3Jv719Cc6DS4r661ZRpyZduxu2j"),
-    ),
+  const service = new Service(rpcHttpFromUrl(urlPublicRpcDevnet));
+  const programIdl = await service.getOrLoadProgramIdl(
+    pubkeyFromBase58("UCNcQRtrbGmvuLKA3Jv719Cc6DS4r661ZRpyZduxu2j"),
   );
   expect(programIdl.metadata.name).toStrictEqual("psyche_crowd_funding");
   expect(programIdl.metadata.address).toStrictEqual(

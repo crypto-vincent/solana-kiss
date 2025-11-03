@@ -4,15 +4,13 @@ import {
   expectDefined,
   idlInstructionAddressesFind,
   idlInstructionEncode,
-  IdlLibrary,
-  idlLibraryLoaderOnchain,
   lamportsFeePerSigner,
   pubkeyFindPdaAddress,
   pubkeyFromBase58,
   rpcHttpFromUrl,
-  rpcHttpGetAccountWithData,
   rpcHttpGetLatestBlockHash,
   rpcHttpSimulateTransaction,
+  Service,
   signerFromSecret,
   signerGenerate,
   transactionCompileAndSign,
@@ -25,20 +23,12 @@ it("run", async () => {
   const rpcHttp = rpcHttpFromUrl(urlPublicRpcDevnet, {
     commitment: "confirmed",
   });
-  const libraryIdl = new IdlLibrary([
-    idlLibraryLoaderOnchain(async (programAddress) => {
-      const { accountInfo } = await rpcHttpGetAccountWithData(
-        rpcHttp,
-        programAddress,
-      );
-      return accountInfo.data;
-    }),
-  ]);
+  const service = new Service(rpcHttp);
   const programAddress = pubkeyFromBase58(
     "UCNcQRtrbGmvuLKA3Jv719Cc6DS4r661ZRpyZduxu2j",
   );
   const programIdl = expectDefined(
-    await libraryIdl.getOrLoadProgramIdl(programAddress),
+    await service.getOrLoadProgramIdl(programAddress),
   );
   const instructionIdl = expectDefined(
     programIdl.instructions.get("pledge_create"),
