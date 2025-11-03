@@ -64,7 +64,7 @@ it("run", async () => {
   expect(
     urlExplorerSimulation(urlPublicRpcDevnet, transactionPacket),
   ).toStrictEqual(
-    "https://explorer.solana.com/tx/inspector?signatures=%5B%225Pk87GxZBwfk41CHdawMJWQNWQQhSUyjqVXzyLzKTXeg3mi3vh5Erq4UQBdmxXt2vimCRs2WDqFsUEaPYzTnXr8F%22%5D&message=AQABAj457ZZiOmUrAI5j%2BXTNkEsnj5JmxVAS2pv6Zs7I5eStC7wPwLtHyi90xBEulKsTz6PGNOXcF%2BrLA80aI81%2BeHwBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAAEq&cluster=devnet",
+    "https://explorer.solana.com/tx/inspector?message=AQABAj457ZZiOmUrAI5j%2BXTNkEsnj5JmxVAS2pv6Zs7I5eStC7wPwLtHyi90xBEulKsTz6PGNOXcF%2BrLA80aI81%2BeHwBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAAEq&signatures=%5B%225Pk87GxZBwfk41CHdawMJWQNWQQhSUyjqVXzyLzKTXeg3mi3vh5Erq4UQBdmxXt2vimCRs2WDqFsUEaPYzTnXr8F%22%5D&cluster=devnet",
   );
 });
 

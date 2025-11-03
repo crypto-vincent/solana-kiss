@@ -14,35 +14,35 @@ export const urlPublicRpcDevnet = "https://api.devnet.solana.com";
 export const urlPublicRpcTestnet = "https://api.testnet.solana.com";
 
 export function urlExplorerAccount(urlRpc: string, address: Pubkey) {
-  return computeUrl(urlRpc, "address", pubkeyToBase58(address), {});
+  return urlExplorer(urlRpc, "address", pubkeyToBase58(address), {});
 }
 
 export function urlExplorerBlock(urlRpc: string, blockSlot: BlockSlot) {
-  return computeUrl(urlRpc, "block", blockSlot.toString(), {});
+  return urlExplorer(urlRpc, "block", blockSlot.toString(), {});
 }
 
 export function urlExplorerTransaction(
   urlRpc: string,
   transactionHandle: TransactionHandle,
 ) {
-  return computeUrl(urlRpc, "tx", signatureToBase58(transactionHandle), {});
+  return urlExplorer(urlRpc, "tx", signatureToBase58(transactionHandle), {});
 }
 
 export function urlExplorerSimulation(
   urlRpc: string,
   transactionPacket: TransactionPacket,
 ) {
-  const signing = transactionExtractSigning(transactionPacket);
   const message = transactionExtractMessage(transactionPacket);
-  return computeUrl(urlRpc, "tx", "inspector", {
+  const signing = transactionExtractSigning(transactionPacket);
+  return urlExplorer(urlRpc, "tx", "inspector", {
+    message: base64Encode(message as Uint8Array),
     signatures: JSON.stringify(
       signing.map(({ signature }) => signatureToBase58(signature)),
     ),
-    message: base64Encode(message as Uint8Array),
   });
 }
 
-function computeUrl(
+function urlExplorer(
   urlRpc: string,
   category: string,
   payload: string,
