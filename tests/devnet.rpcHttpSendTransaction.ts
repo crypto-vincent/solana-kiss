@@ -20,6 +20,7 @@ import {
   TransactionPacket,
   transactionSign,
   urlPublicRpcDevnet,
+  WalletAccount,
 } from "../src";
 
 it("run", async () => {
@@ -57,29 +58,25 @@ it("run", async () => {
       ),
     ],
   };
-  const transactionPacket = await transactionCompileAndSign(
-    [owned1Signer],
-    originalRequest,
-  );
-  const fakePhantomWalletWithAutoSend = {
-    address: payerSigner.address,
+  const owned1FakePhantomWalletWithAutoSend: WalletAccount = {
+    address: owned1Signer.address,
     signMessage: async (message: Uint8Array) => {
-      return await payerSigner.sign(message);
+      return await owned1Signer.sign(message);
     },
     signTransaction: async (transactionPacket: TransactionPacket) => {
-      const signed = await transactionSign(transactionPacket, [payerSigner]);
+      const signed = await transactionSign(transactionPacket, [owned1Signer]);
       await rpcHttpSendTransaction(rpcHttp, signed);
       return signed;
     },
   };
+  const transactionPacket = await transactionCompileAndSign(
+    [payerSigner, owned1FakePhantomWalletWithAutoSend, owned2Signer],
+    originalRequest,
+  );
   const { transactionHandle } = await rpcHttpSendTransaction(
     rpcHttp,
     transactionPacket,
-    {
-      skipPreflight: false,
-      extraSigners: [owned2Signer],
-      walletAccountsSigners: [fakePhantomWalletWithAutoSend],
-    },
+    { skipPreflight: false, skipAlreadySentCheck: false },
   );
   const { transactionRequest, transactionExecution } =
     await rpcHttpWaitForTransaction(rpcHttp, transactionHandle, async () => {

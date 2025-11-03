@@ -9,7 +9,7 @@ import {
   utf8Encode,
 } from "../src";
 
-it("run", () => {
+it("run", async () => {
   // Keys used during the test
   const programAddress1 = pubkeyNewDummy();
   const programAddress2 = pubkeyNewDummy();

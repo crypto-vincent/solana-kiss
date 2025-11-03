@@ -1,10 +1,5 @@
 import { expect, it } from "@jest/globals";
 import {
-  expectDefined,
-  idlAccountDecode,
-  idlInstructionAddressesFind,
-  IdlProgram,
-  idlProgramGuessAccount,
   idlProgramParse,
   jsonCodecObjectRaw,
   JsonValue,
@@ -12,29 +7,30 @@ import {
   pubkeyFindPdaAddress,
   pubkeyFromBase58,
   pubkeyToBytes,
-  RpcHttp,
   rpcHttpFromUrl,
-  rpcHttpGetAccountWithData,
+  Service,
   urlPublicRpcDevnet,
   utf8Encode,
 } from "../src";
 
 it("run", async () => {
   // Create the endpoint
-  const rpcHttp = rpcHttpFromUrl(urlPublicRpcDevnet);
+  const service = new Service(rpcHttpFromUrl(urlPublicRpcDevnet));
   // Choosing our programAddress
   const programAddress = pubkeyFromBase58(
     "crdszSnZQu7j36KfsMJ4VEmMUTJgrNYXwoPVHUANpAu",
   );
   // Parse IDL from file JSON directly
-  const programIdl = idlProgramParse(require("./fixtures/idl_anchor_26.json"));
+  service.setProgramIdl(
+    programAddress,
+    idlProgramParse(require("./fixtures/idl_anchor_26.json")),
+  );
   // Read the global market state content using the IDL
   const globalMarketStateAddress = pubkeyFindPdaAddress(programAddress, [
     utf8Encode("credix-marketplace"),
   ]);
   await assertAccountInfo(
-    rpcHttp,
-    programIdl,
+    service,
     globalMarketStateAddress,
     "GlobalMarketState",
     "seed",
@@ -45,8 +41,7 @@ it("run", async () => {
     utf8Encode("program-state"),
   ]);
   await assertAccountInfo(
-    rpcHttp,
-    programIdl,
+    service,
     programStateAddress,
     "ProgramState",
     "credix_multisig_key", // TODO - really consider camel casing everywhere?
@@ -58,18 +53,17 @@ it("run", async () => {
     utf8Encode("admins"),
   ]);
   await assertAccountInfo(
-    rpcHttp,
-    programIdl,
+    service,
     marketAdminsAddress,
     "MarketAdmins",
     "multisig",
     "Ej5zJzej7rrUoDngsJ3jcpfuvfVyWpcDcK7uv9cE2LdL",
   );
   // Check that we could indeed find the right accounts programatically
-  const instructionAddresses = idlInstructionAddressesFind(
-    expectDefined(programIdl.instructions.get("initialize_market")),
+  const instructionAddresses = await service.getAndFindInstructionAddresses(
+    programAddress,
+    "initialize_market",
     {
-      instructionProgramAddress: programAddress,
       instructionAddresses: {},
       instructionPayload: { global_market_seed: "credix-marketplace" },
     },
@@ -86,23 +80,16 @@ it("run", async () => {
 });
 
 async function assertAccountInfo(
-  rpcHttp: RpcHttp,
-  programIdl: IdlProgram,
+  service: Service,
   accountAddress: Pubkey,
   accountName: string,
   accountStateKey: string,
   accountStateValue: JsonValue,
 ) {
-  const { accountInfo } = await rpcHttpGetAccountWithData(
-    rpcHttp,
-    accountAddress,
-  );
-  const accountIdl = expectDefined(
-    idlProgramGuessAccount(programIdl, accountInfo.data),
-  );
-  const accountState = idlAccountDecode(accountIdl, accountInfo.data);
-  expect(accountIdl.name).toStrictEqual(accountName);
+  const { accountInfo } =
+    await service.getAndInferAndDecodeAccountInfo(accountAddress);
+  expect(accountInfo.idl.name).toStrictEqual(accountName);
   expect(
-    jsonCodecObjectRaw.decoder(accountState)[accountStateKey],
+    jsonCodecObjectRaw.decoder(accountInfo.state)[accountStateKey],
   ).toStrictEqual(accountStateValue);
 }

@@ -9,14 +9,11 @@ import {
   jsonDecoderNullable,
   jsonDecoderObject,
 } from "../data/Json";
-import { Signer } from "../data/Signer";
 import {
   transactionExtractSigning,
   TransactionHandle,
   TransactionPacket,
-  transactionSign,
 } from "../data/Transaction";
-import { WalletAccount } from "../data/Wallet";
 import { RpcHttp } from "./RpcHttp";
 
 // TODO (service) - provide a higher level function that handle block hash and wait for confirmation
@@ -24,25 +21,14 @@ export async function rpcHttpSendTransaction(
   rpcHttp: RpcHttp,
   transactionPacket: TransactionPacket,
   options?: {
+    skipAlreadySentCheck?: boolean;
     skipPreflight?: boolean;
-    extraSigners?: Array<Signer>;
-    walletAccountsSigners?: Array<WalletAccount>;
   },
 ): Promise<{ transactionHandle: TransactionHandle }> {
-  if (options?.extraSigners !== undefined) {
-    transactionPacket = await transactionSign(
-      transactionPacket,
-      options.extraSigners,
-    );
-  }
-  if (options?.walletAccountsSigners !== undefined) {
-    for (const walletAccount of options.walletAccountsSigners) {
-      transactionPacket =
-        await walletAccount.signTransaction(transactionPacket);
-    }
+  if (options?.skipAlreadySentCheck !== true) {
     const transactionSigning = transactionExtractSigning(transactionPacket);
     const transactionHandle = transactionSigning[0]!.signature;
-    if (await wasAlreadySentByWallet(rpcHttp, transactionHandle)) {
+    if (await wasAlreadySent(rpcHttp, transactionHandle)) {
       return { transactionHandle };
     }
   }
@@ -56,17 +42,32 @@ export async function rpcHttpSendTransaction(
   return { transactionHandle };
 }
 
-async function wasAlreadySentByWallet(
+async function wasAlreadySent(
   rpcHttp: RpcHttp,
   transactionHandle: TransactionHandle,
-): Promise<boolean> {
+) {
+  const immediateStatus = await signatureStatus(rpcHttp, transactionHandle);
+  if (immediateStatus !== null) {
+    return true;
+  }
   await new Promise((resolve) => setTimeout(resolve, 1000));
+  const laterStatus = await signatureStatus(rpcHttp, transactionHandle);
+  if (laterStatus) {
+    return true;
+  }
+  return false;
+}
+
+async function signatureStatus(
+  rpcHttp: RpcHttp,
+  transactionHandle: TransactionHandle,
+) {
   const statuses = statusesJsonDecoder(
     await rpcHttp("getSignatureStatuses", [[transactionHandle]], {
       searchTransactionHistory: false,
     }),
   );
-  return statuses.value[0] !== null;
+  return statuses.value[0] ?? null;
 }
 
 const statusesJsonDecoder = jsonDecoderObject({

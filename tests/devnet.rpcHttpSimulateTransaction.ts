@@ -2,9 +2,8 @@ import { expect, it } from "@jest/globals";
 import {
   blockHashDefault,
   expectDefined,
-  idlInstructionAddressesFind,
-  idlInstructionEncode,
   lamportsFeePerSigner,
+  Pubkey,
   pubkeyFindPdaAddress,
   pubkeyFromBase58,
   rpcHttpFromUrl,
@@ -27,33 +26,24 @@ it("run", async () => {
   const programAddress = pubkeyFromBase58(
     "UCNcQRtrbGmvuLKA3Jv719Cc6DS4r661ZRpyZduxu2j",
   );
-  const programIdl = expectDefined(
-    await service.getOrLoadProgramIdl(programAddress),
-  );
-  const instructionIdl = expectDefined(
-    programIdl.instructions.get("pledge_create"),
-  );
   const payerSigner = await signerFromSecret(secret);
   const userSigner = await signerGenerate();
   const campaignAddress = pubkeyFindPdaAddress(programAddress, [
     utf8Encode("Campaign"),
     new Uint8Array([0, 0, 0, 0, 0, 0, 0, 0]),
   ]);
-  const instructionPayload = { params: null };
-  const instructionAddresses = idlInstructionAddressesFind(instructionIdl, {
-    instructionProgramAddress: programAddress,
-    instructionAddresses: {
-      payer: payerSigner.address,
-      user: userSigner.address,
-      campaign: campaignAddress,
-    },
-    instructionPayload,
-  });
-  const instruction = idlInstructionEncode(
-    instructionIdl,
+  const instructionAddresses: Record<string, Pubkey> = {
+    payer: payerSigner.address,
+    user: userSigner.address,
+    campaign: campaignAddress,
+  };
+  const instruction = await service.getAndHydrateAndEncodeInstruction(
     programAddress,
-    instructionAddresses,
-    instructionPayload,
+    "pledge_create",
+    {
+      instructionAddresses: instructionAddresses,
+      instructionPayload: { params: null },
+    },
   );
   const pledgeAddress = expectDefined(instructionAddresses["pledge"]);
   // Run the simulation without verifying the signers

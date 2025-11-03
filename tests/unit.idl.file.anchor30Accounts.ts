@@ -18,7 +18,7 @@ const ataProgramAddress = pubkeyFromBase58(
   "ATokenGPvbdGVxr1b2hvZbsiqW5xWH25efTNsLJA8knL",
 );
 
-it("run", () => {
+it("run", async () => {
   // Parse IDL from file JSON directly
   const programIdl = idlProgramParse(require("./fixtures/idl_anchor_30.json"));
   // Important account addresses

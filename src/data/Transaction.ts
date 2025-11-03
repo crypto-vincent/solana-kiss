@@ -16,6 +16,7 @@ import {
 import { Signature, signatureFromBytes, signatureToBytes } from "./Signature";
 import { Signer } from "./Signer";
 import { BrandedType } from "./Utils";
+import { WalletAccount } from "./Wallet";
 
 export type TransactionRequest = {
   payerAddress: Pubkey;
@@ -68,7 +69,7 @@ export type TransactionInvocation = {
 };
 
 export async function transactionCompileAndSign(
-  signers: Array<Signer>,
+  signers: Array<Signer | WalletAccount>,
   transactionRequest: TransactionRequest,
   transactionLookupTables?: Array<TransactionLookupTable>,
 ): Promise<TransactionPacket> {
@@ -203,12 +204,20 @@ export function transactionCompileUnsigned(
 
 export async function transactionSign(
   transactionPacket: TransactionPacket,
-  signers: Array<Signer>,
+  signers: Array<Signer | WalletAccount>,
 ) {
+  for (const signer of signers) {
+    if ("signTransaction" in signer) {
+      transactionPacket = await signer.signTransaction(transactionPacket);
+    }
+  }
   const message = transactionExtractMessage(transactionPacket);
   const signing = transactionExtractSigning(transactionPacket);
   const signaturesBySignerAddress = new Map<Pubkey, Signature>();
   for (const signer of signers) {
+    if ("signTransaction" in signer) {
+      continue;
+    }
     signaturesBySignerAddress.set(signer.address, await signer.sign(message));
   }
   const bytes = new Uint8Array(transactionPacket);
