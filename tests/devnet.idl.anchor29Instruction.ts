@@ -1,7 +1,8 @@
 import { expect, it } from "@jest/globals";
 import {
   expectDefined,
-  idlInstructionDecode,
+  idlInstructionAccountsDecode,
+  idlInstructionArgsDecode,
   idlProgramGuessInstruction,
   idlProgramParse,
   rpcHttpFromUrl,
@@ -30,11 +31,20 @@ it("run", async () => {
     idlProgramGuessInstruction(programIdl, instruction),
   );
   expect(instructionIdl.name).toStrictEqual("redeem_phase_one");
-  const instructionDecoded = idlInstructionDecode(instructionIdl, instruction);
-  expect(instructionDecoded.instructionAddresses["user"]).toStrictEqual(
+  // Check instruction inputs decoding
+  const instructionAddresses = idlInstructionAccountsDecode(
+    instructionIdl,
+    instruction.inputs,
+  );
+  expect(instructionAddresses["user"]).toStrictEqual(
     "6cGTLr9bTCYis6KjsuZPQS7LrcPjyjibr9gFk2JH65Mn",
   );
-  expect(instructionDecoded.instructionPayload).toStrictEqual({
+  // Check instruction data decoding
+  const instructionPayload = idlInstructionArgsDecode(
+    instructionIdl,
+    instruction.data,
+  );
+  expect(instructionPayload).toStrictEqual({
     uct_amount: "100000000000000",
   });
 });

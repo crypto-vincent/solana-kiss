@@ -20,7 +20,8 @@ import { IdlError, idlErrorParse } from "./IdlError";
 import { IdlEvent, idlEventCheck, idlEventParse } from "./IdlEvent";
 import {
   IdlInstruction,
-  idlInstructionCheck,
+  idlInstructionAccountsCheck,
+  idlInstructionArgsCheck,
   idlInstructionParse,
 } from "./IdlInstruction";
 import { IdlMetadata, idlMetadataParse } from "./IdlMetadata";
@@ -56,7 +57,8 @@ export function idlProgramGuessInstruction(
 ): IdlInstruction | undefined {
   for (const instructionIdl of programIdl.instructions.values()) {
     try {
-      idlInstructionCheck(instructionIdl, instruction.inputs, instruction.data);
+      idlInstructionAccountsCheck(instructionIdl, instruction.inputs);
+      idlInstructionArgsCheck(instructionIdl, instruction.data);
       return instructionIdl;
     } catch {}
   }

@@ -3,7 +3,6 @@ import {
   blockHashDefault,
   expectDefined,
   lamportsFeePerSigner,
-  Pubkey,
   pubkeyFindPdaAddress,
   pubkeyFromBase58,
   rpcHttpFromUrl,
@@ -32,18 +31,22 @@ it("run", async () => {
     utf8Encode("Campaign"),
     new Uint8Array([0, 0, 0, 0, 0, 0, 0, 0]),
   ]);
-  const instructionAddresses: Record<string, Pubkey> = {
-    payer: payerSigner.address,
-    user: userSigner.address,
-    campaign: campaignAddress,
-  };
-  const instruction = await service.getAndHydrateAndEncodeInstruction(
+  const instructionAddresses = await service.getAndHydrateInstructionAddresses(
     programAddress,
     "pledge_create",
     {
-      instructionAddresses: instructionAddresses,
+      instructionAddresses: {
+        payer: payerSigner.address,
+        user: userSigner.address,
+        campaign: campaignAddress,
+      },
       instructionPayload: { params: null },
     },
+  );
+  const instruction = await service.getAndHydrateAndEncodeInstruction(
+    programAddress,
+    "pledge_create",
+    { instructionAddresses, instructionPayload: { params: null } },
   );
   const pledgeAddress = expectDefined(instructionAddresses["pledge"]);
   // Run the simulation without verifying the signers

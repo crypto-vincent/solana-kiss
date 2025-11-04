@@ -1,6 +1,7 @@
 import { expect, it } from "@jest/globals";
 import {
-  idlInstructionEncode,
+  idlInstructionAccountsEncode,
+  idlInstructionArgsEncode,
   idlInstructionParse,
   lamportsFeePerSigner,
   lamportsRentExemptionMinimumForSpace,
@@ -117,19 +118,18 @@ function makeCreateInstruction(
   payerSigner: Signer,
   ownedSigner: Signer,
 ) {
-  return idlInstructionEncode(
-    instructionIdl,
+  return {
     programAddress,
-    {
+    inputs: idlInstructionAccountsEncode(instructionIdl, {
       payer: payerSigner.address,
       owned: ownedSigner.address,
-    },
-    {
+    }),
+    data: idlInstructionArgsEncode(instructionIdl, {
       lamports: String(transferLamports),
       space: requestedSpace,
       owner: pubkeyToBase58(ownerAddress),
-    },
-  );
+    }),
+  };
 }
 
 const instructionIdl = idlInstructionParse("create", {

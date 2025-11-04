@@ -1,13 +1,13 @@
 import { expect, it } from "@jest/globals";
 import {
   expectDefined,
-  idlInstructionAddressesFind,
+  idlInstructionAddressesHydrate,
   idlProgramParse,
   pubkeyNewDummy,
   pubkeyToBase58,
 } from "../src";
 
-it("run", () => {
+it("run", async () => {
   // Keys used during the test
   const dummyAddress = pubkeyNewDummy();
   // Create an IDL on the fly
@@ -25,13 +25,10 @@ it("run", () => {
     },
   });
   // Assert that the accounts can be properly resolved
-  const instructionAddresses = idlInstructionAddressesFind(
+  const instructionAddresses = await idlInstructionAddressesHydrate(
     expectDefined(programIdl.instructions.get("my_ix")),
-    {
-      instructionProgramAddress: pubkeyNewDummy(),
-      instructionAddresses: {},
-      instructionPayload: {},
-    },
+    pubkeyNewDummy(),
+    { instructionAddresses: {}, instructionPayload: {} },
   );
   expect(instructionAddresses["const_address"]).toStrictEqual(dummyAddress);
 });

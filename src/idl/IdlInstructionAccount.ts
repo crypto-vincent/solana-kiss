@@ -15,8 +15,9 @@ import { objectGetOwnProperty, withErrorContext } from "../data/Utils";
 import { IdlDocs, idlDocsParse } from "./IdlDocs";
 import {
   IdlInstructionBlob,
+  IdlInstructionBlobAccountContents,
   idlInstructionBlobCompute,
-  IdlInstructionBlobContext,
+  IdlInstructionBlobInstructionContent,
   idlInstructionBlobParse,
 } from "./IdlInstructionBlob";
 import { IdlTypedef } from "./IdlTypedef";
@@ -37,12 +38,14 @@ export type IdlInstructionAccountPda = {
   program: IdlInstructionBlob | undefined;
 };
 
-export function idlInstructionAccountFind(
-  instructionAccountIdl: IdlInstructionAccount,
-  instructionBlobContext: IdlInstructionBlobContext,
-): Pubkey {
+export async function idlInstructionAccountFind(
+  instructionAccountIdl: IdlInstructionAccount, // TODO (naming) - self?
+  programAddress: Pubkey,
+  instructionContent: IdlInstructionBlobInstructionContent,
+  accountContents?: IdlInstructionBlobAccountContents,
+): Promise<Pubkey> {
   const instructionAdddress = objectGetOwnProperty(
-    instructionBlobContext.instructionAddresses,
+    instructionContent.instructionAddresses,
     instructionAccountIdl.name,
   );
   if (instructionAdddress !== undefined) {
@@ -51,20 +54,25 @@ export function idlInstructionAccountFind(
   if (instructionAccountIdl.address !== undefined) {
     return instructionAccountIdl.address;
   }
-  // TODO - support from seed with a base address, or something more generic ?
+  // TODO (experiment) - support from seed with a base address, or something more generic ?
   if (instructionAccountIdl.pda !== undefined) {
     const seedsBytes = new Array<Uint8Array>();
     for (const instructionBlobIdl of instructionAccountIdl.pda.seeds) {
       seedsBytes.push(
-        idlInstructionBlobCompute(instructionBlobIdl, instructionBlobContext),
+        await idlInstructionBlobCompute(
+          instructionBlobIdl,
+          instructionContent,
+          accountContents,
+        ),
       );
     }
-    let pdaProgramAddress = instructionBlobContext.instructionProgramAddress;
+    let pdaProgramAddress = programAddress;
     if (instructionAccountIdl.pda.program !== undefined) {
       pdaProgramAddress = pubkeyFromBytes(
-        idlInstructionBlobCompute(
+        await idlInstructionBlobCompute(
           instructionAccountIdl.pda.program,
-          instructionBlobContext,
+          instructionContent,
+          accountContents,
         ),
       );
     }

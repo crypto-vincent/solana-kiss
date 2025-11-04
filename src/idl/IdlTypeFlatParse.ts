@@ -60,7 +60,7 @@ export function idlTypeFlatParseIsPossible(value: JsonValue): boolean {
     object.hasOwnProperty("option32") ||
     object.hasOwnProperty("option64") ||
     object.hasOwnProperty("option128") ||
-    object.hasOwnProperty("vec") || // TODO - support for svec and varint primitives ?
+    object.hasOwnProperty("vec") || // TODO (experiment) - support for svec and varint primitives ?
     object.hasOwnProperty("vec8") ||
     object.hasOwnProperty("vec16") ||
     object.hasOwnProperty("vec32") ||
@@ -257,7 +257,7 @@ const objectCOptionJsonDecoder = jsonDecoderTransform(
   idlTypeFlatParse,
   (content) =>
     IdlTypeFlat.defined({
-      name: "$C", // TODO - should the option content be aligned to 4 ?
+      name: "$C", // TODO (repr) - should the option content be aligned to 4 ?
       generics: [IdlTypeFlat.option({ prefix: IdlTypePrefix.u32, content })],
     }),
 );

@@ -1,7 +1,7 @@
 import { expect, it } from "@jest/globals";
 import {
   expectDefined,
-  idlInstructionAddressesFind,
+  idlInstructionAddressesHydrate,
   idlProgramParse,
   pubkeyFindPdaAddress,
   pubkeyNewDummy,
@@ -10,7 +10,7 @@ import {
   utf8Encode,
 } from "../src";
 
-it("run", () => {
+it("run", async () => {
   // Parse IDL from file JSON directly
   const programIdl = idlProgramParse(require("./fixtures/idl_anchor_26.json"));
   // Important account addresses
@@ -59,10 +59,10 @@ it("run", () => {
     utf8Encode("repayment-schedule"),
   ]);
   // Generate all missing IX accounts with just the minimum information
-  const initializeMarketAddresses = idlInstructionAddressesFind(
+  const initializeMarketAddresses = await idlInstructionAddressesHydrate(
     expectDefined(programIdl.instructions.get("initialize_market")),
+    programAddress,
     {
-      instructionProgramAddress: programAddress,
       instructionAddresses: {
         owner: ownerAddress,
         liquidity_pool_token_account: liquidityPoolTokenAccountAddress,
@@ -96,19 +96,23 @@ it("run", () => {
     lpTokenMintAddress,
   );
   // Generate all missing IX accounts with just the minimum information
-  const openDealAddresses = idlInstructionAddressesFind(
+  const openDealAddresses = await idlInstructionAddressesHydrate(
     expectDefined(programIdl.instructions.get("open_deal")),
+    programAddress,
     {
-      instructionProgramAddress: programAddress,
       instructionAddresses: {
         owner: ownerAddress,
         global_market_state: globalMarketStateAddress,
       },
       instructionPayload: { global_market_seed: globalMarketSeed },
-      instructionAccountsStates: {
+    },
+    {
+      byAccountName: {
         deal: {
-          deal_number: dealNumber,
-          borrower: pubkeyToBase58(borrowerAddress),
+          accountState: {
+            deal_number: dealNumber,
+            borrower: pubkeyToBase58(borrowerAddress),
+          },
         },
       },
     },

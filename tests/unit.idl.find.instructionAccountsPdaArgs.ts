@@ -1,14 +1,14 @@
 import { expect, it } from "@jest/globals";
 import {
   expectDefined,
-  idlInstructionAddressesFind,
+  idlInstructionAddressesHydrate,
   idlProgramParse,
   pubkeyFindPdaAddress,
   pubkeyNewDummy,
   utf8Encode,
 } from "../src";
 
-it("run", () => {
+it("run", async () => {
   // Create an IDL on the fly
   const programIdl = idlProgramParse({
     instructions: {
@@ -70,10 +70,10 @@ it("run", () => {
   ];
   const pdaAddress = pubkeyFindPdaAddress(programAddress, pdaSeeds);
   // Assert that the accounts can be properly resolved
-  const instructionAddresses = idlInstructionAddressesFind(
+  const instructionAddresses = await idlInstructionAddressesHydrate(
     expectDefined(programIdl.instructions.get("my_ix")),
+    programAddress,
     {
-      instructionProgramAddress: programAddress,
       instructionAddresses: {},
       instructionPayload: {
         u8: 77,

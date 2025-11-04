@@ -8,10 +8,12 @@ import {
   jsonDecoderObject,
   jsonDecoderOptional,
   jsonGetAt,
+  jsonIsDeepEqual,
+  jsonIsDeepSubset,
   jsonPointerParse,
+  jsonPointerPreview,
 } from "../data/Json";
 import { Pubkey, pubkeyToBytes } from "../data/Pubkey";
-import { objectGetOwnProperty } from "../data/Utils";
 import { IdlTypedef } from "./IdlTypedef";
 import { IdlTypeFlat } from "./IdlTypeFlat";
 import { idlTypeFlatHydrate } from "./IdlTypeFlatHydrate";
@@ -19,15 +21,23 @@ import { idlTypeFlatParse } from "./IdlTypeFlatParse";
 import { IdlTypeFull, IdlTypeFullFields } from "./IdlTypeFull";
 import { idlTypeFullEncode } from "./IdlTypeFullEncode";
 import { idlTypeFullFieldsGetAt, idlTypeFullGetAt } from "./IdlTypeFullGetAt";
+import { IdlTypePrimitive } from "./IdlTypePrimitive";
 import { idlUtilsInferValueTypeFlat } from "./IdlUtils";
 
-export type IdlInstructionBlobContext = {
-  instructionProgramAddress: Pubkey;
+export type IdlInstructionBlobInstructionContent = {
   instructionAddresses: Record<string, Pubkey>;
   instructionPayload: JsonValue;
-  // TODO (naming) - should those two be merged into a single map of account name to (pubkey,state,type) or a snapshot object ?
-  instructionAccountsStates?: Record<string, JsonValue>;
-  instructionAccountsTypes?: Record<string, IdlTypeFull>;
+};
+
+export type IdlInstructionBlobAccountContent = {
+  accountState: JsonValue;
+  accountTypeFull?: IdlTypeFull | undefined;
+};
+export type IdlInstructionBlobAccountContents = {
+  byAccountName?: Record<string, IdlInstructionBlobAccountContent>; // TODO (naming) - i dont like this name
+  fetcher?: (
+    accountAddress: Pubkey,
+  ) => Promise<IdlInstructionBlobAccountContent>;
 };
 
 export type IdlInstructionBlobConst = {
@@ -38,7 +48,7 @@ export type IdlInstructionBlobArg = {
   typeFull: IdlTypeFull;
 };
 export type IdlInstructionBlobAccount = {
-  path: string;
+  pointer: JsonPointer;
   typeFull: IdlTypeFull | undefined;
 };
 
@@ -83,14 +93,15 @@ export class IdlInstructionBlob {
   }
 }
 
-export function idlInstructionBlobCompute(
+export async function idlInstructionBlobCompute(
   instructionBlobIdl: IdlInstructionBlob,
-  instructionBlobContext: IdlInstructionBlobContext,
-): Uint8Array {
+  instructionContent: IdlInstructionBlobInstructionContent,
+  accountsContents?: IdlInstructionBlobAccountContents,
+) {
   return instructionBlobIdl.traverse(
     computeVisitor,
-    instructionBlobContext,
-    undefined,
+    instructionContent,
+    accountsContents,
   );
 }
 
@@ -170,18 +181,16 @@ export function idlInstructionBlobParseAccount(
   instructionBlobType: IdlTypeFlat | undefined,
   typedefsIdls?: Map<string, IdlTypedef>,
 ): IdlInstructionBlob {
+  const pointer = jsonPointerParse(instructionBlobPath);
   if (instructionBlobType === undefined) {
-    return IdlInstructionBlob.account({
-      path: instructionBlobPath,
-      typeFull: undefined,
-    });
+    return IdlInstructionBlob.account({ pointer, typeFull: undefined });
   }
   const typeFull = idlTypeFlatHydrate(
     instructionBlobType,
     new Map(),
     typedefsIdls,
   );
-  return IdlInstructionBlob.account({ path: instructionBlobPath, typeFull });
+  return IdlInstructionBlob.account({ pointer, typeFull });
 }
 
 const jsonDecoder = jsonDecoderByKind<{
@@ -211,61 +220,115 @@ const jsonDecoder = jsonDecoderByKind<{
 });
 
 const computeVisitor = {
-  const: (self: IdlInstructionBlobConst) => {
+  const: async (self: IdlInstructionBlobConst) => {
     return self.bytes;
   },
-  arg: (self: IdlInstructionBlobArg, context: IdlInstructionBlobContext) => {
-    const value = jsonGetAt(context.instructionPayload, self.pointer, {
-      throwOnMissing: true,
-    });
+  arg: async (
+    self: IdlInstructionBlobArg,
+    instructionContent: IdlInstructionBlobInstructionContent,
+  ) => {
+    const value = jsonGetAt(
+      instructionContent.instructionPayload,
+      self.pointer,
+      { throwOnMissing: true },
+    );
     return idlTypeFullEncode(self.typeFull, value, false);
   },
-  account: (
+  account: async (
     self: IdlInstructionBlobAccount,
-    context: IdlInstructionBlobContext,
+    instructionContent: IdlInstructionBlobInstructionContent,
+    accountsContents?: IdlInstructionBlobAccountContents,
   ) => {
-    for (const [
-      instructionAccountName,
-      instructionAddress, // TODO (naming) - naming stands out here
-    ] of Object.entries(context.instructionAddresses)) {
-      if (instructionAccountName === self.path) {
-        return pubkeyToBytes(instructionAddress);
+    if (
+      self.typeFull === undefined ||
+      self.typeFull.isPrimitive(IdlTypePrimitive.pubkey)
+    ) {
+      for (const [
+        instructionAccountName,
+        instructionAddress, // TODO (naming) - naming stands out here
+      ] of Object.entries(instructionContent.instructionAddresses)) {
+        const instructionAccountPointer = jsonPointerParse(
+          instructionAccountName,
+        );
+        if (jsonIsDeepEqual(instructionAccountPointer, self.pointer)) {
+          return pubkeyToBytes(instructionAddress);
+        }
       }
     }
-    if (context.instructionAccountsStates === undefined) {
+    const pointerPreview = jsonPointerPreview(self.pointer);
+    if (accountsContents === undefined) {
       throw new Error(
-        `Cannot resolve account blob for account: ${self.path}, missing accounts states`,
+        `Idl: Cannot compute account blob at path: ${pointerPreview} without account contents`,
       );
     }
-    for (const [
-      instructionAccountName,
-      instructionAccountState,
-    ] of Object.entries(context.instructionAccountsStates)) {
-      if (self.path.startsWith(instructionAccountName)) {
-        const statePath = self.path.slice(instructionAccountName.length);
-        const statePointer = jsonPointerParse(statePath);
-        const stateValue = jsonGetAt(instructionAccountState, statePointer, {
-          throwOnMissing: true,
-        });
+    if (accountsContents.byAccountName !== undefined) {
+      for (const [instructionAccountName, accountContent] of Object.entries(
+        accountsContents.byAccountName,
+      )) {
+        const instructionAccountPointer = jsonPointerParse(
+          instructionAccountName,
+        );
+        if (!jsonIsDeepSubset(instructionAccountPointer, self.pointer)) {
+          continue;
+        }
+        const statePointer = self.pointer.slice(
+          instructionAccountPointer.length,
+        );
+        const stateValue = jsonGetAt(
+          accountContent.accountState,
+          statePointer,
+          { throwOnMissing: true },
+        );
         if (self.typeFull !== undefined) {
           return idlTypeFullEncode(self.typeFull, stateValue, false);
         }
-        const stateTypeFull = objectGetOwnProperty(
-          context.instructionAccountsTypes,
-          instructionAccountName,
-        );
-        if (stateTypeFull === undefined) {
+        if (accountContent.accountTypeFull === undefined) {
           throw new Error(
-            `Could not find content type for account: ${instructionAccountName}`,
+            `Idl: Cannot compute account blob at path: ${pointerPreview} with just the state and no type information`,
           );
         }
         return idlTypeFullEncode(
-          idlTypeFullGetAt(stateTypeFull, statePointer),
+          idlTypeFullGetAt(accountContent.accountTypeFull, statePointer),
           stateValue,
           false,
         );
       }
     }
-    throw new Error(`Could not resolve blob value for account: ${self.path}`);
+    if (accountsContents.fetcher !== undefined) {
+      for (const [instructionAccountName, instructionAddress] of Object.entries(
+        instructionContent.instructionAddresses,
+      )) {
+        const instructionAccountPointer = jsonPointerParse(
+          instructionAccountName,
+        );
+        if (!jsonIsDeepSubset(instructionAccountPointer, self.pointer)) {
+          continue;
+        }
+        const { accountState, accountTypeFull } =
+          await accountsContents.fetcher(instructionAddress);
+        const statePointer = self.pointer.slice(
+          instructionAccountPointer.length,
+        );
+        const stateValue = jsonGetAt(accountState, statePointer, {
+          throwOnMissing: true,
+        });
+        if (self.typeFull !== undefined) {
+          return idlTypeFullEncode(self.typeFull, stateValue, false);
+        }
+        if (accountTypeFull === undefined) {
+          throw new Error(
+            `Idl: Could not fetch needed content type for account: ${instructionAccountName}`,
+          );
+        }
+        return idlTypeFullEncode(
+          idlTypeFullGetAt(accountTypeFull, statePointer),
+          stateValue,
+          false,
+        );
+      }
+    }
+    throw new Error(
+      `Idl: Could not find matching account for path: ${pointerPreview}`,
+    );
   },
 };

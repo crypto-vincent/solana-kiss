@@ -37,7 +37,7 @@ it("run", async () => {
     "EsQycjp856vTPvrxMuH1L6ymd5K63xT7aULGepiTcgM3",
   );
   // Check that we could indeed find the right accounts programatically
-  const instructionAddresses = await service.getAndFindInstructionAddresses(
+  const instructionAddresses = await service.getAndHydrateInstructionAddresses(
     programAddress,
     "campaign_create",
     {

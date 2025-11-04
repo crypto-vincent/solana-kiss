@@ -1,7 +1,7 @@
 import { expect, it } from "@jest/globals";
 import {
   expectDefined,
-  idlInstructionAddressesFind,
+  idlInstructionAddressesHydrate,
   idlProgramParse,
   pubkeyFindPdaAddress,
   pubkeyFromBase58,
@@ -54,11 +54,21 @@ it("run", async () => {
     pubkeyToBytes(campaignAddress),
     pubkeyToBytes(userAddress),
   ]);
+  const accountsContents = {
+    byAccountName: {
+      campaign: {
+        accountState: {
+          collateral_mint: pubkeyToBase58(collateralMintAddress),
+        },
+        accountTypeFull: programIdl.accounts.get("Campaign")?.typeFull,
+      },
+    },
+  };
   // Generate all missing IX accounts with just the minimum information
-  const campaignCreateAddresses = idlInstructionAddressesFind(
+  const campaignCreateAddresses = await idlInstructionAddressesHydrate(
     expectDefined(programIdl.instructions.get("campaign_create")),
+    programAddress,
     {
-      instructionProgramAddress: programAddress,
       instructionAddresses: {
         payer: payerAddress,
         authority: authorityAddress,
@@ -69,17 +79,18 @@ it("run", async () => {
         params: { index: campaignIndex },
       },
     },
+    accountsContents,
   );
   // Check outcome
-  expect(campaignAddress).toStrictEqual(campaignCreateAddresses["campaign"]);
-  expect(campaignCollateralAddress).toStrictEqual(
-    campaignCreateAddresses["campaign_collateral"],
+  expect(campaignCreateAddresses["campaign"]).toStrictEqual(campaignAddress);
+  expect(campaignCreateAddresses["campaign_collateral"]).toStrictEqual(
+    campaignCollateralAddress,
   );
   // Generate all missing IX accounts with just the minimum information
-  const campaignExtractAddresses = idlInstructionAddressesFind(
+  const campaignExtractAddresses = await idlInstructionAddressesHydrate(
     expectDefined(programIdl.instructions.get("campaign_extract")),
+    programAddress,
     {
-      instructionProgramAddress: programAddress,
       instructionAddresses: {
         payer: payerAddress,
         authority: authorityAddress,
@@ -87,23 +98,18 @@ it("run", async () => {
         campaign: campaignAddress,
       },
       instructionPayload: { params: { index: campaignIndex } },
-      instructionAccountsStates: {
-        campaign: { collateral_mint: pubkeyToBase58(collateralMintAddress) },
-      },
-      instructionAccountsTypes: {
-        campaign: expectDefined(programIdl.accounts.get("Campaign")).typeFull,
-      },
     },
+    accountsContents,
   );
   // Check outcome
-  expect(campaignCollateralAddress).toStrictEqual(
-    campaignExtractAddresses["campaign_collateral"],
+  expect(campaignExtractAddresses["campaign_collateral"]).toStrictEqual(
+    campaignCollateralAddress,
   );
   // Generate all missing IX accounts with just the minimum information
-  const pledgeCreateAddresses = idlInstructionAddressesFind(
+  const pledgeCreateAddresses = await idlInstructionAddressesHydrate(
     expectDefined(programIdl.instructions.get("pledge_create")),
+    programAddress,
     {
-      instructionProgramAddress: programAddress,
       instructionAddresses: {
         payer: payerAddress,
         user: userAddress,
@@ -113,12 +119,12 @@ it("run", async () => {
     },
   );
   // Check outcome
-  expect(pledgeAddress).toStrictEqual(pledgeCreateAddresses["pledge"]);
+  expect(pledgeCreateAddresses["pledge"]).toStrictEqual(pledgeAddress);
   // Generate all missing IX accounts with just the minimum information
-  const pledgeDepositAddresses = idlInstructionAddressesFind(
+  const pledgeDepositAddresses = await idlInstructionAddressesHydrate(
     expectDefined(programIdl.instructions.get("pledge_deposit")),
+    programAddress,
     {
-      instructionProgramAddress: programAddress,
       instructionAddresses: {
         payer: payerAddress,
         user: userAddress,
@@ -126,17 +132,12 @@ it("run", async () => {
         campaign: campaignAddress,
       },
       instructionPayload: {},
-      instructionAccountsStates: {
-        campaign: { collateral_mint: pubkeyToBase58(collateralMintAddress) },
-      },
-      instructionAccountsTypes: {
-        campaign: expectDefined(programIdl.accounts.get("Campaign")).typeFull,
-      },
     },
+    accountsContents,
   );
   // Check outcome
-  expect(campaignCollateralAddress).toStrictEqual(
-    pledgeDepositAddresses["campaign_collateral"],
+  expect(pledgeDepositAddresses["campaign_collateral"]).toStrictEqual(
+    campaignCollateralAddress,
   );
-  expect(pledgeAddress).toStrictEqual(pledgeDepositAddresses["pledge"]);
+  expect(pledgeDepositAddresses["pledge"]).toStrictEqual(pledgeAddress);
 });

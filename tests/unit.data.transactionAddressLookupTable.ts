@@ -11,10 +11,10 @@ import {
   pubkeyDefault,
   pubkeyNewDummy,
   signerFromSecret,
+  TransactionAddressLookupTable,
   transactionCompileAndSign,
   transactionDecompileRequest,
   transactionExtractMessage,
-  TransactionLookupTable,
 } from "../src";
 
 it("run", async () => {
@@ -24,16 +24,17 @@ it("run", async () => {
   for (let count = 0; count < 200; count++) {
     dummyAddresses.push(pubkeyNewDummy());
   }
-  const transactionLookupTables = new Array<TransactionLookupTable>();
-  transactionLookupTables.push({
+  const transactionAddressLookupTables =
+    new Array<TransactionAddressLookupTable>();
+  transactionAddressLookupTables.push({
     tableAddress: pubkeyNewDummy(),
     lookupAddresses: dummyAddresses.filter((_, i) => i % 2 === 1),
   });
-  transactionLookupTables.push({
+  transactionAddressLookupTables.push({
     tableAddress: pubkeyNewDummy(),
     lookupAddresses: [programAddress, pubkeyNewDummy()],
   });
-  transactionLookupTables.push({
+  transactionAddressLookupTables.push({
     tableAddress: pubkeyNewDummy(),
     lookupAddresses: dummyAddresses.filter((_, i) => i % 2 === 0),
   });
@@ -56,11 +57,11 @@ it("run", async () => {
   const currentPacket = await transactionCompileAndSign(
     [payerSigner],
     transactionRequest,
-    transactionLookupTables,
+    transactionAddressLookupTables,
   );
   const currentMessage = transactionExtractMessage(currentPacket);
   expect(
-    transactionDecompileRequest(currentMessage, transactionLookupTables),
+    transactionDecompileRequest(currentMessage, transactionAddressLookupTables),
   ).toStrictEqual(transactionRequest);
 
   const referenceMessage = new TransactionMessage({
@@ -76,7 +77,7 @@ it("run", async () => {
       data: Buffer.from(instruction.data),
     })),
   }).compileToV0Message(
-    transactionLookupTables.map((alt) => ({
+    transactionAddressLookupTables.map((alt) => ({
       key: new PublicKey(alt.tableAddress),
       state: {
         addresses: alt.lookupAddresses.map((address) => new PublicKey(address)),

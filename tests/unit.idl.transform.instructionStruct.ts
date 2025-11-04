@@ -1,8 +1,10 @@
 import { expect, it } from "@jest/globals";
 import {
   expectDefined,
-  idlInstructionDecode,
-  idlInstructionEncode,
+  idlInstructionAccountsDecode,
+  idlInstructionAccountsEncode,
+  idlInstructionArgsDecode,
+  idlInstructionArgsEncode,
   idlProgramParse,
   pubkeyNewDummy,
 } from "../src";
@@ -34,44 +36,38 @@ it("run", () => {
   });
   // Choose the instruction
   const instructionIdl = expectDefined(programIdl.instructions.get("my_ix"));
-  // Check that we can use the manual IDL to encode/decode our IX
-  const instructionProgramAddress = pubkeyNewDummy();
+  // Generate some addresses and payload to encode/decode
+  const signerAddress = pubkeyNewDummy();
+  const writableAddress = pubkeyNewDummy();
+  const instructionAddresses = {
+    signer: signerAddress,
+    writable: writableAddress,
+  };
   const instructionPayload = {
-    arg1: {
-      id: 42,
-      data: [1, 2, 3],
-    },
+    arg1: { id: 42, data: [1, 2, 3] },
     arg2: -2,
   };
-  const instructionAddresses = {
-    signer: pubkeyNewDummy(),
-    writable: pubkeyNewDummy(),
-  };
-  const instruction = idlInstructionEncode(
+  // Check instruction inputs encoding/decoding
+  const instructionInputs = idlInstructionAccountsEncode(
     instructionIdl,
-    instructionProgramAddress,
     instructionAddresses,
+  );
+  expect(instructionInputs).toStrictEqual([
+    { address: signerAddress, signer: true, writable: false },
+    { address: writableAddress, signer: false, writable: true },
+  ]);
+  expect(
+    idlInstructionAccountsDecode(instructionIdl, instructionInputs),
+  ).toStrictEqual(instructionAddresses);
+  // Check instruction data encoding/decoding
+  const instructionData = idlInstructionArgsEncode(
+    instructionIdl,
     instructionPayload,
   );
-  expect(instruction).toStrictEqual({
-    programAddress: instructionProgramAddress,
-    inputs: [
-      {
-        address: expectDefined(instructionAddresses["signer"]),
-        signer: true,
-        writable: false,
-      },
-      {
-        address: expectDefined(instructionAddresses["writable"]),
-        signer: false,
-        writable: true,
-      },
-    ],
-    data: new Uint8Array([77, 78, 42, 0, 3, 0, 0, 0, 1, 2, 3, 254, 255]),
-  });
-  expect(idlInstructionDecode(instructionIdl, instruction)).toStrictEqual({
-    instructionProgramAddress,
-    instructionAddresses,
-    instructionPayload,
-  });
+  expect(instructionData).toStrictEqual(
+    new Uint8Array([77, 78, 42, 0, 3, 0, 0, 0, 1, 2, 3, 254, 255]),
+  );
+  expect(
+    idlInstructionArgsDecode(instructionIdl, instructionData),
+  ).toStrictEqual(instructionPayload);
 });

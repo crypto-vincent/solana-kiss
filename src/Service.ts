@@ -1,17 +1,21 @@
-import { BlockHash } from "./data/Block";
+import { BlockHash, blockHashDefault } from "./data/Block";
 import { Instruction } from "./data/Instruction";
 import { JsonValue } from "./data/Json";
 import { Pubkey } from "./data/Pubkey";
 import { Signer } from "./data/Signer";
-import { transactionCompileAndSign } from "./data/Transaction";
-import { withErrorContext } from "./data/Utils";
+import {
+  TransactionAddressLookupTable,
+  transactionCompileAndSign,
+} from "./data/Transaction";
 import { WalletAccount } from "./data/Wallet";
 import { idlAccountDecode } from "./idl/IdlAccount";
 import {
-  idlInstructionDecode,
-  idlInstructionEncode,
+  idlInstructionAccountsDecode,
+  idlInstructionAccountsEncode,
+  idlInstructionAddressesHydrate,
+  idlInstructionArgsDecode,
+  idlInstructionArgsEncode,
 } from "./idl/IdlInstruction";
-import { idlInstructionAccountFind } from "./idl/IdlInstructionAccount";
 import {
   IdlLoader,
   idlLoaderFallbackToUnknown,
@@ -28,12 +32,13 @@ import { RpcHttp } from "./rpc/RpcHttp";
 import { rpcHttpGetAccountWithData } from "./rpc/RpcHttpGetAccountWithData";
 import { rpcHttpGetLatestBlockHash } from "./rpc/RpcHttpGetLatestBlockHash";
 import { rpcHttpSendTransaction } from "./rpc/RpcHttpSendTransaction";
+import { rpcHttpSimulateTransaction } from "./rpc/RpcHttpSimulateTransaction";
 
 export class Service {
   private readonly rpcHttp: RpcHttp;
   private readonly idlLoaders: Array<IdlLoader>;
   private readonly idlOverrides: Map<Pubkey, IdlProgram>;
-  private recentBlockHash: { hash: BlockHash; timeMs: number } | null;
+  private cacheBlockHash: { blockHash: BlockHash; fetchTimeMs: number } | null;
 
   constructor(
     rpcHttp: RpcHttp,
@@ -45,7 +50,7 @@ export class Service {
     this.rpcHttp = rpcHttp;
     this.idlLoaders = options?.customIdlLoaders ?? standardLoaders(rpcHttp);
     this.idlOverrides = options?.customIdlOverrides ?? new Map();
-    this.recentBlockHash = null;
+    this.cacheBlockHash = null;
   }
 
   public setProgramIdl(
@@ -88,6 +93,7 @@ export class Service {
     }
     return {
       programInfo: {
+        address: accountInfo.owner,
         idl: programIdl,
       },
       accountInfo: {
@@ -98,7 +104,7 @@ export class Service {
     };
   }
 
-  public async inferAndDecodeInstruction(instruction: Instruction) {
+  public async inferAndDecodeInstructionInfo(instruction: Instruction) {
     const programIdl = await this.getOrLoadProgramIdl(
       instruction.programAddress,
     );
@@ -108,7 +114,25 @@ export class Service {
         `IDL Instruction not found for instruction of program ${instruction.programAddress}`,
       );
     }
-    return idlInstructionDecode(instructionIdl, instruction);
+    const instructionAddresses = idlInstructionAccountsDecode(
+      instructionIdl,
+      instruction.inputs,
+    );
+    const instructionPayload = idlInstructionArgsDecode(
+      instructionIdl,
+      instruction.data,
+    );
+    return {
+      programInfo: {
+        address: instruction.programAddress,
+        idl: programIdl,
+      },
+      instructionInfo: {
+        idl: instructionIdl,
+        addresses: instructionAddresses,
+        payload: instructionPayload,
+      },
+    };
   }
 
   public async getAndHydrateAndEncodeInstruction(
@@ -121,7 +145,7 @@ export class Service {
     },
   ) {
     const hydratedInstructionAddresses =
-      await this.getAndFindInstructionAddresses(
+      await this.getAndHydrateInstructionAddresses(
         programAddress,
         instructionName,
         {
@@ -136,15 +160,18 @@ export class Service {
         `IDL Instruction ${instructionName} not found for program ${programAddress}`,
       );
     }
-    return idlInstructionEncode(
+    const instructionInputs = idlInstructionAccountsEncode(
       instructionIdl,
-      programAddress,
       hydratedInstructionAddresses,
+    );
+    const instructionData = idlInstructionArgsEncode(
+      instructionIdl,
       instructionInfo.instructionPayload,
     );
+    return { programAddress, inputs: instructionInputs, data: instructionData };
   }
 
-  public async getAndFindInstructionAddresses(
+  public async getAndHydrateInstructionAddresses(
     programAddress: Pubkey,
     instructionName: string,
     instructionInfo: {
@@ -159,76 +186,47 @@ export class Service {
         `IDL Instruction ${instructionName} not found for program ${programAddress}`,
       );
     }
-    const findContext = {
-      instructionProgramAddress: programAddress,
-      instructionAddresses: instructionInfo.instructionAddresses,
-      instructionPayload: instructionInfo.instructionPayload,
-      instructionAccountsStates: {} as Record<string, JsonValue>,
-      instructionAccountsTypes: {} as Record<string, IdlTypeFull>,
-    };
-    for (const [instructionAccountName, instructionAddress] of Object.entries(
-      findContext.instructionAddresses,
-    )) {
+    const accountFetchCache = new Map<
+      Pubkey,
+      { accountState: JsonValue; accountTypeFull: IdlTypeFull }
+    >();
+    const accountContentFetcher = async (accountAddress: Pubkey) => {
+      const accountFetchCached = accountFetchCache.get(accountAddress);
+      if (accountFetchCached) {
+        return accountFetchCached;
+      }
       const { accountInfo } =
-        await this.getAndInferAndDecodeAccountInfo(instructionAddress);
-      findContext.instructionAccountsStates[instructionAccountName] =
-        accountInfo.state;
-      findContext.instructionAccountsTypes[instructionAccountName] =
-        accountInfo.idl.typeFull;
-    }
-    while (true) {
-      let madeProgress = false;
-      for (let instructionAccountIdl of instructionIdl.accounts) {
-        if (
-          findContext.instructionAddresses.hasOwnProperty(
-            instructionAccountIdl.name,
-          )
-        ) {
-          continue;
-        }
-        try {
-          await withErrorContext(
-            `Idl: Finding address for instruction account ${instructionAccountIdl.name}`,
-            async () => {
-              let instructionAddress = idlInstructionAccountFind(
-                instructionAccountIdl,
-                findContext,
-              );
-              findContext.instructionAddresses[instructionAccountIdl.name] =
-                instructionAddress;
-              const { accountInfo } =
-                await this.getAndInferAndDecodeAccountInfo(instructionAddress);
-              findContext.instructionAccountsStates[
-                instructionAccountIdl.name
-              ] = accountInfo.state;
-              findContext.instructionAccountsTypes[instructionAccountIdl.name] =
-                accountInfo.idl.typeFull;
-              madeProgress = true;
-            },
-          );
-        } catch (_error) {
-          // TODO (error) - better error handling and help with understanding what is missing
-        }
-      }
-      if (!madeProgress) {
-        break;
-      }
-    }
-    return findContext.instructionAddresses;
+        await this.getAndInferAndDecodeAccountInfo(accountAddress);
+      const accountFetch = {
+        accountState: accountInfo.state,
+        accountTypeFull: accountInfo.idl.typeFull,
+      };
+      accountFetchCache.set(accountAddress, accountFetch);
+      return accountFetch;
+    };
+    return await idlInstructionAddressesHydrate(
+      instructionIdl,
+      programAddress,
+      instructionInfo,
+      {
+        byAccountName: {},
+        fetcher: accountContentFetcher,
+      },
+    );
   }
 
   public async getRecentBlockHash() {
     const nowTimeMs = Date.now();
     if (
-      this.recentBlockHash &&
-      nowTimeMs - this.recentBlockHash.timeMs < 15000 /* 15 seconds */
+      this.cacheBlockHash &&
+      nowTimeMs - this.cacheBlockHash.fetchTimeMs < 15000 /* 15 seconds */
     ) {
-      return this.recentBlockHash.hash;
+      return this.cacheBlockHash.blockHash;
     }
     const { blockInfo } = await rpcHttpGetLatestBlockHash(this.rpcHttp);
-    this.recentBlockHash = {
-      hash: blockInfo.hash,
-      timeMs: nowTimeMs,
+    this.cacheBlockHash = {
+      blockHash: blockInfo.hash,
+      fetchTimeMs: nowTimeMs,
     };
     return blockInfo.hash;
   }
@@ -238,6 +236,7 @@ export class Service {
     instructions: Array<Instruction>,
     options?: {
       extraSigners?: Array<Signer | WalletAccount>;
+      transactionLookupTables?: Array<TransactionAddressLookupTable>;
       skipAlreadySentCheck?: boolean;
       skipPreflight?: boolean;
     },
@@ -247,12 +246,16 @@ export class Service {
     if (options?.extraSigners) {
       signers.push(...options.extraSigners);
     }
-    const transactionPacket = await transactionCompileAndSign(signers, {
-      payerAddress: payer.address,
-      recentBlockHash: recentBlockHash,
-      instructions,
-    });
-    const transactionHandle = await rpcHttpSendTransaction(
+    const transactionPacket = await transactionCompileAndSign(
+      signers,
+      {
+        payerAddress: payer.address,
+        recentBlockHash: recentBlockHash,
+        instructions,
+      },
+      options?.transactionLookupTables,
+    );
+    const { transactionHandle } = await rpcHttpSendTransaction(
       this.rpcHttp,
       transactionPacket,
       {
@@ -261,6 +264,42 @@ export class Service {
       } as any,
     );
     return { transactionHandle };
+  }
+
+  public async simulateTransaction(
+    payer: Pubkey | Signer | WalletAccount,
+    instructions: Array<Instruction>,
+    options?: {
+      extraSigners?: Array<Signer | WalletAccount>;
+      transactionLookupTables?: Array<TransactionAddressLookupTable>;
+      verifySignaturesAndBlockHash?: boolean;
+      simulatedAccountsAddresses?: Set<Pubkey>;
+    },
+  ) {
+    let recentBlockHash = blockHashDefault;
+    let signers = new Array<Signer | WalletAccount>();
+    if (options?.verifySignaturesAndBlockHash ?? true) {
+      recentBlockHash = await this.getRecentBlockHash();
+      if (payer instanceof Object && "address" in payer) {
+        signers.push(payer);
+      }
+      if (options?.extraSigners) {
+        signers.push(...options.extraSigners);
+      }
+    }
+    const payerAddress =
+      payer instanceof Object && "address" in payer
+        ? payer.address
+        : (payer as Pubkey);
+    const transactionPacket = await transactionCompileAndSign(
+      signers,
+      { payerAddress, recentBlockHash, instructions },
+      options?.transactionLookupTables,
+    );
+    return await rpcHttpSimulateTransaction(this.rpcHttp, transactionPacket, {
+      verifySignaturesAndBlockHash: options?.verifySignaturesAndBlockHash,
+      simulatedAccountsAddresses: options?.simulatedAccountsAddresses,
+    } as any);
   }
 }
 

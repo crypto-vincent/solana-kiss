@@ -1,14 +1,16 @@
 import { expect, it } from "@jest/globals";
 import {
   expectDefined,
-  idlInstructionAddressesFind,
-  idlInstructionDecode,
-  idlInstructionEncode,
+  idlInstructionAccountsDecode,
+  idlInstructionAccountsEncode,
+  idlInstructionAddressesHydrate,
+  idlInstructionArgsDecode,
+  idlInstructionArgsEncode,
   idlProgramParse,
   pubkeyNewDummy,
 } from "../src";
 
-it("run", () => {
+it("run", async () => {
   // Parse IDL from file JSON directly
   const programIdl = idlProgramParse(require("./fixtures/idl_anchor_26.json"));
   // IDL instruction
@@ -17,6 +19,7 @@ it("run", () => {
   );
   // Program
   const programAddress = pubkeyNewDummy();
+  const borrowerAddress = pubkeyNewDummy();
   // Prepare instruction args
   const instructionPayload = {
     max_funding_duration: 42,
@@ -28,35 +31,38 @@ it("run", () => {
     },
     migrated: true,
   };
-  // Prepare instruction accounts addresses
-  const instructionAddressesBefore = {
-    owner: pubkeyNewDummy(),
-    borrower: pubkeyNewDummy(),
-    global_market_state: pubkeyNewDummy(),
-    system_program: pubkeyNewDummy(),
-  };
   // Find missing instruction accounts
-  const instructionAddressesAfter = idlInstructionAddressesFind(
+  const instructionAddresses = await idlInstructionAddressesHydrate(
     instructionIdl,
+    programAddress,
     {
-      instructionProgramAddress: programAddress,
-      instructionAddresses: instructionAddressesBefore,
+      instructionAddresses: {
+        owner: pubkeyNewDummy(),
+        borrower: borrowerAddress,
+        global_market_state: pubkeyNewDummy(),
+        system_program: pubkeyNewDummy(),
+      },
       instructionPayload,
-      instructionAccountsStates: {
-        borrower_info: { num_of_deals: 42 },
+    },
+    {
+      byAccountName: {
+        borrower_info: { accountState: { num_of_deals: 42 } },
       },
     },
   );
   // Check that we can encode it and then decode it
-  const instruction = idlInstructionEncode(
+  const instructionInputs = idlInstructionAccountsEncode(
     instructionIdl,
-    programAddress,
-    instructionAddressesAfter,
+    instructionAddresses,
+  );
+  expect(
+    idlInstructionAccountsDecode(instructionIdl, instructionInputs),
+  ).toStrictEqual(instructionAddresses);
+  const instructionData = idlInstructionArgsEncode(
+    instructionIdl,
     instructionPayload,
   );
-  expect(idlInstructionDecode(instructionIdl, instruction)).toStrictEqual({
-    instructionProgramAddress: programAddress,
-    instructionAddresses: instructionAddressesAfter,
-    instructionPayload,
-  });
+  expect(
+    idlInstructionArgsDecode(instructionIdl, instructionData),
+  ).toStrictEqual(instructionPayload);
 });

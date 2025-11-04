@@ -1,4 +1,4 @@
-import { Instruction, InstructionInput } from "../data/Instruction";
+import { InstructionInput } from "../data/Instruction";
 import {
   JsonValue,
   jsonCodecArrayRaw,
@@ -13,7 +13,10 @@ import {
   idlInstructionAccountFind,
   idlInstructionAccountParse,
 } from "./IdlInstructionAccount";
-import { IdlInstructionBlobContext } from "./IdlInstructionBlob";
+import {
+  IdlInstructionBlobAccountContents,
+  IdlInstructionBlobInstructionContent,
+} from "./IdlInstructionBlob";
 import { IdlTypedef } from "./IdlTypedef";
 import { IdlTypeFlat, IdlTypeFlatFields } from "./IdlTypeFlat";
 import {
@@ -50,65 +53,6 @@ export type IdlInstruction = {
     typeFull: IdlTypeFull;
   };
 };
-
-// TODO (naming) - should the returned type be an object for naming convenience?
-export function idlInstructionEncode(
-  instructionIdl: IdlInstruction,
-  instructionProgramAddress: Pubkey,
-  instructionAddresses: Record<string, Pubkey>,
-  instructionPayload: JsonValue,
-): Instruction {
-  // TODO (service) - auto resolve the program address from the program idl when possible ?
-  // TODO - run find addresses if some are missing ?
-  const instructionInputs = idlInstructionAccountsEncode(
-    instructionIdl,
-    instructionAddresses,
-  );
-  const instructionData = idlInstructionArgsEncode(
-    instructionIdl,
-    instructionPayload,
-  );
-  const instruction = {
-    programAddress: instructionProgramAddress,
-    inputs: instructionInputs,
-    data: instructionData,
-  };
-  return instruction;
-}
-
-export function idlInstructionDecode(
-  instructionIdl: IdlInstruction,
-  instruction: Instruction,
-): {
-  // TODO (naming) - "InstructionInputsAddresses?" should this be a map or an object ?
-  instructionProgramAddress: Pubkey;
-  instructionAddresses: Record<string, Pubkey>;
-  instructionPayload: JsonValue;
-} {
-  idlInstructionCheck(instructionIdl, instruction.inputs, instruction.data);
-  const instructionAddresses = idlInstructionAccountsDecode(
-    instructionIdl,
-    instruction.inputs,
-  );
-  const instructionPayload = idlInstructionArgsDecode(
-    instructionIdl,
-    instruction.data,
-  );
-  return {
-    instructionProgramAddress: instruction.programAddress,
-    instructionAddresses,
-    instructionPayload,
-  };
-}
-
-export function idlInstructionCheck(
-  instructionIdl: IdlInstruction,
-  instructionInputs: Array<InstructionInput>,
-  instructionData: Uint8Array,
-): void {
-  idlInstructionAccountsCheck(instructionIdl, instructionInputs);
-  idlInstructionArgsCheck(instructionIdl, instructionData);
-}
 
 export function idlInstructionAccountsEncode(
   instructionIdl: IdlInstruction,
@@ -176,7 +120,7 @@ export function idlInstructionAccountsCheck(
   instructionIdl: IdlInstruction,
   instructionInputs: Array<InstructionInput>,
 ): void {
-  // TODO - improve the check logic
+  // TODO (safety) - improve the check logic
   let requiredCount = 0;
   for (const instructionAccountIdl of instructionIdl.accounts) {
     if (!instructionAccountIdl.optional) {
@@ -246,38 +190,48 @@ export function idlInstructionReturnDecode(
   return instructionResult;
 }
 
-// TODO (service) - this should be in a higher level module ?
-export function idlInstructionAddressesFind(
+export async function idlInstructionAddressesHydrate(
   instructionIdl: IdlInstruction,
-  instructionBlobContext: IdlInstructionBlobContext,
-): Record<string, Pubkey> {
+  programAddress: Pubkey,
+  instructionContent: IdlInstructionBlobInstructionContent,
+  accountsContents?: IdlInstructionBlobAccountContents,
+): Promise<Record<string, Pubkey>> {
   const instructionAddresses = {
-    ...instructionBlobContext.instructionAddresses,
+    ...instructionContent.instructionAddresses,
   };
-  instructionBlobContext = {
-    ...instructionBlobContext,
+  instructionContent = {
     instructionAddresses,
+    instructionPayload: instructionContent.instructionPayload,
   };
   while (true) {
     let madeProgress = false;
     for (let instructionAccountIdl of instructionIdl.accounts) {
-      if (instructionAddresses.hasOwnProperty(instructionAccountIdl.name)) {
+      const instructionAddress =
+        instructionAddresses[instructionAccountIdl.name];
+      if (instructionAddress !== undefined) {
         continue;
       }
       try {
-        withErrorContext(
+        await withErrorContext(
           `Idl: Finding address for instruction account ${instructionAccountIdl.name}`,
-          () => {
-            let instructionAddress = idlInstructionAccountFind(
+          async () => {
+            let instructionAddress = await idlInstructionAccountFind(
               instructionAccountIdl,
-              instructionBlobContext,
+              programAddress,
+              instructionContent,
+              accountsContents,
             );
             instructionAddresses[instructionAccountIdl.name] =
               instructionAddress;
             madeProgress = true;
           },
         );
-      } catch (_) {
+      } catch (error) {
+        console.log(
+          "Error fetching account data:",
+          instructionAccountIdl.name,
+          error,
+        );
         // TODO (error) - better error handling and help with understanding what is missing
       }
     }

@@ -1,7 +1,7 @@
 import { expect, it } from "@jest/globals";
 import {
   expectDefined,
-  idlInstructionAddressesFind,
+  idlInstructionAddressesHydrate,
   idlProgramParse,
   pubkeyFindPdaAddress,
   pubkeyNewDummy,
@@ -9,7 +9,7 @@ import {
   utf8Encode,
 } from "../src";
 
-it("run", () => {
+it("run", async () => {
   // Create an IDL on the fly
   const programIdl = idlProgramParse({
     instructions: {
@@ -90,31 +90,37 @@ it("run", () => {
   // Assert that the accounts can be properly resolved
   const accountIdl = expectDefined(programIdl.accounts.get("MyAccount"));
   const instructionIdl = expectDefined(programIdl.instructions.get("my_ix"));
-  const instructionAddresses = idlInstructionAddressesFind(instructionIdl, {
-    instructionProgramAddress: programAddress,
-    instructionAddresses: {
-      first: firstAddress,
-      "nester.nested1": nested1Address,
-    },
-    instructionPayload: {},
-    instructionAccountsStates: {
-      first: {
-        u8: 77,
-        u16: 78,
-        u32: 79,
-        u64: 80,
-        array_u8_2: [11, 12],
-        vec_u8_3: [21, 22, 23],
-        string: "hello",
-        inner: {
-          u8: 111,
-          u16: 222,
-        },
+  const instructionAddresses = await idlInstructionAddressesHydrate(
+    instructionIdl,
+    programAddress,
+    {
+      instructionAddresses: {
+        first: firstAddress,
+        "nester.nested1": nested1Address,
       },
-
-      "nester.nested2": 42,
+      instructionPayload: {},
     },
-    instructionAccountsTypes: { first: accountIdl.typeFull },
-  });
+    {
+      byAccountName: {
+        first: {
+          accountState: {
+            u8: 77,
+            u16: 78,
+            u32: 79,
+            u64: 80,
+            array_u8_2: [11, 12],
+            vec_u8_3: [21, 22, 23],
+            string: "hello",
+            inner: {
+              u8: 111,
+              u16: 222,
+            },
+          },
+          accountTypeFull: accountIdl.typeFull,
+        },
+        "nester.nested2": { accountState: 42 },
+      },
+    },
+  );
   expect(instructionAddresses["pda"]).toStrictEqual(pdaAddress);
 });

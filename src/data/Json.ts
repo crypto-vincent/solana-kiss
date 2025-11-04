@@ -14,7 +14,7 @@ import { utf8Decode, utf8Encode } from "./Utf8";
 import { objectGetOwnProperty, withErrorContext } from "./Utils";
 
 export type JsonValue = JsonPrimitive | JsonArray | JsonObject;
-// TODO - does this needs to contain 'undefined' ?
+// TODO (cleanup) - does this needs to contain 'undefined' ?
 export type JsonPrimitive = boolean | number | string | null | undefined;
 export type JsonArray = Array<JsonValue>;
 export interface JsonObject {
@@ -678,7 +678,7 @@ export function jsonCodecObject<
   } as JsonCodec<{ [K in keyof Shape]: JsonCodecContent<Shape[K]> }>;
 }
 
-// TODO - get rid of the need for this ?
+// TODO (casing) - get rid of the need for this ?
 export function jsonDecoderObjectWithKeysSnakeEncoded<
   Shape extends { [key: string]: JsonDecoder<any> },
 >(shape: Shape) {

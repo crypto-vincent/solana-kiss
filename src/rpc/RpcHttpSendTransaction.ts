@@ -46,13 +46,11 @@ async function wasAlreadySent(
   rpcHttp: RpcHttp,
   transactionHandle: TransactionHandle,
 ) {
-  const immediateStatus = await signatureStatus(rpcHttp, transactionHandle);
-  if (immediateStatus !== null) {
+  if ((await signatureStatus(rpcHttp, transactionHandle)) !== null) {
     return true;
   }
   await new Promise((resolve) => setTimeout(resolve, 1000));
-  const laterStatus = await signatureStatus(rpcHttp, transactionHandle);
-  if (laterStatus) {
+  if ((await signatureStatus(rpcHttp, transactionHandle)) !== null) {
     return true;
   }
   return false;

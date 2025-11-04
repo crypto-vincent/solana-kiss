@@ -1,4 +1,4 @@
-// TODO - support shortvec prefix types ?
+// TODO (experiment) - support shortvec prefix types ?
 export class IdlTypePrefix {
   public static readonly u8 = new IdlTypePrefix("u8", 1);
   public static readonly u16 = new IdlTypePrefix("u16", 2);

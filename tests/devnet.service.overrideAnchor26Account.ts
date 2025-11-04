@@ -44,7 +44,7 @@ it("run", async () => {
     service,
     programStateAddress,
     "ProgramState",
-    "credix_multisig_key", // TODO - really consider camel casing everywhere?
+    "credix_multisig_key", // TODO (casing) - really consider camel casing everywhere?
     "Ej5zJzej7rrUoDngsJ3jcpfuvfVyWpcDcK7uv9cE2LdL",
   );
   // Read the market admins content using the IDL
@@ -60,7 +60,7 @@ it("run", async () => {
     "Ej5zJzej7rrUoDngsJ3jcpfuvfVyWpcDcK7uv9cE2LdL",
   );
   // Check that we could indeed find the right accounts programatically
-  const instructionAddresses = await service.getAndFindInstructionAddresses(
+  const instructionAddresses = await service.getAndHydrateInstructionAddresses(
     programAddress,
     "initialize_market",
     {

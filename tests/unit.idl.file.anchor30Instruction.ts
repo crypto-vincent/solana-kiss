@@ -1,8 +1,9 @@
 import { expect, it } from "@jest/globals";
 import {
   expectDefined,
-  idlInstructionAddressesFind,
-  idlInstructionEncode,
+  idlInstructionAccountsEncode,
+  idlInstructionAddressesHydrate,
+  idlInstructionArgsEncode,
   idlProgramParse,
   InstructionInput,
   Pubkey,
@@ -22,7 +23,7 @@ const ataProgramAddress = pubkeyFromBase58(
   "ATokenGPvbdGVxr1b2hvZbsiqW5xWH25efTNsLJA8knL",
 );
 
-it("run", () => {
+it("run", async () => {
   // Parse IDL from file JSON directly
   const programIdl = idlProgramParse(require("./fixtures/idl_anchor_30.json"));
   // Important account addresses
@@ -35,6 +36,10 @@ it("run", () => {
     utf8Encode("Campaign"),
     new Uint8Array([11, 0, 0, 0, 0, 0, 0, 0]),
   ]);
+  // Tested instruction
+  const instructionIdl = expectDefined(
+    programIdl.instructions.get("campaign_create"),
+  );
   // Prepare instruction payload
   const instructionPayloadMetadataBytes = new Array<number>();
   for (let index = 0; index < 512; index++) {
@@ -51,32 +56,19 @@ it("run", () => {
       },
     },
   };
-  // Prepare instruction known accounts addresses
-  const instructionAddressesBefore = {
-    payer: payerAddress,
-    authority: authorityAddress,
-    collateral_mint: collateralMintAddress,
-    redeemable_mint: redeemableMintAddress,
-  };
-  // Useful instruction
-  const instructionIdl = expectDefined(
-    programIdl.instructions.get("campaign_create"),
-  );
   // Resolve missing instruction accounts
-  const instructionAddressesAfter = idlInstructionAddressesFind(
-    instructionIdl,
-    {
-      instructionProgramAddress: programAddress,
-      instructionAddresses: instructionAddressesBefore,
-      instructionPayload,
-    },
-  );
-  // Actually generate the instruction
-  const instruction = idlInstructionEncode(
+  const instructionAddresses = await idlInstructionAddressesHydrate(
     instructionIdl,
     programAddress,
-    instructionAddressesAfter,
-    instructionPayload,
+    {
+      instructionAddresses: {
+        payer: payerAddress,
+        authority: authorityAddress,
+        collateral_mint: collateralMintAddress,
+        redeemable_mint: redeemableMintAddress,
+      },
+      instructionPayload,
+    },
   );
   // Generate expected accounts
   const campaignCollateralAddress = pubkeyFindPdaAddress(ataProgramAddress, [
@@ -84,31 +76,37 @@ it("run", () => {
     pubkeyToBytes(tokenProgramAddress),
     pubkeyToBytes(collateralMintAddress),
   ]);
-  // Check instruction content
-  expect(programAddress).toStrictEqual(instruction.programAddress);
-  // Check instruction data
-  expect(8 + 8 + 8 + 4 + 2 + 512).toStrictEqual(instruction.data.length);
+  // Check instruction accounts encoding
+  const instructionInputs = idlInstructionAccountsEncode(
+    instructionIdl,
+    instructionAddresses,
+  );
+  expect(9).toStrictEqual(instructionInputs.length);
+  expectInput(instructionInputs[0], payerAddress, true, true);
+  expectInput(instructionInputs[1], authorityAddress, true, false);
+  expectInput(instructionInputs[2], campaignAddress, false, true);
+  expectInput(instructionInputs[3], campaignCollateralAddress, false, true);
+  expectInput(instructionInputs[4], collateralMintAddress, false, false);
+  expectInput(instructionInputs[5], redeemableMintAddress, true, true);
+  expectInput(instructionInputs[6], ataProgramAddress, false, false);
+  expectInput(instructionInputs[7], tokenProgramAddress, false, false);
+  expectInput(instructionInputs[8], systemProgramAddress, false, false);
+  // Check instruction data encoding
+  const instructionData = idlInstructionArgsEncode(
+    instructionIdl,
+    instructionPayload,
+  );
+  expect(8 + 8 + 8 + 4 + 2 + 512).toStrictEqual(instructionData.length);
   expect(new Uint8Array([11, 0, 0, 0, 0, 0, 0, 0])).toStrictEqual(
-    instruction.data.slice(8, 16),
+    instructionData.slice(8, 16),
   );
   expect(new Uint8Array([41, 0, 0, 0, 0, 0, 0, 0])).toStrictEqual(
-    instruction.data.slice(16, 24),
+    instructionData.slice(16, 24),
   );
   expect(new Uint8Array([42, 0, 0, 0])).toStrictEqual(
-    instruction.data.slice(24, 28),
+    instructionData.slice(24, 28),
   );
-  expect(new Uint8Array([22, 0])).toStrictEqual(instruction.data.slice(28, 30));
-  // Check instruction accounts
-  expect(9).toStrictEqual(instruction.inputs.length);
-  expectInput(instruction.inputs[0], payerAddress, true, true);
-  expectInput(instruction.inputs[1], authorityAddress, true, false);
-  expectInput(instruction.inputs[2], campaignAddress, false, true);
-  expectInput(instruction.inputs[3], campaignCollateralAddress, false, true);
-  expectInput(instruction.inputs[4], collateralMintAddress, false, false);
-  expectInput(instruction.inputs[5], redeemableMintAddress, true, true);
-  expectInput(instruction.inputs[6], ataProgramAddress, false, false);
-  expectInput(instruction.inputs[7], tokenProgramAddress, false, false);
-  expectInput(instruction.inputs[8], systemProgramAddress, false, false);
+  expect(new Uint8Array([22, 0])).toStrictEqual(instructionData.slice(28, 30));
 });
 
 function expectInput(
