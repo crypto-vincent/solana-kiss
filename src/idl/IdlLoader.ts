@@ -62,7 +62,7 @@ export function idlLoaderFromUrl(
 ): IdlLoader {
   const cacheIdls = new Map<Pubkey, IdlProgram>();
   const cacheApprover = options?.cacheApprover ?? (async () => true);
-  const fetcher =
+  const jsonFetcher =
     options?.customFetcher ??
     (async (url) => {
       const response = await fetch(url);
@@ -75,7 +75,7 @@ export function idlLoaderFromUrl(
         return cacheIdl;
       }
     }
-    const httpJson = await fetcher(urlBuilder(programAddress));
+    const httpJson = await jsonFetcher(urlBuilder(programAddress));
     const httpProgramIdl = idlProgramParse(httpJson as JsonValue);
     httpProgramIdl.metadata.address = programAddress;
     cacheIdls.set(programAddress, httpProgramIdl);

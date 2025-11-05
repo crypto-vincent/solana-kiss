@@ -228,6 +228,7 @@ export async function idlInstructionAddressesHydrate(
             instructionAddresses[instructionAccountIdl.name] =
               instructionAddress;
             if (onFoundInstructionAddress) {
+              // TODO (optimization) - allow lazy fetch instead of greedy fetch ?
               await onFoundInstructionAddress(
                 instructionAccountIdl.name,
                 instructionAddress,
