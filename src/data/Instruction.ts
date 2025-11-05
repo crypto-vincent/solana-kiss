@@ -1,5 +1,6 @@
 import { Pubkey } from "./Pubkey";
 
+// TODO (naming) - rename InstructionRequest or InstructionCall or InstructionInvocation ?
 export type Instruction = {
   programAddress: Pubkey;
   inputs: Array<InstructionInput>;

@@ -26,7 +26,6 @@ it("run", async () => {
       commitment: "confirmed",
     }),
   );
-  const programAddress = pubkeyDefault;
   const ownerAddress = pubkeyNewDummy();
   const requestedSpace = 42;
   const transferLamports = lamportsRentExemptionMinimumForSpace(requestedSpace);
@@ -34,18 +33,16 @@ it("run", async () => {
   const owned1Signer = await signerGenerate();
   const owned2Signer = await signerGenerate();
   const instructions = [
-    await makeCreateInstruction(
+    await makeSystemCreateInstruction(
       service,
-      programAddress,
       ownerAddress,
       transferLamports,
       requestedSpace,
       payerSigner,
       owned1Signer,
     ),
-    await makeCreateInstruction(
+    await makeSystemCreateInstruction(
       service,
-      programAddress,
       ownerAddress,
       transferLamports + 42n,
       requestedSpace - 1,
@@ -102,16 +99,15 @@ it("run", async () => {
   expect(owned1Info.state).toStrictEqual(undefined);
 });
 
-async function makeCreateInstruction(
+async function makeSystemCreateInstruction(
   service: Service,
-  programAddress: Pubkey,
   ownerAddress: Pubkey,
   transferLamports: bigint,
   requestedSpace: number,
   payerSigner: Signer,
   ownedSigner: Signer,
 ) {
-  return service.hydrateAndEncodeInstruction(programAddress, "create", {
+  return service.hydrateAndEncodeInstruction(pubkeyDefault, "create", {
     instructionAddresses: {
       payer: payerSigner.address,
       created: ownedSigner.address,

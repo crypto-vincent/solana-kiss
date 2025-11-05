@@ -181,7 +181,7 @@ function decompileInstructionsInputs(
   return instructionsInputs;
 }
 
-type CompiledInstruction = {
+type InstructionCompiled = {
   stackHeight: number;
   programIndex: number;
   accountsIndexes: Array<number>;
@@ -190,45 +190,45 @@ type CompiledInstruction = {
 
 function decompileInstructions(
   instructionsInputs: Array<InstructionInput>,
-  compiledInstructions: Array<CompiledInstruction>,
+  instructionsCompiled: Array<InstructionCompiled>,
 ): Array<Instruction> {
   const instructions = new Array<Instruction>();
-  for (const compiledInstruction of compiledInstructions) {
-    const stackIndex = compiledInstruction.stackHeight - 1;
+  for (const instructionCompiled of instructionsCompiled) {
+    const stackIndex = instructionCompiled.stackHeight - 1;
     if (stackIndex !== 0) {
       throw new Error(
         `RpcHttp: Expected instruction stack index to be 0 (found ${stackIndex})`,
       );
     }
     instructions.push(
-      decompileInstruction(compiledInstruction, instructionsInputs),
+      decompileInstruction(instructionCompiled, instructionsInputs),
     );
   }
   return instructions;
 }
 
 function decompileInstruction(
-  compiledInstruction: CompiledInstruction,
+  instructionCompiled: InstructionCompiled,
   instructionsInputs: Array<InstructionInput>,
 ): Instruction {
   const instructionProgram = expectItemInArray(
     instructionsInputs,
-    compiledInstruction.programIndex,
+    instructionCompiled.programIndex,
   );
   const instructionInputs = new Array<InstructionInput>();
-  for (const accountIndex of compiledInstruction.accountsIndexes) {
+  for (const accountIndex of instructionCompiled.accountsIndexes) {
     instructionInputs.push(expectItemInArray(instructionsInputs, accountIndex));
   }
   return {
     programAddress: instructionProgram.address,
     inputs: instructionInputs,
-    data: base58Decode(compiledInstruction.dataBase58),
+    data: base58Decode(instructionCompiled.dataBase58),
   };
 }
 
-type InstructionInvocation = {
+type InstructionCallStack = {
   instruction: Instruction;
-  invocations: Array<InstructionInvocation>;
+  callStack: Array<InstructionCallStack>;
 };
 
 function decompileInstructionsInvocations(
@@ -236,14 +236,14 @@ function decompileInstructionsInvocations(
   instructionsInputs: Array<InstructionInput>,
   compiledInnerInstructions: Array<{
     index: number;
-    instructions: Array<CompiledInstruction>;
+    instructions: Array<InstructionCompiled>;
   }>,
-): Array<InstructionInvocation> {
-  const rootInvocations = new Array<InstructionInvocation>();
+): Array<InstructionCallStack> {
+  const rootInvocations = new Array<InstructionCallStack>();
   for (let index = 0; index < instructions.length; index++) {
     rootInvocations.push({
       instruction: instructions[index]!,
-      invocations: [],
+      callStack: [],
     });
   }
   for (const compiledInnerInstructionBlock of compiledInnerInstructions) {
@@ -251,7 +251,7 @@ function decompileInstructionsInvocations(
       rootInvocations,
       compiledInnerInstructionBlock.index,
     );
-    const stackInvocation = new Array<InstructionInvocation>();
+    const stackInvocation = new Array<InstructionCallStack>();
     stackInvocation.push(rootInvocation);
     for (const compiledInnerInstruction of compiledInnerInstructionBlock.instructions) {
       const innerInvocation = {
@@ -259,7 +259,7 @@ function decompileInstructionsInvocations(
           compiledInnerInstruction,
           instructionsInputs,
         ),
-        invocations: [],
+        callStack: [],
       };
       const stackDepthIndex = compiledInnerInstruction.stackHeight - 1;
       if (stackDepthIndex < 1 || stackDepthIndex > stackInvocation.length) {
@@ -268,13 +268,13 @@ function decompileInstructionsInvocations(
         );
       }
       if (stackDepthIndex === stackInvocation.length) {
-        stackInvocation[stackDepthIndex - 1]!.invocations.push(innerInvocation);
+        stackInvocation[stackDepthIndex - 1]!.callStack.push(innerInvocation);
         stackInvocation.push(innerInvocation);
       } else {
         while (stackDepthIndex < stackInvocation.length - 1) {
           stackInvocation.pop();
         }
-        stackInvocation[stackDepthIndex - 1]!.invocations.push(innerInvocation);
+        stackInvocation[stackDepthIndex - 1]!.callStack.push(innerInvocation);
         stackInvocation[stackDepthIndex] = innerInvocation;
       }
     }
@@ -284,7 +284,7 @@ function decompileInstructionsInvocations(
 
 function parseTransactionCallstack(
   invocation: TransactionInvocation,
-  instructionsInvocations: Array<InstructionInvocation>,
+  instructionsInvocations: Array<InstructionCallStack>,
   logs: Array<string>,
   logIndex: number,
 ): { logIndex: number } {
@@ -350,7 +350,7 @@ function parseTransactionCallstack(
           };
           const afterParsing = parseTransactionCallstack(
             innerInvocation,
-            instructionInvocation.invocations,
+            instructionInvocation.callStack,
             logs,
             logIndex,
           );
