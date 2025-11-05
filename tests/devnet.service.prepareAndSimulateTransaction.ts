@@ -71,6 +71,10 @@ it("run", async () => {
   expect(pledgeAccountNoVerify.lamports).toBeGreaterThan(0n);
   expect(pledgeAccountNoVerify.data.length).toBeGreaterThan(0);
   expect(pledgeAccountNoVerify.executable).toStrictEqual(false);
+  expect(
+    (await service.getAndInferAndDecodeAccountInfo(pledgeAddress)).accountInfo
+      .data.length,
+  ).toStrictEqual(0);
   // Run the simulation with verifying the signers (and recent block hash)
   const resultWithVerify = await service.prepareAndSimulateTransaction(
     payerSigner,
@@ -97,6 +101,10 @@ it("run", async () => {
   expect(pledgeAccountWithVerify.lamports).toBeGreaterThan(0n);
   expect(pledgeAccountWithVerify.data.length).toBeGreaterThan(0);
   expect(pledgeAccountWithVerify.executable).toStrictEqual(false);
+  expect(
+    (await service.getAndInferAndDecodeAccountInfo(pledgeAddress)).accountInfo
+      .data.length,
+  ).toStrictEqual(0);
 });
 
 const secret = new Uint8Array([
