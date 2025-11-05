@@ -9,6 +9,21 @@ import {
   jsonDecoderOptional,
 } from "../data/Json";
 
+// TODO - RPC WS ?
+
+export class RpcHttpError extends Error {
+  public readonly code: number;
+  public readonly desc: string;
+  public readonly data: JsonValue;
+
+  constructor(message: string, code: number, desc: string, data: JsonValue) {
+    super(message);
+    this.code = code;
+    this.desc = desc;
+    this.data = data;
+  }
+}
+
 export type RpcHttp = (
   method: string,
   params: JsonArray,
@@ -60,8 +75,11 @@ export function rpcHttpFromUrl(
     const responseInfo = responseJsonDecoder(responseJson);
     const responseError = responseInfo.error;
     if (responseError !== undefined) {
-      throw new Error(
+      throw new RpcHttpError(
         `RpcHttp: Error ${responseError.code}: ${responseError.message}`,
+        responseError.code,
+        responseError.message,
+        responseError.data,
       );
     }
     if (responseInfo.jsonrpc !== "2.0") {
@@ -163,6 +181,7 @@ const responseJsonDecoder = jsonDecoderObject({
     jsonDecoderObject({
       code: jsonCodecNumber.decoder,
       message: jsonCodecString.decoder,
+      data: jsonCodecRaw.decoder,
     }),
   ),
   result: jsonDecoderOptional(jsonCodecRaw.decoder),

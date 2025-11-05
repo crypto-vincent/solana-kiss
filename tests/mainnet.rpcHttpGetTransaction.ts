@@ -138,7 +138,7 @@ it("run", async () => {
                   }),
                   flow: [{ log: "Instruction: GetAccountDataSize" }],
                   result: {
-                    returnData: [165, 0, 0, 0, 0, 0, 0, 0],
+                    returned: [165, 0, 0, 0, 0, 0, 0, 0],
                     consumedComputeUnits: 1622,
                   },
                 }),
@@ -211,7 +211,7 @@ function invocation(value: {
   flow?: TransactionFlow;
   result?: {
     error?: string | undefined;
-    returnData?: Array<number> | undefined;
+    returned?: Array<number> | undefined;
     consumedComputeUnits?: number | undefined;
   };
 }) {
@@ -220,8 +220,8 @@ function invocation(value: {
       instruction: value.instruction,
       flow: value.flow ?? [],
       error: value.result?.error,
-      returnData: value.result?.returnData
-        ? new Uint8Array(value.result.returnData)
+      returned: value.result?.returned
+        ? new Uint8Array(value.result.returned)
         : undefined,
       consumedComputeUnits: value.result?.consumedComputeUnits,
     },

@@ -15,9 +15,9 @@ import { objectGetOwnProperty, withErrorContext } from "../data/Utils";
 import { IdlDocs, idlDocsParse } from "./IdlDocs";
 import {
   IdlInstructionBlob,
-  IdlInstructionBlobAccountContents,
   idlInstructionBlobCompute,
   IdlInstructionBlobInstructionContent,
+  IdlInstructionBlobOnchainAccounts,
   idlInstructionBlobParse,
 } from "./IdlInstructionBlob";
 import { IdlTypedef } from "./IdlTypedef";
@@ -38,12 +38,12 @@ export type IdlInstructionAccountPda = {
   program: IdlInstructionBlob | undefined;
 };
 
-export async function idlInstructionAccountFind(
+export function idlInstructionAccountFind(
   instructionAccountIdl: IdlInstructionAccount, // TODO (naming) - self?
   programAddress: Pubkey,
   instructionContent: IdlInstructionBlobInstructionContent,
-  accountContents?: IdlInstructionBlobAccountContents,
-): Promise<Pubkey> {
+  onchainAccounts?: IdlInstructionBlobOnchainAccounts,
+) {
   const instructionAdddress = objectGetOwnProperty(
     instructionContent.instructionAddresses,
     instructionAccountIdl.name,
@@ -59,20 +59,20 @@ export async function idlInstructionAccountFind(
     const seedsBytes = new Array<Uint8Array>();
     for (const instructionBlobIdl of instructionAccountIdl.pda.seeds) {
       seedsBytes.push(
-        await idlInstructionBlobCompute(
+        idlInstructionBlobCompute(
           instructionBlobIdl,
           instructionContent,
-          accountContents,
+          onchainAccounts,
         ),
       );
     }
     let pdaProgramAddress = programAddress;
     if (instructionAccountIdl.pda.program !== undefined) {
       pdaProgramAddress = pubkeyFromBytes(
-        await idlInstructionBlobCompute(
+        idlInstructionBlobCompute(
           instructionAccountIdl.pda.program,
           instructionContent,
-          accountContents,
+          onchainAccounts,
         ),
       );
     }

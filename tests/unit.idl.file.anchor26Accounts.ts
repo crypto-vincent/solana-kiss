@@ -107,12 +107,10 @@ it("run", async () => {
       instructionPayload: { global_market_seed: globalMarketSeed },
     },
     {
-      byAccountName: {
-        deal: {
-          accountState: {
-            deal_number: dealNumber,
-            borrower: pubkeyToBase58(borrowerAddress),
-          },
+      deal: {
+        accountState: {
+          deal_number: dealNumber,
+          borrower: pubkeyToBase58(borrowerAddress),
         },
       },
     },

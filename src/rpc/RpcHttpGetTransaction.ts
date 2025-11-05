@@ -100,7 +100,7 @@ export async function rpcHttpGetTransaction(
     instruction: {} as Instruction,
     flow: [],
     error: undefined,
-    returnData: undefined,
+    returned: undefined,
     consumedComputeUnits: undefined,
   };
   const afterParsing = parseTransactionCallstack(
@@ -114,9 +114,9 @@ export async function rpcHttpGetTransaction(
       `RpcHttp: Unable to parse transaction callstack (found error at root level: ${rootInvocation.error})`,
     );
   }
-  if (rootInvocation.returnData !== undefined) {
+  if (rootInvocation.returned !== undefined) {
     throw new Error(
-      `RpcHttp: Unable to parse transaction callstack (found return data at root level: ${rootInvocation.returnData})`,
+      `RpcHttp: Unable to parse transaction callstack (found returned data at root level: ${rootInvocation.returned})`,
     );
   }
   if (rootInvocation.consumedComputeUnits !== undefined) {
@@ -317,7 +317,7 @@ function parseTransactionCallstack(
           `RpcHttp: Unexpected return log program address (expected ${invocation.instruction.programAddress}, found ${returnProgramAddress}): ${logLine}`,
         );
       }
-      invocation.returnData = base64Decode(parts[1]!);
+      invocation.returned = base64Decode(parts[1]!);
       continue;
     }
     const logProgram = stripPrefix(logLine, "Program ");
@@ -345,7 +345,7 @@ function parseTransactionCallstack(
             instruction: instructionInvocation.instruction,
             flow: [],
             error: undefined,
-            returnData: undefined,
+            returned: undefined,
             consumedComputeUnits: undefined,
           };
           const afterParsing = parseTransactionCallstack(

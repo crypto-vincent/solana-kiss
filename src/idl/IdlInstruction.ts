@@ -14,8 +14,8 @@ import {
   idlInstructionAccountParse,
 } from "./IdlInstructionAccount";
 import {
-  IdlInstructionBlobAccountContents,
   IdlInstructionBlobInstructionContent,
+  IdlInstructionBlobOnchainAccounts,
 } from "./IdlInstructionBlob";
 import { IdlTypedef } from "./IdlTypedef";
 import { IdlTypeFlat, IdlTypeFlatFields } from "./IdlTypeFlat";
@@ -194,7 +194,11 @@ export async function idlInstructionAddressesHydrate(
   instructionIdl: IdlInstruction,
   programAddress: Pubkey,
   instructionContent: IdlInstructionBlobInstructionContent,
-  accountsContents?: IdlInstructionBlobAccountContents,
+  onchainAccounts?: IdlInstructionBlobOnchainAccounts,
+  onFoundInstructionAddress?: (
+    instructionAccountName: string,
+    instructionAddress: Pubkey,
+  ) => Promise<void>,
 ): Promise<Record<string, Pubkey>> {
   const instructionAddresses = {
     ...instructionContent.instructionAddresses,
@@ -215,23 +219,24 @@ export async function idlInstructionAddressesHydrate(
         await withErrorContext(
           `Idl: Finding address for instruction account ${instructionAccountIdl.name}`,
           async () => {
-            let instructionAddress = await idlInstructionAccountFind(
+            let instructionAddress = idlInstructionAccountFind(
               instructionAccountIdl,
               programAddress,
               instructionContent,
-              accountsContents,
+              onchainAccounts,
             );
             instructionAddresses[instructionAccountIdl.name] =
               instructionAddress;
+            if (onFoundInstructionAddress) {
+              await onFoundInstructionAddress(
+                instructionAccountIdl.name,
+                instructionAddress,
+              );
+            }
             madeProgress = true;
           },
         );
-      } catch (error) {
-        console.log(
-          "Error fetching account data:",
-          instructionAccountIdl.name,
-          error,
-        );
+      } catch (_error) {
         // TODO (error) - better error handling and help with understanding what is missing
       }
     }

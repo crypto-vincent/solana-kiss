@@ -1,9 +1,14 @@
 import { it } from "@jest/globals";
-import { JsonArray, RpcHttp, rpcHttpWithMaxConcurrentRequests } from "../src";
+import {
+  JsonArray,
+  RpcHttp,
+  rpcHttpWithMaxConcurrentRequests,
+  timeoutMs,
+} from "../src";
 
 async function rpcHttp(method: string, params: JsonArray) {
   if (method === "delayMs") {
-    await new Promise((resolve) => setTimeout(resolve, params[0] as number));
+    await timeoutMs(params[0] as number);
     return undefined;
   }
   throw new Error(`Unknown method: ${method}`);

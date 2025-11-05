@@ -140,7 +140,7 @@ function invocation(value: {
   flow?: TransactionFlow;
   result?: {
     error?: string | undefined;
-    returnData?: Uint8Array | undefined;
+    returned?: Uint8Array | undefined;
     consumedComputeUnits?: number | undefined;
   };
 }) {
@@ -149,7 +149,7 @@ function invocation(value: {
       instruction: value.instruction,
       flow: value.flow ?? [],
       error: value.result?.error,
-      returnData: value.result?.returnData,
+      returned: value.result?.returned,
       consumedComputeUnits: value.result?.consumedComputeUnits,
     },
   };

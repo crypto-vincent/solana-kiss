@@ -101,25 +101,23 @@ it("run", async () => {
       instructionPayload: {},
     },
     {
-      byAccountName: {
-        first: {
-          accountState: {
-            u8: 77,
-            u16: 78,
-            u32: 79,
-            u64: 80,
-            array_u8_2: [11, 12],
-            vec_u8_3: [21, 22, 23],
-            string: "hello",
-            inner: {
-              u8: 111,
-              u16: 222,
-            },
+      first: {
+        accountTypeFull: accountIdl.typeFull,
+        accountState: {
+          u8: 77,
+          u16: 78,
+          u32: 79,
+          u64: 80,
+          array_u8_2: [11, 12],
+          vec_u8_3: [21, 22, 23],
+          string: "hello",
+          inner: {
+            u8: 111,
+            u16: 222,
           },
-          accountTypeFull: accountIdl.typeFull,
         },
-        "nester.nested2": { accountState: 42 },
       },
+      "nester.nested2": { accountState: 42 },
     },
   );
   expect(instructionAddresses["pda"]).toStrictEqual(pdaAddress);

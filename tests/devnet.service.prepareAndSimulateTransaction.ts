@@ -1,81 +1,56 @@
 import { expect, it } from "@jest/globals";
 import {
-  blockHashDefault,
   expectDefined,
-  idlInstructionAccountsEncode,
-  idlInstructionArgsEncode,
-  idlLoaderFromOnchain,
   lamportsFeePerSigner,
-  pubkeyDefault,
-  pubkeyFindPdaAddress,
   pubkeyFromBase58,
-  pubkeyToBytes,
   rpcHttpFromUrl,
-  rpcHttpGetAccountWithData,
-  rpcHttpGetLatestBlockHash,
-  rpcHttpSimulateTransaction,
+  Service,
   signerFromSecret,
   signerGenerate,
-  transactionCompileAndSign,
-  transactionCompileUnsigned,
   urlPublicRpcDevnet,
-  utf8Encode,
 } from "../src";
 
 it("run", async () => {
-  const rpcHttp = rpcHttpFromUrl(urlPublicRpcDevnet, {
-    commitment: "confirmed",
-  });
-  // Find the necessary addresses
+  const service = new Service(rpcHttpFromUrl(urlPublicRpcDevnet));
   const programAddress = pubkeyFromBase58(
     "UCNcQRtrbGmvuLKA3Jv719Cc6DS4r661ZRpyZduxu2j",
   );
   const payerSigner = await signerFromSecret(secret);
   const userSigner = await signerGenerate();
-  const campaignAddress = pubkeyFindPdaAddress(programAddress, [
-    utf8Encode("Campaign"),
-    new Uint8Array([0, 0, 0, 0, 0, 0, 0, 0]),
-  ]);
-  const pledgeAddress = pubkeyFindPdaAddress(programAddress, [
-    utf8Encode("Pledge"),
-    pubkeyToBytes(campaignAddress),
-    pubkeyToBytes(userSigner.address),
-  ]);
-  // Find and load the IDL
-  const loaderIdl = idlLoaderFromOnchain(async (programAddress) => {
-    const { accountInfo } = await rpcHttpGetAccountWithData(
-      rpcHttp,
-      programAddress,
-    );
-    return accountInfo.data;
-  });
-  const programIdl = await loaderIdl(programAddress);
-  const instructionIdl = expectDefined(
-    programIdl.instructions.get("pledge_create"),
-  );
-  // Build the instruction
-  const instruction = {
+  // Resolve the necessary addresses
+  const campaignCreateAddresses = await service.hydrateInstructionAddresses(
     programAddress,
-    inputs: idlInstructionAccountsEncode(instructionIdl, {
-      payer: payerSigner.address,
-      user: userSigner.address,
-      campaign: campaignAddress,
-      pledge: pledgeAddress,
-      system_program: pubkeyDefault,
-    }),
-    data: idlInstructionArgsEncode(instructionIdl, {
-      params: null,
-    }),
-  };
+    "campaign_create",
+    { instructionPayload: { params: { index: "0" } } },
+  );
+  const campaignAddress = expectDefined(campaignCreateAddresses["campaign"]);
+  const pledgeCreateAddresses = await service.hydrateInstructionAddresses(
+    programAddress,
+    "pledge_create",
+    {
+      instructionAddresses: {
+        user: userSigner.address,
+        campaign: campaignAddress,
+      },
+    },
+  );
+  const pledgeAddress = expectDefined(pledgeCreateAddresses["pledge"]);
   // Run the simulation without verifying the signers
-  const transactionPacketNoVerify = transactionCompileUnsigned({
-    payerAddress: payerSigner.address,
-    recentBlockHash: blockHashDefault,
-    instructions: [instruction],
-  });
-  const resultNoVerify = await rpcHttpSimulateTransaction(
-    rpcHttp,
-    transactionPacketNoVerify,
+  const instruction = await service.hydrateAndEncodeInstruction(
+    programAddress,
+    "pledge_create",
+    {
+      instructionAddresses: {
+        payer: payerSigner.address,
+        user: userSigner.address,
+        campaign: campaignAddress,
+      },
+      instructionPayload: { params: null },
+    },
+  );
+  const resultNoVerify = await service.prepareAndSimulateTransaction(
+    payerSigner.address,
+    [instruction],
     {
       verifySignaturesAndBlockHash: false,
       simulatedAccountsAddresses: new Set([pledgeAddress]),
@@ -97,20 +72,14 @@ it("run", async () => {
   expect(pledgeAccountNoVerify.data.length).toBeGreaterThan(0);
   expect(pledgeAccountNoVerify.executable).toStrictEqual(false);
   // Run the simulation with verifying the signers (and recent block hash)
-  const { blockInfo: recentBlockInfo } =
-    await rpcHttpGetLatestBlockHash(rpcHttp);
-  const transactionPacketWithVerify = await transactionCompileAndSign(
-    [payerSigner, userSigner],
+  const resultWithVerify = await service.prepareAndSimulateTransaction(
+    payerSigner,
+    [instruction],
     {
-      payerAddress: payerSigner.address,
-      recentBlockHash: recentBlockInfo.hash,
-      instructions: [instruction],
+      extraSigners: [userSigner],
+      verifySignaturesAndBlockHash: true,
+      simulatedAccountsAddresses: new Set([pledgeAddress]),
     },
-  );
-  const resultWithVerify = await rpcHttpSimulateTransaction(
-    rpcHttp,
-    transactionPacketWithVerify,
-    { simulatedAccountsAddresses: new Set([pledgeAddress]) },
   );
   expect(resultWithVerify.transactionExecution.error).toStrictEqual(null);
   expect(resultWithVerify.transactionExecution.logs?.length).toStrictEqual(6);

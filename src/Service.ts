@@ -16,6 +16,7 @@ import {
   idlInstructionArgsDecode,
   idlInstructionArgsEncode,
 } from "./idl/IdlInstruction";
+import { IdlInstructionBlobOnchainAccounts } from "./idl/IdlInstructionBlob";
 import {
   IdlLoader,
   idlLoaderFallbackToUnknown,
@@ -27,13 +28,13 @@ import {
   idlProgramGuessAccount,
   idlProgramGuessInstruction,
 } from "./idl/IdlProgram";
-import { IdlTypeFull } from "./idl/IdlTypeFull";
 import { RpcHttp } from "./rpc/RpcHttp";
 import { rpcHttpGetAccountWithData } from "./rpc/RpcHttpGetAccountWithData";
 import { rpcHttpGetLatestBlockHash } from "./rpc/RpcHttpGetLatestBlockHash";
 import { rpcHttpSendTransaction } from "./rpc/RpcHttpSendTransaction";
 import { rpcHttpSimulateTransaction } from "./rpc/RpcHttpSimulateTransaction";
 
+// TODO - transaction getter for service (and others?) ?
 export class Service {
   private readonly rpcHttp: RpcHttp;
   private readonly idlLoaders: Array<IdlLoader>;
@@ -51,6 +52,10 @@ export class Service {
     this.idlLoaders = options?.customIdlLoaders ?? standardLoaders(rpcHttp);
     this.idlOverrides = options?.customIdlOverrides ?? new Map();
     this.cacheBlockHash = null;
+  }
+
+  public getRpcHttp() {
+    return this.rpcHttp;
   }
 
   public setProgramIdl(
@@ -135,24 +140,20 @@ export class Service {
     };
   }
 
-  public async getAndHydrateAndEncodeInstruction(
+  public async hydrateAndEncodeInstruction(
     programAddress: Pubkey,
     instructionName: string,
     instructionInfo: {
       // TODO (naming) - better name/structure for instructionInfo ?
-      instructionAddresses: Record<string, Pubkey>;
-      instructionPayload: JsonValue;
+      instructionAddresses?: Record<string, Pubkey>;
+      instructionPayload?: JsonValue;
     },
   ) {
-    const hydratedInstructionAddresses =
-      await this.getAndHydrateInstructionAddresses(
-        programAddress,
-        instructionName,
-        {
-          instructionAddresses: instructionInfo.instructionAddresses,
-          instructionPayload: instructionInfo.instructionPayload,
-        },
-      );
+    const hydratedInstructionAddresses = await this.hydrateInstructionAddresses(
+      programAddress,
+      instructionName,
+      instructionInfo,
+    );
     const programIdl = await this.getOrLoadProgramIdl(programAddress);
     const instructionIdl = programIdl.instructions.get(instructionName);
     if (!instructionIdl) {
@@ -166,17 +167,17 @@ export class Service {
     );
     const instructionData = idlInstructionArgsEncode(
       instructionIdl,
-      instructionInfo.instructionPayload,
+      instructionInfo.instructionPayload ?? null,
     );
     return { programAddress, inputs: instructionInputs, data: instructionData };
   }
 
-  public async getAndHydrateInstructionAddresses(
+  public async hydrateInstructionAddresses(
     programAddress: Pubkey,
     instructionName: string,
     instructionInfo: {
-      instructionAddresses: Record<string, Pubkey>;
-      instructionPayload: JsonValue;
+      instructionAddresses?: Record<string, Pubkey>;
+      instructionPayload?: JsonValue;
     },
   ) {
     const programIdl = await this.getOrLoadProgramIdl(programAddress);
@@ -186,31 +187,23 @@ export class Service {
         `IDL Instruction ${instructionName} not found for program ${programAddress}`,
       );
     }
-    const accountFetchCache = new Map<
-      Pubkey,
-      { accountState: JsonValue; accountTypeFull: IdlTypeFull }
-    >();
-    const accountContentFetcher = async (accountAddress: Pubkey) => {
-      const accountFetchCached = accountFetchCache.get(accountAddress);
-      if (accountFetchCached) {
-        return accountFetchCached;
-      }
-      const { accountInfo } =
-        await this.getAndInferAndDecodeAccountInfo(accountAddress);
-      const accountFetch = {
-        accountState: accountInfo.state,
-        accountTypeFull: accountInfo.idl.typeFull,
-      };
-      accountFetchCache.set(accountAddress, accountFetch);
-      return accountFetch;
-    };
+    const onchainAccounts: IdlInstructionBlobOnchainAccounts = {};
     return await idlInstructionAddressesHydrate(
       instructionIdl,
       programAddress,
-      instructionInfo,
       {
-        byAccountName: {},
-        fetcher: accountContentFetcher,
+        instructionAddresses: instructionInfo.instructionAddresses ?? {},
+        instructionPayload: instructionInfo.instructionPayload ?? null,
+      },
+      onchainAccounts ?? null,
+      async (instructionAccountName, instructionAccountAddress) => {
+        const { accountInfo } = await this.getAndInferAndDecodeAccountInfo(
+          instructionAccountAddress,
+        );
+        onchainAccounts[instructionAccountName] = {
+          accountState: accountInfo.state,
+          accountTypeFull: accountInfo.idl.typeFull,
+        };
       },
     );
   }
@@ -237,8 +230,8 @@ export class Service {
     options?: {
       extraSigners?: Array<Signer | WalletAccount>;
       transactionLookupTables?: Array<TransactionAddressLookupTable>;
-      skipAlreadySentCheck?: boolean;
       skipPreflight?: boolean;
+      failOnAlreadyProcessed?: boolean;
     },
   ) {
     const recentBlockHash = await this.getRecentBlockHash();
@@ -248,25 +241,18 @@ export class Service {
     }
     const transactionPacket = await transactionCompileAndSign(
       signers,
-      {
-        payerAddress: payer.address,
-        recentBlockHash: recentBlockHash,
-        instructions,
-      },
+      { payerAddress: payer.address, recentBlockHash, instructions },
       options?.transactionLookupTables,
     );
     const { transactionHandle } = await rpcHttpSendTransaction(
       this.rpcHttp,
       transactionPacket,
-      {
-        skipAlreadySentCheck: options?.skipAlreadySentCheck,
-        skipPreflight: options?.skipPreflight,
-      } as any,
+      options as any,
     );
     return { transactionHandle };
   }
 
-  public async simulateTransaction(
+  public async prepareAndSimulateTransaction(
     payer: Pubkey | Signer | WalletAccount,
     instructions: Array<Instruction>,
     options?: {
@@ -296,10 +282,11 @@ export class Service {
       { payerAddress, recentBlockHash, instructions },
       options?.transactionLookupTables,
     );
-    return await rpcHttpSimulateTransaction(this.rpcHttp, transactionPacket, {
-      verifySignaturesAndBlockHash: options?.verifySignaturesAndBlockHash,
-      simulatedAccountsAddresses: options?.simulatedAccountsAddresses,
-    } as any);
+    return await rpcHttpSimulateTransaction(
+      this.rpcHttp,
+      transactionPacket,
+      options as any,
+    );
   }
 }
 

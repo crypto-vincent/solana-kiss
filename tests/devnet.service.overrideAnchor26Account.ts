@@ -60,7 +60,7 @@ it("run", async () => {
     "Ej5zJzej7rrUoDngsJ3jcpfuvfVyWpcDcK7uv9cE2LdL",
   );
   // Check that we could indeed find the right accounts programatically
-  const instructionAddresses = await service.getAndHydrateInstructionAddresses(
+  const instructionAddresses = await service.hydrateInstructionAddresses(
     programAddress,
     "initialize_market",
     {

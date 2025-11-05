@@ -45,9 +45,7 @@ it("run", async () => {
       instructionPayload,
     },
     {
-      byAccountName: {
-        borrower_info: { accountState: { num_of_deals: 42 } },
-      },
+      borrower_info: { accountState: { num_of_deals: 42 } },
     },
   );
   // Check that we can encode it and then decode it

@@ -52,7 +52,7 @@ export type TransactionExecution = {
   chargedFeesLamports: bigint | undefined;
 };
 
-// TODO - this should be rooted at a program call not a statement list
+// TODO - this should be rooted at a program call not a statement list ?
 export type TransactionFlow = Array<
   | { invocation: TransactionInvocation }
   | { data: Uint8Array }
@@ -63,7 +63,7 @@ export type TransactionInvocation = {
   instruction: Instruction;
   flow: TransactionFlow;
   error: string | undefined;
-  returnData: Uint8Array | undefined;
+  returned: Uint8Array | undefined;
   consumedComputeUnits: number | undefined;
 };
 
@@ -205,22 +205,16 @@ export async function transactionSign(
   transactionPacket: TransactionPacket,
   signers: Array<Signer | WalletAccount>,
 ) {
-  for (const signer of signers) {
-    if ("signTransaction" in signer) {
-      transactionPacket = await signer.signTransaction(transactionPacket);
-    }
-  }
-  const message = transactionExtractMessage(transactionPacket);
-  const signing = transactionExtractSigning(transactionPacket);
   const signaturesBySignerAddress = new Map<Pubkey, Signature>();
+  const message = transactionExtractMessage(transactionPacket);
   for (const signer of signers) {
-    if ("signTransaction" in signer) {
-      continue;
+    if ("sign" in signer) {
+      signaturesBySignerAddress.set(signer.address, await signer.sign(message));
     }
-    signaturesBySignerAddress.set(signer.address, await signer.sign(message));
   }
   const bytes = new Uint8Array(transactionPacket);
   let offset = 1;
+  const signing = transactionExtractSigning(transactionPacket);
   for (const { signerAddress } of signing) {
     const signature = signaturesBySignerAddress.get(signerAddress);
     if (signature !== undefined) {
@@ -228,7 +222,13 @@ export async function transactionSign(
     }
     offset += 64;
   }
-  return bytes as TransactionPacket;
+  let packet = bytes as TransactionPacket;
+  for (const signer of signers) {
+    if ("signTransaction" in signer) {
+      packet = await signer.signTransaction(packet);
+    }
+  }
+  return packet;
 }
 
 export async function transactionVerify(

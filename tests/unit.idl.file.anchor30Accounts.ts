@@ -54,13 +54,11 @@ it("run", async () => {
     pubkeyToBytes(campaignAddress),
     pubkeyToBytes(userAddress),
   ]);
-  const accountsContents = {
-    byAccountName: {
-      campaign: {
-        accountState: {
-          collateral_mint: pubkeyToBase58(collateralMintAddress),
-        },
-        accountTypeFull: programIdl.accounts.get("Campaign")?.typeFull,
+  const onchainAccounts = {
+    campaign: {
+      accountTypeFull: programIdl.accounts.get("Campaign")?.typeFull,
+      accountState: {
+        collateral_mint: pubkeyToBase58(collateralMintAddress),
       },
     },
   };
@@ -79,7 +77,7 @@ it("run", async () => {
         params: { index: campaignIndex },
       },
     },
-    accountsContents,
+    onchainAccounts,
   );
   // Check outcome
   expect(campaignCreateAddresses["campaign"]).toStrictEqual(campaignAddress);
@@ -99,7 +97,7 @@ it("run", async () => {
       },
       instructionPayload: { params: { index: campaignIndex } },
     },
-    accountsContents,
+    onchainAccounts,
   );
   // Check outcome
   expect(campaignExtractAddresses["campaign_collateral"]).toStrictEqual(
@@ -133,7 +131,7 @@ it("run", async () => {
       },
       instructionPayload: {},
     },
-    accountsContents,
+    onchainAccounts,
   );
   // Check outcome
   expect(pledgeDepositAddresses["campaign_collateral"]).toStrictEqual(

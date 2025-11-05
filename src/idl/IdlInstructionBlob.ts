@@ -28,17 +28,13 @@ export type IdlInstructionBlobInstructionContent = {
   instructionAddresses: Record<string, Pubkey>;
   instructionPayload: JsonValue;
 };
-
-export type IdlInstructionBlobAccountContent = {
-  accountState: JsonValue;
-  accountTypeFull?: IdlTypeFull | undefined;
-};
-export type IdlInstructionBlobAccountContents = {
-  byAccountName?: Record<string, IdlInstructionBlobAccountContent>; // TODO (naming) - i dont like this name
-  fetcher?: (
-    accountAddress: Pubkey,
-  ) => Promise<IdlInstructionBlobAccountContent>;
-};
+export type IdlInstructionBlobOnchainAccounts = Record<
+  string,
+  {
+    accountState: JsonValue;
+    accountTypeFull?: IdlTypeFull | undefined;
+  }
+>;
 
 export type IdlInstructionBlobConst = {
   bytes: Uint8Array;
@@ -93,15 +89,15 @@ export class IdlInstructionBlob {
   }
 }
 
-export async function idlInstructionBlobCompute(
+export function idlInstructionBlobCompute(
   instructionBlobIdl: IdlInstructionBlob,
   instructionContent: IdlInstructionBlobInstructionContent,
-  accountsContents?: IdlInstructionBlobAccountContents,
+  onchainAccounts?: IdlInstructionBlobOnchainAccounts,
 ) {
   return instructionBlobIdl.traverse(
     computeVisitor,
     instructionContent,
-    accountsContents,
+    onchainAccounts,
   );
 }
 
@@ -220,10 +216,10 @@ const jsonDecoder = jsonDecoderByKind<{
 });
 
 const computeVisitor = {
-  const: async (self: IdlInstructionBlobConst) => {
+  const: (self: IdlInstructionBlobConst) => {
     return self.bytes;
   },
-  arg: async (
+  arg: (
     self: IdlInstructionBlobArg,
     instructionContent: IdlInstructionBlobInstructionContent,
   ) => {
@@ -234,10 +230,10 @@ const computeVisitor = {
     );
     return idlTypeFullEncode(self.typeFull, value, false);
   },
-  account: async (
+  account: (
     self: IdlInstructionBlobAccount,
     instructionContent: IdlInstructionBlobInstructionContent,
-    accountsContents?: IdlInstructionBlobAccountContents,
+    onchainAccounts?: IdlInstructionBlobOnchainAccounts,
   ) => {
     if (
       self.typeFull === undefined ||
@@ -256,76 +252,37 @@ const computeVisitor = {
       }
     }
     const pointerPreview = jsonPointerPreview(self.pointer);
-    if (accountsContents === undefined) {
+    if (onchainAccounts === undefined) {
       throw new Error(
         `Idl: Cannot compute account blob at path: ${pointerPreview} without account contents`,
       );
     }
-    if (accountsContents.byAccountName !== undefined) {
-      for (const [instructionAccountName, accountContent] of Object.entries(
-        accountsContents.byAccountName,
-      )) {
-        const instructionAccountPointer = jsonPointerParse(
-          instructionAccountName,
-        );
-        if (!jsonIsDeepSubset(instructionAccountPointer, self.pointer)) {
-          continue;
-        }
-        const statePointer = self.pointer.slice(
-          instructionAccountPointer.length,
-        );
-        const stateValue = jsonGetAt(
-          accountContent.accountState,
-          statePointer,
-          { throwOnMissing: true },
-        );
-        if (self.typeFull !== undefined) {
-          return idlTypeFullEncode(self.typeFull, stateValue, false);
-        }
-        if (accountContent.accountTypeFull === undefined) {
-          throw new Error(
-            `Idl: Cannot compute account blob at path: ${pointerPreview} with just the state and no type information`,
-          );
-        }
-        return idlTypeFullEncode(
-          idlTypeFullGetAt(accountContent.accountTypeFull, statePointer),
-          stateValue,
-          false,
+    for (const [instructionAccountName, onchainAccount] of Object.entries(
+      onchainAccounts,
+    )) {
+      const instructionAccountPointer = jsonPointerParse(
+        instructionAccountName,
+      );
+      if (!jsonIsDeepSubset(instructionAccountPointer, self.pointer)) {
+        continue;
+      }
+      const statePointer = self.pointer.slice(instructionAccountPointer.length);
+      const stateValue = jsonGetAt(onchainAccount.accountState, statePointer, {
+        throwOnMissing: true,
+      });
+      if (self.typeFull !== undefined) {
+        return idlTypeFullEncode(self.typeFull, stateValue, false);
+      }
+      if (onchainAccount.accountTypeFull === undefined) {
+        throw new Error(
+          `Idl: Cannot compute account blob at path: ${pointerPreview} with just the state and no type information`,
         );
       }
-    }
-    if (accountsContents.fetcher !== undefined) {
-      for (const [instructionAccountName, instructionAddress] of Object.entries(
-        instructionContent.instructionAddresses,
-      )) {
-        const instructionAccountPointer = jsonPointerParse(
-          instructionAccountName,
-        );
-        if (!jsonIsDeepSubset(instructionAccountPointer, self.pointer)) {
-          continue;
-        }
-        const { accountState, accountTypeFull } =
-          await accountsContents.fetcher(instructionAddress);
-        const statePointer = self.pointer.slice(
-          instructionAccountPointer.length,
-        );
-        const stateValue = jsonGetAt(accountState, statePointer, {
-          throwOnMissing: true,
-        });
-        if (self.typeFull !== undefined) {
-          return idlTypeFullEncode(self.typeFull, stateValue, false);
-        }
-        if (accountTypeFull === undefined) {
-          throw new Error(
-            `Idl: Could not fetch needed content type for account: ${instructionAccountName}`,
-          );
-        }
-        return idlTypeFullEncode(
-          idlTypeFullGetAt(accountTypeFull, statePointer),
-          stateValue,
-          false,
-        );
-      }
+      return idlTypeFullEncode(
+        idlTypeFullGetAt(onchainAccount.accountTypeFull, statePointer),
+        stateValue,
+        false,
+      );
     }
     throw new Error(
       `Idl: Could not find matching account for path: ${pointerPreview}`,

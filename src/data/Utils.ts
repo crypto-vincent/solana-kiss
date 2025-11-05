@@ -33,6 +33,10 @@ export function withErrorContext<T>(message: string, fn: () => T): T {
   }
 }
 
+export function timeoutMs(durationMs: number): Promise<void> {
+  return new Promise((resolve) => setTimeout(resolve, durationMs));
+}
+
 export class ErrorWithContext extends Error {
   constructor(message: string, error: any) {
     super(

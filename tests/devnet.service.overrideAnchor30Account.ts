@@ -37,13 +37,10 @@ it("run", async () => {
     "EsQycjp856vTPvrxMuH1L6ymd5K63xT7aULGepiTcgM3",
   );
   // Check that we could indeed find the right accounts programatically
-  const instructionAddresses = await service.getAndHydrateInstructionAddresses(
+  const instructionAddresses = await service.hydrateInstructionAddresses(
     programAddress,
     "campaign_create",
-    {
-      instructionAddresses: {},
-      instructionPayload: { params: { index: "0" } },
-    },
+    { instructionPayload: { params: { index: "0" } } },
   );
   expect(instructionAddresses["campaign"]).toStrictEqual(campaign);
 });
