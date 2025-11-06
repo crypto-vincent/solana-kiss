@@ -6,11 +6,11 @@ import {
   rpcHttpGetAccountLamports,
   rpcHttpGetAccountMetadata,
   rpcHttpGetAccountWithData,
-  urlPublicRpcDevnet,
+  urlRpcPublicDevnet,
 } from "../src";
 
 it("run", async () => {
-  const rpcHttp = rpcHttpFromUrl(urlPublicRpcDevnet);
+  const rpcHttp = rpcHttpFromUrl(urlRpcPublicDevnet);
   const accountAddress = pubkeyFromBase58(
     "DL8WvebR4WVMu8WDv42zyzWuH9UZELYZ8kdhCaa83skB",
   );

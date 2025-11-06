@@ -9,13 +9,13 @@ import {
   pubkeyToBytes,
   rpcHttpFromUrl,
   Solana,
-  urlPublicRpcDevnet,
+  urlRpcPublicDevnet,
   utf8Encode,
 } from "../src";
 
 it("run", async () => {
   // Create the endpoint
-  const solana = new Solana(rpcHttpFromUrl(urlPublicRpcDevnet));
+  const solana = new Solana(rpcHttpFromUrl(urlRpcPublicDevnet));
   // Choosing our programAddress
   const programAddress = pubkeyFromBase58(
     "crdszSnZQu7j36KfsMJ4VEmMUTJgrNYXwoPVHUANpAu",

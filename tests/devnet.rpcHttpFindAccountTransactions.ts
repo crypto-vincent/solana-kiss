@@ -5,11 +5,11 @@ import {
   rpcHttpFindAccountTransactions,
   rpcHttpFromUrl,
   rpcHttpGetTransaction,
-  urlPublicRpcDevnet,
+  urlRpcPublicDevnet,
 } from "../src";
 
 it("run", async () => {
-  const rpcHttp = rpcHttpFromUrl(urlPublicRpcDevnet);
+  const rpcHttp = rpcHttpFromUrl(urlRpcPublicDevnet);
   const { rewindingTransactionsHandles } = await rpcHttpFindAccountTransactions(
     rpcHttp,
     pubkeyFromBase58("vVeH6Xd43HAScbxjVtvfwDGqBMaMvNDLsAxwM5WK1pG"),

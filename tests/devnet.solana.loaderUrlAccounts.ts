@@ -4,11 +4,11 @@ import {
   pubkeyFromBase58,
   rpcHttpFromUrl,
   Solana,
-  urlPublicRpcDevnet,
+  urlRpcPublicDevnet,
 } from "../src";
 
 it("run", async () => {
-  const solana = new Solana(rpcHttpFromUrl(urlPublicRpcDevnet));
+  const solana = new Solana(rpcHttpFromUrl(urlRpcPublicDevnet));
   await assertAccountState(
     solana,
     pubkeyFromBase58("Ady55LhZxWFABzdg8NCNTAZv5XstBqyNZYCMfWqW3Rq9"),

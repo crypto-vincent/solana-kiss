@@ -4,11 +4,11 @@ import {
   rpcHttpFromUrl,
   rpcHttpGetTransaction,
   signatureFromBase58,
-  urlPublicRpcDevnet,
+  urlRpcPublicDevnet,
 } from "../src";
 
 it("run", async () => {
-  const rpcHttp = rpcHttpFromUrl(urlPublicRpcDevnet);
+  const rpcHttp = rpcHttpFromUrl(urlRpcPublicDevnet);
   // This should be a simple success
   const {
     transactionRequest: transactionRequest1,

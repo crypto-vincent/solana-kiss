@@ -9,22 +9,22 @@ import {
   TransactionPacket,
 } from "./Transaction";
 
-export const urlPublicRpcMainnet = "https://api.mainnet-beta.solana.com";
-export const urlPublicRpcDevnet = "https://api.devnet.solana.com";
-export const urlPublicRpcTestnet = "https://api.testnet.solana.com";
+export const urlRpcPublicMainnet = "https://api.mainnet-beta.solana.com";
+export const urlRpcPublicDevnet = "https://api.devnet.solana.com";
+export const urlRpcPublicTestnet = "https://api.testnet.solana.com";
 
 export function urlRpcFromUrlOrMoniker(rpcUrlOrMoniker: string) {
   switch (rpcUrlOrMoniker) {
     case "m":
     case "mainnet":
     case "mainnet-beta":
-      return urlPublicRpcMainnet;
+      return urlRpcPublicMainnet;
     case "d":
     case "devnet":
-      return urlPublicRpcDevnet;
+      return urlRpcPublicDevnet;
     case "t":
     case "testnet":
-      return urlPublicRpcTestnet;
+      return urlRpcPublicTestnet;
     default:
       return rpcUrlOrMoniker;
   }
@@ -76,11 +76,11 @@ function urlExplorer(
 function urlExplorerArgCluster(rpc: string) {
   const urlRpc = urlRpcFromUrlOrMoniker(rpc);
   switch (urlRpc) {
-    case urlPublicRpcMainnet:
+    case urlRpcPublicMainnet:
       return "cluster=mainnet-beta";
-    case urlPublicRpcDevnet:
+    case urlRpcPublicDevnet:
       return "cluster=devnet";
-    case urlPublicRpcTestnet:
+    case urlRpcPublicTestnet:
       return "cluster=testnet";
     default:
       return `customUrl=${encodeURIComponent(rpc)}`;

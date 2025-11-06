@@ -7,11 +7,11 @@ import {
   signerFromSecret,
   signerGenerate,
   Solana,
-  urlPublicRpcDevnet,
+  urlRpcPublicDevnet,
 } from "../src";
 
 it("run", async () => {
-  const solana = new Solana(rpcHttpFromUrl(urlPublicRpcDevnet));
+  const solana = new Solana(rpcHttpFromUrl(urlRpcPublicDevnet));
   const programAddress = pubkeyFromBase58(
     "UCNcQRtrbGmvuLKA3Jv719Cc6DS4r661ZRpyZduxu2j",
   );

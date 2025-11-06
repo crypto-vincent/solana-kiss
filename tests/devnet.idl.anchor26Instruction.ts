@@ -8,12 +8,12 @@ import {
   rpcHttpFromUrl,
   rpcHttpGetTransaction,
   signatureFromBase58,
-  urlPublicRpcDevnet,
+  urlRpcPublicDevnet,
 } from "../src";
 
 it("run", async () => {
   // Create the endpoint
-  const rpcHttp = rpcHttpFromUrl(urlPublicRpcDevnet);
+  const rpcHttp = rpcHttpFromUrl(urlRpcPublicDevnet);
   // Parse IDL from file JSON directly
   const programIdl = idlProgramParse(require("./fixtures/idl_anchor_26.json"));
   // Download an arbitrary instruction we should be able to decode

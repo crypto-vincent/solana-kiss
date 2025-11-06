@@ -10,13 +10,13 @@ import {
   urlExplorerBlock,
   urlExplorerSimulation,
   urlExplorerTransaction,
-  urlPublicRpcDevnet,
-  urlPublicRpcMainnet,
+  urlRpcPublicDevnet,
+  urlRpcPublicMainnet,
 } from "../src";
 
 it("run", async () => {
   expect(
-    urlExplorerBlock(urlPublicRpcMainnet, blockSlotFromNumber(377349811)),
+    urlExplorerBlock(urlRpcPublicMainnet, blockSlotFromNumber(377349811)),
   ).toStrictEqual(
     "https://explorer.solana.com/block/377349811?cluster=mainnet-beta",
   );
@@ -30,11 +30,11 @@ it("run", async () => {
   );
 
   expect(
-    urlExplorerBlock(urlPublicRpcDevnet, blockSlotFromNumber(418711690)),
+    urlExplorerBlock(urlRpcPublicDevnet, blockSlotFromNumber(418711690)),
   ).toStrictEqual("https://explorer.solana.com/block/418711690?cluster=devnet");
   expect(
     urlExplorerAccount(
-      urlPublicRpcDevnet,
+      urlRpcPublicDevnet,
       pubkeyFromBase58("4Nd1mY5Z6kR7q8U6z3v5X6ixkmKsg4xX6p6L7m3gH1oN"),
     ),
   ).toStrictEqual(
@@ -42,7 +42,7 @@ it("run", async () => {
   );
   expect(
     urlExplorerTransaction(
-      urlPublicRpcDevnet,
+      urlRpcPublicDevnet,
       signatureFromBase58(
         "5AVjDXZskdayztESDeaumG4E8s28Fn6ttEkM7oAVEcG62g8A6te4NMBuQtKNGg8dvxRatp8nw4tkh19AasLQZYFj",
       ),
@@ -60,7 +60,7 @@ it("run", async () => {
     instructions: [{ programAddress, inputs: [], data: new Uint8Array([42]) }],
   });
   expect(
-    urlExplorerSimulation(urlPublicRpcDevnet, transactionPacket),
+    urlExplorerSimulation(urlRpcPublicDevnet, transactionPacket),
   ).toStrictEqual(
     "https://explorer.solana.com/tx/inspector?message=AQABAj457ZZiOmUrAI5j%2BXTNkEsnj5JmxVAS2pv6Zs7I5eStC7wPwLtHyi90xBEulKsTz6PGNOXcF%2BrLA80aI81%2BeHwBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAAEq&signatures=%5B%225Pk87GxZBwfk41CHdawMJWQNWQQhSUyjqVXzyLzKTXeg3mi3vh5Erq4UQBdmxXt2vimCRs2WDqFsUEaPYzTnXr8F%22%5D&cluster=devnet",
   );

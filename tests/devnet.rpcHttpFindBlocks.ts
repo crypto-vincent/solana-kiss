@@ -2,7 +2,7 @@ import {
   blockSlotFromNumber,
   rpcHttpFindBlocks,
   rpcHttpFromUrl,
-  urlPublicRpcDevnet,
+  urlRpcPublicDevnet,
 } from "../src";
 
 const highBlockSlot = blockSlotFromNumber(378967387);
@@ -10,7 +10,7 @@ const lowBlockSlot = blockSlotFromNumber(378967287);
 const blockDistance = 100;
 
 it("run", async () => {
-  const rpcHttp = rpcHttpFromUrl(urlPublicRpcDevnet);
+  const rpcHttp = rpcHttpFromUrl(urlRpcPublicDevnet);
 
   const { blocksSlots: blocksSlotsFromHigh } = await rpcHttpFindBlocks(
     rpcHttp,

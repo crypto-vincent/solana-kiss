@@ -3,11 +3,11 @@ import {
   pubkeyFromBase58,
   rpcHttpFromUrl,
   Solana,
-  urlPublicRpcDevnet,
+  urlRpcPublicDevnet,
 } from "../src";
 
 it("run", async () => {
-  const solana = new Solana(rpcHttpFromUrl(urlPublicRpcDevnet));
+  const solana = new Solana(rpcHttpFromUrl(urlRpcPublicDevnet));
   const programIdl = await solana.getOrLoadProgramIdl(
     pubkeyFromBase58("UCNcQRtrbGmvuLKA3Jv719Cc6DS4r661ZRpyZduxu2j"),
   );

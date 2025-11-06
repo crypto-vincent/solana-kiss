@@ -8,11 +8,11 @@ import {
   rpcHttpGetTransaction,
   signatureFromBase58,
   TransactionFlow,
-  urlPublicRpcMainnet,
+  urlRpcPublicMainnet,
 } from "../src";
 
 it("run", async () => {
-  const rpcHttp = rpcHttpFromUrl(urlPublicRpcMainnet);
+  const rpcHttp = rpcHttpFromUrl(urlRpcPublicMainnet);
   // Complex transaction with many inner instructions nested
   const { transactionRequest, transactionExecution, transactionFlow } =
     expectDefined(

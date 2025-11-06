@@ -4,7 +4,7 @@ import {
   rpcHttpFindProgramOwnedAccounts,
   rpcHttpFromUrl,
   rpcHttpGetAccountWithData,
-  urlPublicRpcDevnet,
+  urlRpcPublicDevnet,
 } from "../src";
 
 const expectedDiscriminatorBytes = new Uint8Array([
@@ -12,7 +12,7 @@ const expectedDiscriminatorBytes = new Uint8Array([
 ]);
 
 it("run", async () => {
-  const rpcHttp = rpcHttpFromUrl(urlPublicRpcDevnet);
+  const rpcHttp = rpcHttpFromUrl(urlRpcPublicDevnet);
   const ownedAccountsBySize = await rpcHttpFindProgramOwnedAccounts(
     rpcHttp,
     pubkeyFromBase58("vVeH6Xd43HAScbxjVtvfwDGqBMaMvNDLsAxwM5WK1pG"),

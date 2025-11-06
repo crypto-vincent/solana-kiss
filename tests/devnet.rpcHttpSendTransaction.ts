@@ -21,12 +21,12 @@ import {
   transactionCompileAndSign,
   TransactionPacket,
   transactionSign,
-  urlPublicRpcDevnet,
+  urlRpcPublicDevnet,
   WalletAccount,
 } from "../src";
 
 it("run", async () => {
-  const rpcHttp = rpcHttpFromUrl(urlPublicRpcDevnet, {
+  const rpcHttp = rpcHttpFromUrl(urlRpcPublicDevnet, {
     commitment: "confirmed",
   });
   const programAddress = pubkeyDefault;

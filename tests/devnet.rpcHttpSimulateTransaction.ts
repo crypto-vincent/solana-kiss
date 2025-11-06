@@ -18,12 +18,12 @@ import {
   signerGenerate,
   transactionCompileAndSign,
   transactionCompileUnsigned,
-  urlPublicRpcDevnet,
+  urlRpcPublicDevnet,
   utf8Encode,
 } from "../src";
 
 it("run", async () => {
-  const rpcHttp = rpcHttpFromUrl(urlPublicRpcDevnet, {
+  const rpcHttp = rpcHttpFromUrl(urlRpcPublicDevnet, {
     commitment: "confirmed",
   });
   // Find the necessary addresses

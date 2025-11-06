@@ -5,11 +5,11 @@ import {
   rpcHttpGetBlockMetadata,
   rpcHttpGetBlockTime,
   rpcHttpGetBlockWithTransactions,
-  urlPublicRpcDevnet,
+  urlRpcPublicDevnet,
 } from "../src";
 
 it("run", async () => {
-  const rpcHttp = rpcHttpFromUrl(urlPublicRpcDevnet);
+  const rpcHttp = rpcHttpFromUrl(urlRpcPublicDevnet);
   const blockSlot = blockSlotFromNumber(378967387);
   const {
     previousBlockSlot: metadataPreviousBlockSlot,
