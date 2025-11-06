@@ -6,11 +6,15 @@ import {
   TransactionPacket,
 } from "../src";
 
+function rpcHttp() {
+  return require("./fixtures/RpcHttpSimulateTransaction.json");
+}
+
 it("run", async () => {
   const dummyAddress = pubkeyNewDummy();
   const { transactionExecution, simulatedAccountInfoByAddress } = expectDefined(
     await rpcHttpSimulateTransaction(
-      () => require("./fixtures/RpcHttpSimulateTransaction.json"),
+      rpcHttp,
       new Uint8Array() as TransactionPacket,
       { simulatedAccountsAddresses: new Set([dummyAddress]) },
     ),

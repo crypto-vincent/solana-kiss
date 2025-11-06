@@ -1,9 +1,13 @@
 import { expect, it } from "@jest/globals";
 import { rpcHttpSendTransaction, TransactionPacket } from "../src";
 
+function rpcHttp() {
+  return require("./fixtures/RpcHttpSendTransaction.json");
+}
+
 it("run", async () => {
   const { transactionHandle } = await rpcHttpSendTransaction(
-    () => require("./fixtures/RpcHttpSendTransaction.json"),
+    rpcHttp,
     new Uint8Array() as TransactionPacket,
     { failOnAlreadyProcessed: true },
   );

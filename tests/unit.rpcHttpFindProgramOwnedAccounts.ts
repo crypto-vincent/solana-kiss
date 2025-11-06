@@ -1,9 +1,13 @@
 import { expect, it } from "@jest/globals";
 import { pubkeyNewDummy, rpcHttpFindProgramOwnedAccounts } from "../src";
 
+function rpcHttp() {
+  return require("./fixtures/RpcHttpGetProgramAccounts.json");
+}
+
 it("run", async () => {
   const accountsOwnedResponse = await rpcHttpFindProgramOwnedAccounts(
-    () => require("./fixtures/RpcHttpGetProgramAccounts.json"),
+    rpcHttp,
     pubkeyNewDummy(),
   );
   const accountsOwnedAddresses = accountsOwnedResponse.accountsAddresses;

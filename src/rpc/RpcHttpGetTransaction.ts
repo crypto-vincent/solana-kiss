@@ -91,7 +91,7 @@ export async function rpcHttpGetTransaction(
       transactionFlow: undefined,
     };
   }
-  const instructionsInvocations = decompileInstructionsInvocations(
+  const instructionsCallStacks = decompileInstructionsCallStacks(
     instructions,
     instructionsInputs,
     meta.innerInstructions,
@@ -103,9 +103,9 @@ export async function rpcHttpGetTransaction(
     returned: undefined,
     consumedComputeUnits: undefined,
   };
-  const afterParsing = parseTransactionCallstack(
+  const afterParsing = parseTransactionInvocations(
     rootInvocation,
-    instructionsInvocations,
+    instructionsCallStacks,
     meta.logMessages,
     -1,
   );
@@ -227,11 +227,11 @@ function decompileInstruction(
 }
 
 type InstructionCallStack = {
-  instruction: Instruction;
+  instructionCall: Instruction;
   callStack: Array<InstructionCallStack>;
 };
 
-function decompileInstructionsInvocations(
+function decompileInstructionsCallStacks(
   instructions: Array<Instruction>,
   instructionsInputs: Array<InstructionInput>,
   compiledInnerInstructions: Array<{
@@ -242,7 +242,7 @@ function decompileInstructionsInvocations(
   const rootInvocations = new Array<InstructionCallStack>();
   for (let index = 0; index < instructions.length; index++) {
     rootInvocations.push({
-      instruction: instructions[index]!,
+      instructionCall: instructions[index]!,
       callStack: [],
     });
   }
@@ -254,8 +254,8 @@ function decompileInstructionsInvocations(
     const stackInvocation = new Array<InstructionCallStack>();
     stackInvocation.push(rootInvocation);
     for (const compiledInnerInstruction of compiledInnerInstructionBlock.instructions) {
-      const innerInvocation = {
-        instruction: decompileInstruction(
+      const innerInvocation: InstructionCallStack = {
+        instructionCall: decompileInstruction(
           compiledInnerInstruction,
           instructionsInputs,
         ),
@@ -282,9 +282,9 @@ function decompileInstructionsInvocations(
   return rootInvocations;
 }
 
-function parseTransactionCallstack(
+function parseTransactionInvocations(
   invocation: TransactionInvocation,
-  instructionsInvocations: Array<InstructionCallStack>,
+  instructionsCallStacks: Array<InstructionCallStack>,
   logs: Array<string>,
   logIndex: number,
 ): { logIndex: number } {
@@ -327,28 +327,27 @@ function parseTransactionCallstack(
         const logProgramAddress = pubkeyFromBase58(logsProgramParts[0]!);
         const logProgramKind = logsProgramParts[1]!;
         if (logProgramKind === "invoke") {
-          const instructionInvocation =
-            instructionsInvocations[invocationIndex];
+          const instructionInvocation = instructionsCallStacks[invocationIndex];
           invocationIndex++;
           if (instructionInvocation === undefined) {
             throw new Error(`RpcHttp: Unexpected invoke log: ${logLine}`);
           }
           if (
-            instructionInvocation.instruction.programAddress !==
+            instructionInvocation.instructionCall.programAddress !==
             logProgramAddress
           ) {
             throw new Error(
-              `RpcHttp: Unexpected invoke log program address (expected ${instructionInvocation.instruction.programAddress}, found ${logProgramAddress}): ${logLine}`,
+              `RpcHttp: Unexpected invoke log program address (expected ${instructionInvocation.instructionCall.programAddress}, found ${logProgramAddress}): ${logLine}`,
             );
           }
           const innerInvocation = {
-            instruction: instructionInvocation.instruction,
+            instruction: instructionInvocation.instructionCall,
             flow: [],
             error: undefined,
             returned: undefined,
             consumedComputeUnits: undefined,
           };
-          const afterParsing = parseTransactionCallstack(
+          const afterParsing = parseTransactionInvocations(
             innerInvocation,
             instructionInvocation.callStack,
             logs,

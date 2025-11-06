@@ -5,9 +5,13 @@ import {
   rpcHttpGetAccountWithData,
 } from "../src";
 
+function rpcHttp() {
+  return require("./fixtures/RpcHttpGetAccountInfo.json");
+}
+
 it("run", async () => {
   const { accountInfo: withDataInfo } = await rpcHttpGetAccountWithData(
-    () => require("./fixtures/RpcHttpGetAccountInfo.json"),
+    rpcHttp,
     pubkeyNewDummy(),
   );
   expect(withDataInfo.executable).toStrictEqual(true);
@@ -19,7 +23,7 @@ it("run", async () => {
     new Uint8Array([42, 42, 42, 42, 42, 42, 42, 42]),
   );
   const { accountInfo: metadataInfo } = await rpcHttpGetAccountMetadata(
-    () => require("./fixtures/RpcHttpGetAccountInfo.json"),
+    rpcHttp,
     null as any,
   );
   expect(metadataInfo.executable).toStrictEqual(true);

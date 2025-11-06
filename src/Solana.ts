@@ -241,7 +241,7 @@ export class Solana {
   }
 
   public async prepareAndSendTransaction(
-    payer: Signer | WalletAccount,
+    payerSigner: Signer | WalletAccount,
     instructions: Array<Instruction>,
     options?: {
       extraSigners?: Array<Signer | WalletAccount>;
@@ -251,13 +251,13 @@ export class Solana {
     },
   ) {
     const recentBlockHash = await this.getRecentBlockHash();
-    const signers = [payer];
+    const signers = [payerSigner];
     if (options?.extraSigners) {
       signers.push(...options.extraSigners);
     }
     const transactionPacket = await transactionCompileAndSign(
       signers,
-      { payerAddress: payer.address, recentBlockHash, instructions },
+      { payerAddress: payerSigner.address, recentBlockHash, instructions },
       options?.transactionLookupTables,
     );
     const { transactionHandle } = await rpcHttpSendTransaction(

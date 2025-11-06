@@ -28,38 +28,38 @@ async function expectParallelDelaysDurationMs(context: {
 it("run", async () => {
   await expectParallelDelaysDurationMs({
     rpcHttp: rpcHttpWithMaxConcurrentRequests(rpcHttp, 2),
-    delaysMs: [10, 50, 100, 50],
-    expectedDurationMs: 110,
+    delaysMs: [1, 5, 10, 5],
+    expectedDurationMs: 11,
   });
   await expectParallelDelaysDurationMs({
     rpcHttp: rpcHttpWithMaxConcurrentRequests(rpcHttp, 2),
-    delaysMs: [50, 50, 100, 100],
-    expectedDurationMs: 150,
+    delaysMs: [5, 5, 10, 10],
+    expectedDurationMs: 15,
   });
   await expectParallelDelaysDurationMs({
     rpcHttp: rpcHttpWithMaxConcurrentRequests(rpcHttp, 2),
-    delaysMs: [100, 34, 34, 34],
-    expectedDurationMs: 102,
+    delaysMs: [10, 4, 4, 4],
+    expectedDurationMs: 12,
   });
   await expectParallelDelaysDurationMs({
     rpcHttp: rpcHttpWithMaxConcurrentRequests(rpcHttp, 2),
-    delaysMs: [100, 100, 100, 100, 100, 100],
-    expectedDurationMs: 300,
+    delaysMs: [10, 10, 10, 10, 10, 10],
+    expectedDurationMs: 30,
   });
   await expectParallelDelaysDurationMs({
     rpcHttp: rpcHttpWithMaxConcurrentRequests(rpcHttp, 4),
-    delaysMs: [100, 100, 100, 100, 100, 100],
-    expectedDurationMs: 200,
+    delaysMs: [10, 10, 10, 10, 10, 10],
+    expectedDurationMs: 20,
   });
   await expectParallelDelaysDurationMs({
     rpcHttp: rpcHttpWithMaxConcurrentRequests(rpcHttp, 6),
-    delaysMs: [100, 100, 100, 100, 100, 100],
-    expectedDurationMs: 100,
+    delaysMs: [10, 10, 10, 10, 10, 10],
+    expectedDurationMs: 10,
   });
   await expectParallelDelaysDurationMs({
     rpcHttp: rpcHttpWithMaxConcurrentRequests(rpcHttp, 10),
-    delaysMs: [100, 100, 100, 100, 100, 100],
-    expectedDurationMs: 100,
+    delaysMs: [10, 10, 10, 10, 10, 10],
+    expectedDurationMs: 10,
   });
 });
 
@@ -93,11 +93,11 @@ function mockClockTick() {
       index++;
     }
   }
-  if (mockClockTimeouts.length === 0) {
-    mockClockTicking = false;
-    return;
-  }
   setTimeout(() => {
+    if (mockClockTimeouts.length === 0) {
+      mockClockTicking = false;
+      return;
+    }
     mockClockNowMs++;
     mockClockTick();
   }, 0);

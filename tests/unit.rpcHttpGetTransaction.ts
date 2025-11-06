@@ -9,13 +9,14 @@ import {
   TransactionHandle,
 } from "../src";
 
+function rpcHttp() {
+  return require("./fixtures/RpcHttpGetTransaction.json");
+}
+
 it("run", async () => {
   const { transactionRequest, transactionExecution, transactionFlow } =
     expectDefined(
-      await rpcHttpGetTransaction(
-        () => require("./fixtures/RpcHttpGetTransaction.json"),
-        "!" as TransactionHandle,
-      ),
+      await rpcHttpGetTransaction(rpcHttp, "!" as TransactionHandle),
     );
   // Check basic stuff about the transaction
   expect(transactionExecution.blockInfo.time?.toISOString()).toStrictEqual(
