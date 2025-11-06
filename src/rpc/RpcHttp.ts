@@ -10,6 +10,11 @@ import {
 } from "../data/Json";
 
 // TODO - RPC WS ?
+export type RpcHttp = (
+  method: string,
+  params: JsonArray,
+  config: JsonObject | undefined,
+) => Promise<JsonValue>;
 
 export class RpcHttpError extends Error {
   public readonly code: number;
@@ -23,12 +28,6 @@ export class RpcHttpError extends Error {
     this.data = data;
   }
 }
-
-export type RpcHttp = (
-  method: string,
-  params: JsonArray,
-  config: JsonObject | undefined,
-) => Promise<JsonValue>;
 
 export function rpcHttpFromUrl(
   url: string,
@@ -96,13 +95,10 @@ export function rpcHttpFromUrl(
   };
 }
 
-export function rpcHttpWithTimeout(
-  rpcHttp: RpcHttp,
-  timeoutMs: number,
-): RpcHttp {
+export function rpcHttpWithTimeout(self: RpcHttp, timeoutMs: number): RpcHttp {
   return async function (method, params, config) {
     return await Promise.race<JsonValue>([
-      rpcHttp(method, params, config),
+      self(method, params, config),
       new Promise((_, reject) =>
         setTimeout(
           () => reject(new Error(`RpcHttp: Timeout (${timeoutMs}ms)`)),
@@ -114,7 +110,7 @@ export function rpcHttpWithTimeout(
 }
 
 export function rpcHttpWithMaxConcurrentRequests(
-  rpcHttp: RpcHttp,
+  self: RpcHttp,
   maxConcurrentRequests: number,
 ): RpcHttp {
   if (maxConcurrentRequests <= 0) {
@@ -128,7 +124,7 @@ export function rpcHttpWithMaxConcurrentRequests(
     }
     ongoingRequests++;
     try {
-      return await rpcHttp(method, params, config);
+      return await self(method, params, config);
     } finally {
       ongoingRequests--;
       queue.shift()?.();
@@ -137,7 +133,7 @@ export function rpcHttpWithMaxConcurrentRequests(
 }
 
 export function rpcHttpWithRetryOnError(
-  rpcHttp: RpcHttp,
+  self: RpcHttp,
   retryApprover: (context: {
     retriedCounter: number;
     totalDurationMs: number;
@@ -152,7 +148,7 @@ export function rpcHttpWithRetryOnError(
     let retriedCounter = 0;
     while (true) {
       try {
-        return await rpcHttp(method, params, config);
+        return await self(method, params, config);
       } catch (error) {
         const totalDurationMs = Date.now() - startTime;
         const retryApproved = await retryApprover({

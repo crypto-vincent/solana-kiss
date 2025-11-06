@@ -34,14 +34,14 @@ export function pubkeyFromBytes(bytes: Uint8Array): Pubkey {
   return pubkey as Pubkey;
 }
 
-export function pubkeyToBytes(value: Pubkey): Uint8Array {
-  const bytes = base58Decode(value as string);
+export function pubkeyToBytes(self: Pubkey): Uint8Array {
+  const bytes = base58Decode(self as string);
   pubkeyBytesCheck(bytes);
   return bytes;
 }
 
-export function pubkeyToBase58(value: Pubkey): string {
-  return value as string;
+export function pubkeyToBase58(self: Pubkey): string {
+  return self as string;
 }
 
 export function pubkeyFindPdaAddress(
@@ -114,7 +114,7 @@ export function pubkeyCreateFromSeed(
   );
 }
 
-export async function pubkeyToVerifier(pubkey: Pubkey) {
+export async function pubkeyToVerifier(self: Pubkey) {
   const spkiBytes = new Uint8Array([
     0x30,
     0x2a,
@@ -128,7 +128,7 @@ export async function pubkeyToVerifier(pubkey: Pubkey) {
     0x03,
     0x21,
     0x00,
-    ...pubkeyToBytes(pubkey),
+    ...pubkeyToBytes(self),
   ]);
   const cryptoKey = await crypto.subtle.importKey(
     "spki",
@@ -150,8 +150,8 @@ export async function pubkeyToVerifier(pubkey: Pubkey) {
   };
 }
 
-export function pubkeyIsOnCurve(address: Pubkey): boolean {
-  const bytes = pubkeyToBytes(address);
+export function pubkeyIsOnCurve(self: Pubkey): boolean {
+  const bytes = pubkeyToBytes(self);
   const sign = (bytes[31]! >> 7) & 1;
   bytes[31]! &= 0x7f;
   let y = 0n;

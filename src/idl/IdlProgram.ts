@@ -39,10 +39,10 @@ export type IdlProgram = {
 };
 
 export function idlProgramGuessAccount(
-  programIdl: IdlProgram,
+  self: IdlProgram,
   accountData: Uint8Array,
 ): IdlAccount | undefined {
-  for (const accountIdl of programIdl.accounts.values()) {
+  for (const accountIdl of self.accounts.values()) {
     try {
       idlAccountCheck(accountIdl, accountData);
       return accountIdl;
@@ -52,10 +52,10 @@ export function idlProgramGuessAccount(
 }
 
 export function idlProgramGuessInstruction(
-  programIdl: IdlProgram,
+  self: IdlProgram,
   instruction: Instruction,
 ): IdlInstruction | undefined {
-  for (const instructionIdl of programIdl.instructions.values()) {
+  for (const instructionIdl of self.instructions.values()) {
     try {
       idlInstructionAccountsCheck(instructionIdl, instruction.inputs);
       idlInstructionArgsCheck(instructionIdl, instruction.data);
@@ -66,10 +66,10 @@ export function idlProgramGuessInstruction(
 }
 
 export function idlProgramGuessEvent(
-  programIdl: IdlProgram,
+  self: IdlProgram,
   eventData: Uint8Array,
 ): IdlEvent | undefined {
-  for (const eventIdl of programIdl.events.values()) {
+  for (const eventIdl of self.events.values()) {
     try {
       idlEventCheck(eventIdl, eventData);
       return eventIdl;
@@ -79,10 +79,10 @@ export function idlProgramGuessEvent(
 }
 
 export function idlProgramGuessError(
-  programIdl: IdlProgram,
+  self: IdlProgram,
   errorCode: number,
 ): IdlError | undefined {
-  for (const errorIdl of programIdl.errors.values()) {
+  for (const errorIdl of self.errors.values()) {
     if (errorIdl.code === errorCode) {
       return errorIdl;
     }

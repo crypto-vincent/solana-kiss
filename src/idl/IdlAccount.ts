@@ -33,42 +33,42 @@ export type IdlAccount = {
 };
 
 export function idlAccountEncode(
-  accountIdl: IdlAccount,
+  self: IdlAccount,
   accountState: JsonValue,
 ): Uint8Array {
   return idlTypeFullEncode(
-    accountIdl.typeFull,
+    self.typeFull,
     accountState,
     true,
-    accountIdl.discriminator,
+    self.discriminator,
   );
 }
 
 export function idlAccountDecode(
-  accountIdl: IdlAccount,
+  self: IdlAccount,
   accountData: Uint8Array,
 ): JsonValue {
-  idlAccountCheck(accountIdl, accountData);
+  idlAccountCheck(self, accountData);
   const [, accountState] = idlTypeFullDecode(
-    accountIdl.typeFull,
+    self.typeFull,
     new DataView(accountData.buffer),
-    accountIdl.discriminator.length,
+    self.discriminator.length,
   );
   return accountState;
 }
 
 export function idlAccountCheck(
-  accountIdl: IdlAccount,
+  self: IdlAccount,
   accountData: Uint8Array,
 ): void {
-  if (accountIdl.dataSpace !== undefined) {
-    if (accountIdl.dataSpace !== accountData.length) {
+  if (self.dataSpace !== undefined) {
+    if (self.dataSpace !== accountData.length) {
       throw new Error(
-        `Idl: Expected account space ${accountIdl.dataSpace} (found: ${accountData.length})`,
+        `Idl: Expected account space ${self.dataSpace} (found: ${accountData.length})`,
       );
     }
   }
-  for (const blob of accountIdl.dataBlobs) {
+  for (const blob of self.dataBlobs) {
     idlUtilsExpectBlobAt(blob.offset, blob.bytes, accountData);
   }
 }

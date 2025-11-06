@@ -8,7 +8,7 @@ import { RpcHttp } from "./RpcHttp";
 import { rpcHttpGetTransaction } from "./RpcHttpGetTransaction";
 
 export async function rpcHttpWaitForTransaction(
-  rpcHttp: RpcHttp,
+  self: RpcHttp,
   transactionHandle: TransactionHandle,
   retryApprover: (context: {
     retriedCounter: number;
@@ -22,7 +22,7 @@ export async function rpcHttpWaitForTransaction(
   const startTime = Date.now();
   let retriedCounter = 0;
   while (true) {
-    const response = await rpcHttpGetTransaction(rpcHttp, transactionHandle);
+    const response = await rpcHttpGetTransaction(self, transactionHandle);
     if (response !== undefined) {
       return response;
     }

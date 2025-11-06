@@ -22,12 +22,12 @@ import { idlTypeFullTypedefBytemuck } from "./IdlTypeFullBytemuck";
 import { IdlTypePrimitive } from "./IdlTypePrimitive";
 
 export function idlTypeFlatHydrate(
-  typeFlat: IdlTypeFlat,
+  self: IdlTypeFlat,
   genericsBySymbol: Map<string, IdlTypeFull | number>,
   typedefs?: Map<string, IdlTypedef>,
 ): IdlTypeFull {
   const typeFullOrConstLiteral = idlTypeFlatHydrateOrConstLiteral(
-    typeFlat,
+    self,
     genericsBySymbol,
     typedefs,
   );
@@ -38,11 +38,11 @@ export function idlTypeFlatHydrate(
 }
 
 export function idlTypeFlatHydrateOrConstLiteral(
-  typeFlat: IdlTypeFlat,
+  self: IdlTypeFlat,
   genericsBySymbol: Map<string, IdlTypeFull | number>,
   typedefs?: Map<string, IdlTypedef>,
 ): IdlTypeFull | number {
-  return typeFlat.traverse(
+  return self.traverse(
     visitorHydrateOrConstLiteral,
     genericsBySymbol,
     typedefs,
@@ -50,15 +50,11 @@ export function idlTypeFlatHydrateOrConstLiteral(
 }
 
 export function idlTypeFlatFieldsHydrate(
-  typeFlatFields: IdlTypeFlatFields,
+  self: IdlTypeFlatFields,
   genericsBySymbol: Map<string, IdlTypeFull | number>,
   typedefs?: Map<string, IdlTypedef>,
 ): IdlTypeFullFields {
-  return typeFlatFields.traverse(
-    visitorHydrateFields,
-    genericsBySymbol,
-    typedefs,
-  );
+  return self.traverse(visitorHydrateFields, genericsBySymbol, typedefs);
 }
 
 const visitorHydrateOrConstLiteral = {

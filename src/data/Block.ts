@@ -8,8 +8,8 @@ export function blockSlotFromNumber(value: number): BlockSlot {
   return value as BlockSlot;
 }
 
-export function blockSlotToNumber(value: BlockSlot): number {
-  return value as number;
+export function blockSlotToNumber(self: BlockSlot): number {
+  return self as number;
 }
 
 export const blockHashDefault = blockHashFromBytes(new Uint8Array(32));
@@ -26,14 +26,14 @@ export function blockHashFromBytes(bytes: Uint8Array): BlockHash {
   return blockHash as BlockHash;
 }
 
-export function blockHashToBytes(value: BlockHash): Uint8Array {
-  const bytes = base58Decode(value as string);
+export function blockHashToBytes(self: BlockHash): Uint8Array {
+  const bytes = base58Decode(self as string);
   blockHashBytesCheck(bytes);
   return bytes;
 }
 
-export function blockHashToBase58(value: BlockHash): string {
-  return value as string;
+export function blockHashToBase58(self: BlockHash): string {
+  return self as string;
 }
 
 function blockHashBytesCheck(bytes: Uint8Array): void {

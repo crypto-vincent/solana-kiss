@@ -19,7 +19,7 @@ import { TransactionExecution, TransactionPacket } from "../data/Transaction";
 import { RpcHttp } from "./RpcHttp";
 
 export async function rpcHttpSimulateTransaction(
-  rpcHttp: RpcHttp,
+  self: RpcHttp,
   transactionPacket: TransactionPacket,
   options?: {
     verifySignaturesAndBlockHash?: boolean;
@@ -45,7 +45,7 @@ export async function rpcHttpSimulateTransaction(
     : [];
   const strictVerification = options?.verifySignaturesAndBlockHash ?? true;
   const result = resultJsonDecoder(
-    await rpcHttp(
+    await self(
       "simulateTransaction",
       [base64Encode(transactionPacket as Uint8Array)],
       {

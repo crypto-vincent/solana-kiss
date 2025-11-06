@@ -3,7 +3,7 @@ import { Pubkey, pubkeyToBase58 } from "../data/Pubkey";
 import { RpcHttp } from "./RpcHttp";
 
 export async function rpcHttpGetAccountLamports(
-  rpcHttp: RpcHttp,
+  self: RpcHttp,
   accountAddress: Pubkey,
 ): Promise<{
   accountInfo: {
@@ -11,7 +11,7 @@ export async function rpcHttpGetAccountLamports(
   };
 }> {
   const result = resultJsonDecoder(
-    await rpcHttp("getBalance", [pubkeyToBase58(accountAddress)], {}),
+    await self("getBalance", [pubkeyToBase58(accountAddress)], {}),
   );
   return { accountInfo: { lamports: BigInt(result.value) } };
 }

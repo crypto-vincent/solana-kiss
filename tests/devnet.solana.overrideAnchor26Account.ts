@@ -8,20 +8,20 @@ import {
   pubkeyFromBase58,
   pubkeyToBytes,
   rpcHttpFromUrl,
-  Service,
+  Solana,
   urlPublicRpcDevnet,
   utf8Encode,
 } from "../src";
 
 it("run", async () => {
   // Create the endpoint
-  const service = new Service(rpcHttpFromUrl(urlPublicRpcDevnet));
+  const solana = new Solana(rpcHttpFromUrl(urlPublicRpcDevnet));
   // Choosing our programAddress
   const programAddress = pubkeyFromBase58(
     "crdszSnZQu7j36KfsMJ4VEmMUTJgrNYXwoPVHUANpAu",
   );
   // Parse IDL from file JSON directly
-  service.setProgramIdl(
+  solana.setProgramIdl(
     programAddress,
     idlProgramParse(require("./fixtures/idl_anchor_26.json")),
   );
@@ -30,7 +30,7 @@ it("run", async () => {
     utf8Encode("credix-marketplace"),
   ]);
   await assertAccountInfo(
-    service,
+    solana,
     globalMarketStateAddress,
     "GlobalMarketState",
     "seed",
@@ -41,7 +41,7 @@ it("run", async () => {
     utf8Encode("program-state"),
   ]);
   await assertAccountInfo(
-    service,
+    solana,
     programStateAddress,
     "ProgramState",
     "credix_multisig_key", // TODO (casing) - really consider camel casing everywhere?
@@ -53,14 +53,14 @@ it("run", async () => {
     utf8Encode("admins"),
   ]);
   await assertAccountInfo(
-    service,
+    solana,
     marketAdminsAddress,
     "MarketAdmins",
     "multisig",
     "Ej5zJzej7rrUoDngsJ3jcpfuvfVyWpcDcK7uv9cE2LdL",
   );
   // Check that we could indeed find the right accounts programatically
-  const instructionAddresses = await service.hydrateInstructionAddresses(
+  const instructionAddresses = await solana.hydrateInstructionAddresses(
     programAddress,
     "initialize_market",
     {
@@ -80,14 +80,14 @@ it("run", async () => {
 });
 
 async function assertAccountInfo(
-  service: Service,
+  solana: Solana,
   accountAddress: Pubkey,
   accountName: string,
   accountStateKey: string,
   accountStateValue: JsonValue,
 ) {
   const { accountInfo } =
-    await service.getAndInferAndDecodeAccountInfo(accountAddress);
+    await solana.getAndInferAndDecodeAccountInfo(accountAddress);
   expect(accountInfo.idl.name).toStrictEqual(accountName);
   expect(
     jsonCodecObjectRaw.decoder(accountInfo.state)[accountStateKey],

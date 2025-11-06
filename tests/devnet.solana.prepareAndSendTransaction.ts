@@ -6,26 +6,20 @@ import {
   pubkeyDefault,
   pubkeyNewDummy,
   pubkeyToBase58,
-  rpcHttpFromUrl,
   rpcHttpSendTransaction,
   rpcHttpWaitForTransaction,
-  Service,
   Signer,
   signerFromSecret,
   signerGenerate,
+  Solana,
   timeoutMs,
   TransactionPacket,
   transactionSign,
-  urlPublicRpcDevnet,
   WalletAccount,
 } from "../src";
 
 it("run", async () => {
-  const service = new Service(
-    rpcHttpFromUrl(urlPublicRpcDevnet, {
-      commitment: "confirmed",
-    }),
-  );
+  const solana = new Solana("devnet");
   const ownerAddress = pubkeyNewDummy();
   const requestedSpace = 42;
   const transferLamports = lamportsRentExemptionMinimumForSpace(requestedSpace);
@@ -34,7 +28,7 @@ it("run", async () => {
   const owned2Signer = await signerGenerate();
   const instructions = [
     await makeSystemCreateInstruction(
-      service,
+      solana,
       ownerAddress,
       transferLamports,
       requestedSpace,
@@ -42,7 +36,7 @@ it("run", async () => {
       owned1Signer,
     ),
     await makeSystemCreateInstruction(
-      service,
+      solana,
       ownerAddress,
       transferLamports + 42n,
       requestedSpace - 1,
@@ -57,18 +51,18 @@ it("run", async () => {
     },
     signTransaction: async (transactionPacket: TransactionPacket) => {
       const signed = await transactionSign(transactionPacket, [owned1Signer]);
-      await rpcHttpSendTransaction(service.getRpcHttp(), signed);
+      await rpcHttpSendTransaction(solana.getRpcHttp(), signed);
       await timeoutMs(1000);
       return signed;
     },
   };
-  const { transactionHandle } = await service.prepareAndSendTransaction(
+  const { transactionHandle } = await solana.prepareAndSendTransaction(
     payerSigner,
     instructions,
     { extraSigners: [owned1FakePhantomWalletWithAutoSend, owned2Signer] },
   );
   const { transactionExecution } = await rpcHttpWaitForTransaction(
-    service.getRpcHttp(),
+    solana.getRpcHttp(),
     transactionHandle,
     async (context) => {
       if (context.totalDurationMs > 10000) {
@@ -84,14 +78,14 @@ it("run", async () => {
   expect(transactionExecution.logs?.length).toStrictEqual(4);
   expect(transactionExecution.error).toStrictEqual(null);
   const { accountInfo: owned1Info } =
-    await service.getAndInferAndDecodeAccountInfo(owned1Signer.address);
+    await solana.getAndInferAndDecodeAccountInfo(owned1Signer.address);
   expect(owned1Info.executable).toStrictEqual(false);
   expect(owned1Info.lamports).toStrictEqual(transferLamports);
   expect(owned1Info.owner).toStrictEqual(ownerAddress);
   expect(owned1Info.data.length).toStrictEqual(requestedSpace);
   expect(owned1Info.state).toStrictEqual(undefined);
   const { accountInfo: owned2Info } =
-    await service.getAndInferAndDecodeAccountInfo(owned2Signer.address);
+    await solana.getAndInferAndDecodeAccountInfo(owned2Signer.address);
   expect(owned2Info.executable).toStrictEqual(false);
   expect(owned2Info.lamports).toStrictEqual(transferLamports + 42n);
   expect(owned2Info.owner).toStrictEqual(ownerAddress);
@@ -100,14 +94,14 @@ it("run", async () => {
 });
 
 async function makeSystemCreateInstruction(
-  service: Service,
+  solana: Solana,
   ownerAddress: Pubkey,
   transferLamports: bigint,
   requestedSpace: number,
   payerSigner: Signer,
   ownedSigner: Signer,
 ) {
-  return service.hydrateAndEncodeInstruction(pubkeyDefault, "create", {
+  return solana.hydrateAndEncodeInstruction(pubkeyDefault, "create", {
     instructionAddresses: {
       payer: payerSigner.address,
       created: ownedSigner.address,

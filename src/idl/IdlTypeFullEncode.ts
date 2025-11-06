@@ -31,7 +31,7 @@ import { IdlTypePrimitive, idlTypePrimitiveEncode } from "./IdlTypePrimitive";
 import { idlUtilsBytesJsonDecoder } from "./IdlUtils";
 
 export function idlTypeFullEncode(
-  typeFull: IdlTypeFull,
+  self: IdlTypeFull,
   value: JsonValue,
   prefixed: boolean,
   discriminator?: Uint8Array,
@@ -40,12 +40,12 @@ export function idlTypeFullEncode(
   if (discriminator !== undefined) {
     blobs.push(discriminator);
   }
-  typeFullEncode(typeFull, value, prefixed, blobs);
+  typeFullEncode(self, value, prefixed, blobs);
   return blobsFlatten(blobs);
 }
 
 export function idlTypeFullFieldsEncode(
-  typeFullFields: IdlTypeFullFields,
+  self: IdlTypeFullFields,
   value: JsonValue,
   prefixed: boolean,
   discriminator?: Uint8Array,
@@ -54,26 +54,26 @@ export function idlTypeFullFieldsEncode(
   if (discriminator !== undefined) {
     blobs.push(discriminator);
   }
-  typeFullFieldsEncode(typeFullFields, value, prefixed, blobs);
+  typeFullFieldsEncode(self, value, prefixed, blobs);
   return blobsFlatten(blobs);
 }
 
 function typeFullEncode(
-  typeFull: IdlTypeFull,
+  self: IdlTypeFull,
   value: JsonValue,
   prefixed: boolean,
   blobs: Array<Uint8Array>,
 ) {
-  typeFull.traverse(visitorEncode, value, blobs, prefixed);
+  self.traverse(visitorEncode, value, blobs, prefixed);
 }
 
 function typeFullFieldsEncode(
-  typeFullFields: IdlTypeFullFields,
+  self: IdlTypeFullFields,
   value: JsonValue,
   prefixed: boolean,
   blobs: Array<Uint8Array>,
 ) {
-  typeFullFields.traverse(visitorFieldsEncode, value, blobs, prefixed);
+  self.traverse(visitorFieldsEncode, value, blobs, prefixed);
 }
 
 const visitorEncode = {

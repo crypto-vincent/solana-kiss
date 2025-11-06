@@ -7,20 +7,20 @@ import {
   pubkeyFindPdaAddress,
   pubkeyFromBase58,
   rpcHttpFromUrl,
-  Service,
+  Solana,
   urlPublicRpcDevnet,
   utf8Encode,
 } from "../src";
 
 it("run", async () => {
   // Create the endpoint
-  const service = new Service(rpcHttpFromUrl(urlPublicRpcDevnet));
+  const solana = new Solana(rpcHttpFromUrl(urlPublicRpcDevnet));
   // Choosing our programAddress
   const programAddress = pubkeyFromBase58(
     "UCNcQRtrbGmvuLKA3Jv719Cc6DS4r661ZRpyZduxu2j",
   );
   // Parse IDL from file JSON directly
-  service.setProgramIdl(
+  solana.setProgramIdl(
     programAddress,
     idlProgramParse(require("./fixtures/idl_anchor_30.json")),
   );
@@ -30,14 +30,14 @@ it("run", async () => {
     new Uint8Array(8).fill(0),
   ]);
   await assertAccountInfo(
-    service,
+    solana,
     campaign,
     "Campaign",
     "collateral_mint",
     "EsQycjp856vTPvrxMuH1L6ymd5K63xT7aULGepiTcgM3",
   );
   // Check that we could indeed find the right accounts programatically
-  const instructionAddresses = await service.hydrateInstructionAddresses(
+  const instructionAddresses = await solana.hydrateInstructionAddresses(
     programAddress,
     "campaign_create",
     { instructionPayload: { params: { index: "0" } } },
@@ -46,14 +46,14 @@ it("run", async () => {
 });
 
 async function assertAccountInfo(
-  service: Service,
+  solana: Solana,
   accountAddress: Pubkey,
   accountName: string,
   accountStateKey: string,
   accountStateValue: JsonValue,
 ) {
   const { accountInfo } =
-    await service.getAndInferAndDecodeAccountInfo(accountAddress);
+    await solana.getAndInferAndDecodeAccountInfo(accountAddress);
   expect(accountInfo.idl.name).toStrictEqual(accountName);
   expect(
     jsonCodecObjectRaw.decoder(accountInfo.state)[accountStateKey],

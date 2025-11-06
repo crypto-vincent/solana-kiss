@@ -4,27 +4,27 @@ import {
   lamportsFeePerSigner,
   pubkeyFromBase58,
   rpcHttpFromUrl,
-  Service,
   signerFromSecret,
   signerGenerate,
+  Solana,
   urlPublicRpcDevnet,
 } from "../src";
 
 it("run", async () => {
-  const service = new Service(rpcHttpFromUrl(urlPublicRpcDevnet));
+  const solana = new Solana(rpcHttpFromUrl(urlPublicRpcDevnet));
   const programAddress = pubkeyFromBase58(
     "UCNcQRtrbGmvuLKA3Jv719Cc6DS4r661ZRpyZduxu2j",
   );
   const payerSigner = await signerFromSecret(secret);
   const userSigner = await signerGenerate();
   // Resolve the necessary addresses
-  const campaignCreateAddresses = await service.hydrateInstructionAddresses(
+  const campaignCreateAddresses = await solana.hydrateInstructionAddresses(
     programAddress,
     "campaign_create",
     { instructionPayload: { params: { index: "0" } } },
   );
   const campaignAddress = expectDefined(campaignCreateAddresses["campaign"]);
-  const pledgeCreateAddresses = await service.hydrateInstructionAddresses(
+  const pledgeCreateAddresses = await solana.hydrateInstructionAddresses(
     programAddress,
     "pledge_create",
     {
@@ -36,7 +36,7 @@ it("run", async () => {
   );
   const pledgeAddress = expectDefined(pledgeCreateAddresses["pledge"]);
   // Run the simulation without verifying the signers
-  const instruction = await service.hydrateAndEncodeInstruction(
+  const instruction = await solana.hydrateAndEncodeInstruction(
     programAddress,
     "pledge_create",
     {
@@ -48,7 +48,7 @@ it("run", async () => {
       instructionPayload: { params: null },
     },
   );
-  const resultNoVerify = await service.prepareAndSimulateTransaction(
+  const resultNoVerify = await solana.prepareAndSimulateTransaction(
     payerSigner.address,
     [instruction],
     {
@@ -72,11 +72,11 @@ it("run", async () => {
   expect(pledgeAccountNoVerify.data.length).toBeGreaterThan(0);
   expect(pledgeAccountNoVerify.executable).toStrictEqual(false);
   expect(
-    (await service.getAndInferAndDecodeAccountInfo(pledgeAddress)).accountInfo
+    (await solana.getAndInferAndDecodeAccountInfo(pledgeAddress)).accountInfo
       .data.length,
   ).toStrictEqual(0);
   // Run the simulation with verifying the signers (and recent block hash)
-  const resultWithVerify = await service.prepareAndSimulateTransaction(
+  const resultWithVerify = await solana.prepareAndSimulateTransaction(
     payerSigner,
     [instruction],
     {
@@ -102,7 +102,7 @@ it("run", async () => {
   expect(pledgeAccountWithVerify.data.length).toBeGreaterThan(0);
   expect(pledgeAccountWithVerify.executable).toStrictEqual(false);
   expect(
-    (await service.getAndInferAndDecodeAccountInfo(pledgeAddress)).accountInfo
+    (await solana.getAndInferAndDecodeAccountInfo(pledgeAddress)).accountInfo
       .data.length,
   ).toStrictEqual(0);
 });

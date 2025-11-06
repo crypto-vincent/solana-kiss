@@ -57,4 +57,4 @@ export * from "./rpc/RpcHttpSendTransaction";
 export * from "./rpc/RpcHttpSimulateTransaction";
 export * from "./rpc/RpcHttpWaitForTransaction";
 
-export * from "./Service";
+export * from "./Solana";

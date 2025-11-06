@@ -8,7 +8,7 @@ import { TransactionHandle } from "../data/Transaction";
 import { RpcHttp } from "./RpcHttp";
 
 export async function rpcHttpFindAccountTransactions(
-  rpcHttp: RpcHttp,
+  self: RpcHttp,
   accountAddress: Pubkey,
   maxResultLength: number,
   pagination?: {
@@ -25,16 +25,12 @@ export async function rpcHttpFindAccountTransactions(
   let startBeforeTransactionHandle = pagination?.startBeforeTransactionHandle;
   while (true) {
     const result = resultJsonDecoder(
-      await rpcHttp(
-        "getSignaturesForAddress",
-        [pubkeyToBase58(accountAddress)],
-        {
-          limit: batchSize,
-          before: startBeforeTransactionHandle
-            ? startBeforeTransactionHandle
-            : undefined,
-        },
-      ),
+      await self("getSignaturesForAddress", [pubkeyToBase58(accountAddress)], {
+        limit: batchSize,
+        before: startBeforeTransactionHandle
+          ? startBeforeTransactionHandle
+          : undefined,
+      }),
     );
     for (const item of result) {
       const transactionHandle = item.signature;

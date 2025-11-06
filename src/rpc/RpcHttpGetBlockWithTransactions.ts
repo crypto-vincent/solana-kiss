@@ -12,7 +12,7 @@ import { TransactionHandle } from "../data/Transaction";
 import { RpcHttp } from "./RpcHttp";
 
 export async function rpcHttpGetBlockWithTransactions(
-  rpcHttp: RpcHttp,
+  self: RpcHttp,
   blockSlot: BlockSlot,
 ): Promise<{
   previousBlockSlot: BlockSlot;
@@ -24,7 +24,7 @@ export async function rpcHttpGetBlockWithTransactions(
   transactionsHandles: Array<TransactionHandle>; // TODO (naming) - are those ordered ? in which order ?
 }> {
   const result = resultJsonDecoder(
-    await rpcHttp("getBlock", [blockSlotToNumber(blockSlot)], {
+    await self("getBlock", [blockSlotToNumber(blockSlot)], {
       encoding: "base64",
       rewards: false,
       maxSupportedTransactionVersion: 0,

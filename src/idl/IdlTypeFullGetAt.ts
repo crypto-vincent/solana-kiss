@@ -23,38 +23,38 @@ import {
 import { IdlTypePrimitive } from "./IdlTypePrimitive";
 
 export function idlTypeFullGetAt(
-  typeFull: IdlTypeFull,
+  self: IdlTypeFull,
   pathOrPointer: string | JsonPointer,
 ): IdlTypeFull {
   const pointer = Array.isArray(pathOrPointer)
     ? pathOrPointer
     : jsonPointerParse(pathOrPointer);
-  return visitTypeFull(typeFull, pointer, 0);
+  return visitTypeFull(self, pointer, 0);
 }
 
 export function idlTypeFullFieldsGetAt(
-  typeFullFields: IdlTypeFullFields,
+  self: IdlTypeFullFields,
   pathOrPointer: string | JsonPointer,
 ): IdlTypeFull {
   const pointer = Array.isArray(pathOrPointer)
     ? pathOrPointer
     : jsonPointerParse(pathOrPointer);
-  return visitTypeFullFields(typeFullFields, pointer, 0);
+  return visitTypeFullFields(self, pointer, 0);
 }
 
 function visitTypeFull(
-  typeFull: IdlTypeFull,
+  self: IdlTypeFull,
   pointer: Array<number | string>,
   tokenIndex: number,
 ): IdlTypeFull {
   if (tokenIndex >= pointer.length) {
-    return typeFull;
+    return self;
   }
-  return typeFull.traverse(visitorTypeFull, pointer, tokenIndex, undefined);
+  return self.traverse(visitorTypeFull, pointer, tokenIndex, undefined);
 }
 
 function visitTypeFullFields(
-  typeFullFields: IdlTypeFullFields,
+  self: IdlTypeFullFields,
   pointer: Array<number | string>,
   tokenIndex: number,
 ): IdlTypeFull {
@@ -63,12 +63,7 @@ function visitTypeFullFields(
       `Idl: Expected path ${jsonPointerPreview(pointer, tokenIndex)} to point to a type (found fields)`,
     );
   }
-  return typeFullFields.traverse(
-    visitorTypeFullFields,
-    pointer,
-    tokenIndex,
-    undefined,
-  );
+  return self.traverse(visitorTypeFullFields, pointer, tokenIndex, undefined);
 }
 
 const visitorTypeFull = {

@@ -7,6 +7,7 @@ import {
   TransactionAddressLookupTable,
   transactionCompileAndSign,
 } from "./data/Transaction";
+import { urlRpcFromUrlOrMoniker } from "./data/Url";
 import { WalletAccount } from "./data/Wallet";
 import { idlAccountDecode } from "./idl/IdlAccount";
 import {
@@ -16,7 +17,10 @@ import {
   idlInstructionArgsDecode,
   idlInstructionArgsEncode,
 } from "./idl/IdlInstruction";
-import { IdlInstructionBlobOnchainAccounts } from "./idl/IdlInstructionBlob";
+import {
+  IdlInstructionBlobAccountContent,
+  IdlInstructionBlobAccountsContext,
+} from "./idl/IdlInstructionBlob";
 import {
   IdlLoader,
   idlLoaderFallbackToUnknown,
@@ -28,34 +32,40 @@ import {
   idlProgramGuessAccount,
   idlProgramGuessInstruction,
 } from "./idl/IdlProgram";
-import { RpcHttp } from "./rpc/RpcHttp";
+import { RpcHttp, rpcHttpFromUrl } from "./rpc/RpcHttp";
 import { rpcHttpGetAccountWithData } from "./rpc/RpcHttpGetAccountWithData";
 import { rpcHttpGetLatestBlockHash } from "./rpc/RpcHttpGetLatestBlockHash";
 import { rpcHttpSendTransaction } from "./rpc/RpcHttpSendTransaction";
 import { rpcHttpSimulateTransaction } from "./rpc/RpcHttpSimulateTransaction";
 
-// TODO - transaction getter for service (and others?) ?
-export class Service {
-  private readonly rpcHttp: RpcHttp;
-  private readonly idlLoaders: Array<IdlLoader>;
-  private readonly idlOverrides: Map<Pubkey, IdlProgram>;
-  private cacheBlockHash: { blockHash: BlockHash; fetchTimeMs: number } | null;
+// TODO - transaction getter for solana (and others?) ?
+export class Solana {
+  readonly #rpcHttp: RpcHttp;
+  readonly #idlLoaders: Array<IdlLoader>;
+  readonly #idlOverrides: Map<Pubkey, IdlProgram>;
+  #cacheBlockHash: { blockHash: BlockHash; fetchTimeMs: number } | null;
 
   constructor(
-    rpcHttp: RpcHttp,
+    rpcHttp: RpcHttp | string,
     options?: {
       customIdlLoaders?: Array<IdlLoader>;
       customIdlOverrides?: Map<Pubkey, IdlProgram>;
     },
   ) {
-    this.rpcHttp = rpcHttp;
-    this.idlLoaders = options?.customIdlLoaders ?? standardLoaders(rpcHttp);
-    this.idlOverrides = options?.customIdlOverrides ?? new Map();
-    this.cacheBlockHash = null;
+    if (typeof rpcHttp === "string") {
+      this.#rpcHttp = rpcHttpFromUrl(urlRpcFromUrlOrMoniker(rpcHttp), {
+        commitment: "confirmed",
+      });
+    } else {
+      this.#rpcHttp = rpcHttp;
+    }
+    this.#idlLoaders = options?.customIdlLoaders ?? baseLoaders(this.#rpcHttp);
+    this.#idlOverrides = options?.customIdlOverrides ?? new Map();
+    this.#cacheBlockHash = null;
   }
 
   public getRpcHttp() {
-    return this.rpcHttp;
+    return this.#rpcHttp;
   }
 
   public setProgramIdl(
@@ -63,18 +73,18 @@ export class Service {
     programIdl: IdlProgram | undefined,
   ) {
     if (programIdl === undefined) {
-      this.idlOverrides.delete(programAddress);
+      this.#idlOverrides.delete(programAddress);
     } else {
-      this.idlOverrides.set(programAddress, programIdl);
+      this.#idlOverrides.set(programAddress, programIdl);
     }
   }
 
   public async getOrLoadProgramIdl(programAddress: Pubkey) {
-    const overrideIdl = this.idlOverrides.get(programAddress);
+    const overrideIdl = this.#idlOverrides.get(programAddress);
     if (overrideIdl) {
       return overrideIdl;
     }
-    for (const idlLoader of this.idlLoaders) {
+    for (const idlLoader of this.#idlLoaders) {
       try {
         return await idlLoader(programAddress);
       } catch (error) {
@@ -86,7 +96,7 @@ export class Service {
 
   public async getAndInferAndDecodeAccountInfo(accountAddress: Pubkey) {
     const { accountInfo } = await rpcHttpGetAccountWithData(
-      this.rpcHttp,
+      this.#rpcHttp,
       accountAddress,
     );
     const programIdl = await this.getOrLoadProgramIdl(accountInfo.owner);
@@ -179,6 +189,7 @@ export class Service {
       instructionAddresses?: Record<string, Pubkey>;
       instructionPayload?: JsonValue;
     },
+    accountsContext?: IdlInstructionBlobAccountsContext,
   ) {
     const programIdl = await this.getOrLoadProgramIdl(programAddress);
     const instructionIdl = programIdl.instructions.get(instructionName);
@@ -187,7 +198,7 @@ export class Service {
         `IDL Instruction ${instructionName} not found for program ${programAddress}`,
       );
     }
-    const onchainAccounts: IdlInstructionBlobOnchainAccounts = {};
+    const accountsCache = new Map<Pubkey, IdlInstructionBlobAccountContent>();
     return await idlInstructionAddressesHydrate(
       instructionIdl,
       programAddress,
@@ -195,15 +206,20 @@ export class Service {
         instructionAddresses: instructionInfo.instructionAddresses ?? {},
         instructionPayload: instructionInfo.instructionPayload ?? null,
       },
-      onchainAccounts ?? null,
-      async (instructionAccountName, instructionAccountAddress) => {
-        const { accountInfo } = await this.getAndInferAndDecodeAccountInfo(
-          instructionAccountAddress,
-        );
-        onchainAccounts[instructionAccountName] = {
+      accountsContext,
+      async (accountAddress: Pubkey) => {
+        const accountCached = accountsCache.get(accountAddress);
+        if (accountCached) {
+          return accountCached;
+        }
+        const { accountInfo } =
+          await this.getAndInferAndDecodeAccountInfo(accountAddress);
+        const accountContent = {
           accountState: accountInfo.state,
           accountTypeFull: accountInfo.idl.typeFull,
         };
+        accountsCache.set(accountAddress, accountContent);
+        return accountContent;
       },
     );
   }
@@ -211,13 +227,13 @@ export class Service {
   public async getRecentBlockHash() {
     const nowTimeMs = Date.now();
     if (
-      this.cacheBlockHash &&
-      nowTimeMs - this.cacheBlockHash.fetchTimeMs < 15000 /* 15 seconds */
+      this.#cacheBlockHash &&
+      nowTimeMs - this.#cacheBlockHash.fetchTimeMs < 15000 /* 15 seconds */
     ) {
-      return this.cacheBlockHash.blockHash;
+      return this.#cacheBlockHash.blockHash;
     }
-    const { blockInfo } = await rpcHttpGetLatestBlockHash(this.rpcHttp);
-    this.cacheBlockHash = {
+    const { blockInfo } = await rpcHttpGetLatestBlockHash(this.#rpcHttp);
+    this.#cacheBlockHash = {
       blockHash: blockInfo.hash,
       fetchTimeMs: nowTimeMs,
     };
@@ -245,7 +261,7 @@ export class Service {
       options?.transactionLookupTables,
     );
     const { transactionHandle } = await rpcHttpSendTransaction(
-      this.rpcHttp,
+      this.#rpcHttp,
       transactionPacket,
       options as any,
     );
@@ -283,14 +299,14 @@ export class Service {
       options?.transactionLookupTables,
     );
     return await rpcHttpSimulateTransaction(
-      this.rpcHttp,
+      this.#rpcHttp,
       transactionPacket,
       options as any,
     );
   }
 }
 
-function standardLoaders(rpcHttp: RpcHttp) {
+function baseLoaders(rpcHttp: RpcHttp) {
   return [
     idlLoaderFromOnchain(async (programAddress) => {
       const { accountInfo } = await rpcHttpGetAccountWithData(

@@ -2,17 +2,17 @@ import {
   jsonGetAt,
   pubkeyFromBase58,
   rpcHttpFromUrl,
-  Service,
+  Solana,
   urlPublicRpcDevnet,
 } from "../src";
 
 it("run", async () => {
-  const service = new Service(rpcHttpFromUrl(urlPublicRpcDevnet));
+  const solana = new Solana(rpcHttpFromUrl(urlPublicRpcDevnet));
   const accountAddress = pubkeyFromBase58(
     "FdoXZqdMysWbzB8j5bK6U5J1Dczsos1vGwQi5Tur2mwk",
   );
   const { accountInfo } =
-    await service.getAndInferAndDecodeAccountInfo(accountAddress);
+    await solana.getAndInferAndDecodeAccountInfo(accountAddress);
   expect(accountInfo.idl?.name).toStrictEqual("CoordinatorAccount");
   expect(
     jsonGetAt(accountInfo.state, "state.metadata.vocab_size"),

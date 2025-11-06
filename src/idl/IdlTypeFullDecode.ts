@@ -25,24 +25,19 @@ import { idlTypePrefixDecode } from "./IdlTypePrefix";
 import { IdlTypePrimitive, idlTypePrimitiveDecode } from "./IdlTypePrimitive";
 
 export function idlTypeFullDecode(
-  typeFull: IdlTypeFull,
+  self: IdlTypeFull,
   data: DataView,
   dataOffset: number,
 ): [number, JsonValue] {
-  return typeFull.traverse(visitorDecode, data, dataOffset, undefined);
+  return self.traverse(visitorDecode, data, dataOffset, undefined);
 }
 
 export function idlTypeFullFieldsDecode(
-  typeFullFields: IdlTypeFullFields,
+  self: IdlTypeFullFields,
   data: DataView,
   dataOffset: number,
 ): [number, JsonValue] {
-  return typeFullFields.traverse(
-    visitorFieldsDecode,
-    data,
-    dataOffset,
-    undefined,
-  );
+  return self.traverse(visitorFieldsDecode, data, dataOffset, undefined);
 }
 
 const visitorDecode = {

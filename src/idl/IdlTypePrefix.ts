@@ -30,21 +30,21 @@ export class IdlTypePrefix {
 }
 
 export function idlTypePrefixEncode(
-  prefix: IdlTypePrefix,
+  self: IdlTypePrefix,
   value: bigint,
   blobs: Array<Uint8Array>,
 ) {
-  const blob = new Uint8Array(prefix.size);
-  prefix.traverse(visitorEncode, blob, value);
+  const blob = new Uint8Array(self.size);
+  self.traverse(visitorEncode, blob, value);
   blobs.push(blob);
 }
 
 export function idlTypePrefixDecode(
-  prefix: IdlTypePrefix,
+  self: IdlTypePrefix,
   data: DataView,
   dataOffset: number,
 ): [number, bigint] {
-  return prefix.traverse(visitorDecode, data, dataOffset);
+  return self.traverse(visitorDecode, data, dataOffset);
 }
 
 const visitorEncode = {

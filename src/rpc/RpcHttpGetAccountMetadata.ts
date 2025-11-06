@@ -9,7 +9,7 @@ import { Pubkey, pubkeyDefault, pubkeyToBase58 } from "../data/Pubkey";
 import { RpcHttp } from "./RpcHttp";
 
 export async function rpcHttpGetAccountMetadata(
-  rpcHttp: RpcHttp,
+  self: RpcHttp,
   accountAddress: Pubkey,
 ): Promise<{
   accountInfo: {
@@ -20,7 +20,7 @@ export async function rpcHttpGetAccountMetadata(
   };
 }> {
   const result = resultJsonDecoder(
-    await rpcHttp("getAccountInfo", [pubkeyToBase58(accountAddress)], {
+    await self("getAccountInfo", [pubkeyToBase58(accountAddress)], {
       dataSlice: { offset: 0, length: 0 },
       encoding: "base64",
     }),

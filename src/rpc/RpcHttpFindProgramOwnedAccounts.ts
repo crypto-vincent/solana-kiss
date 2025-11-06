@@ -8,7 +8,7 @@ import { Pubkey, pubkeyToBase58 } from "../data/Pubkey";
 import { RpcHttp } from "./RpcHttp";
 
 export async function rpcHttpFindProgramOwnedAccounts(
-  rpcHttp: RpcHttp,
+  self: RpcHttp,
   programAddress: Pubkey,
   filters?: {
     dataSpace?: number;
@@ -42,7 +42,7 @@ export async function rpcHttpFindProgramOwnedAccounts(
     throw new Error("RpcHttp: Too many account data filters, max is 4");
   }
   const result = resultJsonDecoder(
-    await rpcHttp("getProgramAccounts", [pubkeyToBase58(programAddress)], {
+    await self("getProgramAccounts", [pubkeyToBase58(programAddress)], {
       filters: paramFilters.length > 0 ? paramFilters : undefined,
       dataSlice: { offset: 0, length: 0 },
       encoding: "base64",

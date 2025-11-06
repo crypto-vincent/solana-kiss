@@ -15,9 +15,10 @@ import { objectGetOwnProperty, withErrorContext } from "../data/Utils";
 import { IdlDocs, idlDocsParse } from "./IdlDocs";
 import {
   IdlInstructionBlob,
+  IdlInstructionBlobAccountFetcher,
+  IdlInstructionBlobAccountsContext,
   idlInstructionBlobCompute,
   IdlInstructionBlobInstructionContent,
-  IdlInstructionBlobOnchainAccounts,
   idlInstructionBlobParse,
 } from "./IdlInstructionBlob";
 import { IdlTypedef } from "./IdlTypedef";
@@ -38,48 +39,51 @@ export type IdlInstructionAccountPda = {
   program: IdlInstructionBlob | undefined;
 };
 
-export function idlInstructionAccountFind(
-  instructionAccountIdl: IdlInstructionAccount, // TODO (naming) - self?
+export async function idlInstructionAccountFind(
+  self: IdlInstructionAccount,
   programAddress: Pubkey,
   instructionContent: IdlInstructionBlobInstructionContent,
-  onchainAccounts?: IdlInstructionBlobOnchainAccounts,
+  accountsContext?: IdlInstructionBlobAccountsContext,
+  accountsFetcher?: IdlInstructionBlobAccountFetcher,
 ) {
   const instructionAdddress = objectGetOwnProperty(
     instructionContent.instructionAddresses,
-    instructionAccountIdl.name,
+    self.name,
   );
   if (instructionAdddress !== undefined) {
     return instructionAdddress;
   }
-  if (instructionAccountIdl.address !== undefined) {
-    return instructionAccountIdl.address;
+  if (self.address !== undefined) {
+    return self.address;
   }
   // TODO (experiment) - support from seed with a base address, or something more generic ?
-  if (instructionAccountIdl.pda !== undefined) {
+  if (self.pda !== undefined) {
     const seedsBytes = new Array<Uint8Array>();
-    for (const instructionBlobIdl of instructionAccountIdl.pda.seeds) {
+    for (const instructionBlobIdl of self.pda.seeds) {
       seedsBytes.push(
-        idlInstructionBlobCompute(
+        await idlInstructionBlobCompute(
           instructionBlobIdl,
           instructionContent,
-          onchainAccounts,
+          accountsContext,
+          accountsFetcher,
         ),
       );
     }
     let pdaProgramAddress = programAddress;
-    if (instructionAccountIdl.pda.program !== undefined) {
+    if (self.pda.program !== undefined) {
       pdaProgramAddress = pubkeyFromBytes(
-        idlInstructionBlobCompute(
-          instructionAccountIdl.pda.program,
+        await idlInstructionBlobCompute(
+          self.pda.program,
           instructionContent,
-          onchainAccounts,
+          accountsContext,
+          accountsFetcher,
         ),
       );
     }
     return pubkeyFindPdaAddress(pdaProgramAddress, seedsBytes);
   }
   throw new Error(
-    `Idl: Could not find instruction account's address: ${instructionAccountIdl.name} (unresolvable)`,
+    `Idl: Could not find instruction account's address: ${self.name} (unresolvable)`,
   );
 }
 

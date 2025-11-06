@@ -7,7 +7,7 @@ import { jsonCodecNumber, jsonDecoderArray } from "../data/Json";
 import { RpcHttp } from "./RpcHttp";
 
 export async function rpcHttpFindBlocks(
-  rpcHttp: RpcHttp,
+  self: RpcHttp,
   maxResultLength: number,
   context:
     | { highBlockSlot: BlockSlot }
@@ -43,7 +43,7 @@ export async function rpcHttpFindBlocks(
   if (backward) {
     while (true) {
       const result = resultJsonDecoder(
-        await rpcHttp(
+        await self(
           "getBlocks",
           [highBlockSlot - batchSize, highBlockSlot - 1],
           {},
@@ -69,11 +69,7 @@ export async function rpcHttpFindBlocks(
   }
   while (true) {
     const result = resultJsonDecoder(
-      await rpcHttp(
-        "getBlocks",
-        [lowBlockSlot + 1, lowBlockSlot + batchSize],
-        {},
-      ),
+      await self("getBlocks", [lowBlockSlot + 1, lowBlockSlot + batchSize], {}),
     );
     if (result.length === 0) {
       return { blocksSlots };

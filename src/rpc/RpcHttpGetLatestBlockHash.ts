@@ -6,10 +6,10 @@ import {
 } from "../data/Json";
 import { RpcHttp } from "./RpcHttp";
 
-export async function rpcHttpGetLatestBlockHash(rpcHttp: RpcHttp): Promise<{
+export async function rpcHttpGetLatestBlockHash(self: RpcHttp): Promise<{
   blockInfo: { hash: BlockHash };
 }> {
-  const result = resultJsonDecoder(await rpcHttp("getLatestBlockhash", [], {}));
+  const result = resultJsonDecoder(await self("getLatestBlockhash", [], {}));
   return { blockInfo: { hash: result.value.blockhash } };
 }
 

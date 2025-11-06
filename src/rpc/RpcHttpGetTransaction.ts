@@ -25,7 +25,7 @@ import {
 import { RpcHttp } from "./RpcHttp";
 
 export async function rpcHttpGetTransaction(
-  rpcHttp: RpcHttp,
+  self: RpcHttp,
   transactionHandle: TransactionHandle,
   options?: { skipTransactionFlow?: boolean },
 ): Promise<
@@ -37,7 +37,7 @@ export async function rpcHttpGetTransaction(
   | undefined
 > {
   const result = resultJsonDecoder(
-    await rpcHttp("getTransaction", [transactionHandle], {
+    await self("getTransaction", [transactionHandle], {
       encoding: "json",
       maxSupportedTransactionVersion: 0,
     }),

@@ -29,32 +29,32 @@ export type IdlEvent = {
 };
 
 export function idlEventEncode(
-  eventIdl: IdlEvent,
+  self: IdlEvent,
   eventPayload: JsonValue,
 ): Uint8Array {
   return idlTypeFullEncode(
-    eventIdl.typeFull,
+    self.typeFull,
     eventPayload,
     true,
-    eventIdl.discriminator,
+    self.discriminator,
   );
 }
 
 export function idlEventDecode(
-  eventIdl: IdlEvent,
+  self: IdlEvent,
   eventData: Uint8Array,
 ): JsonValue {
-  idlEventCheck(eventIdl, eventData);
+  idlEventCheck(self, eventData);
   const [_, eventPayload] = idlTypeFullDecode(
-    eventIdl.typeFull,
+    self.typeFull,
     new DataView(eventData.buffer),
-    eventIdl.discriminator.length,
+    self.discriminator.length,
   );
   return eventPayload;
 }
 
-export function idlEventCheck(eventIdl: IdlEvent, eventData: Uint8Array): void {
-  idlUtilsExpectBlobAt(0, eventIdl.discriminator, eventData);
+export function idlEventCheck(self: IdlEvent, eventData: Uint8Array): void {
+  idlUtilsExpectBlobAt(0, self.discriminator, eventData);
 }
 
 export function idlEventParse(

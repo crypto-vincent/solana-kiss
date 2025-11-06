@@ -1,14 +1,9 @@
 import { it } from "@jest/globals";
-import {
-  JsonArray,
-  RpcHttp,
-  rpcHttpWithMaxConcurrentRequests,
-  timeoutMs,
-} from "../src";
+import { JsonArray, RpcHttp, rpcHttpWithMaxConcurrentRequests } from "../src";
 
 async function rpcHttp(method: string, params: JsonArray) {
   if (method === "delayMs") {
-    await timeoutMs(params[0] as number);
+    await mockClockDelayMs(params[0] as number);
     return undefined;
   }
   throw new Error(`Unknown method: ${method}`);
@@ -19,24 +14,22 @@ async function expectParallelDelaysDurationMs(context: {
   delaysMs: number[];
   expectedDurationMs: number;
 }) {
-  const startTimeMs = Date.now();
+  const startTimeMs = mockClockNowMs;
   await Promise.all(
     context.delaysMs.map((delayMs) =>
       context.rpcHttp("delayMs", [delayMs], {}),
     ),
   );
-  const durationMs = Date.now() - startTimeMs;
-  expect(durationMs).toBeGreaterThanOrEqual(context.expectedDurationMs);
-  expect(durationMs).toBeLessThan(
-    context.expectedDurationMs * 1.2 + 25 /* ms jitter */,
+  expect(mockClockNowMs - startTimeMs).toStrictEqual(
+    context.expectedDurationMs,
   );
 }
 
 it("run", async () => {
   await expectParallelDelaysDurationMs({
     rpcHttp: rpcHttpWithMaxConcurrentRequests(rpcHttp, 2),
-    delaysMs: [0, 50, 100, 50],
-    expectedDurationMs: 100,
+    delaysMs: [10, 50, 100, 50],
+    expectedDurationMs: 110,
   });
   await expectParallelDelaysDurationMs({
     rpcHttp: rpcHttpWithMaxConcurrentRequests(rpcHttp, 2),
@@ -45,8 +38,8 @@ it("run", async () => {
   });
   await expectParallelDelaysDurationMs({
     rpcHttp: rpcHttpWithMaxConcurrentRequests(rpcHttp, 2),
-    delaysMs: [100, 34, 33, 33],
-    expectedDurationMs: 100,
+    delaysMs: [100, 34, 34, 34],
+    expectedDurationMs: 102,
   });
   await expectParallelDelaysDurationMs({
     rpcHttp: rpcHttpWithMaxConcurrentRequests(rpcHttp, 2),
@@ -69,3 +62,43 @@ it("run", async () => {
     expectedDurationMs: 100,
   });
 });
+
+let mockClockNowMs = 0;
+let mockClockTicking = false;
+const mockClockTimeouts = new Array<{
+  finishTimeMs: number;
+  callback: () => void;
+}>();
+
+async function mockClockDelayMs(delayMs: number): Promise<void> {
+  if (!mockClockTicking) {
+    mockClockTicking = true;
+    setTimeout(mockClockTick, 0);
+  }
+  return new Promise((resolve) => {
+    mockClockTimeouts.push({
+      finishTimeMs: mockClockNowMs + delayMs,
+      callback: resolve,
+    });
+  });
+}
+
+function mockClockTick() {
+  for (let index = 0; index < mockClockTimeouts.length; ) {
+    const mockTimeout = mockClockTimeouts[index]!;
+    if (mockTimeout.finishTimeMs <= mockClockNowMs) {
+      mockClockTimeouts.splice(index, 1);
+      mockTimeout.callback();
+    } else {
+      index++;
+    }
+  }
+  if (mockClockTimeouts.length === 0) {
+    mockClockTicking = false;
+    return;
+  }
+  setTimeout(() => {
+    mockClockNowMs++;
+    mockClockTick();
+  }, 0);
+}

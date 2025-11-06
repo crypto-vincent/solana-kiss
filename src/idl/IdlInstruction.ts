@@ -14,8 +14,9 @@ import {
   idlInstructionAccountParse,
 } from "./IdlInstructionAccount";
 import {
+  IdlInstructionBlobAccountFetcher,
+  IdlInstructionBlobAccountsContext,
   IdlInstructionBlobInstructionContent,
-  IdlInstructionBlobOnchainAccounts,
 } from "./IdlInstructionBlob";
 import { IdlTypedef } from "./IdlTypedef";
 import { IdlTypeFlat, IdlTypeFlatFields } from "./IdlTypeFlat";
@@ -55,11 +56,11 @@ export type IdlInstruction = {
 };
 
 export function idlInstructionAccountsEncode(
-  instructionIdl: IdlInstruction,
+  self: IdlInstruction,
   instructionAddresses: Record<string, Pubkey>,
 ): Array<InstructionInput> {
   const instructionInputs = new Array<InstructionInput>();
-  for (const instructionAccountIdl of instructionIdl.accounts) {
+  for (const instructionAccountIdl of self.accounts) {
     const instructionAddress = objectGetOwnProperty(
       instructionAddresses,
       instructionAccountIdl.name,
@@ -82,24 +83,24 @@ export function idlInstructionAccountsEncode(
 }
 
 export function idlInstructionAccountsDecode(
-  instructionIdl: IdlInstruction,
+  self: IdlInstruction,
   instructionInputs: Array<InstructionInput>,
 ): Record<string, Pubkey> {
-  idlInstructionAccountsCheck(instructionIdl, instructionInputs);
+  idlInstructionAccountsCheck(self, instructionInputs);
   let instructionOptionalsPossible = 0;
-  for (const instructionAccountIdl of instructionIdl.accounts) {
+  for (const instructionAccountIdl of self.accounts) {
     if (instructionAccountIdl.optional) {
       instructionOptionalsPossible++;
     }
   }
   const instructionOptionalsUnuseds =
-    instructionIdl.accounts.length - instructionInputs.length;
+    self.accounts.length - instructionInputs.length;
   const instructionOptionalsUsed =
     instructionOptionalsPossible - instructionOptionalsUnuseds;
   const instructionAddresses: Record<string, Pubkey> = {};
   let instructionInputIndex = 0;
   let instructionOptionalsCurrent = 0;
-  for (const instructionAccountIdl of instructionIdl.accounts) {
+  for (const instructionAccountIdl of self.accounts) {
     if (instructionAccountIdl.optional) {
       instructionOptionalsCurrent += 1;
       if (instructionOptionalsCurrent > instructionOptionalsUsed) {
@@ -117,12 +118,12 @@ export function idlInstructionAccountsDecode(
 }
 
 export function idlInstructionAccountsCheck(
-  instructionIdl: IdlInstruction,
+  self: IdlInstruction,
   instructionInputs: Array<InstructionInput>,
 ): void {
   // TODO (safety) - improve the check logic
   let requiredCount = 0;
-  for (const instructionAccountIdl of instructionIdl.accounts) {
+  for (const instructionAccountIdl of self.accounts) {
     if (!instructionAccountIdl.optional) {
       requiredCount++;
     }
@@ -135,70 +136,63 @@ export function idlInstructionAccountsCheck(
 }
 
 export function idlInstructionArgsEncode(
-  instructionIdl: IdlInstruction,
+  self: IdlInstruction,
   instructionPayload: JsonValue,
 ): Uint8Array {
   return idlTypeFullFieldsEncode(
-    instructionIdl.args.typeFullFields,
+    self.args.typeFullFields,
     instructionPayload,
     true,
-    instructionIdl.discriminator,
+    self.discriminator,
   );
 }
 
 export function idlInstructionArgsDecode(
-  instructionIdl: IdlInstruction,
+  self: IdlInstruction,
   instructionData: Uint8Array,
 ): JsonValue {
-  idlInstructionArgsCheck(instructionIdl, instructionData);
+  idlInstructionArgsCheck(self, instructionData);
   const [, instructionPayload] = idlTypeFullFieldsDecode(
-    instructionIdl.args.typeFullFields,
+    self.args.typeFullFields,
     new DataView(instructionData.buffer),
-    instructionIdl.discriminator.length,
+    self.discriminator.length,
   );
   return instructionPayload;
 }
 
 export function idlInstructionArgsCheck(
-  instructionIdl: IdlInstruction,
+  self: IdlInstruction,
   instructionData: Uint8Array,
 ): void {
-  idlUtilsExpectBlobAt(0, instructionIdl.discriminator, instructionData);
+  idlUtilsExpectBlobAt(0, self.discriminator, instructionData);
 }
 
 // TODO (test) - test this return decoding/encoding ?
 export function idlInstructionReturnEncode(
-  instructionIdl: IdlInstruction,
+  self: IdlInstruction,
   instructionResult: JsonValue,
 ): Uint8Array {
-  return idlTypeFullEncode(
-    instructionIdl.return.typeFull,
-    instructionResult,
-    true,
-  );
+  return idlTypeFullEncode(self.return.typeFull, instructionResult, true);
 }
 
 export function idlInstructionReturnDecode(
-  instructionIdl: IdlInstruction,
+  self: IdlInstruction,
   instructionReturned: Uint8Array,
 ): JsonValue {
   const [, instructionResult] = idlTypeFullDecode(
-    instructionIdl.return.typeFull,
+    self.return.typeFull,
     new DataView(instructionReturned.buffer),
-    instructionIdl.discriminator.length,
+    self.discriminator.length,
   );
   return instructionResult;
 }
 
 export async function idlInstructionAddressesHydrate(
-  instructionIdl: IdlInstruction,
+  self: IdlInstruction,
   programAddress: Pubkey,
   instructionContent: IdlInstructionBlobInstructionContent,
-  onchainAccounts?: IdlInstructionBlobOnchainAccounts,
-  onFoundInstructionAddress?: (
-    instructionAccountName: string,
-    instructionAddress: Pubkey,
-  ) => Promise<void>,
+  accountsContext?: IdlInstructionBlobAccountsContext,
+  accountFetcher?: IdlInstructionBlobAccountFetcher,
 ): Promise<Record<string, Pubkey>> {
   const instructionAddresses = {
     ...instructionContent.instructionAddresses,
@@ -209,7 +203,7 @@ export async function idlInstructionAddressesHydrate(
   };
   while (true) {
     let madeProgress = false;
-    for (let instructionAccountIdl of instructionIdl.accounts) {
+    for (let instructionAccountIdl of self.accounts) {
       const instructionAddress =
         instructionAddresses[instructionAccountIdl.name];
       if (instructionAddress !== undefined) {
@@ -219,21 +213,15 @@ export async function idlInstructionAddressesHydrate(
         await withErrorContext(
           `Idl: Finding address for instruction account ${instructionAccountIdl.name}`,
           async () => {
-            let instructionAddress = idlInstructionAccountFind(
+            let instructionAddress = await idlInstructionAccountFind(
               instructionAccountIdl,
               programAddress,
               instructionContent,
-              onchainAccounts,
+              accountsContext,
+              accountFetcher,
             );
             instructionAddresses[instructionAccountIdl.name] =
               instructionAddress;
-            if (onFoundInstructionAddress) {
-              // TODO (optimization) - allow lazy fetch instead of greedy fetch ?
-              await onFoundInstructionAddress(
-                instructionAccountIdl.name,
-                instructionAddress,
-              );
-            }
             madeProgress = true;
           },
         );

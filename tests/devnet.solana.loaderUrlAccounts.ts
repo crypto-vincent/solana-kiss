@@ -3,28 +3,28 @@ import {
   Pubkey,
   pubkeyFromBase58,
   rpcHttpFromUrl,
-  Service,
+  Solana,
   urlPublicRpcDevnet,
 } from "../src";
 
 it("run", async () => {
-  const service = new Service(rpcHttpFromUrl(urlPublicRpcDevnet));
+  const solana = new Solana(rpcHttpFromUrl(urlPublicRpcDevnet));
   await assertAccountState(
-    service,
+    solana,
     pubkeyFromBase58("Ady55LhZxWFABzdg8NCNTAZv5XstBqyNZYCMfWqW3Rq9"),
     "system",
     "Wallet",
     undefined,
   );
   await assertAccountState(
-    service,
+    solana,
     pubkeyFromBase58("UCNcQRtrbGmvuLKA3Jv719Cc6DS4r661ZRpyZduxu2j"),
     "bpf_loader_upgradeable",
     "Program",
     { program_data: "9rtcXuviJngSZTRSCXxsHyd6qaWpqWSQ56SNumXAuLJ1" },
   );
   await assertAccountState(
-    service,
+    solana,
     pubkeyFromBase58("9rtcXuviJngSZTRSCXxsHyd6qaWpqWSQ56SNumXAuLJ1"),
     "bpf_loader_upgradeable",
     "ProgramData",
@@ -34,7 +34,7 @@ it("run", async () => {
     },
   );
   await assertAccountState(
-    service,
+    solana,
     pubkeyFromBase58("EsQycjp856vTPvrxMuH1L6ymd5K63xT7aULGepiTcgM3"),
     "spl_token",
     "TokenMint",
@@ -47,7 +47,7 @@ it("run", async () => {
     },
   );
   await assertAccountState(
-    service,
+    solana,
     pubkeyFromBase58("8EodedXFv8DAJ6jGTg4DVXaBVJTVL3o4T2BWwTJTTJjw"),
     "spl_name_service",
     "NameRecordHeader",
@@ -60,14 +60,14 @@ it("run", async () => {
 });
 
 async function assertAccountState(
-  service: Service,
+  solana: Solana,
   accountAddress: Pubkey,
   expectedProgramName: string,
   expectedAccountName: string,
   expectedState: JsonValue,
 ) {
   const { programInfo, accountInfo } =
-    await service.getAndInferAndDecodeAccountInfo(accountAddress);
+    await solana.getAndInferAndDecodeAccountInfo(accountAddress);
   expect(programInfo.idl.metadata.name).toStrictEqual(expectedProgramName);
   expect(accountInfo.idl.name).toStrictEqual(expectedAccountName);
   expect(accountInfo.state).toStrictEqual(expectedState);

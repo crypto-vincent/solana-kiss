@@ -2,13 +2,13 @@ import { expect, it } from "@jest/globals";
 import {
   pubkeyFromBase58,
   rpcHttpFromUrl,
-  Service,
+  Solana,
   urlPublicRpcDevnet,
 } from "../src";
 
 it("run", async () => {
-  const service = new Service(rpcHttpFromUrl(urlPublicRpcDevnet));
-  const programIdl = await service.getOrLoadProgramIdl(
+  const solana = new Solana(rpcHttpFromUrl(urlPublicRpcDevnet));
+  const programIdl = await solana.getOrLoadProgramIdl(
     pubkeyFromBase58("UCNcQRtrbGmvuLKA3Jv719Cc6DS4r661ZRpyZduxu2j"),
   );
   expect(programIdl.metadata.name).toStrictEqual("psyche_crowd_funding");

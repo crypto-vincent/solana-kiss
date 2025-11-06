@@ -1,7 +1,7 @@
 import { inflate } from "uzip";
 import {
   jsonCodecBytesArray,
-  jsonCodecObjectWithKeysSnakeEncoded,
+  jsonCodecObjectSnakeToObjectCamel,
   jsonCodecPubkey,
   JsonValue,
 } from "../data/Json";
@@ -132,7 +132,7 @@ const onchainAnchorAccountIdl = idlAccountParse("anchor:idl", {
   ],
 });
 
-const onchainAnchorJsonCodec = jsonCodecObjectWithKeysSnakeEncoded({
+const onchainAnchorJsonCodec = jsonCodecObjectSnakeToObjectCamel({
   authority: jsonCodecPubkey,
   deflatedJson: jsonCodecBytesArray,
 });

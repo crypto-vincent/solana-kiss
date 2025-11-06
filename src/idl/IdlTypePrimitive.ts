@@ -83,21 +83,21 @@ export const idlTypePrimitiveByName: ReadonlyMap<string, IdlTypePrimitive> =
   })();
 
 export function idlTypePrimitiveEncode(
-  primitive: IdlTypePrimitive,
+  self: IdlTypePrimitive,
   value: JsonValue,
   blobs: Array<Uint8Array>,
 ) {
-  const blob = new Uint8Array(primitive.size);
-  primitive.traverse(visitorEncode, blob, value);
+  const blob = new Uint8Array(self.size);
+  self.traverse(visitorEncode, blob, value);
   blobs.push(blob);
 }
 
 export function idlTypePrimitiveDecode(
-  primitive: IdlTypePrimitive,
+  self: IdlTypePrimitive,
   data: DataView,
   dataOffset: number,
 ): [number, JsonValue] {
-  return [primitive.size, primitive.traverse(visitorDecode, data, dataOffset)];
+  return [self.size, self.traverse(visitorDecode, data, dataOffset)];
 }
 
 const visitorEncode = {

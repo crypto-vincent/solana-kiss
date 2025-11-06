@@ -239,12 +239,12 @@ export function jsonPointerParse(path: string): JsonPointer {
   return tokens;
 }
 export function jsonPointerPreview(
-  pointer: JsonPointer,
+  self: JsonPointer,
   tokenIndex?: number,
 ): string {
   const parts = [];
-  for (let index = 0; index < (tokenIndex ?? pointer.length); index++) {
-    const token = pointer[index]!;
+  for (let index = 0; index < (tokenIndex ?? self.length); index++) {
+    const token = self[index]!;
     if (typeof token === "number" || token === "") {
       parts.push(`[${token}]`);
     } else {
@@ -678,18 +678,17 @@ export function jsonCodecObject<
   } as JsonCodec<{ [K in keyof Shape]: JsonCodecContent<Shape[K]> }>;
 }
 
-// TODO (casing) - get rid of the need for this ?
-export function jsonDecoderObjectWithKeysSnakeEncoded<
+export function jsonDecoderObjectSnakeToObjectCamel<
   Shape extends { [key: string]: JsonDecoder<any> },
 >(shape: Shape) {
   return jsonDecoderObject(shape, casingConvertToSnake);
 }
-export function jsonEncoderObjectWithKeysSnakeEncoded<
+export function jsonEncoderObjectSnakeToObjectCamel<
   Shape extends { [key: string]: JsonEncoder<any> },
 >(shape: Shape) {
   return jsonEncoderObject(shape, casingConvertToSnake);
 }
-export function jsonCodecObjectWithKeysSnakeEncoded<
+export function jsonCodecObjectSnakeToObjectCamel<
   Shape extends { [key: string]: JsonCodec<any> },
 >(shape: Shape) {
   return jsonCodecObject(shape, casingConvertToSnake);
