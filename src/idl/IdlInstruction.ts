@@ -6,7 +6,11 @@ import {
   jsonDecoderOptional,
 } from "../data/Json";
 import { Pubkey } from "../data/Pubkey";
-import { objectGetOwnProperty, withErrorContext } from "../data/Utils";
+import {
+  objectGetOwnProperty,
+  objectGuessIntendedKey,
+  withErrorContext,
+} from "../data/Utils";
 import { IdlDocs, idlDocsParse } from "./IdlDocs";
 import {
   IdlInstructionAccount,
@@ -63,7 +67,7 @@ export function idlInstructionAccountsEncode(
   for (const instructionAccountIdl of self.accounts) {
     const instructionAddress = objectGetOwnProperty(
       instructionAddresses,
-      instructionAccountIdl.name,
+      objectGuessIntendedKey(instructionAddresses, instructionAccountIdl.name),
     );
     if (instructionAddress === undefined) {
       if (instructionAccountIdl.optional) {
@@ -190,22 +194,27 @@ export function idlInstructionReturnDecode(
 export async function idlInstructionAddressesHydrate(
   self: IdlInstruction,
   programAddress: Pubkey,
-  instructionContent: IdlInstructionBlobInstructionContent,
+  instructionContent?: IdlInstructionBlobInstructionContent,
   accountsContext?: IdlInstructionBlobAccountsContext,
   accountFetcher?: IdlInstructionBlobAccountFetcher,
 ): Promise<Record<string, Pubkey>> {
   const instructionAddresses = {
-    ...instructionContent.instructionAddresses,
+    ...instructionContent?.instructionAddresses,
   };
   instructionContent = {
     instructionAddresses,
-    instructionPayload: instructionContent.instructionPayload,
+    instructionPayload: instructionContent?.instructionPayload,
   };
   while (true) {
     let madeProgress = false;
     for (let instructionAccountIdl of self.accounts) {
       const instructionAddress =
-        instructionAddresses[instructionAccountIdl.name];
+        instructionAddresses[
+          objectGuessIntendedKey(
+            instructionAddresses,
+            instructionAccountIdl.name,
+          )
+        ];
       if (instructionAddress !== undefined) {
         continue;
       }

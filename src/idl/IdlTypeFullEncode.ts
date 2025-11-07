@@ -8,7 +8,11 @@ import {
   JsonValue,
 } from "../data/Json";
 import { utf8Encode } from "../data/Utf8";
-import { objectGetOwnProperty, withErrorContext } from "../data/Utils";
+import {
+  objectGetOwnProperty,
+  objectGuessIntendedKey,
+  withErrorContext,
+} from "../data/Utils";
 import {
   IdlTypeFull,
   IdlTypeFullArray,
@@ -302,10 +306,11 @@ const visitorFieldsEncode = {
   ) => {
     const object = jsonCodecObjectRaw.decoder(value);
     for (const field of self) {
-      withErrorContext(`Encode: Field: ${field.name}`, () => {
+      const fieldName = objectGuessIntendedKey(object, field.name);
+      withErrorContext(`Encode: Field: ${fieldName}`, () => {
         typeFullEncode(
           field.content,
-          objectGetOwnProperty(object, field.name),
+          objectGetOwnProperty(object, fieldName),
           prefixed,
           blobs,
         );

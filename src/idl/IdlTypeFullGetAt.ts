@@ -1,3 +1,4 @@
+import { casingConvertToSnake } from "../data/Casing";
 import {
   JsonPointer,
   jsonPointerParse,
@@ -199,9 +200,15 @@ const visitorTypeFullFields = {
     pointer: Array<number | string>,
     tokenIndex: number,
   ) => {
-    const name = String(pointer[tokenIndex]!);
+    const fieldName = String(pointer[tokenIndex]!);
     for (const field of self) {
-      if (field.name === name) {
+      if (field.name === fieldName) {
+        return visitTypeFull(field.content, pointer, tokenIndex + 1);
+      }
+    }
+    const fieldNameSnake = casingConvertToSnake(fieldName);
+    for (const field of self) {
+      if (field.name === fieldNameSnake) {
         return visitTypeFull(field.content, pointer, tokenIndex + 1);
       }
     }

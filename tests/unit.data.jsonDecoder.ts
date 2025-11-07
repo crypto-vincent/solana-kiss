@@ -85,17 +85,6 @@ it("run", async () => {
       }),
       decoded: { snakeCase: 142, camelCase: 143 },
     },
-    {
-      encoded: { snake_case: 342, camelCase: 343 },
-      decoder: jsonDecoderObject(
-        {
-          snakeCase: jsonDecoderOptional(jsonCodecNumber.decoder),
-          camelCase: jsonDecoderOptional(jsonCodecNumber.decoder),
-        },
-        { keysSkipSnakeCaseFallback: true },
-      ),
-      decoded: { camelCase: 343 },
-    },
   ];
   for (const test of tests) {
     expect(test.decoder(test.encoded)).toStrictEqual(test.decoded);

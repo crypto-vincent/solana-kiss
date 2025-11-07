@@ -43,6 +43,16 @@ it("run", async () => {
       path: "very[2].deep.missing",
       needle: undefined,
     },
+    {
+      haystack: { camelCase: { valueOne: 1, value_two: 2 } },
+      path: "camel_case.value_one",
+      needle: 1,
+    },
+    {
+      haystack: { camelCase: { valueOne: 1, value_two: 2 } },
+      path: "camelCase.valueTwo",
+      needle: 2,
+    },
   ];
   for (const test of tests) {
     expect(test.needle).toStrictEqual(jsonGetAt(test.haystack, test.path));

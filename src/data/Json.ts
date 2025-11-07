@@ -7,11 +7,14 @@ import {
   blockSlotFromNumber,
   blockSlotToNumber,
 } from "./Block";
-import { casingConvertToSnake } from "./Casing";
 import { pubkeyFromBase58, pubkeyToBase58 } from "./Pubkey";
 import { signatureFromBase58, signatureToBase58 } from "./Signature";
 import { utf8Decode, utf8Encode } from "./Utf8";
-import { objectGetOwnProperty, withErrorContext } from "./Utils";
+import {
+  objectGetOwnProperty,
+  objectGuessIntendedKey,
+  withErrorContext,
+} from "./Utils";
 
 export type JsonValue = JsonPrimitive | JsonArray | JsonObject;
 // TODO (cleanup) - does this needs to contain 'undefined' ?
@@ -243,7 +246,8 @@ export function jsonPointerPreview(
   tokenIndex?: number,
 ): string {
   const parts = [];
-  for (let index = 0; index < (tokenIndex ?? self.length); index++) {
+  const end = tokenIndex ? tokenIndex + 1 : self.length;
+  for (let index = 0; index < end; index++) {
     const token = self[index]!;
     if (typeof token === "number" || token === "") {
       parts.push(`[${token}]`);
@@ -302,7 +306,10 @@ export function jsonGetAt(
     }
     const object = jsonAsObject(current);
     if (object !== undefined) {
-      current = objectGetOwnProperty(object, pointerToken);
+      current = objectGetOwnProperty(
+        object,
+        objectGuessIntendedKey(object, pointerToken),
+      );
       continue;
     }
     if (options?.throwOnMissing) {
@@ -608,7 +615,6 @@ export function jsonDecoderObject<
 >(
   shape: Shape,
   options?: {
-    keysSkipSnakeCaseFallback?: boolean;
     keysEncoding?:
       | { [K in keyof Shape]?: string }
       | ((keyDecoded: Extract<keyof Shape, string>) => string | undefined);
@@ -624,16 +630,10 @@ export function jsonDecoderObject<
     };
     const object = jsonCodecObjectRaw.decoder(encoded);
     for (const keyDecoded in shape) {
-      let keyEncoded = objectKeyEncode(keyDecoded, options?.keysEncoding);
-      if (
-        options?.keysSkipSnakeCaseFallback !== true &&
-        !object.hasOwnProperty(keyDecoded)
-      ) {
-        const keyEncodedSnake = casingConvertToSnake(keyEncoded);
-        if (object.hasOwnProperty(keyEncodedSnake)) {
-          keyEncoded = keyEncodedSnake;
-        }
-      }
+      let keyEncoded = objectGuessIntendedKey(
+        object,
+        objectKeyEncode(keyDecoded, options?.keysEncoding),
+      );
       const valueEncoded = objectGetOwnProperty(object, keyEncoded);
       const valueDecoded = withErrorContext(
         `JSON: Decode Object["${keyEncoded}"] =>`,

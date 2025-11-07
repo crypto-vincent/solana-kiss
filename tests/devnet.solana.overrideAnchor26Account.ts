@@ -44,7 +44,7 @@ it("run", async () => {
     solana,
     programStateAddress,
     "ProgramState",
-    "credix_multisig_key", // TODO (casing) - really consider camel casing everywhere?
+    "credix_multisig_key",
     "Ej5zJzej7rrUoDngsJ3jcpfuvfVyWpcDcK7uv9cE2LdL",
   );
   // Read the market admins content using the IDL

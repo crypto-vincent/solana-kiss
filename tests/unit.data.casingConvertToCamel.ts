@@ -16,6 +16,7 @@ it("run", async () => {
     { in: "kebab-CASE", out: "kebabCase" },
     { in: "Title Case", out: "titleCase" },
     { in: "with space", out: "withSpace" },
+    { in: "with.path_like.key", out: "with.pathLike.key" },
     { in: "with ACRONYM", out: "withAcronym" },
     { in: "multiple   spaces", out: "multipleSpaces" },
     { in: "  leading _ trailing spaces  ", out: "leadingTrailingSpaces" },

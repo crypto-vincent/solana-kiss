@@ -32,8 +32,8 @@ it("run", async () => {
                 { kind: "account", path: "first.u64" },
                 { account: "MyAccount", path: "first.array_u8_2" },
                 { account: "MyAccount", path: "first.vec_u8_3" },
-                { account: "MyAccount", path: "first.string" },
-                { account: "MyAccount", path: "first.inner.u8" },
+                { path: "first.string" },
+                { path: "first.inner.u8" },
                 { account: "MyAccount", path: "first.inner.u16" },
                 { kind: "account", path: "first.inner.u16", type: "u8" },
                 { kind: "account", path: "first.inner.u16", type: "u32" },
@@ -88,10 +88,8 @@ it("run", async () => {
   ];
   const pdaAddress = pubkeyFindPdaAddress(programAddress, pdaSeeds);
   // Assert that the accounts can be properly resolved
-  const accountIdl = expectDefined(programIdl.accounts.get("MyAccount"));
-  const instructionIdl = expectDefined(programIdl.instructions.get("my_ix"));
   const instructionAddresses = await idlInstructionAddressesHydrate(
-    instructionIdl,
+    expectDefined(programIdl.instructions.get("my_ix")),
     programAddress,
     {
       instructionAddresses: {
@@ -102,7 +100,8 @@ it("run", async () => {
     },
     {
       first: {
-        accountTypeFull: accountIdl.typeFull,
+        accountTypeFull: expectDefined(programIdl.accounts.get("MyAccount"))
+          .typeFull,
         accountState: {
           u8: 77,
           u16: 78,
@@ -118,6 +117,9 @@ it("run", async () => {
         },
       },
       "nester.nested2": { accountState: 42 },
+    },
+    () => {
+      throw new Error("Check that this should never be called");
     },
   );
   expect(instructionAddresses["pda"]).toStrictEqual(pdaAddress);

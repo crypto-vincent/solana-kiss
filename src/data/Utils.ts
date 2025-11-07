@@ -1,3 +1,5 @@
+import { casingConvertToCamel, casingConvertToSnake } from "./Casing";
+
 export type BrandedType<T, Name> =
   | (T & { readonly __brand: Name })
   | { readonly __brand: Name };
@@ -23,6 +25,30 @@ export function objectGetOwnProperty<
     return object[key];
   }
   return undefined;
+}
+
+export function objectGuessIntendedKey<
+  Object extends object,
+  Key extends keyof Object,
+>(object: Object, key: Key): Key {
+  if (typeof key !== "string") {
+    return key;
+  }
+  if (Object.prototype.hasOwnProperty.call(object, key)) {
+    return key;
+  }
+  if (key.includes("_")) {
+    const keyCamel = casingConvertToCamel(key);
+    if (Object.prototype.hasOwnProperty.call(object, keyCamel)) {
+      return keyCamel as Key;
+    }
+  } else {
+    const keySnake = casingConvertToSnake(key);
+    if (Object.prototype.hasOwnProperty.call(object, keySnake)) {
+      return keySnake as Key;
+    }
+  }
+  return key;
 }
 
 export function withErrorContext<T>(message: string, fn: () => T): T {

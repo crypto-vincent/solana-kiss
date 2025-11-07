@@ -1,3 +1,4 @@
+import { casingConvertToCamel, casingConvertToSnake } from "../data/Casing";
 import {
   JsonArray,
   JsonPointer,
@@ -22,8 +23,8 @@ import { IdlTypePrimitive } from "./IdlTypePrimitive";
 import { idlUtilsInferValueTypeFlat } from "./IdlUtils";
 
 export type IdlInstructionBlobInstructionContent = {
-  instructionAddresses: Record<string, Pubkey>;
-  instructionPayload: JsonValue;
+  instructionAddresses?: Record<string, Pubkey>;
+  instructionPayload?: JsonValue;
 };
 export type IdlInstructionBlobAccountContent = {
   accountState: JsonValue;
@@ -46,6 +47,8 @@ export type IdlInstructionBlobArg = {
 };
 export type IdlInstructionBlobAccount = {
   path: string;
+  pathCamel: string;
+  pathSnake: string;
   typeFull: IdlTypeFull | undefined;
 };
 
@@ -122,6 +125,7 @@ export function idlInstructionBlobParse(
     throw new Error(`Idl: Missing path for instruction blob`);
   }
   if (decoded.kind === "arg") {
+    // TODO - can we auto-detect arg mode ?
     return idlInstructionBlobParseArg(
       decoded.path,
       decoded.type,
@@ -149,9 +153,8 @@ export function idlInstructionBlobParseConst(
     new Map(),
     typedefsIdls,
   );
-  return IdlInstructionBlob.const({
-    bytes: idlTypeFullEncode(typeFull, instructionBlobValue, false),
-  });
+  const bytes = idlTypeFullEncode(typeFull, instructionBlobValue, false);
+  return IdlInstructionBlob.const({ bytes });
 }
 
 export function idlInstructionBlobParseArg(
@@ -161,18 +164,9 @@ export function idlInstructionBlobParseArg(
   typedefsIdls?: Map<string, IdlTypedef>,
 ): IdlInstructionBlob {
   const pointer = jsonPointerParse(instructionBlobPath);
-  if (instructionBlobType === undefined) {
-    const typeFull = idlTypeFullFieldsGetAt(
-      instructionArgsTypeFullFields,
-      pointer,
-    );
-    return IdlInstructionBlob.arg({ pointer, typeFull });
-  }
-  const typeFull = idlTypeFlatHydrate(
-    instructionBlobType,
-    new Map(),
-    typedefsIdls,
-  );
+  const typeFull = instructionBlobType
+    ? idlTypeFlatHydrate(instructionBlobType, new Map(), typedefsIdls)
+    : idlTypeFullFieldsGetAt(instructionArgsTypeFullFields, pointer);
   return IdlInstructionBlob.arg({ pointer, typeFull });
 }
 
@@ -181,18 +175,14 @@ export function idlInstructionBlobParseAccount(
   instructionBlobType: IdlTypeFlat | undefined,
   typedefsIdls?: Map<string, IdlTypedef>,
 ): IdlInstructionBlob {
-  if (instructionBlobType === undefined) {
-    return IdlInstructionBlob.account({
-      path: instructionBlobPath,
-      typeFull: undefined,
-    });
+  const path = instructionBlobPath;
+  const pathCamel = casingConvertToCamel(instructionBlobPath);
+  const pathSnake = casingConvertToSnake(instructionBlobPath);
+  let typeFull = undefined;
+  if (instructionBlobType !== undefined) {
+    typeFull = idlTypeFlatHydrate(instructionBlobType, new Map(), typedefsIdls);
   }
-  const typeFull = idlTypeFlatHydrate(
-    instructionBlobType,
-    new Map(),
-    typedefsIdls,
-  );
-  return IdlInstructionBlob.account({ path: instructionBlobPath, typeFull });
+  return IdlInstructionBlob.account({ path, pathCamel, pathSnake, typeFull });
 }
 
 const jsonDecoder = jsonDecoderByKind<{
@@ -242,15 +232,22 @@ const computeVisitor = {
     accountsContext?: IdlInstructionBlobAccountsContext,
     accountFetcher?: IdlInstructionBlobAccountFetcher,
   ) => {
+    const pathCamel = casingConvertToCamel(self.path);
+    const pathSnake = casingConvertToSnake(self.path);
     if (
-      self.typeFull === undefined ||
-      self.typeFull.isPrimitive(IdlTypePrimitive.pubkey)
+      instructionContent.instructionAddresses &&
+      (self.typeFull === undefined ||
+        self.typeFull.isPrimitive(IdlTypePrimitive.pubkey))
     ) {
       for (const [
         instructionAccountName,
         instructionAddress, // TODO (naming) - naming stands out here
       ] of Object.entries(instructionContent.instructionAddresses)) {
-        if (self.path === instructionAccountName) {
+        if (
+          self.path === instructionAccountName ||
+          pathCamel === instructionAccountName ||
+          pathSnake === instructionAccountName
+        ) {
           return pubkeyToBytes(instructionAddress);
         }
       }
@@ -261,20 +258,55 @@ const computeVisitor = {
       )) {
         if (self.path.startsWith(instructionAccountName)) {
           return encodeExtractedAccountState(
-            self,
+            self.path,
+            self.typeFull,
+            instructionAccountName,
+            accountContent,
+          );
+        }
+        // TODO - this is a bit weird innit
+        if (pathCamel.startsWith(instructionAccountName)) {
+          return encodeExtractedAccountState(
+            pathCamel,
+            self.typeFull,
+            instructionAccountName,
+            accountContent,
+          );
+        }
+        if (pathSnake.startsWith(instructionAccountName)) {
+          return encodeExtractedAccountState(
+            pathSnake,
+            self.typeFull,
             instructionAccountName,
             accountContent,
           );
         }
       }
     }
-    if (accountFetcher) {
+    if (accountFetcher && instructionContent.instructionAddresses) {
       for (const [instructionAccountName, instructionAddress] of Object.entries(
         instructionContent.instructionAddresses,
       )) {
         if (self.path.startsWith(instructionAccountName)) {
           return encodeExtractedAccountState(
-            self,
+            self.path,
+            self.typeFull,
+            instructionAccountName,
+            await accountFetcher(instructionAddress),
+          );
+        }
+        if (pathCamel.startsWith(instructionAccountName)) {
+          return encodeExtractedAccountState(
+            pathCamel,
+            self.typeFull,
+            instructionAccountName,
+            await accountFetcher(instructionAddress),
+          );
+        }
+        if (pathSnake.startsWith(instructionAccountName)) {
+          return encodeExtractedAccountState(
+            pathSnake,
+            self.typeFull,
             instructionAccountName,
             await accountFetcher(instructionAddress),
           );
@@ -288,17 +320,18 @@ const computeVisitor = {
 };
 
 function encodeExtractedAccountState(
-  self: IdlInstructionBlobAccount,
+  path: string,
+  typeFull: IdlTypeFull | undefined,
   instructionAccountName: string,
   accountContent: IdlInstructionBlobAccountContent,
 ) {
-  const statePath = self.path.slice(instructionAccountName.length);
+  const statePath = path.slice(instructionAccountName.length);
   const statePointer = jsonPointerParse(statePath);
   const stateValue = jsonGetAt(accountContent.accountState, statePointer, {
     throwOnMissing: true,
   });
-  if (self.typeFull !== undefined) {
-    return idlTypeFullEncode(self.typeFull, stateValue, false);
+  if (typeFull !== undefined) {
+    return idlTypeFullEncode(typeFull, stateValue, false);
   }
   if (accountContent.accountTypeFull === undefined) {
     throw new Error(

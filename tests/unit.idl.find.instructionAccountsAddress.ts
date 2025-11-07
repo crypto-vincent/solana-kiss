@@ -28,7 +28,6 @@ it("run", async () => {
   const instructionAddresses = await idlInstructionAddressesHydrate(
     expectDefined(programIdl.instructions.get("my_ix")),
     pubkeyNewDummy(),
-    { instructionAddresses: {}, instructionPayload: {} },
   );
   expect(instructionAddresses["const_address"]).toStrictEqual(dummyAddress);
 });

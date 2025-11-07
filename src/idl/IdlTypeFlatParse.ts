@@ -68,7 +68,7 @@ export function idlTypeFlatParseIsPossible(value: JsonValue): boolean {
     object.hasOwnProperty("vec128") ||
     object.hasOwnProperty("loop") ||
     object.hasOwnProperty("array") ||
-    object.hasOwnProperty("fields") ||
+    object.hasOwnProperty("fields") || // TODO (experiment) - support for partial structs ?
     object.hasOwnProperty("variants") ||
     object.hasOwnProperty("variants8") ||
     object.hasOwnProperty("variants16") ||
