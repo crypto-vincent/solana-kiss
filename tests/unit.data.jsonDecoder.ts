@@ -1,5 +1,6 @@
 import { expect, it } from "@jest/globals";
 import {
+  jsonCodecBytesBase16,
   jsonCodecInteger,
   jsonCodecNumber,
   JsonDecoder,
@@ -7,6 +8,7 @@ import {
   jsonDecoderForked,
   jsonDecoderObject,
   jsonDecoderObjectToMap,
+  jsonDecoderOptional,
   jsonDecoderTransform,
   JsonValue,
 } from "../src";
@@ -36,9 +38,7 @@ it("run", async () => {
     {
       encoded: { outer: { inner: 42 } },
       decoder: jsonDecoderObject({
-        outer: jsonDecoderObject({
-          inner: jsonCodecInteger.decoder,
-        }),
+        outer: jsonDecoderObject({ inner: jsonCodecInteger.decoder }),
       }),
       decoded: { outer: { inner: 42n } },
     },
@@ -65,6 +65,36 @@ it("run", async () => {
         ["key:b", "number:42"],
         ["key:c", "string:hello"],
       ]),
+    },
+    {
+      encoded: { lowerBase16: "f2f2", upperBase16: "F2F2" },
+      decoder: jsonDecoderObject({
+        lowerBase16: jsonCodecBytesBase16.decoder,
+        upperBase16: jsonCodecBytesBase16.decoder,
+      }),
+      decoded: {
+        lowerBase16: new Uint8Array([0xf2, 0xf2]),
+        upperBase16: new Uint8Array([0xf2, 0xf2]),
+      },
+    },
+    {
+      encoded: { snake_case: 142, camelCase: 143 },
+      decoder: jsonDecoderObject({
+        snakeCase: jsonDecoderOptional(jsonCodecNumber.decoder),
+        camelCase: jsonDecoderOptional(jsonCodecNumber.decoder),
+      }),
+      decoded: { snakeCase: 142, camelCase: 143 },
+    },
+    {
+      encoded: { snake_case: 342, camelCase: 343 },
+      decoder: jsonDecoderObject(
+        {
+          snakeCase: jsonDecoderOptional(jsonCodecNumber.decoder),
+          camelCase: jsonDecoderOptional(jsonCodecNumber.decoder),
+        },
+        { keysSkipSnakeCaseFallback: true },
+      ),
+      decoded: { camelCase: 343 },
     },
   ];
   for (const test of tests) {

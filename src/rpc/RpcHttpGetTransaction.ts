@@ -385,10 +385,12 @@ const compiledInstructionsJsonDecoder = jsonDecoderArray(
       dataBase58: jsonCodecString.decoder,
     },
     {
-      stackHeight: "stackHeight",
-      programIndex: "programIdIndex",
-      accountsIndexes: "accounts",
-      dataBase58: "data",
+      keysEncoding: {
+        stackHeight: "stackHeight",
+        programIndex: "programIdIndex",
+        accountsIndexes: "accounts",
+        dataBase58: "data",
+      },
     },
   ),
 );

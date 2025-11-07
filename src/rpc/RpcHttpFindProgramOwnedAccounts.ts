@@ -56,7 +56,5 @@ export async function rpcHttpFindProgramOwnedAccounts(
 }
 
 const resultJsonDecoder = jsonDecoderArray(
-  jsonDecoderObject({
-    pubkey: jsonCodecPubkey.decoder,
-  }),
+  jsonDecoderObject({ pubkey: jsonCodecPubkey.decoder }),
 );

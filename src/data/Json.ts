@@ -607,9 +607,12 @@ export function jsonDecoderObject<
   Shape extends { [key: string]: JsonDecoder<any> },
 >(
   shape: Shape,
-  keyEncoding?:
-    | { [K in keyof Shape]?: string }
-    | ((keyDecoded: Extract<keyof Shape, string>) => string),
+  options?: {
+    keysSkipSnakeCaseFallback?: boolean;
+    keysEncoding?:
+      | { [K in keyof Shape]?: string }
+      | ((keyDecoded: Extract<keyof Shape, string>) => string | undefined);
+  },
 ): JsonDecoder<{ [K in keyof Shape]: JsonDecoderContent<Shape[K]> }> {
   return (
     encoded: JsonValue,
@@ -621,7 +624,16 @@ export function jsonDecoderObject<
     };
     const object = jsonCodecObjectRaw.decoder(encoded);
     for (const keyDecoded in shape) {
-      const keyEncoded = objectKeyEncoder(keyDecoded, keyEncoding);
+      let keyEncoded = objectKeyEncode(keyDecoded, options?.keysEncoding);
+      if (
+        options?.keysSkipSnakeCaseFallback !== true &&
+        !object.hasOwnProperty(keyDecoded)
+      ) {
+        const keyEncodedSnake = casingConvertToSnake(keyEncoded);
+        if (object.hasOwnProperty(keyEncodedSnake)) {
+          keyEncoded = keyEncodedSnake;
+        }
+      }
       const valueEncoded = objectGetOwnProperty(object, keyEncoded);
       const valueDecoded = withErrorContext(
         `JSON: Decode Object["${keyEncoded}"] =>`,
@@ -638,16 +650,18 @@ export function jsonEncoderObject<
   Shape extends { [key: string]: JsonEncoder<any> },
 >(
   shape: Shape,
-  keyEncoding?:
-    | { [K in keyof Shape]?: string }
-    | ((keyDecoded: Extract<keyof Shape, string>) => string),
+  options?: {
+    keysEncoding?:
+      | { [K in keyof Shape]?: string }
+      | ((keyDecoded: Extract<keyof Shape, string>) => string);
+  },
 ): JsonEncoder<{ [K in keyof Shape]: JsonEncoderContent<Shape[K]> }> {
   return (decoded: {
     [K in keyof Shape]: JsonEncoderContent<Shape[K]>;
   }): JsonValue => {
     const encoded = {} as JsonObject;
     for (const keyDecoded in shape) {
-      const keyEncoded = objectKeyEncoder(keyDecoded, keyEncoding);
+      const keyEncoded = objectKeyEncode(keyDecoded, options?.keysEncoding);
       const valueEncoded = shape[keyDecoded]!(
         objectGetOwnProperty(decoded, keyDecoded),
       );
@@ -662,9 +676,11 @@ export function jsonCodecObject<
   Shape extends { [key: string]: JsonCodec<any> },
 >(
   shape: Shape,
-  keyEncoding?:
-    | { [K in keyof Shape]?: string }
-    | ((keyDecoded: Extract<keyof Shape, string>) => string),
+  options?: {
+    keysEncoding?:
+      | { [K in keyof Shape]?: string }
+      | ((keyDecoded: Extract<keyof Shape, string>) => string | undefined);
+  },
 ): JsonCodec<{ [K in keyof Shape]: JsonCodecContent<Shape[K]> }> {
   const decodeShape = Object.fromEntries(
     Object.entries(shape).map(([key, type]) => [key, type.decoder]),
@@ -673,25 +689,9 @@ export function jsonCodecObject<
     Object.entries(shape).map(([key, type]) => [key, type.encoder]),
   ) as { [K in keyof Shape]: JsonEncoder<any> };
   return {
-    decoder: jsonDecoderObject(decodeShape, keyEncoding as any),
-    encoder: jsonEncoderObject(encodeShape, keyEncoding as any),
+    decoder: jsonDecoderObject(decodeShape, options as any),
+    encoder: jsonEncoderObject(encodeShape, options as any),
   } as JsonCodec<{ [K in keyof Shape]: JsonCodecContent<Shape[K]> }>;
-}
-
-export function jsonDecoderObjectSnakeToObjectCamel<
-  Shape extends { [key: string]: JsonDecoder<any> },
->(shape: Shape) {
-  return jsonDecoderObject(shape, casingConvertToSnake);
-}
-export function jsonEncoderObjectSnakeToObjectCamel<
-  Shape extends { [key: string]: JsonEncoder<any> },
->(shape: Shape) {
-  return jsonEncoderObject(shape, casingConvertToSnake);
-}
-export function jsonCodecObjectSnakeToObjectCamel<
-  Shape extends { [key: string]: JsonCodec<any> },
->(shape: Shape) {
-  return jsonCodecObject(shape, casingConvertToSnake);
 }
 
 export function jsonDecoderObjectToMap<Key, Value>(params: {
@@ -907,15 +907,17 @@ export function jsonDecoderAsEnum<
   Content,
 >(
   shape: Shape,
-  keyEncoding?:
-    | { [K in keyof Shape]?: string }
-    | ((keyDecoded: Extract<keyof Shape, string>) => string),
+  options?: {
+    keysEncoding?:
+      | { [K in keyof Shape]?: string }
+      | ((keyDecoded: Extract<keyof Shape, string>) => string | undefined);
+  },
 ): JsonDecoder<Content> {
   return (encoded: JsonValue): Content => {
     const object = jsonCodecObjectRaw.decoder(encoded);
     let foundKey: { encoded: string; decoded: string } | undefined = undefined;
     for (const keyDecoded in shape) {
-      const keyEncoded = objectKeyEncoder(keyDecoded, keyEncoding);
+      const keyEncoded = objectKeyEncode(keyDecoded, options?.keysEncoding);
       if (object.hasOwnProperty(keyEncoded)) {
         if (foundKey !== undefined) {
           throw new Error(
@@ -971,17 +973,17 @@ export function jsonDecoderFailover<Content>(
   };
 }
 
-function objectKeyEncoder<Shape extends { [key: string]: any }>(
-  keyDecoded: Extract<keyof Shape, string>,
-  keyEncoding?:
-    | { [K in keyof Shape]?: string }
-    | ((keyDecoded: Extract<keyof Shape, string>) => string),
+function objectKeyEncode<KeyDecoded extends string>(
+  keyDecoded: KeyDecoded,
+  keysEncoding?:
+    | { [K in KeyDecoded]?: string }
+    | ((keyDecoded: KeyDecoded) => string | undefined),
 ): string {
-  if (keyEncoding === undefined) {
+  if (keysEncoding === undefined) {
     return keyDecoded;
   }
-  if (typeof keyEncoding === "function") {
-    return keyEncoding(keyDecoded);
+  if (typeof keysEncoding === "function") {
+    return keysEncoding(keyDecoded) ?? keyDecoded;
   }
-  return objectGetOwnProperty(keyEncoding, keyDecoded) ?? keyDecoded;
+  return objectGetOwnProperty(keysEncoding, keyDecoded) ?? keyDecoded;
 }

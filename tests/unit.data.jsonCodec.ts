@@ -49,7 +49,7 @@ it("run", async () => {
       encoded: { hello_world: 3 },
       codec: jsonCodecObject(
         { helloWorld: jsonCodecNumber },
-        casingConvertToSnake,
+        { keysEncoding: casingConvertToSnake },
       ),
       decoded: { helloWorld: 3 },
     },
@@ -57,7 +57,7 @@ it("run", async () => {
       encoded: { helloWorld: 4 },
       codec: jsonCodecObject(
         { hello_world: jsonCodecNumber },
-        casingConvertToCamel,
+        { keysEncoding: casingConvertToCamel },
       ),
       decoded: { hello_world: 4 },
     },
@@ -65,7 +65,7 @@ it("run", async () => {
       encoded: { encoded_key: 5 },
       codec: jsonCodecObject(
         { decodedKey: jsonCodecNumber },
-        { decodedKey: "encoded_key" },
+        { keysEncoding: { decodedKey: "encoded_key" } },
       ),
       decoded: { decodedKey: 5 },
     },
