@@ -2,8 +2,6 @@ import { JsonValue } from "../data/Json";
 import { IdlTypePrefix } from "./IdlTypePrefix";
 import { IdlTypePrimitive } from "./IdlTypePrimitive";
 
-// TODO (experiment) - support json schema generation ?
-
 export type IdlTypeFullTypedef = {
   name: string;
   repr: string | undefined;

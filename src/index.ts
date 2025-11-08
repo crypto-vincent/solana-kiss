@@ -37,7 +37,7 @@ export * from "./idl/IdlTypeFullBytemuck";
 export * from "./idl/IdlTypeFullDecode";
 export * from "./idl/IdlTypeFullEncode";
 export * from "./idl/IdlTypeFullGetAt";
-// TODO - where to put IdlTypeFullCodec?
+// TODO - where to put IdlTypeFullCodec? where to use it?
 export * from "./idl/IdlTypePrefix";
 export * from "./idl/IdlTypePrimitive";
 export * from "./idl/IdlUtils";

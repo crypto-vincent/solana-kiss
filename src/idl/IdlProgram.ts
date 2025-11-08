@@ -27,7 +27,6 @@ import {
 import { IdlMetadata, idlMetadataParse } from "./IdlMetadata";
 import { IdlTypedef, idlTypedefParse } from "./IdlTypedef";
 
-// TODO - provide a type inference type for IDL to typescript types ?
 export type IdlProgram = {
   metadata: IdlMetadata;
   typedefs: Map<string, IdlTypedef>;

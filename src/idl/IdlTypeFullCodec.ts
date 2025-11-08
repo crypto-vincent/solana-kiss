@@ -17,15 +17,18 @@ import {
 } from "./IdlTypeFull";
 import { IdlTypePrimitive } from "./IdlTypePrimitive";
 
-export function idlTypeFullCodec(self: IdlTypeFull, name: string): string {
-  return `export const ${name} = ${codec(self)};`;
+export function idlTypeFullCodec(
+  self: IdlTypeFull,
+  exportName: string,
+): string {
+  return `export const ${exportName} = ${typeCodec(self)};`;
 }
 
-function codec(typeFull: IdlTypeFull): string {
+function typeCodec(typeFull: IdlTypeFull): string {
   return typeFull.traverse(visitor, undefined, undefined, undefined);
 }
 
-function codecFields(typeFullFields: IdlTypeFullFields): string {
+function typeCodecFields(typeFullFields: IdlTypeFullFields): string {
   return typeFullFields.traverse(
     visitorFields,
     undefined,
@@ -36,34 +39,34 @@ function codecFields(typeFullFields: IdlTypeFullFields): string {
 
 const visitor = {
   typedef: (self: IdlTypeFullTypedef) => {
-    return codec(self.content);
+    return typeCodec(self.content);
   },
   option: (self: IdlTypeFullOption) => {
-    return `jsonCodecOptional(${codec(self.content)})`;
+    return `jsonCodecOptional(${typeCodec(self.content)})`;
   },
   vec: (self: IdlTypeFullVec) => {
     if (self.items.isPrimitive(IdlTypePrimitive.u8)) {
       return `jsonCodecBytesArray`;
     }
-    return `jsonCodecArray(${codec(self.items)})`;
+    return `jsonCodecArray(${typeCodec(self.items)})`;
   },
   loop: (self: IdlTypeFullLoop) => {
     if (self.items.isPrimitive(IdlTypePrimitive.u8)) {
       return `jsonCodecBytesArray`;
     }
-    return `jsonCodecArray(${codec(self.items)})`;
+    return `jsonCodecArray(${typeCodec(self.items)})`;
   },
   array: (self: IdlTypeFullArray) => {
     if (self.items.isPrimitive(IdlTypePrimitive.u8)) {
       return `jsonCodecBytesArray`;
     }
-    return `jsonCodecArray(${codec(self.items)})`;
+    return `jsonCodecArray(${typeCodec(self.items)})`;
   },
   string: (_self: IdlTypeFullString) => {
     return `jsonCodecString`;
   },
   struct: (self: IdlTypeFullStruct) => {
-    return codecFields(self.fields);
+    return typeCodecFields(self.fields);
   },
   enum: (self: IdlTypeFullEnum) => {
     const variantsNames = [];
@@ -71,7 +74,9 @@ const visitor = {
     let hasFields = false;
     for (const variant of self.variants) {
       variantsNames.push(`"${variant.name}"`);
-      variantsEntries.push(`${variant.name}:${codecFields(variant.fields)}`);
+      variantsEntries.push(
+        `${variant.name}:${typeCodecFields(variant.fields)}`,
+      );
       if (!variant.fields.isNothing()) {
         hasFields = true;
       }
@@ -83,7 +88,7 @@ const visitor = {
     }
   },
   pad: (self: IdlTypeFullPad) => {
-    return codec(self.content);
+    return typeCodec(self.content);
   },
   blob: (_self: IdlTypeFullBlob) => {
     return `jsonCodecConst(undefined)`;
@@ -106,14 +111,14 @@ const visitorFields = {
       if (fieldName === fieldNameSnake) {
         fieldName = fieldNameCamel;
       }
-      fields.push(`${fieldName}:${codec(field.content)}`);
+      fields.push(`${fieldName}:${typeCodec(field.content)}`);
     }
     return `jsonCodecObject({${fields.join(",")}})`;
   },
   unnamed: (self: Array<IdlTypeFullFieldUnnamed>) => {
     const fields = [];
     for (const field of self) {
-      fields.push(codec(field.content));
+      fields.push(typeCodec(field.content));
     }
     return `jsonCodecArrayToTuple(${fields.join(",")})`;
   },

@@ -52,7 +52,7 @@ export type TransactionExecution = {
   chargedFeesLamports: bigint | undefined;
 };
 
-// TODO - this should be rooted at a program call not a statement list ?
+// TODO - this should be rooted at a program call not a statement list ? (improve naming also?)
 export type TransactionFlow = Array<
   | { invocation: TransactionInvocation }
   | { data: Uint8Array }

@@ -184,7 +184,7 @@ export const jsonCodec = jsonCodecObject({
                 compressionDecay: jsonCodecNumber,
                 compressionTopk: jsonCodecNumber,
                 compressionChunk: jsonCodecNumber,
-                quantize_1bit: jsonCodecBoolean,
+                quantize_1bit: jsonCodecBoolean, // TODO - this should be able to roundtrip camel<->snake
               }),
             }),
           }),

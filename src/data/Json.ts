@@ -1033,7 +1033,7 @@ export function jsonDecoderByKind<Content>(decoders: {
 }
 
 // TODO (cleanup) - this APIs needs cleanup on type and naming
-export function jsonDecoderObjectKeysUnique<
+export function jsonDecoderObjectKeysToValue<
   Shape extends { [key: string]: JsonDecoder<Content> },
   Content,
 >(shape: Shape): JsonDecoder<Content> {

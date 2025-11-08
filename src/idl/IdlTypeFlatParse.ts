@@ -16,7 +16,7 @@ import {
   jsonDecoderConst,
   jsonDecoderForked,
   jsonDecoderObject,
-  jsonDecoderObjectKeysUnique,
+  jsonDecoderObjectKeysToValue,
   jsonDecoderObjectToMap,
   jsonDecoderOptional,
   jsonDecoderTransform,
@@ -370,8 +370,8 @@ function objectConstJsonDecoder(value: JsonValue): IdlTypeFlat {
   return IdlTypeFlat.const({ literal });
 }
 
-const objectJsonDecoder: JsonDecoder<IdlTypeFlat> = jsonDecoderObjectKeysUnique(
-  {
+const objectJsonDecoder: JsonDecoder<IdlTypeFlat> =
+  jsonDecoderObjectKeysToValue({
     type: idlTypeFlatParse,
     alias: idlTypeFlatParse,
     defined: objectDefinedJsonDecoder,
@@ -401,8 +401,7 @@ const objectJsonDecoder: JsonDecoder<IdlTypeFlat> = jsonDecoderObjectKeysUnique(
     padded: objectPadJsonDecoder,
     bytes: objectBlobJsonDecoder,
     value: objectConstJsonDecoder,
-  },
-);
+  });
 
 const presetsByName = new Map<string, IdlTypeFlat>([
   ["publicKey", IdlTypeFlat.primitive(IdlTypePrimitive.pubkey)],
