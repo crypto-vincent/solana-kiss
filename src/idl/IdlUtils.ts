@@ -9,9 +9,9 @@ import {
   jsonCodecBytesUtf8,
   jsonCodecNumber,
   jsonCodecRaw,
-  jsonDecoderAsEnum,
   jsonDecoderByKind,
   jsonDecoderObject,
+  jsonDecoderObjectKeysUnique,
   jsonDecoderOptional,
   jsonDecoderTransform,
   jsonPreview,
@@ -26,7 +26,7 @@ import { idlTypeFullEncode } from "./IdlTypeFullEncode";
 
 export const idlUtilsBytesJsonDecoder = jsonDecoderByKind({
   array: jsonCodecBytesArray.decoder,
-  object: jsonDecoderAsEnum({
+  object: jsonDecoderObjectKeysUnique({
     utf8: jsonCodecBytesUtf8.decoder,
     base16: jsonCodecBytesBase16.decoder,
     base58: jsonCodecBytesBase58.decoder,

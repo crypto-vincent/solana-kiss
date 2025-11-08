@@ -7,6 +7,7 @@ import {
   JsonCodec,
   jsonCodecArray,
   jsonCodecArrayToObject,
+  jsonCodecArrayToTuple,
   jsonCodecBlockHash,
   jsonCodecBlockSlot,
   jsonCodecBoolean,
@@ -17,6 +18,7 @@ import {
   jsonCodecNumber,
   jsonCodecObject,
   jsonCodecObjectKey,
+  jsonCodecObjectToEnum,
   jsonCodecObjectToMap,
   jsonCodecOptional,
   jsonCodecPubkey,
@@ -174,6 +176,47 @@ it("run", async () => {
       encoded: {},
       codec: jsonCodecObjectKey("toString", jsonCodecOptional(jsonCodecString)),
       decoded: undefined,
+    },
+    {
+      encoded: [1, "hello", { nested: "world" }],
+      codec: jsonCodecArrayToObject({
+        0: jsonCodecNumber,
+        1: jsonCodecString,
+        2: jsonCodecObject({ nested: jsonCodecString }),
+      }),
+      decoded: { 0: 1, 1: "hello", 2: { nested: "world" } },
+    },
+    {
+      encoded: [42, "hello", { nested: "world" }],
+      codec: jsonCodecArrayToTuple(
+        jsonCodecNumber,
+        jsonCodecString,
+        jsonCodecObject({ nested: jsonCodecString }),
+      ),
+      decoded: [42, "hello", { nested: "world" }],
+    },
+    {
+      encoded: { case1: "100" },
+      codec: jsonCodecObjectToEnum({
+        case1: jsonCodecInteger,
+        case2: jsonCodecString,
+      }),
+      decoded: { case1: 100n },
+    },
+    {
+      encoded: { case2: { hello: "world" } },
+      codec: jsonCodecObjectToEnum({
+        case1: jsonCodecInteger,
+        case2: jsonCodecObject({
+          hello: jsonCodecString,
+        }),
+      }),
+      decoded: { case2: { hello: "world" } },
+    },
+    {
+      encoded: ["dudu", 42],
+      codec: jsonCodecArray(jsonCodecConst("dudu", 42, true)),
+      decoded: ["dudu", 42],
     },
   ];
   for (const test of tests) {

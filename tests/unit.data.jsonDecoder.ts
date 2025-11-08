@@ -5,8 +5,10 @@ import {
   jsonCodecNumber,
   JsonDecoder,
   jsonDecoderByKind,
+  jsonDecoderConst,
   jsonDecoderForked,
   jsonDecoderObject,
+  jsonDecoderObjectToEnum,
   jsonDecoderObjectToMap,
   jsonDecoderOptional,
   jsonDecoderTransform,
@@ -84,6 +86,14 @@ it("run", async () => {
         camelCase: jsonDecoderOptional(jsonCodecNumber.decoder),
       }),
       decoded: { snakeCase: 142, camelCase: 143 },
+    },
+    {
+      encoded: "Case1",
+      decoder: jsonDecoderObjectToEnum({
+        Case1: jsonDecoderConst(undefined),
+        Case2: jsonDecoderObject({ hello: jsonCodecNumber.decoder }),
+      }),
+      decoded: { Case1: undefined },
     },
   ];
   for (const test of tests) {
