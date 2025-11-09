@@ -25,6 +25,7 @@ it("run", async () => {
     { in: "with_num1234_v1", out: "withNum1234V1" },
     { in: "withNum1234V1", out: "withNum1234V1" },
     { in: "1234withNumV1", out: "1234withNumV1" },
+    { in: "abc_v1_12", out: "abcV112" }, // TODO - should try to save underscore before number ?
   ];
   for (const test of tests) {
     expect(casingConvertToCamel(test.in)).toStrictEqual(test.out);

@@ -1,16 +1,46 @@
 import { it } from "@jest/globals";
-import { pubkeyFromBase58, Solana } from "../src";
-import { idlTypeFullCodec } from "../src/idl/IdlTypeFullCodec";
+import { idlProgramParse } from "../src";
+import { idlTypeFullCodecValue } from "../src/idl/IdlTypeFullCodec";
 
 it("run", async () => {
-  const solana = new Solana("devnet");
-  const programIdl = await solana.getOrLoadProgramIdl(
-    pubkeyFromBase58("HR8RN2TP9E9zsi2kjhvPbirJWA1R6L6ruf4xNNGpjU5Y"),
-  );
-  const tutu = idlTypeFullCodec(
-    programIdl.accounts.get("CoordinatorAccount")!.typeFull,
-    "jsonCodec",
-  );
-  console.log(tutu);
+  const programIdl = idlProgramParse({
+    accounts: {
+      DummyAccount: {
+        discriminator: [42],
+        fields: [
+          { name: "field1", type: "u8" },
+          { name: "field2", type: "u16" },
+        ],
+      },
+    },
+  });
+
   // TODO (test) - better test with handmade idl
+
+  const includes = new Set<string>();
+  const codec = idlTypeFullCodecValue(
+    programIdl.accounts.get("DummyAccount")!.typeFull,
+    includes,
+  );
+  expect(codec.replace(/\s+/g, "")).toStrictEqual(
+    codecValue(
+      "jsonCodecObject",
+      fakeObject({
+        field1: "jsonCodecNumber",
+        field2: "jsonCodecNumber",
+      }),
+    ),
+  );
 });
+
+function codecValue(codecName: string, codecParams: string) {
+  return `${codecName}(${codecParams})`;
+}
+
+function fakeObject(record: Record<string, string>): string {
+  const fields = [];
+  for (const [key, value] of Object.entries(record)) {
+    fields.push(`${key}:${value}`);
+  }
+  return `{${fields.join(",")}}`;
+}

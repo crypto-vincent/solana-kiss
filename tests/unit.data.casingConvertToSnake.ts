@@ -25,6 +25,7 @@ it("run", async () => {
     { in: "with_num1234_v1", out: "with_num1234_v1" },
     { in: "withNum1234V1", out: "with_num1234_v1" },
     { in: "1234withNumV1", out: "1234with_num_v1" },
+    { in: "abcV1_12", out: "abc_v1_12" },
   ];
   for (const test of tests) {
     expect(casingConvertToSnake(test.in)).toStrictEqual(test.out);
