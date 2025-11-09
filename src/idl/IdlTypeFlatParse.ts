@@ -176,6 +176,12 @@ const variantsArrayItemJsonDecoder = jsonDecoderByKind<{
     docs: undefined,
     fields: IdlTypeFlatFields.nothing(),
   }),
+  array: (array: Array<JsonValue>) => ({
+    name: undefined,
+    code: undefined,
+    docs: undefined,
+    fields: fieldsJsonDecoder(array),
+  }),
   object: jsonDecoderObject({
     name: jsonDecoderOptional(jsonCodecString.decoder),
     code: jsonDecoderOptional(jsonCodecInteger.decoder),

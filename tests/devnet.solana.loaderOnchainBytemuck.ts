@@ -2,7 +2,7 @@ import { promises as fsp } from "fs";
 import {
   idlAccountDecode,
   idlAccountEncode,
-  idlTypeFullCodecModule,
+  idlTypeFullJsonCodecModule,
   jsonGetAt,
   pubkeyFromBase58,
   rpcHttpFromUrl,
@@ -26,7 +26,7 @@ it("run", async () => {
   ).toStrictEqual(24);
 
   const modulePath = "./tests/fixtures/jsonCodecCoordinatorAccount.ts";
-  const moduleCode = idlTypeFullCodecModule(
+  const moduleCode = idlTypeFullJsonCodecModule(
     accountInfo.idl.typeFull,
     "jsonCodecCoordinatorAccount",
     "../../src",

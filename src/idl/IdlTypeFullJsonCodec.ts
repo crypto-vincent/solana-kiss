@@ -17,13 +17,13 @@ import {
 } from "./IdlTypeFull";
 import { IdlTypePrimitive } from "./IdlTypePrimitive";
 
-export function idlTypeFullCodecModule(
+export function idlTypeFullJsonCodecModule(
   self: IdlTypeFull,
   exportName: string,
   importPath?: string,
 ): string {
   const includes = new Set<string>();
-  const codec = idlTypeFullCodecValue(self, includes);
+  const codec = idlTypeFullJsonCodecValue(self, includes);
   const lines = [];
   lines.push(
     `import {${[...includes].join(",")}} from "${importPath ?? "solana-kiss"}";`,
@@ -32,7 +32,7 @@ export function idlTypeFullCodecModule(
   return lines.join("\n");
 }
 
-export function idlTypeFullCodecValue(
+export function idlTypeFullJsonCodecValue(
   typeFull: IdlTypeFull,
   includes?: Set<string>,
 ): string {
@@ -53,7 +53,7 @@ function codecArray(items: IdlTypeFull, includes?: Set<string>): string {
   return codecValue(
     "jsonCodecArray",
     includes,
-    idlTypeFullCodecValue(items, includes),
+    idlTypeFullJsonCodecValue(items, includes),
   );
 }
 
@@ -73,13 +73,13 @@ function codecValue(
 
 const visitor = {
   typedef: (self: IdlTypeFullTypedef, includes?: Set<string>) => {
-    return idlTypeFullCodecValue(self.content, includes);
+    return idlTypeFullJsonCodecValue(self.content, includes);
   },
   option: (self: IdlTypeFullOption, includes?: Set<string>) => {
     return codecValue(
       "jsonCodecOptional",
       includes,
-      idlTypeFullCodecValue(self.content, includes),
+      idlTypeFullJsonCodecValue(self.content, includes),
     );
   },
   vec: (self: IdlTypeFullVec, includes?: Set<string>) => {
@@ -121,7 +121,7 @@ const visitor = {
     }
   },
   pad: (self: IdlTypeFullPad, includes?: Set<string>) => {
-    return idlTypeFullCodecValue(self.content, includes);
+    return idlTypeFullJsonCodecValue(self.content, includes);
   },
   blob: (_self: IdlTypeFullBlob, includes?: Set<string>) => {
     return codecValue("jsonCodecConst", includes, "undefined");
@@ -148,7 +148,7 @@ const visitorFields = {
         fieldName = fieldNameCamel;
       }
       fields.push(
-        `${fieldName}:${idlTypeFullCodecValue(field.content, includes)}`,
+        `${fieldName}:${idlTypeFullJsonCodecValue(field.content, includes)}`,
       );
     }
     return codecValue("jsonCodecObject", includes, `{${fields.join(",")}}`);
@@ -156,7 +156,7 @@ const visitorFields = {
   unnamed: (self: Array<IdlTypeFullFieldUnnamed>, includes?: Set<string>) => {
     const fields = [];
     for (const field of self) {
-      fields.push(idlTypeFullCodecValue(field.content, includes));
+      fields.push(idlTypeFullJsonCodecValue(field.content, includes));
     }
     return codecValue("jsonCodecArrayToTuple", includes, fields.join(","));
   },
