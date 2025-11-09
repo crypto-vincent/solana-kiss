@@ -39,6 +39,7 @@ import { rpcHttpSendTransaction } from "./rpc/RpcHttpSendTransaction";
 import { rpcHttpSimulateTransaction } from "./rpc/RpcHttpSimulateTransaction";
 
 // TODO - transaction getter for solana (and others?) ?
+// TODO - ability to get cached idls ?
 export class Solana {
   readonly #rpcHttp: RpcHttp;
   readonly #idlLoaders: Array<IdlLoader>;
@@ -153,7 +154,7 @@ export class Solana {
   public async hydrateAndEncodeInstruction(
     programAddress: Pubkey,
     instructionName: string,
-    instructionInfo: {
+    instructionInfo?: {
       // TODO (naming) - better name/structure for instructionInfo ?
       instructionAddresses?: Record<string, Pubkey>;
       instructionPayload?: JsonValue;
@@ -177,7 +178,7 @@ export class Solana {
     );
     const instructionData = idlInstructionArgsEncode(
       instructionIdl,
-      instructionInfo.instructionPayload ?? null,
+      instructionInfo?.instructionPayload ?? null,
     );
     return { programAddress, inputs: instructionInputs, data: instructionData };
   }
@@ -185,7 +186,7 @@ export class Solana {
   public async hydrateInstructionAddresses(
     programAddress: Pubkey,
     instructionName: string,
-    instructionInfo: {
+    instructionInfo?: {
       instructionAddresses?: Record<string, Pubkey>;
       instructionPayload?: JsonValue;
     },
@@ -203,8 +204,8 @@ export class Solana {
       instructionIdl,
       programAddress,
       {
-        instructionAddresses: instructionInfo.instructionAddresses ?? {},
-        instructionPayload: instructionInfo.instructionPayload ?? null,
+        instructionAddresses: instructionInfo?.instructionAddresses ?? {},
+        instructionPayload: instructionInfo?.instructionPayload ?? null,
       },
       accountsContext,
       async (accountAddress: Pubkey) => {
