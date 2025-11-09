@@ -1,3 +1,5 @@
+// TODO - optimize performance for this
+
 export function casingConvertToSnake(string: string): string {
   return string
     .replace(/[_\-\s]+/g, " ")

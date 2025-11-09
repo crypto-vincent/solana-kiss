@@ -264,7 +264,7 @@ const computeVisitor = {
             accountContent,
           );
         }
-        // TODO - this is a bit weird innit
+        // TODO (cleanup) - this is a bit ugly innit
         if (pathCamel.startsWith(instructionAccountName)) {
           return encodeExtractedAccountState(
             pathCamel,
