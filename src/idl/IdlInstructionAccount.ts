@@ -1,10 +1,10 @@
 import { casingConvertToSnake } from "../data/Casing";
 import {
-  jsonCodecArrayRaw,
+  jsonCodecArrayValues,
   jsonCodecBoolean,
   jsonCodecPubkey,
-  jsonCodecRaw,
   jsonCodecString,
+  jsonCodecValue,
   jsonDecoderArray,
   jsonDecoderObject,
   jsonDecoderOptional,
@@ -165,7 +165,7 @@ export function idlInstructionAccountParse(
 const jsonDecoder = jsonDecoderObject({
   name: jsonCodecString.decoder,
   docs: idlDocsParse,
-  accounts: jsonDecoderOptional(jsonCodecArrayRaw.decoder),
+  accounts: jsonDecoderOptional(jsonCodecArrayValues.decoder),
   signer: jsonDecoderOptional(jsonCodecBoolean.decoder),
   writable: jsonDecoderOptional(jsonCodecBoolean.decoder),
   isSigner: jsonDecoderOptional(jsonCodecBoolean.decoder),
@@ -175,8 +175,8 @@ const jsonDecoder = jsonDecoderObject({
   address: jsonDecoderOptional(jsonCodecPubkey.decoder),
   pda: jsonDecoderOptional(
     jsonDecoderObject({
-      seeds: jsonDecoderArray(jsonCodecRaw.decoder),
-      program: jsonDecoderOptional(jsonCodecRaw.decoder),
+      seeds: jsonDecoderArray(jsonCodecValue.decoder),
+      program: jsonDecoderOptional(jsonCodecValue.decoder),
     }),
   ),
 });

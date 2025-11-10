@@ -74,7 +74,7 @@ export function idlLoaderFromUrl(
       return cacheIdl;
     }
     const httpJson = await jsonFetcher(urlBuilder(programAddress));
-    const httpProgramIdl = idlProgramParse(httpJson as JsonValue);
+    const httpProgramIdl = idlProgramParse(httpJson);
     httpProgramIdl.metadata.address = programAddress;
     cacheIdls.set(programAddress, httpProgramIdl);
     return httpProgramIdl;

@@ -6,13 +6,14 @@ import {
   jsonCodecBlockSlot,
   jsonCodecNumber,
   jsonCodecPubkey,
-  jsonCodecRaw,
   jsonCodecSignature,
   jsonCodecString,
+  jsonDecoderAnyOfKinds,
   jsonDecoderArray,
   jsonDecoderNullable,
   jsonDecoderObject,
   jsonDecoderOptional,
+  JsonObject,
 } from "../data/Json";
 import { Pubkey, pubkeyFromBase58 } from "../data/Pubkey";
 import {
@@ -400,8 +401,13 @@ const resultJsonDecoder = jsonDecoderOptional(
     blockTime: jsonDecoderOptional(jsonCodecNumber.decoder),
     meta: jsonDecoderObject({
       computeUnitsConsumed: jsonCodecNumber.decoder,
-      err: jsonDecoderNullable(jsonCodecRaw.decoder),
-      fee: jsonDecoderNullable(jsonCodecNumber.decoder),
+      err: jsonDecoderNullable(
+        jsonDecoderAnyOfKinds<string | JsonObject>({
+          object: (object) => object,
+          string: (string) => string,
+        }),
+      ),
+      fee: jsonDecoderOptional(jsonCodecNumber.decoder),
       innerInstructions: jsonDecoderOptional(
         jsonDecoderArray(
           jsonDecoderObject({

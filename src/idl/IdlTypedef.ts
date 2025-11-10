@@ -1,8 +1,8 @@
 import {
   JsonValue,
   jsonCodecString,
+  jsonDecoderAnyOfKinds,
   jsonDecoderArray,
-  jsonDecoderByKind,
   jsonDecoderObject,
   jsonDecoderObjectKey,
   jsonDecoderOptional,
@@ -71,7 +71,7 @@ const jsonDecoder = jsonDecoderObject({
 });
 
 function stringOrObjectKeyJsonDecoder(objectKey: string) {
-  return jsonDecoderByKind({
+  return jsonDecoderAnyOfKinds({
     string: (string) => string,
     object: jsonDecoderObjectKey(objectKey, jsonCodecString.decoder),
   });

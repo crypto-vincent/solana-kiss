@@ -5,15 +5,14 @@ import {
   jsonCodecNumber,
   jsonCodecString,
   JsonDecoder,
-  jsonDecoderByKind,
+  jsonDecoderAllOf,
+  jsonDecoderAnyOfKinds,
   jsonDecoderConst,
-  jsonDecoderForked,
   jsonDecoderObject,
   jsonDecoderObjectKey,
   jsonDecoderObjectToEnum,
   jsonDecoderObjectToMap,
   jsonDecoderOptional,
-  jsonDecoderTransform,
   JsonValue,
 } from "../src";
 
@@ -48,17 +47,17 @@ it("run", async () => {
     },
     {
       encoded: 42,
-      decoder: jsonDecoderTransform(
-        jsonDecoderForked([jsonCodecNumber.decoder, jsonCodecInteger.decoder]),
-        ([num, int]) => ({ num, int }),
+      decoder: jsonDecoderAllOf(
+        jsonCodecNumber.decoder,
+        jsonCodecInteger.decoder,
       ),
-      decoded: { num: 42, int: 42n },
+      decoded: [42, 42n],
     },
     {
       encoded: { a: null, b: 42, c: "hello" },
       decoder: jsonDecoderObjectToMap({
         keyDecoder: (name) => `key:${name}`,
-        valueDecoder: jsonDecoderByKind({
+        valueDecoder: jsonDecoderAnyOfKinds({
           null: () => "null",
           number: (number) => `number:${number}`,
           string: (string) => `string:${string}`,

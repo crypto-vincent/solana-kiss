@@ -5,7 +5,7 @@ import {
   BlockSlot,
 } from "./Block";
 import { Instruction, InstructionInput } from "./Instruction";
-import { JsonValue } from "./Json";
+import { JsonObject } from "./Json";
 import {
   Pubkey,
   pubkeyFromBytes,
@@ -47,7 +47,7 @@ export type TransactionExecution = {
     slot: BlockSlot;
   };
   logs: Array<string> | undefined;
-  error: JsonValue | undefined;
+  error: null | string | JsonObject;
   consumedComputeUnits: number;
   chargedFeesLamports: bigint | undefined;
 };

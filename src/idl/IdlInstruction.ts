@@ -1,7 +1,7 @@
 import { InstructionInput } from "../data/Instruction";
 import {
   JsonValue,
-  jsonCodecArrayRaw,
+  jsonCodecArrayValues,
   jsonDecoderObject,
   jsonDecoderOptional,
 } from "../data/Json";
@@ -203,7 +203,7 @@ export async function idlInstructionAddressesHydrate(
   };
   instructionContent = {
     instructionAddresses,
-    instructionPayload: instructionContent?.instructionPayload,
+    instructionPayload: instructionContent?.instructionPayload as any,
   };
   while (true) {
     let madeProgress = false;
@@ -297,5 +297,5 @@ const jsonDecoder = jsonDecoderObject({
   discriminator: jsonDecoderOptional(idlUtilsBytesJsonDecoder),
   args: jsonDecoderOptional(idlTypeFlatFieldsParse),
   returns: jsonDecoderOptional(idlTypeFlatParse),
-  accounts: jsonDecoderOptional(jsonCodecArrayRaw.decoder),
+  accounts: jsonDecoderOptional(jsonCodecArrayValues.decoder),
 });

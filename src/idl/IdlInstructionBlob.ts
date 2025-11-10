@@ -3,9 +3,9 @@ import {
   JsonArray,
   JsonPointer,
   JsonValue,
-  jsonCodecRaw,
   jsonCodecString,
-  jsonDecoderByKind,
+  jsonCodecValue,
+  jsonDecoderAnyOfKinds,
   jsonDecoderObject,
   jsonDecoderOptional,
   jsonGetAt,
@@ -142,10 +142,13 @@ export function idlInstructionBlobParse(
 }
 
 export function idlInstructionBlobParseConst(
-  instructionBlobValue: JsonValue,
+  instructionBlobValue: JsonValue | undefined,
   instructionBlobType: IdlTypeFlat | undefined,
   typedefsIdls?: Map<string, IdlTypedef>,
 ): IdlInstructionBlob {
+  if (instructionBlobValue === undefined) {
+    throw new Error(`Idl: Missing value for const instruction blob`);
+  }
   const typeFull = idlTypeFlatHydrate(
     instructionBlobType ?? idlUtilsInferValueTypeFlat(instructionBlobValue),
     new Map(),
@@ -183,14 +186,14 @@ export function idlInstructionBlobParseAccount(
   return IdlInstructionBlob.account({ paths, typeFull });
 }
 
-const jsonDecoder = jsonDecoderByKind<{
-  value: JsonValue;
+const jsonDecoder = jsonDecoderAnyOfKinds<{
+  value: JsonValue | undefined;
   type: IdlTypeFlat | undefined;
   kind: string | undefined;
   path: string | undefined;
 }>({
   object: jsonDecoderObject({
-    value: jsonCodecRaw.decoder,
+    value: jsonDecoderOptional(jsonCodecValue.decoder),
     type: jsonDecoderOptional(idlTypeFlatParse),
     kind: jsonDecoderOptional(jsonCodecString.decoder),
     path: jsonDecoderOptional(jsonCodecString.decoder),

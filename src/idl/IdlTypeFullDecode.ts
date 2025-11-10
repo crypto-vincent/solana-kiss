@@ -93,7 +93,7 @@ const visitorDecode = {
         dataItemOffset,
       );
       dataSize += dataItemSize;
-      dataItems.push(dataItem);
+      dataItems.push(dataItem ?? null);
     }
     return [dataSize, dataItems];
   },
@@ -120,7 +120,7 @@ const visitorDecode = {
           return [dataSize, dataItems];
         }
       }
-      dataItems.push(dataItem);
+      dataItems.push(dataItem ?? null);
     }
   },
   array: (
@@ -138,7 +138,7 @@ const visitorDecode = {
         dataItemOffset,
       );
       dataSize += dataItemSize;
-      dataItems.push(dataItem);
+      dataItems.push(dataItem ?? null);
     }
     return [dataSize, dataItems];
   },
@@ -233,7 +233,7 @@ const visitorDecode = {
         );
       }
     }
-    return [self.bytes.length, undefined];
+    return [self.bytes.length, null];
   },
   primitive: (
     self: IdlTypePrimitive,
@@ -286,7 +286,7 @@ const visitorFieldsDecode = {
         () => idlTypeFullDecode(field.content, data, dataFieldOffset),
       );
       dataSize += dataFieldSize;
-      dataFields.push(dataField);
+      dataFields.push(dataField ?? null);
     }
     return [dataSize, dataFields];
   },

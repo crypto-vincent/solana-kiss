@@ -4,7 +4,7 @@ import { JsonArray, RpcHttp, rpcHttpWithMaxConcurrentRequests } from "../src";
 async function rpcHttp(method: string, params: JsonArray) {
   if (method === "delayMs") {
     await mockClockDelayMs(params[0] as number);
-    return undefined;
+    return params[0]!;
   }
   throw new Error(`Unknown method: ${method}`);
 }

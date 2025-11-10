@@ -75,6 +75,9 @@ it("run", () => {
   });
   expect(accountData).toStrictEqual(new Uint8Array([22, 1, 2, 3, 42, 4, 5, 6]));
   expect(idlAccountDecode(accountIdl, accountData)).toStrictEqual({
+    blob_before: null,
     value: 42,
+    blob_empty: null, // TODO - could this be removed ?
+    blob_after: null,
   });
 });

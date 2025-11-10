@@ -5,14 +5,15 @@ import {
   jsonCodecBytesBase64,
   jsonCodecNumber,
   jsonCodecPubkey,
-  jsonCodecRaw,
   jsonCodecString,
+  jsonDecoderAnyOfKinds,
   jsonDecoderArray,
   jsonDecoderArrayToObject,
   jsonDecoderConst,
   jsonDecoderNullable,
   jsonDecoderObject,
   jsonDecoderOptional,
+  JsonObject,
 } from "../data/Json";
 import { Pubkey, pubkeyDefault } from "../data/Pubkey";
 import { TransactionExecution, TransactionPacket } from "../data/Transaction";
@@ -103,8 +104,13 @@ const resultJsonDecoder = jsonDecoderObject({
   context: jsonDecoderObject({ slot: jsonCodecBlockSlot.decoder }),
   value: jsonDecoderObject({
     unitsConsumed: jsonCodecNumber.decoder,
-    fee: jsonDecoderNullable(jsonCodecNumber.decoder),
-    err: jsonCodecRaw.decoder,
+    fee: jsonDecoderOptional(jsonCodecNumber.decoder),
+    err: jsonDecoderNullable(
+      jsonDecoderAnyOfKinds<string | JsonObject>({
+        object: (object) => object,
+        string: (string) => string,
+      }),
+    ),
     logs: jsonDecoderOptional(jsonDecoderArray(jsonCodecString.decoder)),
     accounts: jsonDecoderOptional(
       jsonDecoderArray(

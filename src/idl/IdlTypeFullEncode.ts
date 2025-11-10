@@ -2,8 +2,8 @@ import {
   jsonAsNumber,
   jsonAsObject,
   jsonAsString,
-  jsonCodecArrayRaw,
-  jsonCodecObjectRaw,
+  jsonCodecArrayValues,
+  jsonCodecObjectValues,
   jsonCodecString,
   JsonValue,
 } from "../data/Json";
@@ -36,7 +36,7 @@ import { idlUtilsBytesJsonDecoder } from "./IdlUtils";
 
 export function idlTypeFullEncode(
   self: IdlTypeFull,
-  value: JsonValue,
+  value: JsonValue | undefined,
   prefixed: boolean,
   discriminator?: Uint8Array,
 ): Uint8Array {
@@ -50,7 +50,7 @@ export function idlTypeFullEncode(
 
 export function idlTypeFullFieldsEncode(
   self: IdlTypeFullFields,
-  value: JsonValue,
+  value: JsonValue | undefined,
   prefixed: boolean,
   discriminator?: Uint8Array,
 ): Uint8Array {
@@ -64,7 +64,7 @@ export function idlTypeFullFieldsEncode(
 
 function typeFullEncode(
   self: IdlTypeFull,
-  value: JsonValue,
+  value: JsonValue | undefined,
   prefixed: boolean,
   blobs: Array<Uint8Array>,
 ) {
@@ -73,7 +73,7 @@ function typeFullEncode(
 
 function typeFullFieldsEncode(
   self: IdlTypeFullFields,
-  value: JsonValue,
+  value: JsonValue | undefined,
   prefixed: boolean,
   blobs: Array<Uint8Array>,
 ) {
@@ -83,7 +83,7 @@ function typeFullFieldsEncode(
 const visitorEncode = {
   typedef: (
     self: IdlTypeFullTypedef,
-    value: JsonValue,
+    value: JsonValue | undefined,
     blobs: Array<Uint8Array>,
     prefixed: boolean,
   ) => {
@@ -93,7 +93,7 @@ const visitorEncode = {
   },
   option: (
     self: IdlTypeFullOption,
-    value: JsonValue,
+    value: JsonValue | undefined,
     blobs: Array<Uint8Array>,
     prefixed: boolean,
   ) => {
@@ -106,7 +106,7 @@ const visitorEncode = {
   },
   vec: (
     self: IdlTypeFullVec,
-    value: JsonValue,
+    value: JsonValue | undefined,
     blobs: Array<Uint8Array>,
     prefixed: boolean,
   ) => {
@@ -118,7 +118,7 @@ const visitorEncode = {
       blobs.push(bytes);
       return;
     }
-    const array = jsonCodecArrayRaw.decoder(value);
+    const array = jsonCodecArrayValues.decoder(value);
     if (prefixed) {
       idlTypePrefixEncode(self.prefix, BigInt(array.length), blobs);
     }
@@ -128,11 +128,11 @@ const visitorEncode = {
   },
   loop: (
     self: IdlTypeFullLoop,
-    value: JsonValue,
+    value: JsonValue | undefined,
     blobs: Array<Uint8Array>,
     prefixed: boolean,
   ) => {
-    const array = jsonCodecArrayRaw.decoder(value);
+    const array = jsonCodecArrayValues.decoder(value);
     for (const item of array) {
       typeFullEncode(self.items, item, prefixed, blobs);
     }
@@ -142,7 +142,7 @@ const visitorEncode = {
   },
   array: (
     self: IdlTypeFullArray,
-    value: JsonValue,
+    value: JsonValue | undefined,
     blobs: Array<Uint8Array>,
     prefixed: boolean,
   ) => {
@@ -156,7 +156,7 @@ const visitorEncode = {
       blobs.push(bytes);
       return;
     }
-    const array = jsonCodecArrayRaw.decoder(value);
+    const array = jsonCodecArrayValues.decoder(value);
     if (array.length != self.length) {
       throw new Error(
         `Expected an array of size: ${self.length}, found: ${array.length}`,
@@ -168,7 +168,7 @@ const visitorEncode = {
   },
   string: (
     self: IdlTypeFullString,
-    value: JsonValue,
+    value: JsonValue | undefined,
     blobs: Array<Uint8Array>,
     prefixed: boolean,
   ) => {
@@ -180,7 +180,7 @@ const visitorEncode = {
   },
   struct: (
     self: IdlTypeFullStruct,
-    value: JsonValue,
+    value: JsonValue | undefined,
     blobs: Array<Uint8Array>,
     prefixed: boolean,
   ) => {
@@ -188,7 +188,7 @@ const visitorEncode = {
   },
   enum: (
     self: IdlTypeFullEnum,
-    value: JsonValue,
+    value: JsonValue | undefined,
     blobs: Array<Uint8Array>,
     prefixed: boolean,
   ) => {
@@ -200,7 +200,7 @@ const visitorEncode = {
     }
     function enumVariantEncode(
       variant: IdlTypeFullEnumVariant,
-      value: JsonValue,
+      value: JsonValue | undefined,
     ) {
       withErrorContext(`Encode: Enum Variant: ${variant.name}`, () => {
         idlTypePrefixEncode(self.prefix, variant.code, blobs);
@@ -247,7 +247,7 @@ const visitorEncode = {
   },
   pad: (
     self: IdlTypeFullPad,
-    value: JsonValue,
+    value: JsonValue | undefined,
     blobs: Array<Uint8Array>,
     prefixed: boolean,
   ) => {
@@ -267,7 +267,7 @@ const visitorEncode = {
   },
   blob: (
     self: IdlTypeFullBlob,
-    value: JsonValue,
+    value: JsonValue | undefined,
     blobs: Array<Uint8Array>,
     _prefixed: boolean,
   ) => {
@@ -278,7 +278,7 @@ const visitorEncode = {
   },
   primitive: (
     self: IdlTypePrimitive,
-    value: JsonValue,
+    value: JsonValue | undefined,
     blobs: Array<Uint8Array>,
     _prefixed: boolean,
   ) => {
@@ -289,7 +289,7 @@ const visitorEncode = {
 const visitorFieldsEncode = {
   nothing: (
     _self: null,
-    value: JsonValue,
+    value: JsonValue | undefined,
     _blobs: Array<Uint8Array>,
     _prefixed: boolean,
   ) => {
@@ -300,11 +300,11 @@ const visitorFieldsEncode = {
   },
   named: (
     self: Array<IdlTypeFullFieldNamed>,
-    value: JsonValue,
+    value: JsonValue | undefined,
     blobs: Array<Uint8Array>,
     prefixed: boolean,
   ) => {
-    const object = jsonCodecObjectRaw.decoder(value);
+    const object = jsonCodecObjectValues.decoder(value);
     for (const field of self) {
       const fieldName = objectGuessIntendedKey(object, field.name);
       withErrorContext(`Encode: Field: ${fieldName}`, () => {
@@ -319,11 +319,11 @@ const visitorFieldsEncode = {
   },
   unnamed: (
     self: Array<IdlTypeFullFieldUnnamed>,
-    value: JsonValue,
+    value: JsonValue | undefined,
     blobs: Array<Uint8Array>,
     prefixed: boolean,
   ) => {
-    const array = jsonCodecArrayRaw.decoder(value);
+    const array = jsonCodecArrayValues.decoder(value);
     for (const field of self) {
       withErrorContext(`Encode: Field: ${field.position}`, () => {
         typeFullEncode(field.content, array[field.position], prefixed, blobs);

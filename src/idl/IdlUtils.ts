@@ -8,8 +8,8 @@ import {
   jsonCodecBytesBase64,
   jsonCodecBytesUtf8,
   jsonCodecNumber,
-  jsonCodecRaw,
-  jsonDecoderByKind,
+  jsonCodecValue,
+  jsonDecoderAnyOfKinds,
   jsonDecoderObject,
   jsonDecoderOneOfKeys,
   jsonDecoderOptional,
@@ -24,7 +24,7 @@ import { idlTypeFlatHydrate } from "./IdlTypeFlatHydrate";
 import { idlTypeFlatParse } from "./IdlTypeFlatParse";
 import { idlTypeFullEncode } from "./IdlTypeFullEncode";
 
-export const idlUtilsBytesJsonDecoder = jsonDecoderByKind({
+export const idlUtilsBytesJsonDecoder = jsonDecoderAnyOfKinds({
   array: jsonCodecBytesArray.decoder,
   object: jsonDecoderOneOfKeys({
     utf8: jsonCodecBytesUtf8.decoder,
@@ -37,7 +37,7 @@ export const idlUtilsBytesJsonDecoder = jsonDecoderByKind({
     ),
     encode: jsonDecoderTransform(
       jsonDecoderObject({
-        value: jsonCodecRaw.decoder,
+        value: jsonCodecValue.decoder,
         type: jsonDecoderOptional(idlTypeFlatParse),
         prefixed: jsonDecoderOptional(jsonCodecBoolean.decoder),
       }),

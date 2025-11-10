@@ -3,8 +3,8 @@ import {
   JsonObject,
   JsonValue,
   jsonCodecNumber,
-  jsonCodecRaw,
   jsonCodecString,
+  jsonCodecValue,
   jsonDecoderObject,
   jsonDecoderOptional,
 } from "../data/Json";
@@ -90,6 +90,9 @@ export function rpcHttpFromUrl(
       throw new Error(
         `RpcHttp: Expected response id: ${requestId} (found: ${responseInfo.id})`,
       );
+    }
+    if (responseInfo.result === undefined) {
+      throw new Error(`RpcHttp: Missing response result`);
     }
     return responseInfo.result;
   };
@@ -177,8 +180,8 @@ const responseJsonDecoder = jsonDecoderObject({
     jsonDecoderObject({
       code: jsonCodecNumber.decoder,
       message: jsonCodecString.decoder,
-      data: jsonCodecRaw.decoder,
+      data: jsonCodecValue.decoder,
     }),
   ),
-  result: jsonDecoderOptional(jsonCodecRaw.decoder),
+  result: jsonDecoderOptional(jsonCodecValue.decoder),
 });

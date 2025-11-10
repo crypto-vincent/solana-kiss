@@ -3,12 +3,12 @@ import { Instruction } from "../data/Instruction";
 import {
   JsonObject,
   JsonValue,
-  jsonCodecObjectRaw,
-  jsonCodecRaw,
+  jsonCodecObjectValues,
   jsonCodecString,
+  jsonCodecValue,
+  jsonDecoderAllOf,
+  jsonDecoderAnyOfKinds,
   jsonDecoderArray,
-  jsonDecoderByKind,
-  jsonDecoderForked,
   jsonDecoderObjectKey,
   jsonDecoderObjectToMap,
   jsonDecoderTransform,
@@ -90,7 +90,7 @@ export function idlProgramGuessError(
 }
 
 export function idlProgramParse(programValue: JsonValue): IdlProgram {
-  const programObject = jsonCodecObjectRaw.decoder(programValue);
+  const programObject = jsonCodecObjectValues.decoder(programValue);
   const metadata = idlMetadataParse(programObject);
   const typedefs = parseScopedNamedValues(
     programObject,
@@ -170,18 +170,18 @@ function parseScopedNamedValues<Content, Param>(
   return values;
 }
 
-const collectionJsonDecoder = jsonDecoderByKind({
+const collectionJsonDecoder = jsonDecoderAnyOfKinds({
   undefined: () => new Map<string, JsonValue>(),
   object: jsonDecoderObjectToMap({
     keyDecoder: (name) => name,
-    valueDecoder: jsonCodecRaw.decoder,
+    valueDecoder: jsonCodecValue.decoder,
   }),
   array: jsonDecoderTransform(
     jsonDecoderArray(
-      jsonDecoderForked([
+      jsonDecoderAllOf(
         jsonDecoderObjectKey("name", jsonCodecString.decoder),
-        jsonCodecRaw.decoder,
-      ]),
+        jsonCodecValue.decoder,
+      ),
     ),
     (entries) => {
       return new Map<string, JsonValue>(entries);
