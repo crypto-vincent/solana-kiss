@@ -31,19 +31,17 @@ it("run", async () => {
   expect(ownedAccountsBySize.accountsAddresses).toStrictEqual(
     ownedAccountsByBlob.accountsAddresses,
   );
-  for (const ownedAddress of [...ownedAccountsBySize.accountsAddresses].slice(
-    0,
-    3,
-  )) {
-    const { accountInfo: ownedInfo } = await rpcHttpGetAccountWithData(
+  const ownedAccountsAddresses = [...ownedAccountsBySize.accountsAddresses];
+  for (const ownedAccountAddress of ownedAccountsAddresses.slice(0, 3)) {
+    const { accountInfo: ownedAccountInfo } = await rpcHttpGetAccountWithData(
       rpcHttp,
-      ownedAddress,
+      ownedAccountAddress,
     );
-    expect(ownedInfo.data.length).toStrictEqual(32);
-    expect(ownedInfo.data.slice(0, 8)).toStrictEqual(
+    expect(ownedAccountInfo.data.length).toStrictEqual(32);
+    expect(ownedAccountInfo.data.slice(0, 8)).toStrictEqual(
       expectedDiscriminatorBytes,
     );
-    expect(ownedInfo.owner).toStrictEqual(
+    expect(ownedAccountInfo.owner).toStrictEqual(
       "vVeH6Xd43HAScbxjVtvfwDGqBMaMvNDLsAxwM5WK1pG",
     );
   }

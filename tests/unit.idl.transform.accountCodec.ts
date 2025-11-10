@@ -1,6 +1,12 @@
 import { it } from "@jest/globals";
 import { promises as fsp } from "fs";
-import { idlAccountDecode, idlAccountEncode, idlProgramParse } from "../src";
+import {
+  IdlAccount,
+  idlAccountDecode,
+  idlAccountEncode,
+  idlProgramParse,
+  pubkeyDefault,
+} from "../src";
 import {
   idlTypeFullJsonCodecModule,
   idlTypeFullJsonCodecValue,
@@ -28,6 +34,7 @@ it("run", async () => {
                   { name: "bool", type: "bool" },
                 ],
               },
+              { name: "Empty" },
             ],
           },
         ],
@@ -35,6 +42,7 @@ it("run", async () => {
     },
   });
   const accountIdl = programIdl.accounts.get("DummyAccount")!;
+
   const dependencies = new Set<string>();
   const codec = idlTypeFullJsonCodecValue(accountIdl.typeFull, dependencies);
   expect(dependencies).toStrictEqual(
@@ -85,6 +93,7 @@ it("run", async () => {
                 bool: "jsonCodecBoolean",
               }),
             ),
+            Empty: stringCall("jsonCodecConst", "null"),
           }),
         ),
       }),
@@ -101,21 +110,34 @@ it("run", async () => {
   await fsp.writeFile(modulePath, moduleCode);
   const requirePath = `./fixtures/${moduleName}.ts`;
   delete require.cache[require.resolve(requirePath)];
-  const { jsonCodecAccountDummy } = require(requirePath);
+  const { jsonCodecAccountDummy: jsonCodec } = require(requirePath);
 
-  const decoded = {
+  checkRoundTrip(accountIdl, jsonCodec, {
+    field1: 42,
+    field2: [65535],
+    field3: 77,
+    field4: "variant1",
+    field5: { 0: ["hello", new Uint8Array(42).fill(255)] },
+  });
+  checkRoundTrip(accountIdl, jsonCodec, {
+    field1: 0,
+    field2: [],
+    field3: 123456,
+    field4: "variant2",
+    field5: { Empty: null },
+  });
+  checkRoundTrip(accountIdl, jsonCodec, {
     field1: 255,
     field2: [1, 2, 3],
-    field4: "variant2",
+    field4: "variant1",
     field5: { 1: [42, 42n] },
-  };
-  const bytes = idlAccountEncode(
-    accountIdl,
-    jsonCodecAccountDummy.encoder(decoded),
-  );
-  expect(
-    jsonCodecAccountDummy.decoder(idlAccountDecode(accountIdl, bytes)),
-  ).toStrictEqual(decoded);
+  });
+  checkRoundTrip(accountIdl, jsonCodec, {
+    field1: 33,
+    field2: [0, 0, 0, 0, 0, 0],
+    field4: "variant2",
+    field5: { Misc: { key: pubkeyDefault, bool: true } },
+  });
 });
 
 function stringCall(codecName: string, ...codecParams: Array<string>) {
@@ -123,9 +145,16 @@ function stringCall(codecName: string, ...codecParams: Array<string>) {
 }
 
 function stringObject(record: Record<string, string>): string {
-  const fields = [];
+  const entries = [];
   for (const [key, value] of Object.entries(record)) {
-    fields.push(`${key}:${value}`);
+    entries.push(`${key}:${value}`);
   }
-  return `{${fields.join(",")}}`;
+  return `{${entries.join(",")}}`;
+}
+
+function checkRoundTrip(accountIdl: IdlAccount, jsonCodec: any, decoded: any) {
+  const bytes = idlAccountEncode(accountIdl, jsonCodec.encoder(decoded));
+  expect(jsonCodec.decoder(idlAccountDecode(accountIdl, bytes))).toStrictEqual(
+    decoded,
+  );
 }
