@@ -829,10 +829,11 @@ export function jsonEncoderObjectToEnum<
     }[keyof Shape],
   ) => {
     const keyDecoded = Object.keys(decoded)[0]!;
+    const keyEncoded = keyDecoded;
     const valueEncoded = shape[keyDecoded]!(
       objectGetOwnProperty(decoded, keyDecoded),
     );
-    return { [keyDecoded]: valueEncoded } as JsonValue;
+    return { [keyEncoded]: valueEncoded } as JsonValue;
   };
 }
 export function jsonCodecObjectToEnum<
