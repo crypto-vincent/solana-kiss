@@ -15,11 +15,7 @@ it("run", () => {
     },
   });
   const programIdl2 = idlProgramParse({
-    accounts: [
-      {
-        name: "MyAccount",
-      },
-    ],
+    accounts: [{ name: "MyAccount" }],
     types: {
       MyAccount: { fields: [] },
     },

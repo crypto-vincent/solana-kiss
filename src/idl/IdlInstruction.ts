@@ -222,7 +222,7 @@ export async function idlInstructionAddressesHydrate(
         await withErrorContext(
           `Idl: Finding address for instruction account ${instructionAccountIdl.name}`,
           async () => {
-            let instructionAddress = await idlInstructionAccountFind(
+            const instructionAddress = await idlInstructionAccountFind(
               instructionAccountIdl,
               programAddress,
               instructionContent,
