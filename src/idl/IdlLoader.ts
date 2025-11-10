@@ -69,11 +69,9 @@ export function idlLoaderFromUrl(
       return (await response.json()) as JsonValue;
     });
   return async (programAddress: Pubkey) => {
-    if (await cacheApprover(programAddress)) {
-      const cacheIdl = cacheIdls.get(programAddress);
-      if (cacheIdl) {
-        return cacheIdl;
-      }
+    const cacheIdl = cacheIdls.get(programAddress);
+    if (cacheIdl && (await cacheApprover(programAddress))) {
+      return cacheIdl;
     }
     const httpJson = await jsonFetcher(urlBuilder(programAddress));
     const httpProgramIdl = idlProgramParse(httpJson as JsonValue);
@@ -92,11 +90,9 @@ export function idlLoaderFromOnchain(
   const cacheIdls = new Map<Pubkey, IdlProgram>();
   const cacheApprover = options?.cacheApprover ?? (async () => true);
   return async (programAddress: Pubkey) => {
-    if (await cacheApprover(programAddress)) {
-      const cacheIdl = cacheIdls.get(programAddress);
-      if (cacheIdl) {
-        return cacheIdl;
-      }
+    const cacheIdl = cacheIdls.get(programAddress);
+    if (cacheIdl && (await cacheApprover(programAddress))) {
+      return cacheIdl;
     }
     const onchainAnchorAddress = pubkeyCreateFromSeed(
       pubkeyFindPdaAddress(programAddress, []),

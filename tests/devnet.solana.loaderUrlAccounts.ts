@@ -13,8 +13,8 @@ it("run", async () => {
     solana,
     pubkeyFromBase58("Ady55LhZxWFABzdg8NCNTAZv5XstBqyNZYCMfWqW3Rq9"),
     "system",
-    "Wallet",
-    undefined,
+    "Account",
+    null,
   );
   await assertAccountState(
     solana,

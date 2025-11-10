@@ -38,19 +38,20 @@ import { rpcHttpGetLatestBlockHash } from "./rpc/RpcHttpGetLatestBlockHash";
 import { rpcHttpSendTransaction } from "./rpc/RpcHttpSendTransaction";
 import { rpcHttpSimulateTransaction } from "./rpc/RpcHttpSimulateTransaction";
 
-// TODO - transaction getter for solana (and others?) ?
-// TODO - ability to get cached idls ?
 export class Solana {
   readonly #rpcHttp: RpcHttp;
+  readonly #idlPreload: Map<Pubkey, IdlProgram>;
   readonly #idlLoaders: Array<IdlLoader>;
-  readonly #idlOverrides: Map<Pubkey, IdlProgram>;
+  readonly #idlCacheResults: Map<Pubkey, { value?: IdlProgram; error?: any }>;
+  readonly #idlCacheApprover: (programAddress: Pubkey) => Promise<boolean>;
   #cacheBlockHash: { blockHash: BlockHash; fetchTimeMs: number } | null;
 
   constructor(
     rpcHttp: RpcHttp | string,
     options?: {
+      customIdlPreload?: Map<Pubkey, IdlProgram>;
       customIdlLoaders?: Array<IdlLoader>;
-      customIdlOverrides?: Map<Pubkey, IdlProgram>;
+      customIdlCacheApprover?: (programAddress: Pubkey) => Promise<boolean>;
     },
   ) {
     if (typeof rpcHttp === "string") {
@@ -60,8 +61,11 @@ export class Solana {
     } else {
       this.#rpcHttp = rpcHttp;
     }
+    this.#idlPreload = options?.customIdlPreload ?? new Map();
     this.#idlLoaders = options?.customIdlLoaders ?? baseLoaders(this.#rpcHttp);
-    this.#idlOverrides = options?.customIdlOverrides ?? new Map();
+    this.#idlCacheResults = new Map();
+    this.#idlCacheApprover =
+      options?.customIdlCacheApprover ?? (async () => true);
     this.#cacheBlockHash = null;
   }
 
@@ -74,25 +78,38 @@ export class Solana {
     programIdl: IdlProgram | undefined,
   ) {
     if (programIdl === undefined) {
-      this.#idlOverrides.delete(programAddress);
+      this.#idlPreload.delete(programAddress);
     } else {
-      this.#idlOverrides.set(programAddress, programIdl);
+      this.#idlPreload.set(programAddress, programIdl);
     }
   }
 
   public async getOrLoadProgramIdl(programAddress: Pubkey) {
-    const overrideIdl = this.#idlOverrides.get(programAddress);
-    if (overrideIdl) {
-      return overrideIdl;
+    const preloadIdl = this.#idlPreload.get(programAddress);
+    if (preloadIdl) {
+      return preloadIdl;
+    }
+    const cacheIdl = this.#idlCacheResults.get(programAddress);
+    if (cacheIdl && (await this.#idlCacheApprover(programAddress))) {
+      if (cacheIdl?.value) {
+        return cacheIdl.value;
+      }
+      if (cacheIdl?.error) {
+        throw cacheIdl.error;
+      }
     }
     for (const idlLoader of this.#idlLoaders) {
       try {
-        return await idlLoader(programAddress);
+        const value = await idlLoader(programAddress);
+        this.#idlCacheResults.set(programAddress, { value });
+        return value;
       } catch (error) {
         // TODO (error) - log error stack ?
       }
     }
-    throw new Error(`IDL not found for program ${programAddress}`);
+    const error = new Error(`IDL not found for program ${programAddress}`);
+    this.#idlCacheResults.set(programAddress, { error });
+    throw error;
   }
 
   public async getAndInferAndDecodeAccountInfo(accountAddress: Pubkey) {

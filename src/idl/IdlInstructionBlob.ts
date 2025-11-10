@@ -46,9 +46,7 @@ export type IdlInstructionBlobArg = {
   typeFull: IdlTypeFull;
 };
 export type IdlInstructionBlobAccount = {
-  path: string;
-  pathCamel: string;
-  pathSnake: string;
+  paths: Array<string>;
   typeFull: IdlTypeFull | undefined;
 };
 
@@ -175,14 +173,14 @@ export function idlInstructionBlobParseAccount(
   instructionBlobType: IdlTypeFlat | undefined,
   typedefsIdls?: Map<string, IdlTypedef>,
 ): IdlInstructionBlob {
-  const path = instructionBlobPath;
   const pathCamel = casingConvertToCamel(instructionBlobPath);
   const pathSnake = casingConvertToSnake(instructionBlobPath);
+  const paths = [instructionBlobPath, pathCamel, pathSnake];
   let typeFull = undefined;
   if (instructionBlobType !== undefined) {
     typeFull = idlTypeFlatHydrate(instructionBlobType, new Map(), typedefsIdls);
   }
-  return IdlInstructionBlob.account({ path, pathCamel, pathSnake, typeFull });
+  return IdlInstructionBlob.account({ paths, typeFull });
 }
 
 const jsonDecoder = jsonDecoderByKind<{
@@ -232,8 +230,6 @@ const computeVisitor = {
     accountsContext?: IdlInstructionBlobAccountsContext,
     accountFetcher?: IdlInstructionBlobAccountFetcher,
   ) => {
-    const pathCamel = casingConvertToCamel(self.path);
-    const pathSnake = casingConvertToSnake(self.path);
     if (
       instructionContent.instructionAddresses &&
       (self.typeFull === undefined ||
@@ -243,12 +239,10 @@ const computeVisitor = {
         instructionAccountName,
         instructionAddress, // TODO (naming) - naming stands out here
       ] of Object.entries(instructionContent.instructionAddresses)) {
-        if (
-          self.path === instructionAccountName ||
-          pathCamel === instructionAccountName ||
-          pathSnake === instructionAccountName
-        ) {
-          return pubkeyToBytes(instructionAddress);
+        for (const path of self.paths) {
+          if (path === instructionAccountName) {
+            return pubkeyToBytes(instructionAddress);
+          }
         }
       }
     }
@@ -256,30 +250,15 @@ const computeVisitor = {
       for (const [instructionAccountName, accountContent] of Object.entries(
         accountsContext,
       )) {
-        if (self.path.startsWith(instructionAccountName)) {
-          return encodeExtractedAccountState(
-            self.path,
-            self.typeFull,
-            instructionAccountName,
-            accountContent,
-          );
-        }
-        // TODO - this is a bit weird innit
-        if (pathCamel.startsWith(instructionAccountName)) {
-          return encodeExtractedAccountState(
-            pathCamel,
-            self.typeFull,
-            instructionAccountName,
-            accountContent,
-          );
-        }
-        if (pathSnake.startsWith(instructionAccountName)) {
-          return encodeExtractedAccountState(
-            pathSnake,
-            self.typeFull,
-            instructionAccountName,
-            accountContent,
-          );
+        for (const path of self.paths) {
+          if (path.startsWith(instructionAccountName)) {
+            return encodeExtractedAccountState(
+              path,
+              self.typeFull,
+              instructionAccountName,
+              accountContent,
+            );
+          }
         }
       }
     }
@@ -287,34 +266,20 @@ const computeVisitor = {
       for (const [instructionAccountName, instructionAddress] of Object.entries(
         instructionContent.instructionAddresses,
       )) {
-        if (self.path.startsWith(instructionAccountName)) {
-          return encodeExtractedAccountState(
-            self.path,
-            self.typeFull,
-            instructionAccountName,
-            await accountFetcher(instructionAddress),
-          );
-        }
-        if (pathCamel.startsWith(instructionAccountName)) {
-          return encodeExtractedAccountState(
-            pathCamel,
-            self.typeFull,
-            instructionAccountName,
-            await accountFetcher(instructionAddress),
-          );
-        }
-        if (pathSnake.startsWith(instructionAccountName)) {
-          return encodeExtractedAccountState(
-            pathSnake,
-            self.typeFull,
-            instructionAccountName,
-            await accountFetcher(instructionAddress),
-          );
+        for (const path of self.paths) {
+          if (path.startsWith(instructionAccountName)) {
+            return encodeExtractedAccountState(
+              path,
+              self.typeFull,
+              instructionAccountName,
+              await accountFetcher(instructionAddress),
+            );
+          }
         }
       }
     }
     throw new Error(
-      `Idl: Could not resolve matching account content for path: ${self.path}`,
+      `Idl: Could not resolve matching account content for path: ${self.paths[0]}`,
     );
   },
 };

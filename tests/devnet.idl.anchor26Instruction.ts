@@ -44,5 +44,5 @@ it("run", async () => {
     instructionIdl,
     instruction.data,
   );
-  expect(instructionPayload).toStrictEqual(undefined);
+  expect(instructionPayload).toStrictEqual(null);
 });

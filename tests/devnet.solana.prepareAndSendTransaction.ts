@@ -83,14 +83,14 @@ it("run", async () => {
   expect(owned1Info.lamports).toStrictEqual(transferLamports);
   expect(owned1Info.owner).toStrictEqual(ownerAddress);
   expect(owned1Info.data.length).toStrictEqual(requestedSpace);
-  expect(owned1Info.state).toStrictEqual(undefined);
+  expect(owned1Info.state).toStrictEqual(null);
   const { accountInfo: owned2Info } =
     await solana.getAndInferAndDecodeAccountInfo(owned2Signer.address);
   expect(owned2Info.executable).toStrictEqual(false);
   expect(owned2Info.lamports).toStrictEqual(transferLamports + 42n);
   expect(owned2Info.owner).toStrictEqual(ownerAddress);
   expect(owned2Info.data.length).toStrictEqual(requestedSpace - 1);
-  expect(owned1Info.state).toStrictEqual(undefined);
+  expect(owned1Info.state).toStrictEqual(null);
 });
 
 async function makeSystemCreateInstruction(

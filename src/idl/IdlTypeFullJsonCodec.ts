@@ -22,124 +22,111 @@ export function idlTypeFullJsonCodecModule(
   exportName: string,
   importPath?: string,
 ): string {
-  const includes = new Set<string>();
-  const codec = idlTypeFullJsonCodecValue(self, includes);
+  const dependencies = new Set<string>();
+  const codec = idlTypeFullJsonCodecValue(self, dependencies);
   const lines = [];
-  lines.push(
-    `import {${[...includes].join(",")}} from "${importPath ?? "solana-kiss"}";`,
-  );
+  const importNames = [...dependencies].join(",");
+  lines.push(`import {${importNames}} from "${importPath ?? "solana-kiss"}";`);
+  lines.push("");
   lines.push(`export const ${exportName} = ${codec};`);
+  lines.push("");
   return lines.join("\n");
 }
 
 export function idlTypeFullJsonCodecValue(
-  typeFull: IdlTypeFull,
-  includes?: Set<string>,
+  self: IdlTypeFull,
+  dependencies?: Set<string>,
 ): string {
-  return typeFull.traverse(visitor, includes, undefined, undefined);
+  return codec(self, { dependencies });
+}
+
+type CodecContext = { dependencies: Set<string> | undefined };
+
+function codec(typeFull: IdlTypeFull, context: CodecContext): string {
+  return typeFull.traverse(visitor, context, undefined, undefined);
 }
 
 function codecFields(
   typeFullFields: IdlTypeFullFields,
-  includes?: Set<string>,
+  context: CodecContext,
 ): string {
-  return typeFullFields.traverse(visitorFields, includes, undefined, undefined);
+  return typeFullFields.traverse(visitorFields, context, undefined, undefined);
 }
 
-function codecArray(items: IdlTypeFull, includes?: Set<string>): string {
+function codecArray(items: IdlTypeFull, context: CodecContext): string {
   if (items.isPrimitive(IdlTypePrimitive.u8)) {
-    return codecValue("jsonCodecBytesArray", includes);
+    return stringFunctionCall(context, "jsonCodecBytesArray");
   }
-  return codecValue(
-    "jsonCodecArray",
-    includes,
-    idlTypeFullJsonCodecValue(items, includes),
-  );
-}
-
-function codecValue(
-  codecName: string,
-  includes?: Set<string>,
-  params?: string,
-) {
-  if (includes !== undefined) {
-    includes.add(codecName);
-  }
-  if (params === undefined) {
-    return `${codecName}`;
-  }
-  return `${codecName}(${params})`;
+  return stringFunctionCall(context, "jsonCodecArray", [codec(items, context)]);
 }
 
 const visitor = {
-  typedef: (self: IdlTypeFullTypedef, includes?: Set<string>) => {
-    return idlTypeFullJsonCodecValue(self.content, includes);
+  typedef: (self: IdlTypeFullTypedef, context: CodecContext) => {
+    return codec(self.content, context);
   },
-  option: (self: IdlTypeFullOption, includes?: Set<string>) => {
-    return codecValue(
-      "jsonCodecOptional",
-      includes,
-      idlTypeFullJsonCodecValue(self.content, includes),
-    );
+  option: (self: IdlTypeFullOption, context: CodecContext) => {
+    return stringFunctionCall(context, "jsonCodecOptional", [
+      codec(self.content, context),
+    ]);
   },
-  vec: (self: IdlTypeFullVec, includes?: Set<string>) => {
-    return codecArray(self.items, includes);
+  vec: (self: IdlTypeFullVec, context: CodecContext) => {
+    return codecArray(self.items, context);
   },
-  loop: (self: IdlTypeFullLoop, includes?: Set<string>) => {
-    return codecArray(self.items, includes);
+  loop: (self: IdlTypeFullLoop, context: CodecContext) => {
+    return codecArray(self.items, context);
   },
-  array: (self: IdlTypeFullArray, includes?: Set<string>) => {
-    return codecArray(self.items, includes);
+  array: (self: IdlTypeFullArray, context: CodecContext) => {
+    return codecArray(self.items, context);
   },
-  string: (_self: IdlTypeFullString, includes?: Set<string>) => {
-    return codecValue("jsonCodecString", includes);
+  string: (_self: IdlTypeFullString, context: CodecContext) => {
+    return stringFunctionCall(context, "jsonCodecString");
   },
-  struct: (self: IdlTypeFullStruct, includes?: Set<string>) => {
-    return codecFields(self.fields, includes);
+  struct: (self: IdlTypeFullStruct, context: CodecContext) => {
+    return codecFields(self.fields, context);
   },
-  enum: (self: IdlTypeFullEnum, includes?: Set<string>) => {
-    const variantsNames = [];
-    const variantsEntries = [];
+  enum: (self: IdlTypeFullEnum, context: CodecContext) => {
+    const variantsNames = new Array<string>();
     let hasFields = false;
     for (const variant of self.variants) {
       variantsNames.push(`"${variant.name}"`);
-      variantsEntries.push(
-        `${variant.name}:${codecFields(variant.fields, includes)}`,
-      );
       if (!variant.fields.isNothing()) {
         hasFields = true;
       }
     }
     if (!hasFields) {
-      return codecValue("jsonCodecConst", includes, variantsNames.join(","));
-    } else {
-      return codecValue(
-        "jsonCodecObjectToEnum",
-        includes,
-        `{${variantsEntries.join(",")}}`,
-      );
+      return stringFunctionCall(context, "jsonCodecConst", variantsNames);
     }
+    const entries = [];
+    for (const variant of self.variants) {
+      entries.push({
+        key: variant.name,
+        value: codecFields(variant.fields, context),
+      });
+    }
+    return stringFunctionCall(context, "jsonCodecObjectToEnum", [
+      stringObjectEntries(context, entries),
+    ]);
   },
-  pad: (self: IdlTypeFullPad, includes?: Set<string>) => {
-    return idlTypeFullJsonCodecValue(self.content, includes);
+  pad: (self: IdlTypeFullPad, dependencies: CodecContext) => {
+    return codec(self.content, dependencies);
   },
-  blob: (_self: IdlTypeFullBlob, includes?: Set<string>) => {
-    return codecValue("jsonCodecConst", includes, "undefined");
+  blob: (_self: IdlTypeFullBlob, context: CodecContext) => {
+    return stringFunctionCall(context, "jsonCodecConst", ["undefined"]);
   },
-  primitive: (self: IdlTypePrimitive, includes?: Set<string>) => {
-    return codecValue(
+  primitive: (self: IdlTypePrimitive, context: CodecContext) => {
+    return stringFunctionCall(
+      context,
       self.traverse(visitorPrimitive, undefined, undefined),
-      includes,
     );
   },
 };
 
 const visitorFields = {
-  nothing: (_self: null, includes?: Set<string>) => {
-    return codecValue("jsonCodecConst", includes, "undefined");
+  nothing: (_self: null, context: CodecContext) => {
+    return stringFunctionCall(context, "jsonCodecConst", ["null"]);
   },
-  named: (self: Array<IdlTypeFullFieldNamed>, includes?: Set<string>) => {
-    const fields = [];
+  named: (self: Array<IdlTypeFullFieldNamed>, context: CodecContext) => {
+    const entries = [];
     for (const field of self) {
       let fieldName = field.name;
       const fieldNameCamel = casingConvertToCamel(field.name);
@@ -147,18 +134,21 @@ const visitorFields = {
       if (fieldName === fieldNameSnake) {
         fieldName = fieldNameCamel;
       }
-      fields.push(
-        `${fieldName}:${idlTypeFullJsonCodecValue(field.content, includes)}`,
-      );
+      entries.push({
+        key: fieldName,
+        value: codec(field.content, context),
+      });
     }
-    return codecValue("jsonCodecObject", includes, `{${fields.join(",")}}`);
+    return stringFunctionCall(context, "jsonCodecObject", [
+      stringObjectEntries(context, entries),
+    ]);
   },
-  unnamed: (self: Array<IdlTypeFullFieldUnnamed>, includes?: Set<string>) => {
-    const fields = [];
-    for (const field of self) {
-      fields.push(idlTypeFullJsonCodecValue(field.content, includes));
-    }
-    return codecValue("jsonCodecArrayToTuple", includes, fields.join(","));
+  unnamed: (self: Array<IdlTypeFullFieldUnnamed>, context: CodecContext) => {
+    return stringFunctionCall(
+      context,
+      "jsonCodecArrayToTuple",
+      self.map((field) => codec(field.content, context)),
+    );
   },
 };
 
@@ -178,3 +168,24 @@ const visitorPrimitive = {
   bool: () => `jsonCodecBoolean`,
   pubkey: () => `jsonCodecPubkey`,
 };
+
+function stringFunctionCall(
+  context: CodecContext,
+  functionName: string,
+  functionParams?: Array<string>,
+) {
+  if (context.dependencies !== undefined) {
+    context.dependencies.add(functionName);
+  }
+  if (functionParams === undefined) {
+    return `${functionName}`;
+  }
+  return `${functionName}(${functionParams.join(",")})`;
+}
+
+function stringObjectEntries(
+  _context: CodecContext,
+  objectEntries: Array<{ key: string; value: string }>,
+): string {
+  return `{${objectEntries.map(({ key, value }) => `${key}:${value}`).join(",")}}`;
+}

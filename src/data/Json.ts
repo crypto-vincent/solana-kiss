@@ -807,37 +807,18 @@ export function jsonCodecObjectToMap<Key, Value>(
 export function jsonDecoderObjectToEnum<
   Shape extends { [key: string]: JsonDecoder<any> },
 >(shape: Shape) {
-  const keysDecoded = new Set(Object.keys(shape));
-  return (encoded: JsonValue) => {
-    let object: JsonObject;
-    const string = jsonAsString(encoded);
-    if (string !== undefined) {
-      object = { [string]: undefined };
-    } else {
-      object = jsonCodecObjectRaw.decoder(encoded);
-    }
-    const keysEncoded = Object.keys(object);
-    if (keysEncoded.length !== 1) {
-      throw new Error(
-        `JSON: Expected an object with a single key (found: ${keysEncoded.join("/")})`,
-      );
-    }
-    const keyEncoded = keysEncoded[0]!;
-    const keyDecoded = keyEncoded;
-    if (!keysDecoded.has(keyDecoded)) {
-      const expectedKeys = Array.from(keysDecoded).join("/");
-      throw new Error(
-        `JSON: Expected object with one of the keys: ${expectedKeys} (found: ${keyEncoded})`,
-      );
-    }
-    const valueDecoded = withErrorContext(
-      `JSON: Decode Object["${keyEncoded}"] =>`,
-      () => shape[keyDecoded]!(objectGetOwnProperty(object, keyEncoded)),
-    );
-    return { [keyDecoded]: valueDecoded } as {
+  return jsonDecoderOneOfKeys(
+    Object.fromEntries(
+      Object.entries(shape).map(([key, decoder]) => [
+        key,
+        (value: any) => ({ [key]: decoder(value) }),
+      ]),
+    ) as any,
+  ) as JsonDecoder<
+    {
       [K in keyof Shape]: { [P in K]: JsonDecoderContent<Shape[K]> };
-    }[keyof Shape];
-  };
+    }[keyof Shape]
+  >;
 }
 export function jsonEncoderObjectToEnum<
   Shape extends { [key: string]: JsonEncoder<any> },
@@ -856,13 +837,7 @@ export function jsonEncoderObjectToEnum<
 }
 export function jsonCodecObjectToEnum<
   Shape extends { [key: string]: JsonCodec<any> },
->(
-  shape: Shape,
-): JsonCodec<
-  {
-    [K in keyof Shape]: { [P in K]: JsonCodecContent<Shape[K]> };
-  }[keyof Shape]
-> {
+>(shape: Shape) {
   const decodeShape = Object.fromEntries(
     Object.entries(shape).map(([key, type]) => [key, type.decoder]),
   ) as { [K in keyof Shape]: JsonDecoder<any> };
@@ -872,7 +847,11 @@ export function jsonCodecObjectToEnum<
   return {
     decoder: jsonDecoderObjectToEnum(decodeShape),
     encoder: jsonEncoderObjectToEnum(encodeShape),
-  } as JsonCodec<{ [K in keyof Shape]: JsonCodecContent<Shape[K]> }>;
+  } as JsonCodec<
+    {
+      [K in keyof Shape]: { [P in K]: JsonCodecContent<Shape[K]> };
+    }[keyof Shape]
+  >;
 }
 
 export function jsonDecoderObjectKey<Content>(
@@ -947,7 +926,7 @@ export function jsonEncoderOptional<Content>(
 ): JsonEncoder<Content | undefined> {
   return (decoded: Content | undefined): JsonValue => {
     if (decoded === undefined) {
-      return undefined;
+      return null;
     }
     return contentEncoder(decoded);
   };
@@ -1032,13 +1011,18 @@ export function jsonDecoderByKind<Content>(decoders: {
   };
 }
 
-// TODO (cleanup) - this APIs needs cleanup on type and naming
-export function jsonDecoderObjectKeysToValue<
+export function jsonDecoderOneOfKeys<
   Shape extends { [key: string]: JsonDecoder<Content> },
   Content,
 >(shape: Shape): JsonDecoder<Content> {
   return (encoded: JsonValue): Content => {
-    const object = jsonCodecObjectRaw.decoder(encoded);
+    let object: JsonObject;
+    const string = jsonAsString(encoded);
+    if (string !== undefined) {
+      object = { [string]: null } as JsonObject;
+    } else {
+      object = jsonCodecObjectRaw.decoder(encoded);
+    }
     let foundKey: { encoded: string; decoded: string } | undefined = undefined;
     for (const keyDecoded in shape) {
       const keyEncoded = keyDecoded;
@@ -1053,12 +1037,11 @@ export function jsonDecoderObjectKeysToValue<
     }
     if (foundKey !== undefined) {
       return withErrorContext(
-        `JSON: Decode Enum["${foundKey.encoded}"] =>`,
-        () => {
-          return shape[foundKey.decoded]!(
+        `JSON: Decode Object["${foundKey.encoded}"] =>`,
+        () =>
+          shape[foundKey.decoded]!(
             objectGetOwnProperty(object, foundKey.encoded),
-          );
-        },
+          ),
       );
     }
     const expectedKeys = Object.keys(shape).join("/");

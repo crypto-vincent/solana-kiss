@@ -25,25 +25,25 @@ it("run", async () => {
     jsonGetAt(accountInfo.state, "state.coordinator.config.min_clients"),
   ).toStrictEqual(24);
 
-  const modulePath = "./tests/fixtures/jsonCodecCoordinatorAccount.ts";
+  const moduleName = "jsonCodecAccountBytemuck";
+  const modulePath = `./tests/fixtures/${moduleName}.ts`;
   const moduleCode = idlTypeFullJsonCodecModule(
     accountInfo.idl.typeFull,
-    "jsonCodecCoordinatorAccount",
+    moduleName,
     "../../src",
   );
   await fsp.writeFile(modulePath, moduleCode);
-
-  const requirePath = "./fixtures/jsonCodecCoordinatorAccount.ts";
+  const requirePath = `./fixtures/${moduleName}.ts`;
   delete require.cache[require.resolve(requirePath)];
-  const { jsonCodecCoordinatorAccount } = require(requirePath);
+  const { jsonCodecAccountBytemuck } = require(requirePath);
 
-  const contentDecoded = jsonCodecCoordinatorAccount.decoder(accountInfo.state);
+  const contentDecoded = jsonCodecAccountBytemuck.decoder(accountInfo.state);
   expect(contentDecoded.state.metadata.vocabSize).toStrictEqual(129280n);
   expect(contentDecoded.state.coordinator.config.minClients).toStrictEqual(24);
 
   const reencoded = idlAccountEncode(
     accountInfo.idl,
-    jsonCodecCoordinatorAccount.encoder(contentDecoded),
+    jsonCodecAccountBytemuck.encoder(contentDecoded),
   );
   expect(reencoded.length).toStrictEqual(accountInfo.data.length);
 

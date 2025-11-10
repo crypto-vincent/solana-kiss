@@ -1,6 +1,10 @@
 import { it } from "@jest/globals";
-import { idlProgramParse } from "../src";
-import { idlTypeFullJsonCodecValue } from "../src/idl/IdlTypeFullJsonCodec";
+import { promises as fsp } from "fs";
+import { idlAccountDecode, idlAccountEncode, idlProgramParse } from "../src";
+import {
+  idlTypeFullJsonCodecModule,
+  idlTypeFullJsonCodecValue,
+} from "../src/idl/IdlTypeFullJsonCodec";
 
 it("run", async () => {
   const programIdl = idlProgramParse({
@@ -15,8 +19,8 @@ it("run", async () => {
           {
             name: "field5",
             variants: [
-              ["u8", "i128"],
               ["string", ["u8", 42]],
+              ["u8", "i128"],
               {
                 name: "Misc",
                 fields: [
@@ -30,12 +34,10 @@ it("run", async () => {
       },
     },
   });
-  const includes = new Set<string>();
-  const codec = idlTypeFullJsonCodecValue(
-    programIdl.accounts.get("DummyAccount")!.typeFull,
-    includes,
-  );
-  expect(includes).toStrictEqual(
+  const accountIdl = programIdl.accounts.get("DummyAccount")!;
+  const dependencies = new Set<string>();
+  const codec = idlTypeFullJsonCodecValue(accountIdl.typeFull, dependencies);
+  expect(dependencies).toStrictEqual(
     new Set<string>([
       "jsonCodecObject",
       "jsonCodecArray",
@@ -51,7 +53,7 @@ it("run", async () => {
       "jsonCodecBoolean",
     ]),
   );
-  expect(codec).toStrictEqual(
+  expect(codec.replace(/\s/g, "")).toStrictEqual(
     stringCall(
       "jsonCodecObject",
       stringObject({
@@ -68,13 +70,13 @@ it("run", async () => {
           stringObject({
             0: stringCall(
               "jsonCodecArrayToTuple",
-              "jsonCodecNumber",
-              "jsonCodecInteger",
+              "jsonCodecString",
+              "jsonCodecBytesArray",
             ),
             1: stringCall(
               "jsonCodecArrayToTuple",
-              "jsonCodecString",
-              "jsonCodecBytesArray",
+              "jsonCodecNumber",
+              "jsonCodecInteger",
             ),
             Misc: stringCall(
               "jsonCodecObject",
@@ -88,6 +90,32 @@ it("run", async () => {
       }),
     ),
   );
+
+  const moduleName = "jsonCodecAccountDummy";
+  const modulePath = `./tests/fixtures/${moduleName}.ts`;
+  const moduleCode = idlTypeFullJsonCodecModule(
+    accountIdl.typeFull,
+    moduleName,
+    "../../src",
+  );
+  await fsp.writeFile(modulePath, moduleCode);
+  const requirePath = `./fixtures/${moduleName}.ts`;
+  delete require.cache[require.resolve(requirePath)];
+  const { jsonCodecAccountDummy } = require(requirePath);
+
+  const decoded = {
+    field1: 255,
+    field2: [1, 2, 3],
+    field4: "variant2",
+    field5: { 1: [42, 42n] },
+  };
+  const bytes = idlAccountEncode(
+    accountIdl,
+    jsonCodecAccountDummy.encoder(decoded),
+  );
+  expect(
+    jsonCodecAccountDummy.decoder(idlAccountDecode(accountIdl, bytes)),
+  ).toStrictEqual(decoded);
 });
 
 function stringCall(codecName: string, ...codecParams: Array<string>) {

@@ -3,11 +3,13 @@ import {
   jsonCodecBytesBase16,
   jsonCodecInteger,
   jsonCodecNumber,
+  jsonCodecString,
   JsonDecoder,
   jsonDecoderByKind,
   jsonDecoderConst,
   jsonDecoderForked,
   jsonDecoderObject,
+  jsonDecoderObjectKey,
   jsonDecoderObjectToEnum,
   jsonDecoderObjectToMap,
   jsonDecoderOptional,
@@ -69,6 +71,22 @@ it("run", async () => {
       ]),
     },
     {
+      encoded: { constructor: 12 },
+      decoder: jsonDecoderObject({
+        constructor: jsonDecoderOptional(jsonCodecNumber.decoder),
+        toString: jsonDecoderOptional(jsonCodecNumber.decoder),
+      }),
+      decoded: { constructor: 12 },
+    },
+    {
+      encoded: {},
+      decoder: jsonDecoderObjectKey(
+        "toString",
+        jsonDecoderOptional(jsonCodecString.decoder),
+      ),
+      decoded: undefined,
+    },
+    {
       encoded: { lowerBase16: "f2f2", upperBase16: "F2F2" },
       decoder: jsonDecoderObject({
         lowerBase16: jsonCodecBytesBase16.decoder,
@@ -90,10 +108,10 @@ it("run", async () => {
     {
       encoded: "Case1",
       decoder: jsonDecoderObjectToEnum({
-        Case1: jsonDecoderConst(undefined),
+        Case1: jsonDecoderConst(null),
         Case2: jsonDecoderObject({ hello: jsonCodecNumber.decoder }),
       }),
-      decoded: { Case1: undefined },
+      decoded: { Case1: null },
     },
   ];
   for (const test of tests) {

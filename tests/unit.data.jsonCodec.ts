@@ -77,7 +77,7 @@ it("run", async () => {
       decoded: [6, 7],
     },
     {
-      encoded: [undefined, "Hello", undefined],
+      encoded: [null, "Hello", null],
       codec: jsonCodecArray(jsonCodecOptional(jsonCodecString)),
       decoded: [undefined, "Hello", undefined],
     },
@@ -146,7 +146,7 @@ it("run", async () => {
       decoded: new Map([[address, 11]]),
     },
     {
-      encoded: { constructor: 12, toString: undefined },
+      encoded: { constructor: 12, toString: null },
       codec: jsonCodecObjectToMap<string, number | undefined>(
         { keyEncoder: (key) => key, keyDecoder: (key) => key },
         jsonCodecOptional(jsonCodecNumber),
@@ -157,7 +157,7 @@ it("run", async () => {
       ]),
     },
     {
-      encoded: { toString: 13 },
+      encoded: { toString: 13, constructor: null },
       codec: jsonCodecObject({
         constructor: jsonCodecOptional(jsonCodecNumber),
         toString: jsonCodecOptional(jsonCodecNumber),
@@ -165,7 +165,7 @@ it("run", async () => {
       decoded: { toString: 13 },
     },
     {
-      encoded: [14, undefined],
+      encoded: [14, null],
       codec: jsonCodecArrayToObject({
         constructor: jsonCodecOptional(jsonCodecNumber),
         toString: jsonCodecOptional(jsonCodecNumber),
@@ -173,7 +173,7 @@ it("run", async () => {
       decoded: { constructor: 14 },
     },
     {
-      encoded: {},
+      encoded: { toString: null },
       codec: jsonCodecObjectKey("toString", jsonCodecOptional(jsonCodecString)),
       decoded: undefined,
     },
@@ -206,10 +206,11 @@ it("run", async () => {
     {
       encoded: { case2: { hello: "world" } },
       codec: jsonCodecObjectToEnum({
-        case1: jsonCodecInteger,
+        constructor: jsonCodecInteger,
         case2: jsonCodecObject({
           hello: jsonCodecString,
         }),
+        toString: jsonCodecBoolean,
       }),
       decoded: { case2: { hello: "world" } },
     },

@@ -250,7 +250,7 @@ const visitorFieldsDecode = {
     _data: DataView,
     _dataOffset: number,
   ): [number, JsonValue] => {
-    return [0, undefined];
+    return [0, null];
   },
   named: (
     self: Array<IdlTypeFullFieldNamed>,
