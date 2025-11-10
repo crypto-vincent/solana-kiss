@@ -33,6 +33,7 @@ import {
   idlProgramGuessInstruction,
 } from "./idl/IdlProgram";
 import { RpcHttp, rpcHttpFromUrl } from "./rpc/RpcHttp";
+import { rpcHttpFindProgramOwnedAccounts } from "./rpc/RpcHttpFindProgramOwnedAccounts";
 import { rpcHttpGetAccountWithData } from "./rpc/RpcHttpGetAccountWithData";
 import { rpcHttpGetLatestBlockHash } from "./rpc/RpcHttpGetLatestBlockHash";
 import { rpcHttpSendTransaction } from "./rpc/RpcHttpSendTransaction";
@@ -320,6 +321,27 @@ export class Solana {
       this.#rpcHttp,
       transactionPacket,
       options as any,
+    );
+  }
+
+  public async findProgramOwnedAccounts(
+    programAddress: Pubkey,
+    accountName: string,
+  ) {
+    const programIdl = await this.getOrLoadProgramIdl(programAddress);
+    const accountIdl = programIdl.accounts.get(accountName);
+    if (!accountIdl) {
+      throw new Error(
+        `IDL Account ${accountName} not found for program ${programAddress}`,
+      );
+    }
+    return await rpcHttpFindProgramOwnedAccounts(
+      this.#rpcHttp,
+      programAddress,
+      {
+        dataSpace: accountIdl.dataSpace,
+        dataBlobs: accountIdl.dataBlobs,
+      } as any,
     );
   }
 }

@@ -84,6 +84,7 @@ export function idlLoaderFromUrl(
 export function idlLoaderFromOnchain(
   accountDataFetcher: (accountAddress: Pubkey) => Promise<Uint8Array>,
   options?: {
+    // TODO - those cache approver patterns could probably be improved a more generic way
     cacheApprover?: (programAddress: Pubkey) => Promise<boolean>;
   },
 ): IdlLoader {
