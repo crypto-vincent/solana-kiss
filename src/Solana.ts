@@ -245,11 +245,10 @@ export class Solana {
 
   public async getRecentBlockHash() {
     const nowTimeMs = Date.now();
-    if (
-      this.#cacheBlockHash &&
-      nowTimeMs - this.#cacheBlockHash.fetchTimeMs < 15000 /* 15 seconds */
-    ) {
-      return this.#cacheBlockHash.blockHash;
+    if (this.#cacheBlockHash) {
+      if (nowTimeMs - this.#cacheBlockHash.fetchTimeMs < 15_000) {
+        return this.#cacheBlockHash.blockHash;
+      }
     }
     const { blockInfo } = await rpcHttpGetLatestBlockHash(this.#rpcHttp);
     this.#cacheBlockHash = {

@@ -37,6 +37,5 @@ it("run", async () => {
         ownedAccountInfo.state,
       ),
     ).toStrictEqual(true);
-    return;
   }
 });

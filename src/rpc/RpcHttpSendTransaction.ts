@@ -26,6 +26,7 @@ export async function rpcHttpSendTransaction(
     return { transactionHandle };
   } catch (error) {
     if (options?.failOnAlreadyProcessed !== true) {
+      // TODO - how to make this play well with RpcRetryOnError?
       if (
         error instanceof RpcHttpError &&
         error.code === -32002 &&

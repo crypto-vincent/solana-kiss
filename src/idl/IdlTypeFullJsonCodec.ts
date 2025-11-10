@@ -23,32 +23,32 @@ export function idlTypeFullJsonCodecModule(
   importPath?: string,
 ): string {
   const dependencies = new Set<string>();
-  const codec = idlTypeFullJsonCodecValue(self, dependencies);
-  const lines = [];
+  const codecExpression = idlTypeFullJsonCodecExpression(self, dependencies);
   const importNames = [...dependencies].join(",");
+  const lines = [];
   lines.push(`import {${importNames}} from "${importPath ?? "solana-kiss"}";`);
   lines.push("");
-  lines.push(`export const ${exportName} = ${codec};`);
+  lines.push(`export const ${exportName} = ${codecExpression};`);
   lines.push("");
   return lines.join("\n");
 }
 
-export function idlTypeFullJsonCodecValue(
+export function idlTypeFullJsonCodecExpression(
   self: IdlTypeFull,
   dependencies?: Set<string>,
 ): string {
-  return codec(self, { dependencies });
+  return codec({ dependencies }, self);
 }
 
 type CodecContext = { dependencies: Set<string> | undefined };
 
-function codec(typeFull: IdlTypeFull, context: CodecContext): string {
+function codec(context: CodecContext, typeFull: IdlTypeFull): string {
   return typeFull.traverse(visitor, context, undefined, undefined);
 }
 
 function codecFields(
-  typeFullFields: IdlTypeFullFields,
   context: CodecContext,
+  typeFullFields: IdlTypeFullFields,
 ): string {
   return typeFullFields.traverse(visitorFields, context, undefined, undefined);
 }
@@ -57,16 +57,16 @@ function codecArray(items: IdlTypeFull, context: CodecContext): string {
   if (items.isPrimitive(IdlTypePrimitive.u8)) {
     return stringFunctionCall(context, "jsonCodecBytesArray");
   }
-  return stringFunctionCall(context, "jsonCodecArray", [codec(items, context)]);
+  return stringFunctionCall(context, "jsonCodecArray", [codec(context, items)]);
 }
 
 const visitor = {
   typedef: (self: IdlTypeFullTypedef, context: CodecContext) => {
-    return codec(self.content, context);
+    return codec(context, self.content);
   },
   option: (self: IdlTypeFullOption, context: CodecContext) => {
     return stringFunctionCall(context, "jsonCodecOptional", [
-      codec(self.content, context),
+      codec(context, self.content),
     ]);
   },
   vec: (self: IdlTypeFullVec, context: CodecContext) => {
@@ -82,7 +82,7 @@ const visitor = {
     return stringFunctionCall(context, "jsonCodecString");
   },
   struct: (self: IdlTypeFullStruct, context: CodecContext) => {
-    return codecFields(self.fields, context);
+    return codecFields(context, self.fields);
   },
   enum: (self: IdlTypeFullEnum, context: CodecContext) => {
     const variantsNames = new Array<string>();
@@ -100,15 +100,15 @@ const visitor = {
     for (const variant of self.variants) {
       entries.push({
         key: variant.name,
-        value: codecFields(variant.fields, context),
+        value: codecFields(context, variant.fields),
       });
     }
     return stringFunctionCall(context, "jsonCodecObjectToEnum", [
       stringObjectEntries(context, entries),
     ]);
   },
-  pad: (self: IdlTypeFullPad, dependencies: CodecContext) => {
-    return codec(self.content, dependencies);
+  pad: (self: IdlTypeFullPad, context: CodecContext) => {
+    return codec(context, self.content);
   },
   blob: (_self: IdlTypeFullBlob, context: CodecContext) => {
     return stringFunctionCall(context, "jsonCodecConst", ["undefined"]);
@@ -136,7 +136,7 @@ const visitorFields = {
       }
       entries.push({
         key: fieldName,
-        value: codec(field.content, context),
+        value: codec(context, field.content),
       });
     }
     return stringFunctionCall(context, "jsonCodecObject", [
@@ -147,7 +147,7 @@ const visitorFields = {
     return stringFunctionCall(
       context,
       "jsonCodecArrayToTuple",
-      self.map((field) => codec(field.content, context)),
+      self.map((field) => codec(context, field.content)),
     );
   },
 };

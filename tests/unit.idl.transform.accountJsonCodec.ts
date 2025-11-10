@@ -8,8 +8,8 @@ import {
   pubkeyDefault,
 } from "../src";
 import {
+  idlTypeFullJsonCodecExpression,
   idlTypeFullJsonCodecModule,
-  idlTypeFullJsonCodecValue,
 } from "../src/idl/IdlTypeFullJsonCodec";
 
 it("run", async () => {
@@ -44,7 +44,10 @@ it("run", async () => {
   const accountIdl = programIdl.accounts.get("DummyAccount")!;
 
   const dependencies = new Set<string>();
-  const codec = idlTypeFullJsonCodecValue(accountIdl.typeFull, dependencies);
+  const codec = idlTypeFullJsonCodecExpression(
+    accountIdl.typeFull,
+    dependencies,
+  );
   expect(dependencies).toStrictEqual(
     new Set<string>([
       "jsonCodecObject",
