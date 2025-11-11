@@ -11,6 +11,7 @@ import { pubkeyFromBase58, pubkeyToBase58 } from "./Pubkey";
 import { signatureFromBase58, signatureToBase58 } from "./Signature";
 import { utf8Decode, utf8Encode } from "./Utf8";
 import {
+  NotNull,
   objectGetOwnProperty,
   objectGuessIntendedKey,
   withErrorContext,
@@ -497,7 +498,7 @@ export function jsonCodecConst<Values extends Array<JsonPrimitive>>(
 }
 
 export function jsonDecoderArray<Item>(
-  itemDecoder: JsonDecoder<Item>,
+  itemDecoder: (itemEncoded: JsonValue) => Item,
 ): JsonDecoder<Array<Item>> {
   return (encoded) => {
     const array = jsonAsArray(encoded);
@@ -514,13 +515,14 @@ export function jsonDecoderArray<Item>(
   };
 }
 export function jsonEncoderArray<Item>(
-  itemEncoder: JsonEncoder<Item>,
+  itemEncoder: (itemDecoded: Item) => JsonValue,
 ): JsonEncoder<Array<Item>> {
   return (decoded) => decoded.map((item) => itemEncoder(item));
 }
-export function jsonCodecArray<Item>(
-  itemCodec: JsonCodec<Item>,
-): JsonCodec<Array<Item>> {
+export function jsonCodecArray<Item>(itemCodec: {
+  decoder: (itemEncoded: JsonValue) => Item;
+  encoder: (itemDecoded: Item) => JsonValue;
+}): JsonCodec<Array<Item>> {
   return {
     decoder: jsonDecoderArray(itemCodec.decoder),
     encoder: jsonEncoderArray(itemCodec.encoder),
@@ -588,16 +590,11 @@ export function jsonDecoderArrayToTuple<Items extends Array<JsonDecoder<any>>>(
       [K in keyof Items]: JsonDecoderContent<Items[K]>;
     };
     const array = jsonCodecArrayValues.decoder(encoded);
-    if (array.length !== items.length) {
-      throw new Error(
-        `JSON: Expected an array of length ${items.length} (found: ${jsonPreview(encoded)})`,
-      );
-    }
     for (let index = 0; index < items.length; index++) {
       const itemDecoder = items[index]!;
       const itemDecoded = withErrorContext(
         `JSON: Decode Array[${index}] =>`,
-        () => itemDecoder(array[index]!),
+        () => itemDecoder(array[index]),
       );
       decoded.push(itemDecoded);
     }
@@ -710,7 +707,7 @@ export function jsonCodecObject<
 
 export function jsonDecoderObjectToMap<Key, Value>(params: {
   keyDecoder: (keyEncoded: string) => Key;
-  valueDecoder: JsonDecoder<Value>;
+  valueDecoder: (valueEncoded: JsonValue) => Value;
 }): JsonDecoder<Map<Key, Value>> {
   return (encoded) => {
     const decoded = new Map<Key, Value>();
@@ -718,6 +715,9 @@ export function jsonDecoderObjectToMap<Key, Value>(params: {
     for (const keyEncoded of Object.keys(object)) {
       const keyDecoded = params.keyDecoder(keyEncoded);
       const valueEncoded = objectGetOwnProperty(object, keyEncoded);
+      if (valueEncoded === undefined) {
+        continue;
+      }
       const valueDecoded = withErrorContext(
         `JSON: Decode Object["${keyEncoded}"] =>`,
         () => params.valueDecoder(valueEncoded),
@@ -729,7 +729,7 @@ export function jsonDecoderObjectToMap<Key, Value>(params: {
 }
 export function jsonEncoderObjectToMap<Key, Value>(params: {
   keyEncoder: (keyDecoded: Key) => string;
-  valueEncoder: JsonEncoder<Value>;
+  valueEncoder: (valueDecoded: Value) => JsonValue;
 }): JsonEncoder<Map<Key, Value>> {
   return (decoded) => {
     const encoded = {} as JsonObject;
@@ -741,21 +741,24 @@ export function jsonEncoderObjectToMap<Key, Value>(params: {
     return encoded;
   };
 }
-export function jsonCodecObjectToMap<Key, Value>(
+export function jsonCodecObjectToMap<Key, Value>(params: {
   keyCodec: {
-    keyEncoder: (keyDecoded: Key) => string;
-    keyDecoder: (keyEncoded: string) => Key;
-  },
-  valueCodec: JsonCodec<Value>,
-): JsonCodec<Map<Key, Value>> {
+    decoder: (keyEncoded: string) => Key;
+    encoder: (keyDecoded: Key) => string;
+  };
+  valueCodec: {
+    decoder: (valueEncoded: JsonValue) => Value;
+    encoder: (valueDecoded: Value) => JsonValue;
+  };
+}): JsonCodec<Map<Key, Value>> {
   return {
     decoder: jsonDecoderObjectToMap({
-      keyDecoder: keyCodec.keyDecoder,
-      valueDecoder: valueCodec.decoder,
+      keyDecoder: params.keyCodec.decoder,
+      valueDecoder: params.valueCodec.decoder,
     }),
     encoder: jsonEncoderObjectToMap({
-      keyEncoder: keyCodec.keyEncoder,
-      valueEncoder: valueCodec.encoder,
+      keyEncoder: params.keyCodec.encoder,
+      valueEncoder: params.valueCodec.encoder,
     }),
   };
 }
@@ -846,7 +849,7 @@ export function jsonCodecObjectKey<Content>(
 }
 
 export function jsonDecoderNullable<Content>(
-  contentDecoder: JsonDecoder<Content>,
+  contentDecoder: (encoded: NotNull<JsonValue> | undefined) => Content,
 ): JsonDecoder<Content | null> {
   return (encoded) => {
     if (encoded === null) {
@@ -865,9 +868,10 @@ export function jsonEncoderNullable<Content>(
     return contentEncoder(decoded);
   };
 }
-export function jsonCodecNullable<Content>(
-  contentCodec: JsonCodec<Content>,
-): JsonCodec<Content | null> {
+export function jsonCodecNullable<Content>(contentCodec: {
+  decoder: (encoded: NotNull<JsonValue> | undefined) => Content;
+  encoder: JsonEncoder<Content>;
+}): JsonCodec<Content | null> {
   return {
     decoder: jsonDecoderNullable(contentCodec.decoder),
     encoder: jsonEncoderNullable(contentCodec.encoder),
@@ -875,10 +879,10 @@ export function jsonCodecNullable<Content>(
 }
 
 export function jsonDecoderOptional<Content>(
-  contentDecoder: JsonDecoder<Content>,
+  contentDecoder: (encoded: NotNull<JsonValue>) => Content,
 ): JsonDecoder<Content | undefined> {
   return (encoded) => {
-    if (encoded === undefined) {
+    if (encoded === undefined || encoded === null) {
       return undefined;
     }
     return contentDecoder(encoded);
@@ -888,15 +892,16 @@ export function jsonEncoderOptional<Content>(
   contentEncoder: JsonEncoder<Content>,
 ): JsonEncoder<Content | undefined> {
   return (decoded) => {
-    if (decoded === undefined) {
+    if (decoded === undefined || decoded === null) {
       return null;
     }
     return contentEncoder(decoded);
   };
 }
-export function jsonCodecOptional<Content>(
-  contentCodec: JsonCodec<Content>,
-): JsonCodec<Content | undefined> {
+export function jsonCodecOptional<Content>(contentCodec: {
+  decoder: (encoded: NotNull<JsonValue>) => Content;
+  encoder: JsonEncoder<Content>;
+}): JsonCodec<Content | undefined> {
   return {
     decoder: jsonDecoderOptional(contentCodec.decoder),
     encoder: jsonEncoderOptional(contentCodec.encoder),
@@ -933,7 +938,7 @@ export function jsonCodecTransform<Decoded, Encoded>(
 }
 
 export function jsonDecoderOneOfKeys<
-  Shape extends { [key: string]: JsonDecoder<Content> },
+  Shape extends { [key: string]: (encoded: JsonValue) => Content },
   Content,
 >(shape: Shape): JsonDecoder<Content> {
   return (encoded) => {
@@ -944,25 +949,25 @@ export function jsonDecoderOneOfKeys<
     } else {
       object = jsonCodecObjectValues.decoder(encoded);
     }
-    let foundKey: { encoded: string; decoded: string } | undefined = undefined;
+    let found:
+      | { keyDecoded: string; keyEncoded: string; valueEncoded: JsonValue }
+      | undefined = undefined;
     for (const keyDecoded in shape) {
       const keyEncoded = keyDecoded;
-      if (object.hasOwnProperty(keyEncoded)) {
-        if (foundKey !== undefined) {
+      const valueEncoded = objectGetOwnProperty(object, keyEncoded);
+      if (valueEncoded !== undefined) {
+        if (found !== undefined) {
           throw new Error(
-            `JSON: Expected key ${keyEncoded} to be unique in enum (also found: ${foundKey.encoded})`,
+            `JSON: Expected key ${keyEncoded} to be unique in enum (also found: ${found.keyEncoded})`,
           );
         }
-        foundKey = { decoded: keyDecoded, encoded: keyEncoded };
+        found = { keyEncoded, keyDecoded, valueEncoded };
       }
     }
-    if (foundKey !== undefined) {
+    if (found !== undefined) {
       return withErrorContext(
-        `JSON: Decode Object["${foundKey.encoded}"] =>`,
-        () =>
-          shape[foundKey.decoded]!(
-            objectGetOwnProperty(object, foundKey.encoded),
-          ),
+        `JSON: Decode Object["${found.keyEncoded}"] =>`,
+        () => shape[found.keyDecoded]!(found.valueEncoded),
       );
     }
     const expectedKeys = Object.keys(shape).join("/");

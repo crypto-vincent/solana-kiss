@@ -7,7 +7,10 @@ import {
   JsonDecoder,
   jsonDecoderAllOf,
   jsonDecoderAnyOfKind,
+  jsonDecoderArrayToObject,
+  jsonDecoderArrayToTuple,
   jsonDecoderConst,
+  jsonDecoderNullable,
   jsonDecoderObject,
   jsonDecoderObjectKey,
   jsonDecoderObjectToEnum,
@@ -23,6 +26,11 @@ it("run", async () => {
     decoded: any;
   }> = [
     { encoded: null, decoder: jsonCodecNumber.decoder, decoded: NaN },
+    {
+      encoded: null,
+      decoder: jsonDecoderNullable(jsonCodecNumber.decoder),
+      decoded: null,
+    },
     {
       encoded: "Infinity",
       decoder: jsonCodecNumber.decoder,
@@ -70,7 +78,23 @@ it("run", async () => {
       ]),
     },
     {
+      encoded: { constructor: 14, toString: undefined },
+      decoder: jsonDecoderObjectToMap({
+        keyDecoder: (key) => key,
+        valueDecoder: jsonDecoderOptional(jsonCodecNumber.decoder),
+      }),
+      decoded: new Map<string, number | undefined>([["constructor", 14]]),
+    },
+    {
       encoded: { constructor: 12 },
+      decoder: jsonDecoderObject({
+        constructor: jsonDecoderOptional(jsonCodecNumber.decoder),
+        toString: jsonDecoderOptional(jsonCodecNumber.decoder),
+      }),
+      decoded: { constructor: 12 },
+    },
+    {
+      encoded: { constructor: 12, toString: undefined },
       decoder: jsonDecoderObject({
         constructor: jsonDecoderOptional(jsonCodecNumber.decoder),
         toString: jsonDecoderOptional(jsonCodecNumber.decoder),
@@ -111,6 +135,22 @@ it("run", async () => {
         Case2: jsonDecoderObject({ hello: jsonCodecNumber.decoder }),
       }),
       decoded: { Case1: null },
+    },
+    {
+      encoded: [13],
+      decoder: jsonDecoderArrayToObject({
+        constructor: jsonCodecNumber.decoder,
+        toString: jsonDecoderOptional(jsonCodecNumber.decoder),
+      }),
+      decoded: { constructor: 13 },
+    },
+    {
+      encoded: [13],
+      decoder: jsonDecoderArrayToTuple(
+        jsonCodecNumber.decoder,
+        jsonDecoderOptional(jsonCodecNumber.decoder),
+      ),
+      decoded: [13, undefined],
     },
   ];
   for (const test of tests) {

@@ -85,6 +85,9 @@ const visitor = {
     return codecFields(context, self.fields);
   },
   enum: (self: IdlTypeFullEnum, context: CodecContext) => {
+    if (self.variants.length === 0) {
+      return stringFunctionCall(context, "jsonCodecConst", ["null"]);
+    }
     const variantsNames = new Array<string>();
     let hasFields = false;
     for (const variant of self.variants) {
@@ -98,10 +101,8 @@ const visitor = {
     }
     const entries = [];
     for (const variant of self.variants) {
-      entries.push({
-        key: variant.name,
-        value: codecFields(context, variant.fields),
-      });
+      const variantFields = codecFields(context, variant.fields);
+      entries.push({ key: variant.name, value: variantFields });
     }
     return stringFunctionCall(context, "jsonCodecObjectToEnum", [
       stringObjectEntries(context, entries),
@@ -111,7 +112,7 @@ const visitor = {
     return codec(context, self.content);
   },
   blob: (_self: IdlTypeFullBlob, context: CodecContext) => {
-    return stringFunctionCall(context, "jsonCodecConst", ["undefined"]);
+    return stringFunctionCall(context, "jsonCodecConst", ["null"]);
   },
   primitive: (self: IdlTypePrimitive, context: CodecContext) => {
     return stringFunctionCall(
@@ -134,10 +135,11 @@ const visitorFields = {
       if (fieldName === fieldNameSnake) {
         fieldName = fieldNameCamel;
       }
-      entries.push({
-        key: fieldName,
-        value: codec(context, field.content),
-      });
+      const fieldContent = codec(context, field.content);
+      if (fieldContent === "jsonCodecConst(null)") {
+        continue;
+      }
+      entries.push({ key: fieldName, value: fieldContent });
     }
     return stringFunctionCall(context, "jsonCodecObject", [
       stringObjectEntries(context, entries),

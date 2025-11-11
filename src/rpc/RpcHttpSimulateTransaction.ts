@@ -114,7 +114,7 @@ const resultJsonDecoder = jsonDecoderObject({
     logs: jsonDecoderOptional(jsonDecoderArray(jsonCodecString.decoder)),
     accounts: jsonDecoderOptional(
       jsonDecoderArray(
-        jsonDecoderOptional(
+        jsonDecoderNullable(
           jsonDecoderObject({
             executable: jsonCodecBoolean.decoder,
             lamports: jsonCodecNumber.decoder,

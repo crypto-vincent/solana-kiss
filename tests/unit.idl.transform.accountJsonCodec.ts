@@ -37,6 +37,9 @@ it("run", async () => {
               { name: "Empty" },
             ],
           },
+          { name: "invisible_blob", bytes: [77, 78, 79] },
+          { name: "invisible_enum", variants: [] },
+          { name: "invisible_struct", fields: [] },
         ],
       },
     },
@@ -130,14 +133,14 @@ it("run", async () => {
     field5: { Empty: null },
   });
   checkRoundTrip(accountIdl, jsonCodec, {
-    field1: 255,
-    field2: [1, 2, 3],
+    field1: 128,
+    field2: [1, 2, 3, 4, 5],
     field4: "variant1",
-    field5: { 1: [42, 42n] },
+    field5: { 1: [255, -1234567890123456789n] },
   });
   checkRoundTrip(accountIdl, jsonCodec, {
-    field1: 33,
-    field2: [0, 0, 0, 0, 0, 0],
+    field1: 7,
+    field2: [42, 43],
     field4: "variant2",
     field5: { Misc: { key: pubkeyDefault, bool: true } },
   });
@@ -156,8 +159,9 @@ function stringObject(record: Record<string, string>): string {
 }
 
 function checkRoundTrip(accountIdl: IdlAccount, jsonCodec: any, decoded: any) {
-  const bytes = idlAccountEncode(accountIdl, jsonCodec.encoder(decoded));
-  expect(jsonCodec.decoder(idlAccountDecode(accountIdl, bytes))).toStrictEqual(
-    decoded,
-  );
+  const encoded = jsonCodec.encoder(decoded);
+  const bytes = idlAccountEncode(accountIdl, encoded);
+  expect(
+    idlAccountEncode(accountIdl, idlAccountDecode(accountIdl, bytes)),
+  ).toStrictEqual(bytes);
 }

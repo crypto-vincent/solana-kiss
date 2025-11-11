@@ -128,6 +128,7 @@ it("run", () => {
     contact: undefined,
     address: undefined,
     version: "0.0.1",
+    source: undefined,
     spec: undefined,
     docs: undefined,
   });

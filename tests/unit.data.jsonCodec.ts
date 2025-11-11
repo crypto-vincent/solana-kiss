@@ -78,8 +78,8 @@ it("run", async () => {
     },
     {
       encoded: [null, "Hello", null],
-      codec: jsonCodecArray(jsonCodecOptional(jsonCodecString)),
-      decoded: [undefined, "Hello", undefined],
+      codec: jsonCodecArray(jsonCodecNullable(jsonCodecString)),
+      decoded: [null, "Hello", null],
     },
     {
       encoded: { const: 8, nullables: [null, true, false, null] },
@@ -139,38 +139,44 @@ it("run", async () => {
     },
     {
       encoded: { [address.toString()]: 11 },
-      codec: jsonCodecObjectToMap(
-        { keyEncoder: pubkeyToBase58, keyDecoder: pubkeyFromBase58 },
-        jsonCodecNumber,
-      ),
+      codec: jsonCodecObjectToMap({
+        keyCodec: {
+          encoder: pubkeyToBase58,
+          decoder: pubkeyFromBase58,
+        },
+        valueCodec: jsonCodecNumber,
+      }),
       decoded: new Map([[address, 11]]),
     },
     {
-      encoded: { constructor: 12, toString: null },
-      codec: jsonCodecObjectToMap<string, number | undefined>(
-        { keyEncoder: (key) => key, keyDecoder: (key) => key },
-        jsonCodecOptional(jsonCodecNumber),
-      ),
-      decoded: new Map<string, number | undefined>([
-        ["constructor", 12],
-        ["toString", undefined],
-      ]),
-    },
-    {
-      encoded: { toString: 13, constructor: null },
+      encoded: { toString: 12, constructor: null },
       codec: jsonCodecObject({
         constructor: jsonCodecOptional(jsonCodecNumber),
         toString: jsonCodecOptional(jsonCodecNumber),
       }),
-      decoded: { toString: 13 },
+      decoded: { toString: 12 },
     },
     {
-      encoded: [14, null],
+      encoded: [13, null],
       codec: jsonCodecArrayToObject({
         constructor: jsonCodecOptional(jsonCodecNumber),
         toString: jsonCodecOptional(jsonCodecNumber),
       }),
-      decoded: { constructor: 14 },
+      decoded: { constructor: 13 },
+    },
+    {
+      encoded: { constructor: 14, toString: null },
+      codec: jsonCodecObjectToMap<string, number | undefined>({
+        keyCodec: {
+          encoder: (key) => key,
+          decoder: (key) => key,
+        },
+        valueCodec: jsonCodecOptional(jsonCodecNumber),
+      }),
+      decoded: new Map<string, number | undefined>([
+        ["constructor", 14],
+        ["toString", undefined],
+      ]),
     },
     {
       encoded: { toString: null },

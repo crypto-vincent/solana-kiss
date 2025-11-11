@@ -6,6 +6,7 @@ import {
   jsonCodecPubkey,
 } from "../data/Json";
 import { pubkeyFromBytes, pubkeyToBytes } from "../data/Pubkey";
+import { withErrorContext } from "../data/Utils";
 
 export class IdlTypePrimitive {
   public static readonly u8 = new IdlTypePrimitive("u8", 1, 1);
@@ -87,9 +88,11 @@ export function idlTypePrimitiveEncode(
   value: JsonValue | undefined,
   blobs: Array<Uint8Array>,
 ) {
-  const blob = new Uint8Array(self.size);
-  self.traverse(visitorEncode, blob, value);
-  blobs.push(blob);
+  return withErrorContext(`Encode: ${self.name}`, () => {
+    const blob = new Uint8Array(self.size);
+    self.traverse(visitorEncode, blob, value);
+    blobs.push(blob);
+  });
 }
 
 export function idlTypePrimitiveDecode(

@@ -1,5 +1,7 @@
 import { casingConvertToCamel, casingConvertToSnake } from "./Casing";
 
+export type NotNull<T> = T extends null | undefined ? never : T;
+
 export type Result<Value, Error = any> = { value?: Value; error?: Error };
 
 export type BrandedType<T, Name> =

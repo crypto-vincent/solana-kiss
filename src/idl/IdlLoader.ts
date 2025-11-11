@@ -5,7 +5,7 @@ import {
   jsonCodecPubkey,
   JsonValue,
 } from "../data/Json";
-import { Memoizer } from "../data/Memoize";
+import { memoize } from "../data/Memoize";
 import {
   Pubkey,
   pubkeyCreateFromSeed,
@@ -26,11 +26,11 @@ export function idlLoaderMemoized(
     result: Result<IdlProgram>,
   ) => Promise<boolean>,
 ): IdlLoader {
-  return new Memoizer(
+  return memoize(
     loader,
     async (programAddress) => programAddress,
     cacheApprover,
-  ).invoke;
+  );
 }
 
 export function idlLoaderFallbackToUnknown(): IdlLoader {
