@@ -72,5 +72,5 @@ it("run", () => {
   expect(instructionCamelData).toStrictEqual(instructionSnakeData);
   expect(
     idlInstructionArgsDecode(instructionIdl, instructionSnakeData),
-  ).toStrictEqual(instructionSnakePayload);
+  ).toStrictEqual(instructionCamelPayload);
 });

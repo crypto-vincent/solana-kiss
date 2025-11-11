@@ -1,23 +1,95 @@
-import { expect, it } from "@jest/globals";
+import { it } from "@jest/globals";
 import {
+  idlProgramParse,
+  JsonArray,
+  JsonObject,
+  pubkeyCreateFromSeed,
+  pubkeyDefault,
+  pubkeyFindPdaAddress,
   pubkeyFromBase58,
+  pubkeyNewDummy,
   rpcHttpFromUrl,
   Solana,
   urlRpcPublicDevnet,
 } from "../src";
 
 it("run", async () => {
-  const solana = new Solana(rpcHttpFromUrl(urlRpcPublicDevnet));
-  const programIdl = await solana.getOrLoadProgramIdl(
-    pubkeyFromBase58("UCNcQRtrbGmvuLKA3Jv719Cc6DS4r661ZRpyZduxu2j"),
+  const rpcCounters = new Map<string, number>();
+
+  const rpcHttp = rpcHttpFromUrl(urlRpcPublicDevnet);
+  const solana = new Solana(
+    (method: string, params: JsonArray, config: JsonObject | undefined) => {
+      const key = counterKey(method, params);
+      const count = rpcCounters.get(key) ?? 0;
+      rpcCounters.set(key, count + 1);
+      return rpcHttp(method, params, config);
+    },
   );
-  expect(programIdl.metadata.name).toStrictEqual("psyche_crowd_funding");
-  expect(programIdl.metadata.address).toStrictEqual(
+
+  const knownProgramAddress = pubkeyFromBase58(
     "UCNcQRtrbGmvuLKA3Jv719Cc6DS4r661ZRpyZduxu2j",
   );
-  expect(programIdl.typedefs.size).toStrictEqual(9);
-  expect(programIdl.accounts.size).toStrictEqual(3);
-  expect(programIdl.instructions.size).toStrictEqual(6);
-  expect(programIdl.errors.size).toStrictEqual(5);
-  expect(programIdl.events.size).toStrictEqual(0);
+
+  for (const programAddress of [
+    knownProgramAddress,
+    pubkeyDefault,
+    pubkeyNewDummy(),
+  ]) {
+    const onchainAnchorAddress = pubkeyCreateFromSeed(
+      pubkeyFindPdaAddress(programAddress, []),
+      "anchor:idl",
+      programAddress,
+    );
+
+    solana.setProgramIdl(programAddress, idlProgramParse({}));
+    await solana.getOrLoadProgramIdl(programAddress);
+    await solana.getOrLoadProgramIdl(programAddress);
+    expect(
+      rpcCounters.get(counterKey("getAccountInfo", [onchainAnchorAddress])),
+    ).toBe(undefined);
+
+    solana.setProgramIdl(programAddress, undefined);
+    await solana.getOrLoadProgramIdl(programAddress);
+    await solana.getOrLoadProgramIdl(programAddress);
+    expect(
+      rpcCounters.get(counterKey("getAccountInfo", [onchainAnchorAddress])),
+    ).toBe(1);
+
+    rpcCounters.clear();
+  }
+
+  const { accountsAddresses } = await solana.findProgramOwnedAccounts(
+    knownProgramAddress,
+    "Campaign",
+  );
+  rpcCounters.clear();
+
+  const ownedAccountAddress = accountsAddresses.values().next().value!;
+  await solana.getAndInferAndDecodeAccountInfo(ownedAccountAddress);
+  await solana.getAndInferAndDecodeAccountInfo(ownedAccountAddress);
+  expect(rpcCounters.size).toBe(1);
+  expect(
+    rpcCounters.get(counterKey("getAccountInfo", [ownedAccountAddress])),
+  ).toBe(2);
+  rpcCounters.clear();
+
+  const fakeCollateralMint = pubkeyNewDummy();
+  const hydratedAddresses = await solana.hydrateInstructionAddresses(
+    knownProgramAddress,
+    "campaign_create",
+    {
+      instructionAddresses: { collateralMint: fakeCollateralMint },
+      instructionPayload: { params: { index: "0" } },
+    },
+  );
+  expect(rpcCounters.size).toBe(0);
+  expect(Object.values(hydratedAddresses).length).toBe(6);
+  expect(hydratedAddresses["collateral_mint"]).toStrictEqual(
+    fakeCollateralMint,
+  );
+  expect(hydratedAddresses["system_program"]).toStrictEqual(pubkeyDefault);
 });
+
+function counterKey(method: string, params: JsonArray): string {
+  return `${method}:${JSON.stringify(params)}`;
+}

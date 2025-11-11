@@ -1,4 +1,4 @@
-import { casingConvertToSnake } from "../data/Casing";
+import { casingConvertToSnakeIfRevertible } from "../data/Casing";
 import {
   JsonDecoder,
   JsonValue,
@@ -144,7 +144,9 @@ const fieldsJsonDecoder = jsonDecoderAnyOfKind({
           named = true;
         }
         return {
-          name: casingConvertToSnake(fieldMeta.name ?? fieldIndex.toString()),
+          name: casingConvertToSnakeIfRevertible(
+            fieldMeta.name ?? fieldIndex.toString(),
+          ),
           docs: fieldMeta.docs,
           content: fieldType,
         };

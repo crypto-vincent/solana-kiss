@@ -44,7 +44,7 @@ it("run", async () => {
     solana,
     programStateAddress,
     "ProgramState",
-    "credix_multisig_key",
+    "credixMultisigKey",
     "Ej5zJzej7rrUoDngsJ3jcpfuvfVyWpcDcK7uv9cE2LdL",
   );
   // Read the market admins content using the IDL
@@ -65,7 +65,7 @@ it("run", async () => {
     "initialize_market",
     {
       instructionAddresses: {},
-      instructionPayload: { global_market_seed: "credix-marketplace" },
+      instructionPayload: { globalMarketSeed: "credix-marketplace" },
     },
   );
   expect(instructionAddresses["global_market_state"]).toStrictEqual(

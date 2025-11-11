@@ -33,7 +33,7 @@ it("run", async () => {
     solana,
     campaign,
     "Campaign",
-    "collateral_mint",
+    "collateralMint",
     "EsQycjp856vTPvrxMuH1L6ymd5K63xT7aULGepiTcgM3",
   );
   // Check that we could indeed find the right accounts programatically

@@ -1,4 +1,4 @@
-import { casingConvertToSnake } from "../data/Casing";
+import { casingConvertToSnakeIfRevertible } from "../data/Casing";
 import {
   jsonCodecArrayValues,
   jsonCodecBoolean,
@@ -150,7 +150,7 @@ export function idlInstructionAccountParse(
   return [
     {
       name: [...instructionAccountGroups, decoded.name]
-        .map(casingConvertToSnake)
+        .map(casingConvertToSnakeIfRevertible)
         .join("."),
       docs: decoded.docs,
       writable: decoded.writable ?? decoded.isMut ?? false,

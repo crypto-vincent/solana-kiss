@@ -37,6 +37,7 @@ it("run", async () => {
               { name: "Empty" },
             ],
           },
+          { name: "field_snake_case", type: "u8" },
           { name: "invisible_blob", bytes: [77, 78, 79] },
           { name: "invisible_enum", variants: [] },
           { name: "invisible_struct", fields: [] },
@@ -102,6 +103,7 @@ it("run", async () => {
             Empty: stringCall("jsonCodecConst", "null"),
           }),
         ),
+        fieldSnakeCase: "jsonCodecNumber",
       }),
     ),
   );
@@ -124,6 +126,7 @@ it("run", async () => {
     field3: 77,
     field4: "variant1",
     field5: { 0: ["hello", new Uint8Array(42).fill(255)] },
+    fieldSnakeCase: 1,
   });
   checkRoundTrip(accountIdl, jsonCodec, {
     field1: 0,
@@ -131,18 +134,21 @@ it("run", async () => {
     field3: 123456,
     field4: "variant2",
     field5: { Empty: null },
+    fieldSnakeCase: 2,
   });
   checkRoundTrip(accountIdl, jsonCodec, {
     field1: 128,
     field2: [1, 2, 3, 4, 5],
     field4: "variant1",
     field5: { 1: [255, -1234567890123456789n] },
+    fieldSnakeCase: 3,
   });
   checkRoundTrip(accountIdl, jsonCodec, {
     field1: 7,
     field2: [42, 43],
     field4: "variant2",
     field5: { Misc: { key: pubkeyDefault, bool: true } },
+    fieldSnakeCase: 4,
   });
 });
 

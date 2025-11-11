@@ -1,4 +1,4 @@
-import { casingConvertToSnake } from "../data/Casing";
+import { casingConvertToCamel, casingConvertToSnake } from "../data/Casing";
 import {
   JsonPointer,
   jsonPointerParse,
@@ -127,7 +127,7 @@ const visitorTypeFull = {
     tokenIndex: number,
   ) => {
     throw new Error(
-      `Idl: Expected a struct/enum/vec/array at path ${jsonPointerPreview(pointer, tokenIndex)} (found string)`,
+      `Idl: Expected a struct/vec/array at path ${jsonPointerPreview(pointer, tokenIndex)} (found string)`,
     );
   },
   struct: (
@@ -138,24 +138,12 @@ const visitorTypeFull = {
     return visitTypeFullFields(self.fields, pointer, tokenIndex);
   },
   enum: (
-    self: IdlTypeFullEnum,
+    _self: IdlTypeFullEnum,
     pointer: Array<number | string>,
     tokenIndex: number,
   ) => {
-    const nameOrCode = String(pointer[tokenIndex]!);
-    const variantIndex =
-      self.indexByName.get(nameOrCode) ??
-      self.indexByCodeString.get(nameOrCode);
-    if (variantIndex !== undefined) {
-      return visitTypeFullFields(
-        self.variants[variantIndex]!.fields,
-        pointer,
-        tokenIndex + 1,
-      );
-    }
-    const names = self.variants.map((variant) => variant.name).join("/");
     throw new Error(
-      `Idl: Expected valid enum variant name or code at path ${jsonPointerPreview(pointer, tokenIndex)}, available: ${names}`,
+      `Idl: Expected a struct/vec/array at path ${jsonPointerPreview(pointer, tokenIndex)} (found enum)`,
     );
   },
   pad: (
@@ -171,7 +159,7 @@ const visitorTypeFull = {
     tokenIndex: number,
   ) => {
     throw new Error(
-      `Idl: Expected a struct/enum/vec/array at path ${jsonPointerPreview(pointer, tokenIndex)} (found blob)`,
+      `Idl: Expected a struct/vec/array at path ${jsonPointerPreview(pointer, tokenIndex)} (found blob)`,
     );
   },
   primitive: (
@@ -180,7 +168,7 @@ const visitorTypeFull = {
     tokenIndex: number,
   ) => {
     throw new Error(
-      `Idl: Expected a struct/enum/vec/array at path ${jsonPointerPreview(pointer, tokenIndex)} (found ${self})`,
+      `Idl: Expected a struct/vec/array at path ${jsonPointerPreview(pointer, tokenIndex)} (found ${self})`,
     );
   },
 };
@@ -192,7 +180,7 @@ const visitorTypeFullFields = {
     tokenIndex: number,
   ) => {
     throw new Error(
-      `Idl: Expected a struct/enum/vec/array at path ${jsonPointerPreview(pointer, tokenIndex)} (found empty type)`,
+      `Idl: Expected a struct/vec/array at path ${jsonPointerPreview(pointer, tokenIndex)} (found empty type)`,
     );
   },
   named: (
@@ -206,10 +194,19 @@ const visitorTypeFullFields = {
         return visitTypeFull(field.content, pointer, tokenIndex + 1);
       }
     }
-    const fieldNameSnake = casingConvertToSnake(fieldName);
-    for (const field of self) {
-      if (field.name === fieldNameSnake) {
-        return visitTypeFull(field.content, pointer, tokenIndex + 1);
+    if (fieldName.includes("_")) {
+      const fieldNameCamel = casingConvertToCamel(fieldName);
+      for (const field of self) {
+        if (field.name === fieldNameCamel) {
+          return visitTypeFull(field.content, pointer, tokenIndex + 1);
+        }
+      }
+    } else {
+      const fieldNameSnake = casingConvertToSnake(fieldName);
+      for (const field of self) {
+        if (field.name === fieldNameSnake) {
+          return visitTypeFull(field.content, pointer, tokenIndex + 1);
+        }
       }
     }
     const names = self.map((field) => field.name).join("/");

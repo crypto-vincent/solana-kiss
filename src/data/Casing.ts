@@ -18,3 +18,21 @@ export function casingConvertToCamel(string: string): string {
     .replace(/\s([a-z])/g, (_, char) => char.toUpperCase())
     .replace(/\s+/g, "");
 }
+
+export function casingConvertToCamelIfRevertible(keyUntouched: string) {
+  const keyCamel = casingConvertToCamel(keyUntouched);
+  const keySnake = casingConvertToSnake(keyCamel);
+  if (keyUntouched === keySnake) {
+    return keyCamel;
+  }
+  return keyUntouched;
+}
+
+export function casingConvertToSnakeIfRevertible(keyUntouched: string) {
+  const keySnake = casingConvertToSnake(keyUntouched);
+  const keyCamel = casingConvertToCamel(keySnake);
+  if (keyUntouched === keyCamel) {
+    return keySnake;
+  }
+  return keyUntouched;
+}

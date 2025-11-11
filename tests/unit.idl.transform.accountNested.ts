@@ -49,7 +49,7 @@ it("run", () => {
     name: "ABCD",
     struct: {
       integer: 42,
-      my_enum: "Hello1",
+      myEnum: "Hello1",
       byte: 77,
     },
     never: null,
@@ -70,8 +70,8 @@ it("run", () => {
   // MyAccount2 prepared
   const accountIdl2 = expectDefined(programIdl.accounts.get("MyAccount2"));
   const accountState2 = {
-    val1: { integer: 43, my_enum: "Hello0", byte: 78 },
-    val2: { integer: 44, my_enum: "Hello2", byte: 79 },
+    val1: { integer: 43, myEnum: "Hello0", byte: 78 },
+    val2: { integer: 44, myEnum: "Hello2", byte: 79 },
   };
   // Check that we can use the manual IDL to encode/decode our account 2
   const accountData2 = idlAccountEncode(accountIdl2, accountState2);

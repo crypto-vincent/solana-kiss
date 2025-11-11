@@ -48,8 +48,8 @@ it("run", async () => {
   const instructionPayload = {
     params: {
       index: 11,
-      funding_goal_collateral_amount: 41,
-      funding_phase_duration_seconds: 42,
+      fundingGoalCollateralAmount: 41,
+      fundingPhaseDurationSeconds: 42,
       metadata: {
         length: 22,
         bytes: instructionPayloadMetadataBytes,

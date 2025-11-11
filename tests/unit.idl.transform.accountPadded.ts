@@ -54,11 +54,11 @@ it("run", () => {
   const accountIdl = expectDefined(programIdl1.accounts.get("MyAccount"));
   // Dummy state we'll encode/decode
   const accountState = {
-    pad_before: 40,
-    pad_end_under: [50, 51],
-    pad_end_over: [60, 61, 62, 63],
-    pad_combo_under: [70, 71],
-    pad_combo_over: [80, 81, 82, 83],
+    padBefore: 40,
+    padEndUnder: [50, 51],
+    padEndOver: [60, 61, 62, 63],
+    padComboUnder: [70, 71],
+    padComboOver: [80, 81, 82, 83],
   };
   // Check that we can use the manual IDL to encode/decode our account
   const accountData = idlAccountEncode(accountIdl, accountState);

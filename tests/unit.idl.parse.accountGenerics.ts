@@ -175,14 +175,14 @@ it("run", () => {
               content: IdlTypeFull.struct({
                 fields: IdlTypeFullFields.named([
                   {
-                    name: "field_a",
+                    name: "fieldA",
                     content: IdlTypeFull.option({
                       prefix: IdlTypePrefix.u8,
                       content: IdlTypeFull.primitive(IdlTypePrimitive.f64),
                     }),
                   },
                   {
-                    name: "field_b",
+                    name: "fieldB",
                     content: IdlTypeFull.vec({
                       prefix: IdlTypePrefix.u32,
                       items: IdlTypeFull.primitive(IdlTypePrimitive.f32),

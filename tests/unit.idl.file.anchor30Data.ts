@@ -25,8 +25,8 @@ it("run", () => {
   const instructionPayload = {
     params: {
       index: "42",
-      funding_goal_collateral_amount: "41",
-      funding_phase_duration_seconds: 99,
+      fundingGoalCollateralAmount: "41",
+      fundingPhaseDurationSeconds: 99,
       metadata: {
         length: 22,
         bytes: instructionPayloadMetadataBytes,
@@ -52,14 +52,14 @@ it("run", () => {
     bump: 99,
     index: "77",
     authority: pubkeyToBase58(pubkeyNewDummy()),
-    collateral_mint: pubkeyToBase58(pubkeyNewDummy()),
-    redeemable_mint: pubkeyToBase58(pubkeyNewDummy()),
-    funding_goal_collateral_amount: "11",
-    total_deposited_collateral_amount: "22",
-    total_claimed_redeemable_amount: "33",
-    funding_phase_start_unix_timestamp: "-44",
-    funding_phase_end_unix_timestamp: "-55",
-    extracted_collateral_amount: "66",
+    collateralMint: pubkeyToBase58(pubkeyNewDummy()),
+    redeemableMint: pubkeyToBase58(pubkeyNewDummy()),
+    fundingGoalCollateralAmount: "11",
+    totalDepositedCollateralAmount: "22",
+    totalClaimedRedeemableAmount: "33",
+    fundingPhaseStartUnixTimestamp: "-44",
+    fundingPhaseEndUnixTimestamp: "-55",
+    extractedCollateralAmount: "66",
     metadata: {
       length: 99,
       bytes: campaignAccountStateMetadataBytes,
@@ -78,8 +78,8 @@ it("run", () => {
   const pledgeAccountIdl = expectDefined(programIdl.accounts.get("Pledge"));
   const pledgeAccountState = {
     bump: 44,
-    deposited_collateral_amount: "999",
-    claimed_redeemable_amount: "22",
+    depositedCollateralAmount: "999",
+    claimedRedeemableAmount: "22",
   };
   // Encode/decode the account content and check that it matches the original
   const pledgeAccountData = idlAccountEncode(

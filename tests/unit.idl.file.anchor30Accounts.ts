@@ -58,7 +58,7 @@ it("run", async () => {
     campaign: {
       accountTypeFull: programIdl.accounts.get("Campaign")?.typeFull,
       accountState: {
-        collateral_mint: pubkeyToBase58(collateralMintAddress),
+        collateralMint: pubkeyToBase58(collateralMintAddress),
       },
     },
   };

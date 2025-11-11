@@ -22,10 +22,10 @@ it("run", async () => {
   const borrowerAddress = pubkeyNewDummy();
   // Prepare instruction args
   const instructionPayload = {
-    max_funding_duration: 42,
-    deal_name: "deal hello world",
-    arrangement_fees: "41",
-    arrangement_fee_percentage: {
+    maxFundingDuration: 42,
+    dealName: "deal hello world",
+    arrangementFees: "41",
+    arrangementFeePercentage: {
       numerator: 100,
       denominator: 1,
     },
@@ -39,12 +39,12 @@ it("run", async () => {
       instructionAddresses: {
         owner: pubkeyNewDummy(),
         borrower: borrowerAddress,
-        global_market_state: pubkeyNewDummy(),
-        system_program: pubkeyNewDummy(),
+        globalMarketState: pubkeyNewDummy(),
+        systemProgram: pubkeyNewDummy(),
       },
       instructionPayload,
     },
-    { borrower_info: { accountState: { num_of_deals: 42 } } },
+    { borrower_info: { accountState: { numOfDeals: 42 } } },
   );
   // Check that we can encode it and then decode it
   const instructionInputs = idlInstructionAccountsEncode(

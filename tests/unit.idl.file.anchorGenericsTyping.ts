@@ -38,7 +38,7 @@ it("run", () => {
   expect(instructionIdl.args.typeFullFields).toStrictEqual(
     IdlTypeFullFields.named([
       {
-        name: "generic_field",
+        name: "genericField",
         content: makeTypeFullGenericType(
           makeTypeFullU32(),
           makeTypeFullU64(),
@@ -212,7 +212,7 @@ function makeTypeFullMyStruct(): IdlTypeFull {
     content: IdlTypeFull.struct({
       fields: IdlTypeFullFields.named([
         {
-          name: "some_field",
+          name: "someField",
           content: makeTypeFullU8(),
         },
       ]),

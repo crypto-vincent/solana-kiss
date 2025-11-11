@@ -45,6 +45,6 @@ it("run", async () => {
     instruction.data,
   );
   expect(instructionPayload).toStrictEqual({
-    params: { collateral_amount: "0" },
+    params: { collateralAmount: "0" },
   });
 });

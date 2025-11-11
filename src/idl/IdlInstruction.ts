@@ -1,3 +1,4 @@
+import { casingConvertToSnakeIfRevertible } from "../data/Casing";
 import { InstructionInput } from "../data/Instruction";
 import {
   JsonValue,
@@ -198,9 +199,12 @@ export async function idlInstructionAddressesHydrate(
   accountsContext?: IdlInstructionBlobAccountsContext,
   accountFetcher?: IdlInstructionBlobAccountFetcher,
 ): Promise<Record<string, Pubkey>> {
-  const instructionAddresses = {
-    ...instructionContent?.instructionAddresses,
-  };
+  const instructionAddresses = {} as Record<string, Pubkey>;
+  for (const [key, value] of Object.entries(
+    instructionContent?.instructionAddresses ?? {},
+  )) {
+    instructionAddresses[casingConvertToSnakeIfRevertible(key)] = value;
+  }
   instructionContent = {
     instructionAddresses,
     instructionPayload: instructionContent?.instructionPayload as any,
@@ -208,19 +212,17 @@ export async function idlInstructionAddressesHydrate(
   while (true) {
     let madeProgress = false;
     for (let instructionAccountIdl of self.accounts) {
+      const instructionAccountName = instructionAccountIdl.name;
       const instructionAddress =
         instructionAddresses[
-          objectGuessIntendedKey(
-            instructionAddresses,
-            instructionAccountIdl.name,
-          )
+          objectGuessIntendedKey(instructionAddresses, instructionAccountName)
         ];
       if (instructionAddress !== undefined) {
         continue;
       }
       try {
         await withErrorContext(
-          `Idl: Finding address for instruction account ${instructionAccountIdl.name}`,
+          `Idl: Finding address for instruction account ${instructionAccountName}`,
           async () => {
             const instructionAddress = await idlInstructionAccountFind(
               instructionAccountIdl,
@@ -229,8 +231,7 @@ export async function idlInstructionAddressesHydrate(
               accountsContext,
               accountFetcher,
             );
-            instructionAddresses[instructionAccountIdl.name] =
-              instructionAddress;
+            instructionAddresses[instructionAccountName] = instructionAddress;
             madeProgress = true;
           },
         );

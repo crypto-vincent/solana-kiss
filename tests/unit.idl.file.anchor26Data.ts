@@ -18,12 +18,12 @@ it("run", () => {
     programIdl.instructions.get("initialize_market"),
   );
   const instructionPayload = {
-    global_market_seed: "SEED",
-    withdrawal_fee: {
+    globalMarketSeed: "SEED",
+    withdrawalFee: {
       numerator: 41,
       denominator: 42,
     },
-    credix_fee_percentage: {
+    credixFeePercentage: {
       numerator: 51,
       denominator: 52,
     },
@@ -32,14 +32,14 @@ it("run", () => {
       pubkeyToBase58(pubkeyNewDummy()),
       pubkeyToBase58(pubkeyNewDummy()),
     ],
-    pass_issuers: [
+    passIssuers: [
       pubkeyToBase58(pubkeyNewDummy()),
       pubkeyToBase58(pubkeyNewDummy()),
       pubkeyToBase58(pubkeyNewDummy()),
     ],
-    withdraw_epoch_request_seconds: 22,
-    withdraw_epoch_redeem_seconds: 23,
-    withdraw_epoch_available_liquidity_seconds: 24,
+    withdrawEpochRequestSeconds: 22,
+    withdrawEpochRedeemSeconds: 23,
+    withdrawEpochAvailableLiquiditySeconds: 24,
   };
   // Encode/decode the instruction args and check that they match the original
   const instructionData = idlInstructionArgsEncode(
@@ -54,35 +54,35 @@ it("run", () => {
     programIdl.accounts.get("GlobalMarketState"),
   );
   const marketAccountState = {
-    base_token_mint: pubkeyToBase58(pubkeyNewDummy()),
-    lp_token_mint: pubkeyToBase58(pubkeyNewDummy()),
-    pool_outstanding_credit: 5_000_000_000n.toString(),
-    treasury_pool_token_account: pubkeyToBase58(pubkeyNewDummy()),
-    signing_authority_bump: 4,
+    baseTokenMint: pubkeyToBase58(pubkeyNewDummy()),
+    lpTokenMint: pubkeyToBase58(pubkeyNewDummy()),
+    poolOutstandingCredit: 5_000_000_000n.toString(),
+    treasuryPoolTokenAccount: pubkeyToBase58(pubkeyNewDummy()),
+    signingAuthorityBump: 4,
     bump: 5,
-    credix_fee_percentage: {
+    credixFeePercentage: {
       numerator: 51,
       denominator: 52,
     },
-    withdrawal_fee: {
+    withdrawalFee: {
       numerator: 41,
       denominator: 42,
     },
     frozen: true,
     seed: "Hello World !",
-    pool_size_limit_percentage: {
+    poolSizeLimitPercentage: {
       numerator: 61,
       denominator: 62,
     },
-    withdraw_epoch_request_seconds: 0x42_42_42_01,
-    withdraw_epoch_redeem_seconds: 0x42_42_42_02,
-    withdraw_epoch_available_liquidity_seconds: 0x42_42_42_03,
-    latest_withdraw_epoch_idx: 0x42_42_42_04,
-    latest_withdraw_epoch_end: (-42).toString(),
-    locked_liquidity: 777_777n.toString(),
-    total_redeemed_base_amount: 888_888n.toString(),
-    has_withdraw_epochs: true,
-    redeem_authority_bump: 9,
+    withdrawEpochRequestSeconds: 0x42_42_42_01,
+    withdrawEpochRedeemSeconds: 0x42_42_42_02,
+    withdrawEpochAvailableLiquiditySeconds: 0x42_42_42_03,
+    latestWithdrawEpochIdx: 0x42_42_42_04,
+    latestWithdrawEpochEnd: (-42).toString(),
+    lockedLiquidity: 777_777n.toString(),
+    totalRedeemedBaseAmount: 888_888n.toString(),
+    hasWithdrawEpochs: true,
+    redeemAuthorityBump: 9,
   };
   // Decode the account content and check that it matches the original
   const accountData = idlAccountEncode(marketAccountIdl, marketAccountState);
@@ -94,8 +94,8 @@ it("run", () => {
     programIdl.accounts.get("ProgramState"),
   );
   const programAccountState = {
-    credix_multisig_key: pubkeyToBase58(pubkeyNewDummy()),
-    credix_managers: [
+    credixMultisigKey: pubkeyToBase58(pubkeyNewDummy()),
+    credixManagers: [
       pubkeyToBase58(pubkeyNewDummy()),
       pubkeyToBase58(pubkeyNewDummy()),
       pubkeyToBase58(pubkeyNewDummy()),
@@ -107,7 +107,7 @@ it("run", () => {
       pubkeyToBase58(pubkeyNewDummy()),
       pubkeyToBase58(pubkeyNewDummy()),
     ],
-    credix_treasury: pubkeyToBase58(pubkeyNewDummy()),
+    credixTreasury: pubkeyToBase58(pubkeyNewDummy()),
   };
   // Decode the account content and check that it matches the original
   const programAccountData = idlAccountEncode(

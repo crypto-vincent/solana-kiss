@@ -45,6 +45,6 @@ it("run", async () => {
     instruction.data,
   );
   expect(instructionPayload).toStrictEqual({
-    uct_amount: "100000000000000",
+    uctAmount: "100000000000000",
   });
 });

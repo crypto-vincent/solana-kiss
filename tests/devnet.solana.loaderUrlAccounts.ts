@@ -21,7 +21,7 @@ it("run", async () => {
     pubkeyFromBase58("UCNcQRtrbGmvuLKA3Jv719Cc6DS4r661ZRpyZduxu2j"),
     "bpf_loader_upgradeable",
     "Program",
-    { program_data: "9rtcXuviJngSZTRSCXxsHyd6qaWpqWSQ56SNumXAuLJ1" },
+    { programData: "9rtcXuviJngSZTRSCXxsHyd6qaWpqWSQ56SNumXAuLJ1" },
   );
   await assertAccountState(
     solana,
@@ -30,7 +30,7 @@ it("run", async () => {
     "ProgramData",
     {
       slot: "347133692",
-      upgrade_authority: "7poxwHXi62Cwa57xdrpfoW2bUF7s8iXm1CU4jJqYPhu",
+      upgradeAuthority: "7poxwHXi62Cwa57xdrpfoW2bUF7s8iXm1CU4jJqYPhu",
     },
   );
   await assertAccountState(
@@ -40,9 +40,9 @@ it("run", async () => {
     "TokenMint",
     {
       decimals: 9,
-      freeze_authority: null,
-      is_initialized: true,
-      mint_authority: "7poxwHXi62Cwa57xdrpfoW2bUF7s8iXm1CU4jJqYPhu",
+      freezeAuthority: null,
+      isInitialized: true,
+      mintAuthority: "7poxwHXi62Cwa57xdrpfoW2bUF7s8iXm1CU4jJqYPhu",
       supply: "1000000000000000",
     },
   );
@@ -54,7 +54,7 @@ it("run", async () => {
     {
       class: "11111111111111111111111111111111",
       owner: "8aU2gq8XgzNZr8z4noV87Sx8a3EV29gmi645qQERsaTD",
-      parent_name: "11111111111111111111111111111111",
+      parentName: "11111111111111111111111111111111",
     },
   );
 });

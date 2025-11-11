@@ -1,4 +1,4 @@
-import { casingConvertToCamel, casingConvertToSnake } from "../data/Casing";
+import { casingConvertToCamelIfRevertible } from "../data/Casing";
 import {
   IdlTypeFull,
   IdlTypeFullArray,
@@ -129,12 +129,7 @@ const visitorFields = {
   named: (self: Array<IdlTypeFullFieldNamed>, context: CodecContext) => {
     const entries = [];
     for (const field of self) {
-      let fieldName = field.name;
-      const fieldNameCamel = casingConvertToCamel(field.name);
-      const fieldNameSnake = casingConvertToSnake(fieldNameCamel);
-      if (fieldName === fieldNameSnake) {
-        fieldName = fieldNameCamel;
-      }
+      const fieldName = casingConvertToCamelIfRevertible(field.name);
       const fieldContent = codec(context, field.content);
       if (fieldContent === "jsonCodecConst(null)") {
         continue;
