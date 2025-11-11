@@ -1,5 +1,7 @@
 import { casingConvertToCamel, casingConvertToSnake } from "./Casing";
 
+export type Result<Value, Error = any> = { value?: Value; error?: Error };
+
 export type BrandedType<T, Name> =
   | (T & { readonly __brand: Name })
   | { readonly __brand: Name };

@@ -1025,7 +1025,7 @@ export function jsonDecoderAnyOfKinds<Content>(decoders: {
   };
 }
 
-export function jsonDecoderAnyOfTried<Content>(
+export function jsonDecoderAnyOfChained<Content>(
   decoders: Array<JsonDecoder<Content>>,
 ): JsonDecoder<Content> {
   return (encoded) => {

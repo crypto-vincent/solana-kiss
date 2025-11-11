@@ -5,17 +5,33 @@ import {
   jsonCodecPubkey,
   JsonValue,
 } from "../data/Json";
+import { Memoizer } from "../data/Memoize";
 import {
   Pubkey,
   pubkeyCreateFromSeed,
   pubkeyFindPdaAddress,
 } from "../data/Pubkey";
 import { utf8Decode } from "../data/Utf8";
+import { Result } from "../data/Utils";
 import { idlAccountDecode, idlAccountParse } from "./IdlAccount";
 import { idlInstructionParse } from "./IdlInstruction";
 import { IdlProgram, idlProgramParse } from "./IdlProgram";
 
 export type IdlLoader = (programAddress: Pubkey) => Promise<IdlProgram>;
+
+export function idlLoaderMemoized(
+  loader: IdlLoader,
+  cacheApprover?: (
+    programAddress: Pubkey,
+    result: Result<IdlProgram>,
+  ) => Promise<boolean>,
+): IdlLoader {
+  return new Memoizer(
+    loader,
+    async (programAddress) => programAddress,
+    cacheApprover,
+  ).invoke;
+}
 
 export function idlLoaderFallbackToUnknown(): IdlLoader {
   const instructionIdl = idlInstructionParse("unknown_instruction", {
@@ -40,6 +56,7 @@ export function idlLoaderFallbackToUnknown(): IdlLoader {
         contact: undefined,
         address: programAddress,
         version: undefined,
+        source: "unknown",
         spec: undefined,
         docs: undefined,
       },
@@ -53,15 +70,26 @@ export function idlLoaderFallbackToUnknown(): IdlLoader {
   };
 }
 
+export function idlLoaderFromChained(loaders: Array<IdlLoader>): IdlLoader {
+  return async (programAddress: Pubkey) => {
+    for (const loader of loaders) {
+      try {
+        return await loader(programAddress);
+      } catch (_error) {
+        // TODO (error) - log error stack ?
+      }
+    }
+    throw new Error(`IDL: Unable to find IDL for program ${programAddress}`);
+  };
+}
+
 export function idlLoaderFromUrl(
   urlBuilder: (programAddress: Pubkey) => string,
   options?: {
-    cacheApprover?: (programAddress: Pubkey) => Promise<boolean>;
     customFetcher?: (url: string) => Promise<JsonValue>;
   },
 ): IdlLoader {
   const cacheIdls = new Map<Pubkey, IdlProgram>();
-  const cacheApprover = options?.cacheApprover ?? (async () => true);
   const jsonFetcher =
     options?.customFetcher ??
     (async (url) => {
@@ -69,13 +97,11 @@ export function idlLoaderFromUrl(
       return (await response.json()) as JsonValue;
     });
   return async (programAddress: Pubkey) => {
-    const cacheIdl = cacheIdls.get(programAddress);
-    if (cacheIdl && (await cacheApprover(programAddress))) {
-      return cacheIdl;
-    }
-    const httpJson = await jsonFetcher(urlBuilder(programAddress));
+    const httpUrl = urlBuilder(programAddress);
+    const httpJson = await jsonFetcher(httpUrl);
     const httpProgramIdl = idlProgramParse(httpJson);
     httpProgramIdl.metadata.address = programAddress;
+    httpProgramIdl.metadata.source = httpUrl;
     cacheIdls.set(programAddress, httpProgramIdl);
     return httpProgramIdl;
   };
@@ -83,18 +109,8 @@ export function idlLoaderFromUrl(
 
 export function idlLoaderFromOnchain(
   accountDataFetcher: (accountAddress: Pubkey) => Promise<Uint8Array>,
-  options?: {
-    // TODO - those cache approver patterns could probably be improved a more generic way
-    cacheApprover?: (programAddress: Pubkey) => Promise<boolean>;
-  },
 ): IdlLoader {
-  const cacheIdls = new Map<Pubkey, IdlProgram>();
-  const cacheApprover = options?.cacheApprover ?? (async () => true);
   return async (programAddress: Pubkey) => {
-    const cacheIdl = cacheIdls.get(programAddress);
-    if (cacheIdl && (await cacheApprover(programAddress))) {
-      return cacheIdl;
-    }
     const onchainAnchorAddress = pubkeyCreateFromSeed(
       pubkeyFindPdaAddress(programAddress, []),
       "anchor:idl",
@@ -112,11 +128,11 @@ export function idlLoaderFromOnchain(
     const onchainAnchorJson = JSON.parse(onchainAnchorString) as JsonValue;
     const onchainAnchorIdl = idlProgramParse(onchainAnchorJson);
     onchainAnchorIdl.metadata.address = programAddress;
+    onchainAnchorIdl.metadata.source = `onchain://${onchainAnchorAddress}/anchor`;
     onchainAnchorIdl.accounts.set(
       onchainAnchorAccountIdl.name,
       onchainAnchorAccountIdl,
     );
-    cacheIdls.set(programAddress, onchainAnchorIdl);
     return onchainAnchorIdl;
   };
 }

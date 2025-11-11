@@ -17,6 +17,7 @@ export type IdlMetadata = {
   contact: string | undefined;
   address: Pubkey | undefined;
   version: string | undefined;
+  source: string | undefined;
   spec: string | undefined;
   docs: IdlDocs;
 };
@@ -30,6 +31,7 @@ export function idlMetadataParse(value: JsonValue): IdlMetadata {
     contact: keyed?.contact ?? root?.contact,
     address: keyed?.address ?? root?.address,
     version: keyed?.version ?? root?.version,
+    source: keyed?.source ?? root?.source,
     spec: keyed?.spec ?? root?.spec,
     docs: keyed?.docs ?? root?.docs,
   };
@@ -43,6 +45,7 @@ const innerJsonDecoder = jsonDecoderOptional(
     contact: jsonDecoderOptional(jsonCodecString.decoder),
     address: jsonDecoderOptional(jsonCodecPubkey.decoder),
     version: jsonDecoderOptional(jsonCodecString.decoder),
+    source: jsonDecoderOptional(jsonCodecString.decoder),
     spec: jsonDecoderOptional(jsonCodecString.decoder),
     docs: idlDocsParse,
   }),

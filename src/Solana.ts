@@ -24,8 +24,10 @@ import {
 import {
   IdlLoader,
   idlLoaderFallbackToUnknown,
+  idlLoaderFromChained,
   idlLoaderFromOnchain,
   idlLoaderFromUrl,
+  idlLoaderMemoized,
 } from "./idl/IdlLoader";
 import {
   IdlProgram,
@@ -42,17 +44,14 @@ import { rpcHttpSimulateTransaction } from "./rpc/RpcHttpSimulateTransaction";
 export class Solana {
   readonly #rpcHttp: RpcHttp;
   readonly #idlPreload: Map<Pubkey, IdlProgram>;
-  readonly #idlLoaders: Array<IdlLoader>;
-  readonly #idlCacheResults: Map<Pubkey, { value?: IdlProgram; error?: any }>;
-  readonly #idlCacheApprover: (programAddress: Pubkey) => Promise<boolean>;
+  readonly #idlLoader: IdlLoader;
   #cacheBlockHash: { blockHash: BlockHash; fetchTimeMs: number } | null;
 
   constructor(
     rpcHttp: RpcHttp | string,
     options?: {
       customIdlPreload?: Map<Pubkey, IdlProgram>;
-      customIdlLoaders?: Array<IdlLoader>;
-      customIdlCacheApprover?: (programAddress: Pubkey) => Promise<boolean>;
+      customIdlLoader?: IdlLoader;
     },
   ) {
     if (typeof rpcHttp === "string") {
@@ -63,10 +62,8 @@ export class Solana {
       this.#rpcHttp = rpcHttp;
     }
     this.#idlPreload = options?.customIdlPreload ?? new Map();
-    this.#idlLoaders = options?.customIdlLoaders ?? baseLoaders(this.#rpcHttp);
-    this.#idlCacheResults = new Map();
-    this.#idlCacheApprover =
-      options?.customIdlCacheApprover ?? (async () => true);
+    this.#idlLoader =
+      options?.customIdlLoader ?? defaultIdlLoader(this.#rpcHttp);
     this.#cacheBlockHash = null;
   }
 
@@ -90,27 +87,7 @@ export class Solana {
     if (preloadIdl) {
       return preloadIdl;
     }
-    const cacheIdl = this.#idlCacheResults.get(programAddress);
-    if (cacheIdl && (await this.#idlCacheApprover(programAddress))) {
-      if (cacheIdl?.value) {
-        return cacheIdl.value;
-      }
-      if (cacheIdl?.error) {
-        throw cacheIdl.error;
-      }
-    }
-    for (const idlLoader of this.#idlLoaders) {
-      try {
-        const value = await idlLoader(programAddress);
-        this.#idlCacheResults.set(programAddress, { value });
-        return value;
-      } catch (error) {
-        // TODO (error) - log error stack ?
-      }
-    }
-    const error = new Error(`IDL not found for program ${programAddress}`);
-    this.#idlCacheResults.set(programAddress, { error });
-    throw error;
+    return await this.#idlLoader(programAddress);
   }
 
   public async getAndInferAndDecodeAccountInfo(accountAddress: Pubkey) {
@@ -345,18 +322,23 @@ export class Solana {
   }
 }
 
-function baseLoaders(rpcHttp: RpcHttp) {
-  return [
-    idlLoaderFromOnchain(async (programAddress) => {
-      const { accountInfo } = await rpcHttpGetAccountWithData(
-        rpcHttp,
-        programAddress,
-      );
-      return accountInfo.data;
-    }),
-    idlLoaderFromUrl((programAddress) => {
-      return `https://raw.githubusercontent.com/crypto-vincent/solana-idls/refs/heads/main/data/${programAddress}.json`;
-    }),
-    idlLoaderFallbackToUnknown(),
-  ];
+function defaultIdlLoader(rpcHttp: RpcHttp): IdlLoader {
+  return idlLoaderMemoized(
+    idlLoaderFromChained([
+      idlLoaderFromOnchain(async (programAddress) => {
+        const { accountInfo } = await rpcHttpGetAccountWithData(
+          rpcHttp,
+          programAddress,
+        );
+        return accountInfo.data;
+      }),
+      idlLoaderFromUrl((programAddress) => {
+        const githubRawBase = "https://raw.githubusercontent.com";
+        const githubRepository = "crypto-vincent/solana-idls";
+        const githubRefMain = "refs/heads/main";
+        return `${githubRawBase}/${githubRepository}/${githubRefMain}/data/${programAddress}.json`;
+      }),
+      idlLoaderFallbackToUnknown(),
+    ]),
+  );
 }
