@@ -3,9 +3,9 @@ import { sha256Hash } from "./Sha256";
 import { Signature, signatureToBytes } from "./Signature";
 import { TransactionMessage } from "./Transaction";
 import { utf8Encode } from "./Utf8";
-import { BrandedType } from "./Utils";
+import { Branded } from "./Utils";
 
-export type Pubkey = BrandedType<string, "Pubkey">;
+export type Pubkey = Branded<string, "Pubkey">;
 
 export const pubkeyDefault = pubkeyFromBytes(new Uint8Array(32));
 

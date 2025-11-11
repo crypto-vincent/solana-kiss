@@ -15,7 +15,7 @@ import {
 } from "./Pubkey";
 import { Signature, signatureFromBytes, signatureToBytes } from "./Signature";
 import { Signer } from "./Signer";
-import { BrandedType } from "./Utils";
+import { Branded } from "./Utils";
 import { WalletAccount } from "./Wallet";
 
 export type TransactionRequest = {
@@ -29,13 +29,10 @@ export type TransactionAddressLookupTable = {
 };
 
 export type TransactionVersion = "legacy" | number;
-export type TransactionMessage = BrandedType<
-  Uint8Array,
-  "TransactionMessage"
-> & {
+export type TransactionMessage = Branded<Uint8Array, "TransactionMessage"> & {
   length: number;
 };
-export type TransactionPacket = BrandedType<Uint8Array, "TransactionPacket"> & {
+export type TransactionPacket = Branded<Uint8Array, "TransactionPacket"> & {
   length: number;
 };
 

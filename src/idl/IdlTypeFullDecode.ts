@@ -4,6 +4,7 @@ import {
   JsonObject,
   JsonValue,
 } from "../data/Json";
+import { utf8Decode } from "../data/Utf8";
 import { withErrorContext } from "../data/Utils";
 import {
   IdlTypeFull,
@@ -155,7 +156,7 @@ const visitorDecode = {
     const dataLength = Number(dataPrefix);
     const dataCharsOffset = dataOffset + dataSize;
     const dataBytes = new Uint8Array(data.buffer, dataCharsOffset, dataLength);
-    const dataString = new TextDecoder("utf8").decode(dataBytes);
+    const dataString = utf8Decode(dataBytes);
     dataSize += dataLength;
     return [dataSize, dataString];
   },
