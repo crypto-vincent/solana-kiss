@@ -3,29 +3,62 @@ import { Result } from "./Utils";
 export function memoize<In, Out, CacheKey>(
   invocation: (input: In) => Promise<Out>,
   inputToCacheKey: (input: In) => Promise<CacheKey>,
-  cacheApprover?: (input: In, result: Result<Out>) => Promise<boolean>,
+  options?: {
+    cacheUseApprover?: (
+      input: In,
+      context: {
+        cacheSize: number;
+        cachedAt: Date;
+        cachedResult: Result<Out>;
+      },
+    ) => Promise<boolean>;
+    cacheSetApprover?: (
+      input: In,
+      context: {
+        cacheSize: number;
+        cachedAt: Date;
+        cachedResult: Result<Out>;
+      },
+    ) => Promise<boolean>;
+  },
 ): (input: In) => Promise<Out> {
-  cacheApprover = cacheApprover ?? (async () => true);
-  const cacheResults = new Map<CacheKey, Result<Out>>();
+  const cacheUseApprover = options?.cacheUseApprover ?? (async () => true);
+  const cacheSetApprover = options?.cacheSetApprover ?? (async () => true);
+  const cache = new Map<CacheKey, { result: Result<Out>; at: Date }>();
   return async (input) => {
     const cacheKey = await inputToCacheKey(input);
-    let result = cacheResults.get(cacheKey);
-    if (result !== undefined && !(await cacheApprover(input, result))) {
-      result = undefined;
-      cacheResults.delete(cacheKey);
+    let context = cache.get(cacheKey);
+    if (
+      context !== undefined &&
+      !(await cacheUseApprover(input, {
+        cacheSize: cache.size,
+        cachedAt: context.at,
+        cachedResult: context.result,
+      }))
+    ) {
+      context = undefined;
+      cache.delete(cacheKey);
     }
-    if (result === undefined) {
+    if (context === undefined) {
       try {
         const value = await invocation(input);
-        result = { value };
+        context = { result: { value }, at: new Date() };
       } catch (error) {
-        result = { error };
+        context = { result: { error }, at: new Date() };
       }
-      cacheResults.set(cacheKey, result);
+      if (
+        await cacheSetApprover(input, {
+          cacheSize: cache.size,
+          cachedAt: context.at,
+          cachedResult: context.result,
+        })
+      ) {
+        cache.set(cacheKey, context);
+      }
     }
-    if (result.error) {
-      throw result.error;
+    if (context.result.error) {
+      throw context.result.error;
     }
-    return result.value!;
+    return context.result.value!;
   };
 }

@@ -12,25 +12,14 @@ import {
   pubkeyFindPdaAddress,
 } from "../data/Pubkey";
 import { utf8Decode } from "../data/Utf8";
-import { Result } from "../data/Utils";
 import { idlAccountDecode, idlAccountParse } from "./IdlAccount";
 import { idlInstructionParse } from "./IdlInstruction";
 import { IdlProgram, idlProgramParse } from "./IdlProgram";
 
 export type IdlLoader = (programAddress: Pubkey) => Promise<IdlProgram>;
 
-export function idlLoaderMemoized(
-  loader: IdlLoader,
-  cacheApprover?: (
-    programAddress: Pubkey,
-    result: Result<IdlProgram>,
-  ) => Promise<boolean>,
-): IdlLoader {
-  return memoize(
-    loader,
-    async (programAddress) => programAddress,
-    cacheApprover,
-  );
+export function idlLoaderMemoized(loader: IdlLoader): IdlLoader {
+  return memoize(loader, async (programAddress) => programAddress);
 }
 
 export function idlLoaderFallbackToUnknown(): IdlLoader {
