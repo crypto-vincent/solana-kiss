@@ -2,7 +2,7 @@ import {
   JsonValue,
   jsonCodecNumber,
   jsonCodecString,
-  jsonDecoderAnyOfKinds,
+  jsonDecoderAnyOfKind,
   jsonDecoderObject,
   jsonDecoderOptional,
 } from "../data/Json";
@@ -28,7 +28,7 @@ export function idlErrorParse(
   };
 }
 
-export const jsonDecoder = jsonDecoderAnyOfKinds({
+export const jsonDecoder = jsonDecoderAnyOfKind({
   number: (number: number) => ({
     docs: undefined,
     code: number,

@@ -5,7 +5,7 @@ import {
   JsonValue,
   jsonCodecString,
   jsonCodecValue,
-  jsonDecoderAnyOfKinds,
+  jsonDecoderAnyOfKind,
   jsonDecoderObject,
   jsonDecoderOptional,
   jsonGetAt,
@@ -186,7 +186,7 @@ export function idlInstructionBlobParseAccount(
   return IdlInstructionBlob.account({ paths, typeFull });
 }
 
-const jsonDecoder = jsonDecoderAnyOfKinds<{
+const jsonDecoder = jsonDecoderAnyOfKind<{
   value: JsonValue | undefined;
   type: IdlTypeFlat | undefined;
   kind: string | undefined;

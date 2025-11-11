@@ -24,7 +24,7 @@ import {
 import {
   IdlLoader,
   idlLoaderFallbackToUnknown,
-  idlLoaderFromChained,
+  idlLoaderFromLoaderChain,
   idlLoaderFromOnchain,
   idlLoaderFromUrl,
   idlLoaderMemoized,
@@ -324,7 +324,7 @@ export class Solana {
 
 function defaultIdlLoader(rpcHttp: RpcHttp): IdlLoader {
   return idlLoaderMemoized(
-    idlLoaderFromChained([
+    idlLoaderFromLoaderChain([
       idlLoaderFromOnchain(async (programAddress) => {
         const { accountInfo } = await rpcHttpGetAccountWithData(
           rpcHttp,

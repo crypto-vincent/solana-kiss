@@ -6,7 +6,7 @@ import {
   jsonCodecString,
   JsonDecoder,
   jsonDecoderAllOf,
-  jsonDecoderAnyOfKinds,
+  jsonDecoderAnyOfKind,
   jsonDecoderConst,
   jsonDecoderObject,
   jsonDecoderObjectKey,
@@ -57,7 +57,7 @@ it("run", async () => {
       encoded: { a: null, b: 42, c: "hello" },
       decoder: jsonDecoderObjectToMap({
         keyDecoder: (name) => `key:${name}`,
-        valueDecoder: jsonDecoderAnyOfKinds({
+        valueDecoder: jsonDecoderAnyOfKind({
           null: () => "null",
           number: (number) => `number:${number}`,
           string: (string) => `string:${string}`,

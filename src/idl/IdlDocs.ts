@@ -1,6 +1,6 @@
 import {
   jsonCodecString,
-  jsonDecoderAnyOfKinds,
+  jsonDecoderAnyOfKind,
   jsonDecoderArray,
   jsonDecoderOptional,
   JsonValue,
@@ -13,7 +13,7 @@ export function idlDocsParse(docsValue: JsonValue | undefined): IdlDocs {
 }
 
 const jsonDecoder = jsonDecoderOptional(
-  jsonDecoderAnyOfKinds({
+  jsonDecoderAnyOfKind({
     string: (string: string) => [string],
     array: jsonDecoderArray(jsonCodecString.decoder),
   }),

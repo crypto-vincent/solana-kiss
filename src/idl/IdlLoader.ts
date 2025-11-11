@@ -70,7 +70,7 @@ export function idlLoaderFallbackToUnknown(): IdlLoader {
   };
 }
 
-export function idlLoaderFromChained(loaders: Array<IdlLoader>): IdlLoader {
+export function idlLoaderFromLoaderChain(loaders: Array<IdlLoader>): IdlLoader {
   return async (programAddress: Pubkey) => {
     for (const loader of loaders) {
       try {

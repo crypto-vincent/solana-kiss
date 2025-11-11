@@ -344,7 +344,7 @@ export const jsonCodecBoolean: JsonCodec<boolean> = {
   },
 };
 export const jsonCodecNumber: JsonCodec<number> = {
-  decoder: jsonDecoderAnyOfKinds({
+  decoder: jsonDecoderAnyOfKind({
     null: () => NaN,
     number: (number) => number,
     string: (string) => {
@@ -416,7 +416,7 @@ export const jsonCodecObjectValues: JsonCodec<JsonObject> = {
 };
 
 export const jsonCodecInteger: JsonCodec<bigint> = {
-  decoder: jsonDecoderAnyOfKinds({
+  decoder: jsonDecoderAnyOfKind({
     number: (number) => BigInt(number),
     string: (string) => BigInt(string.replace(/_/g, "")),
   }),
@@ -849,7 +849,7 @@ export function jsonDecoderNullable<Content>(
   contentDecoder: JsonDecoder<Content>,
 ): JsonDecoder<Content | null> {
   return (encoded) => {
-    if (encoded === null || encoded === undefined) {
+    if (encoded === null) {
       return null;
     }
     return contentDecoder(encoded);
@@ -878,7 +878,7 @@ export function jsonDecoderOptional<Content>(
   contentDecoder: JsonDecoder<Content>,
 ): JsonDecoder<Content | undefined> {
   return (encoded) => {
-    if (encoded === null || encoded === undefined) {
+    if (encoded === undefined) {
       return undefined;
     }
     return contentDecoder(encoded);
@@ -983,7 +983,7 @@ export function jsonDecoderAllOf<Items extends Array<JsonDecoder<any>>>(
   };
 }
 
-export function jsonDecoderAnyOfKinds<Content>(decoders: {
+export function jsonDecoderAnyOfKind<Content>(decoders: {
   undefined?: () => Content;
   null?: () => Content;
   boolean?: (boolean: boolean) => Content;

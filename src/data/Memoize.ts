@@ -1,5 +1,6 @@
 import { Result } from "./Utils";
 
+// TODO - make this into a function instead and make the cache approver get more context
 export class Memoizer<In, Out, CacheKey = string> {
   readonly #invocation: (input: In) => Promise<Out>;
   readonly #cacheKey: (input: In) => Promise<CacheKey>;
