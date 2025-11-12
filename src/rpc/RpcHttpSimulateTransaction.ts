@@ -6,9 +6,9 @@ import {
   jsonCodecNumber,
   jsonCodecPubkey,
   jsonCodecString,
-  jsonDecoderAnyOfKind,
   jsonDecoderArray,
   jsonDecoderArrayToObject,
+  jsonDecoderByType,
   jsonDecoderConst,
   jsonDecoderNullable,
   jsonDecoderObject,
@@ -106,7 +106,7 @@ const resultJsonDecoder = jsonDecoderObject({
     unitsConsumed: jsonCodecNumber.decoder,
     fee: jsonDecoderOptional(jsonCodecNumber.decoder),
     err: jsonDecoderNullable(
-      jsonDecoderAnyOfKind<string | JsonObject>({
+      jsonDecoderByType<string | JsonObject>({
         object: (object) => object,
         string: (string) => string,
       }),

@@ -6,9 +6,9 @@ import {
   jsonCodecObjectValues,
   jsonCodecString,
   jsonCodecValue,
-  jsonDecoderAllOf,
-  jsonDecoderAnyOfKind,
   jsonDecoderArray,
+  jsonDecoderByType,
+  jsonDecoderForked,
   jsonDecoderObjectKey,
   jsonDecoderObjectToMap,
   jsonDecoderTransform,
@@ -170,7 +170,7 @@ function parseScopedNamedValues<Content, Param>(
   return values;
 }
 
-const collectionJsonDecoder = jsonDecoderAnyOfKind({
+const collectionJsonDecoder = jsonDecoderByType({
   undefined: () => new Map<string, JsonValue>(),
   object: jsonDecoderObjectToMap({
     keyDecoder: (name) => name,
@@ -178,7 +178,7 @@ const collectionJsonDecoder = jsonDecoderAnyOfKind({
   }),
   array: jsonDecoderTransform(
     jsonDecoderArray(
-      jsonDecoderAllOf(
+      jsonDecoderForked(
         jsonDecoderObjectKey("name", jsonCodecString.decoder),
         jsonCodecValue.decoder,
       ),

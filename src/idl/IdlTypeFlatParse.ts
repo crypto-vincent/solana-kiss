@@ -10,11 +10,11 @@ import {
   jsonCodecNumber,
   jsonCodecString,
   jsonCodecValue,
-  jsonDecoderAllOf,
-  jsonDecoderAnyOfKind,
   jsonDecoderArray,
   jsonDecoderArrayToObject,
+  jsonDecoderByType,
   jsonDecoderConst,
+  jsonDecoderForked,
   jsonDecoderObject,
   jsonDecoderObjectToMap,
   jsonDecoderOneOfKeys,
@@ -115,8 +115,8 @@ const arrayJsonDecoder = jsonDecoderTransform(
   },
 );
 
-const fieldsItemJsonDecoder = jsonDecoderAllOf(
-  jsonDecoderAnyOfKind({
+const fieldsItemJsonDecoder = jsonDecoderForked(
+  jsonDecoderByType({
     null: () => ({ name: undefined, docs: undefined }),
     string: () => ({ name: undefined, docs: undefined }),
     array: () => ({ name: undefined, docs: undefined }),
@@ -127,7 +127,7 @@ const fieldsItemJsonDecoder = jsonDecoderAllOf(
   }),
   idlTypeFlatParse,
 );
-const fieldsJsonDecoder = jsonDecoderAnyOfKind({
+const fieldsJsonDecoder = jsonDecoderByType({
   undefined: () => IdlTypeFlatFields.nothing(),
   null: () => IdlTypeFlatFields.nothing(),
   array: jsonDecoderTransform(
@@ -164,7 +164,7 @@ const fieldsJsonDecoder = jsonDecoderAnyOfKind({
   ),
 });
 
-const variantsArrayItemJsonDecoder = jsonDecoderAnyOfKind<{
+const variantsArrayItemJsonDecoder = jsonDecoderByType<{
   name: string | undefined;
   code: bigint | undefined;
   docs: IdlDocs;
@@ -195,7 +195,7 @@ const variantsArrayItemJsonDecoder = jsonDecoderAnyOfKind<{
     fields: fieldsJsonDecoder,
   }),
 });
-const variantsObjectValueJsonDecoder = jsonDecoderAnyOfKind<{
+const variantsObjectValueJsonDecoder = jsonDecoderByType<{
   code: bigint;
   docs: IdlDocs;
   fields: IdlTypeFlatFields;
@@ -216,7 +216,7 @@ const variantsObjectValueJsonDecoder = jsonDecoderAnyOfKind<{
     fields: fieldsJsonDecoder,
   }),
 });
-const variantsJsonDecoder = jsonDecoderAnyOfKind({
+const variantsJsonDecoder = jsonDecoderByType({
   array: jsonDecoderTransform(
     jsonDecoderArray(variantsArrayItemJsonDecoder),
     (variantsArray) =>
@@ -251,7 +251,7 @@ const variantsJsonDecoder = jsonDecoderAnyOfKind({
 });
 
 const objectDefinedJsonDecoder = jsonDecoderTransform(
-  jsonDecoderAnyOfKind({
+  jsonDecoderByType({
     string: (string) => ({ name: string, generics: undefined }),
     object: jsonDecoderObject({
       name: jsonCodecString.decoder,
@@ -295,7 +295,7 @@ function objectVecJsonDecoder(prefix: IdlTypePrefix) {
 const objectLoopJsonDecoder = jsonDecoderTransform(
   jsonDecoderObject({
     items: idlTypeFlatParse,
-    stop: jsonDecoderAnyOfKind<"end" | { value: JsonValue }>({
+    stop: jsonDecoderByType<"end" | { value: JsonValue }>({
       string: jsonDecoderConst("end"),
       object: jsonDecoderObject({ value: jsonCodecValue.decoder }),
     }),
@@ -442,7 +442,7 @@ function stringJsonDecoder(string: string): IdlTypeFlat {
   return IdlTypeFlat.defined({ name: string, generics: [] });
 }
 
-const valueJsonDecoder: JsonDecoder<IdlTypeFlat> = jsonDecoderAnyOfKind({
+const valueJsonDecoder: JsonDecoder<IdlTypeFlat> = jsonDecoderByType({
   null: () => IdlTypeFlat.structNothing(),
   number: (number) => IdlTypeFlat.const({ literal: number }),
   string: stringJsonDecoder,

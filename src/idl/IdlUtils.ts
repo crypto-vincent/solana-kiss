@@ -9,7 +9,7 @@ import {
   jsonCodecBytesUtf8,
   jsonCodecNumber,
   jsonCodecValue,
-  jsonDecoderAnyOfKind,
+  jsonDecoderByType,
   jsonDecoderObject,
   jsonDecoderOneOfKeys,
   jsonDecoderOptional,
@@ -24,7 +24,7 @@ import { idlTypeFlatHydrate } from "./IdlTypeFlatHydrate";
 import { idlTypeFlatParse } from "./IdlTypeFlatParse";
 import { idlTypeFullEncode } from "./IdlTypeFullEncode";
 
-export const idlUtilsBytesJsonDecoder = jsonDecoderAnyOfKind({
+export const idlUtilsBytesJsonDecoder = jsonDecoderByType({
   array: jsonCodecBytesArray.decoder,
   object: jsonDecoderOneOfKeys({
     utf8: jsonCodecBytesUtf8.decoder,

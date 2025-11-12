@@ -2,7 +2,7 @@ import {
   JsonValue,
   jsonCodecPubkey,
   jsonCodecString,
-  jsonDecoderAllOf,
+  jsonDecoderForked,
   jsonDecoderObject,
   jsonDecoderObjectKey,
   jsonDecoderOptional,
@@ -51,7 +51,7 @@ const innerJsonDecoder = jsonDecoderOptional(
   }),
 );
 
-const outerJsonDecoder = jsonDecoderAllOf(
+const outerJsonDecoder = jsonDecoderForked(
   jsonDecoderOptional(jsonDecoderObjectKey("metadata", innerJsonDecoder)),
   innerJsonDecoder,
 );

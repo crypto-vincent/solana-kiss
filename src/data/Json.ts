@@ -345,7 +345,7 @@ export const jsonCodecBoolean: JsonCodec<boolean> = {
   },
 };
 export const jsonCodecNumber: JsonCodec<number> = {
-  decoder: jsonDecoderAnyOfKind({
+  decoder: jsonDecoderByType({
     null: () => NaN,
     number: (number) => number,
     string: (string) => {
@@ -417,7 +417,7 @@ export const jsonCodecObjectValues: JsonCodec<JsonObject> = {
 };
 
 export const jsonCodecInteger: JsonCodec<bigint> = {
-  decoder: jsonDecoderAnyOfKind({
+  decoder: jsonDecoderByType({
     number: (number) => BigInt(number),
     string: (string) => BigInt(string.replace(/_/g, "")),
   }),
@@ -978,17 +978,7 @@ export function jsonDecoderOneOfKeys<
   };
 }
 
-export function jsonDecoderAllOf<Items extends Array<JsonDecoder<any>>>(
-  ...decoders: Items
-): JsonDecoder<{
-  [K in keyof Items]: JsonDecoderContent<Items[K]>;
-}> {
-  return (encoded) => {
-    return decoders.map((decoder) => decoder(encoded)) as any;
-  };
-}
-
-export function jsonDecoderAnyOfKind<Content>(decoders: {
+export function jsonDecoderByType<Content>(decoders: {
   undefined?: () => Content;
   null?: () => Content;
   boolean?: (boolean: boolean) => Content;
@@ -1030,7 +1020,15 @@ export function jsonDecoderAnyOfKind<Content>(decoders: {
   };
 }
 
-export function jsonDecoderAnyOfChained<Content>(
+export function jsonDecoderForked<Items extends Array<JsonDecoder<any>>>(
+  ...decoders: Items
+): JsonDecoder<{
+  [K in keyof Items]: JsonDecoderContent<Items[K]>;
+}> {
+  return (encoded) => decoders.map((decoder) => decoder(encoded)) as any;
+}
+
+export function jsonDecoderTryAnyOf<Content>(
   decoders: Array<JsonDecoder<Content>>,
 ): JsonDecoder<Content> {
   return (encoded) => {

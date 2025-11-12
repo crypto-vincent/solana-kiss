@@ -51,7 +51,7 @@ export class Solana {
     rpcHttp: RpcHttp | string,
     options?: {
       customIdlPreload?: Map<Pubkey, IdlProgram>;
-      customIdlLoader?: IdlLoader;
+      customIdlLoaders?: Array<IdlLoader>;
     },
   ) {
     if (typeof rpcHttp === "string") {
@@ -62,8 +62,9 @@ export class Solana {
       this.#rpcHttp = rpcHttp;
     }
     this.#idlPreload = options?.customIdlPreload ?? new Map();
-    this.#idlLoader =
-      options?.customIdlLoader ?? defaultIdlLoader(this.#rpcHttp);
+    this.#idlLoader = idlLoaderFromLoaderChain(
+      options?.customIdlLoaders ?? [recommendedIdlLoader(this.#rpcHttp)],
+    );
     this.#cacheBlockHash = null;
   }
 
@@ -322,7 +323,7 @@ export class Solana {
   }
 }
 
-function defaultIdlLoader(rpcHttp: RpcHttp): IdlLoader {
+function recommendedIdlLoader(rpcHttp: RpcHttp) {
   return idlLoaderMemoized(
     idlLoaderFromLoaderChain([
       idlLoaderFromOnchain(async (programAddress) => {

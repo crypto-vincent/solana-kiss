@@ -19,7 +19,7 @@ import { IdlProgram, idlProgramParse } from "./IdlProgram";
 export type IdlLoader = (programAddress: Pubkey) => Promise<IdlProgram>;
 
 export function idlLoaderMemoized(loader: IdlLoader): IdlLoader {
-  return memoize(loader, async (programAddress) => programAddress);
+  return memoize(async (programAddress) => programAddress, loader);
 }
 
 export function idlLoaderFallbackToUnknown(): IdlLoader {

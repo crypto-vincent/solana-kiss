@@ -65,10 +65,10 @@ it("run", async () => {
     solana.getRpcHttp(),
     transactionHandle,
     async (context) => {
-      if (context.totalDurationMs > 10000) {
+      if (context.totalDurationMs > 5000) {
         throw new Error("Transaction confirmation timed out");
       }
-      await timeoutMs(2000);
+      await timeoutMs(1000);
       return true;
     },
   );

@@ -5,11 +5,11 @@ import {
   jsonCodecNumber,
   jsonCodecString,
   JsonDecoder,
-  jsonDecoderAllOf,
-  jsonDecoderAnyOfKind,
   jsonDecoderArrayToObject,
   jsonDecoderArrayToTuple,
+  jsonDecoderByType,
   jsonDecoderConst,
+  jsonDecoderForked,
   jsonDecoderNullable,
   jsonDecoderObject,
   jsonDecoderObjectKey,
@@ -55,7 +55,7 @@ it("run", async () => {
     },
     {
       encoded: 42,
-      decoder: jsonDecoderAllOf(
+      decoder: jsonDecoderForked(
         jsonCodecNumber.decoder,
         jsonCodecInteger.decoder,
       ),
@@ -65,7 +65,7 @@ it("run", async () => {
       encoded: { a: null, b: 42, c: "hello" },
       decoder: jsonDecoderObjectToMap({
         keyDecoder: (name) => `key:${name}`,
-        valueDecoder: jsonDecoderAnyOfKind({
+        valueDecoder: jsonDecoderByType({
           null: () => "null",
           number: (number) => `number:${number}`,
           string: (string) => `string:${string}`,

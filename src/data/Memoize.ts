@@ -1,8 +1,8 @@
 import { Result } from "./Utils";
 
 export function memoize<In, Out, CacheKey>(
-  invocation: (input: In) => Promise<Out>,
   inputToCacheKey: (input: In) => Promise<CacheKey>,
+  invocation: (input: In) => Promise<Out>,
   options?: {
     cacheUseApprover?: (
       input: In,
