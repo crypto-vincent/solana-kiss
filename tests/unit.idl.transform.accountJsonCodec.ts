@@ -25,7 +25,7 @@ it("run", async () => {
           {
             name: "field5",
             variants: [
-              ["string", ["u8", 42]],
+              { fields: ["string", ["u8", 42]] },
               ["u8", "i128"],
               {
                 name: "Misc",

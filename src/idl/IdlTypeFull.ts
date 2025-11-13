@@ -154,7 +154,6 @@ export type IdlTypeFullFieldNamed = {
   content: IdlTypeFull;
 };
 export type IdlTypeFullFieldUnnamed = {
-  position: number;
   content: IdlTypeFull;
 };
 

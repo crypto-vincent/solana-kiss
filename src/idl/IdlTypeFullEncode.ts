@@ -324,9 +324,10 @@ const visitorFieldsEncode = {
     prefixed: boolean,
   ) => {
     const array = jsonCodecArrayValues.decoder(value);
-    for (const field of self) {
-      withErrorContext(`Encode: Field: ${field.position}`, () => {
-        typeFullEncode(field.content, array[field.position], prefixed, blobs);
+    for (let index = 0; index < self.length; index++) {
+      const field = self[index]!;
+      withErrorContext(`Encode: Field: Unamed: ${index}`, () => {
+        typeFullEncode(field.content, array[index], prefixed, blobs);
       });
     }
   },

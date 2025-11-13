@@ -89,14 +89,14 @@ const visitor = {
       return stringFunctionCall(context, "jsonCodecConst", ["null"]);
     }
     const variantsNames = new Array<string>();
-    let hasFields = false;
+    let fieldless = true;
     for (const variant of self.variants) {
       variantsNames.push(`"${variant.name}"`);
       if (!variant.fields.isNothing()) {
-        hasFields = true;
+        fieldless = false;
       }
     }
-    if (!hasFields) {
+    if (fieldless) {
       return stringFunctionCall(context, "jsonCodecConst", variantsNames);
     }
     const entries = [];

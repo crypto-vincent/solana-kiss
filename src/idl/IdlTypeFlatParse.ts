@@ -50,8 +50,10 @@ export function idlTypeFlatParseIsPossible(
   if (object === undefined) {
     return false;
   }
-  if (objectJsonDecoderKeys.some((key) => object.hasOwnProperty(key))) {
-    return true;
+  for (const objectKey of Object.keys(object)) {
+    if (objectJsonDecoderKeys.has(objectKey)) {
+      return true;
+    }
   }
   return false;
 }
@@ -329,7 +331,7 @@ const objectJsonDecoderCases = {
   bytes: objectBlobJsonDecoder,
   value: objectConstJsonDecoder,
 };
-const objectJsonDecoderKeys = Object.keys(objectJsonDecoderCases);
+const objectJsonDecoderKeys = new Set(Object.keys(objectJsonDecoderCases));
 const objectJsonDecoder: JsonDecoder<IdlTypeFlat> = jsonDecoderOneOfKeys(
   objectJsonDecoderCases,
 );

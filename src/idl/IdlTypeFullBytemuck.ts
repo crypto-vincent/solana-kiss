@@ -383,14 +383,14 @@ const visitorBytemuckFields = {
   ): IdlTypeFullPodFields => {
     const fieldsInfosPods = self.map((field, index) => {
       const contentPod = withErrorContext(
-        `Bytemuck: Field: ${field.position}`,
+        `Bytemuck: Field: Unamed: ${index}`,
         () => bytemuckRust(field.content),
       );
       return {
         index: index,
         alignment: contentPod.alignment,
         size: contentPod.size,
-        meta: field.position,
+        meta: null,
         type: contentPod.value,
       };
     });
@@ -406,7 +406,6 @@ const visitorBytemuckFields = {
       size: fieldsInfosPadded.size,
       value: IdlTypeFullFields.unnamed(
         fieldsInfosPadded.value.map((fieldInfo) => ({
-          position: fieldInfo.meta,
           content: fieldInfo.type,
         })),
       ),

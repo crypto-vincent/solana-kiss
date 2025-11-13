@@ -53,6 +53,13 @@ it("run", async () => {
       path: "camelCase.valueTwo",
       needle: 2,
     },
+    { haystack: [1, 2, 3, 4, 5], path: ".2", needle: 3 },
+    { haystack: [1, 2, 3, 4, 5], path: "2", needle: 3 },
+    { haystack: [1, 2, 3, 4, 5], path: "[2]", needle: 3 },
+    { haystack: { v: [1, 2, 3, 4, 5] }, path: "v.2", needle: 3 },
+    { haystack: { v: [1, 2, 3, 4, 5] }, path: "v[2]", needle: 3 },
+    { haystack: { v: [1, 2, 3, 4, 5] }, path: "v[-1]", needle: 5 },
+    { haystack: { v: [1, 2, 3, 4, 5] }, path: "v[5]", needle: undefined },
   ];
   for (const test of tests) {
     expect(test.needle).toStrictEqual(jsonGetAt(test.haystack, test.path));

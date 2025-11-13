@@ -155,49 +155,28 @@ function makeTypeFullGenericEnum(
         {
           name: "Unnamed",
           code: 0n,
-          fields: IdlTypeFullFields.unnamed([
-            {
-              position: 0,
-              content: t,
-            },
-            {
-              position: 1,
-              content: u,
-            },
-          ]),
+          fields: IdlTypeFullFields.unnamed([{ content: t }, { content: u }]),
         },
         {
           name: "Named",
           code: 1n,
           fields: IdlTypeFullFields.named([
-            {
-              name: "gen1",
-              content: t,
-            },
-            {
-              name: "gen2",
-              content: u,
-            },
+            { name: "gen1", content: t },
+            { name: "gen2", content: u },
           ]),
         },
         {
           name: "Struct",
           code: 2n,
           fields: IdlTypeFullFields.unnamed([
-            {
-              position: 0,
-              content: makeTypeFullGenericNested(t, u),
-            },
+            { content: makeTypeFullGenericNested(t, u) },
           ]),
         },
         {
           name: "Arr",
           code: 3n,
           fields: IdlTypeFullFields.unnamed([
-            {
-              position: 0,
-              content: makeTypeFullArray(t, n),
-            },
+            { content: makeTypeFullArray(t, n) },
           ]),
         },
       ],
@@ -229,14 +208,8 @@ function makeTypeFullGenericNested(
     repr: undefined,
     content: IdlTypeFull.struct({
       fields: IdlTypeFullFields.named([
-        {
-          name: "gen1",
-          content: v,
-        },
-        {
-          name: "gen2",
-          content: z,
-        },
+        { name: "gen1", content: v },
+        { name: "gen2", content: z },
       ]),
     }),
   });
@@ -247,12 +220,7 @@ function makeTypeFullWrappedU8Array(_n: number): IdlTypeFull {
     name: "WrappedU8Array",
     repr: undefined,
     content: IdlTypeFull.struct({
-      fields: IdlTypeFullFields.unnamed([
-        {
-          position: 0,
-          content: makeTypeFullU8(),
-        },
-      ]),
+      fields: IdlTypeFullFields.unnamed([{ content: makeTypeFullU8() }]),
     }),
   });
 }

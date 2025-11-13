@@ -99,70 +99,44 @@ it("run", () => {
       },
     },
   });
+  const programIdl5 = idlProgramParse({
+    instructions: {
+      MyIx: {
+        accounts: [
+          { name: "accountWs", isSigner: true, isMut: true },
+          { name: "accountRs", isSigner: true },
+          { name: "accountW", isMut: true },
+          { name: "accountR" },
+          {
+            name: "nester",
+            accounts: [
+              { name: "nestedA" },
+              { name: "nested", accounts: [{ name: "b" }] },
+            ],
+          },
+        ],
+        args: [{ name: "arg", vec: "u8" }],
+        returns: "i8",
+      },
+    },
+  });
   // Assert that all are equivalent
   expect(programIdl1).toStrictEqual(programIdl2);
   expect(programIdl1).toStrictEqual(programIdl3);
   expect(programIdl1).toStrictEqual(programIdl4);
+  expect(programIdl1).toStrictEqual(programIdl5);
   // Assert that the content is correct
   expect(programIdl1.instructions.get("my_ix")).toStrictEqual({
     name: "my_ix",
     docs: undefined,
     discriminator: new Uint8Array([38, 19, 70, 194, 0, 59, 80, 114]),
     accounts: [
-      {
-        name: "account_ws",
-        docs: undefined,
-        writable: true,
-        signer: true,
-        optional: false,
-        address: undefined,
-        pda: undefined,
-      },
-      {
-        name: "account_rs",
-        docs: undefined,
-        writable: false,
-        signer: true,
-        optional: false,
-        address: undefined,
-        pda: undefined,
-      },
-      {
-        name: "account_w",
-        docs: undefined,
-        writable: true,
-        signer: false,
-        optional: false,
-        address: undefined,
-        pda: undefined,
-      },
-      {
-        name: "account_r",
-        docs: undefined,
-        writable: false,
-        signer: false,
-        optional: false,
-        address: undefined,
-        pda: undefined,
-      },
-      {
-        name: "nester.nested_a",
-        docs: undefined,
-        writable: false,
-        signer: false,
-        optional: false,
-        address: undefined,
-        pda: undefined,
-      },
-      {
-        name: "nester.nested.b",
-        docs: undefined,
-        writable: false,
-        signer: false,
-        optional: false,
-        address: undefined,
-        pda: undefined,
-      },
+      simpleInstructionAccount("account_ws", true, true),
+      simpleInstructionAccount("account_rs", false, true),
+      simpleInstructionAccount("account_w", true, false),
+      simpleInstructionAccount("account_r", false, false),
+      simpleInstructionAccount("nester.nested_a", false, false),
+      simpleInstructionAccount("nester.nested.b", false, false),
     ],
     args: {
       typeFlatFields: IdlTypeFlatFields.named([
@@ -191,3 +165,19 @@ it("run", () => {
     },
   });
 });
+
+function simpleInstructionAccount(
+  name: string,
+  writable: boolean,
+  signer: boolean,
+) {
+  return {
+    name,
+    docs: undefined,
+    writable,
+    signer,
+    optional: false,
+    address: undefined,
+    pda: undefined,
+  };
+}

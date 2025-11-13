@@ -113,7 +113,6 @@ it("run", () => {
     typeFull: IdlTypeFull.struct({
       fields: IdlTypeFullFields.unnamed([
         {
-          position: 0,
           content: IdlTypeFull.typedef({
             name: "MyDefinedEnum",
             repr: undefined,
@@ -141,7 +140,6 @@ it("run", () => {
                     code: 0n,
                     fields: IdlTypeFullFields.unnamed([
                       {
-                        position: 0,
                         content: IdlTypeFull.vec({
                           prefix: IdlTypePrefix.u32,
                           items: IdlTypeFull.primitive(IdlTypePrimitive.u8),
@@ -154,7 +152,6 @@ it("run", () => {
                     code: 1n,
                     fields: IdlTypeFullFields.unnamed([
                       {
-                        position: 0,
                         content: IdlTypeFull.primitive(IdlTypePrimitive.u8),
                       },
                     ]),
@@ -165,7 +162,6 @@ it("run", () => {
           }),
         },
         {
-          position: 1,
           content: IdlTypeFull.typedef({
             name: "MyDefinedStruct",
             repr: undefined,
@@ -194,7 +190,6 @@ it("run", () => {
           }),
         },
         {
-          position: 2,
           content: IdlTypeFull.typedef({
             name: "MyArray",
             repr: undefined,

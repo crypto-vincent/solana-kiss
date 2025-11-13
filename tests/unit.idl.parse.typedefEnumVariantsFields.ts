@@ -1,8 +1,8 @@
 import { expect, it } from "@jest/globals";
 import {
   idlProgramParse,
-  IdlTypeFlat,
-  IdlTypeFlatFields,
+  IdlTypeFull,
+  IdlTypeFullFields,
   IdlTypePrefix,
   IdlTypePrimitive,
 } from "../src";
@@ -10,15 +10,15 @@ import {
 it("run", () => {
   // Create IDLs using different shortened formats
   const programIdl1 = idlProgramParse({
-    types: {
+    accounts: {
       MyEnum: {
         variants: [
           {
             name: "Named",
             fields: [
-              { name: "f1", type: { defined: "Other" } },
+              { name: "f1", type: "u16" },
               { name: "f2", type: { vec: "u8" } },
-              { name: "f3", type: { generic: "G" } },
+              { name: "f3", type: "string" },
             ],
           },
           {
@@ -35,15 +35,15 @@ it("run", () => {
     },
   });
   const programIdl2 = idlProgramParse({
-    types: {
+    accounts: {
       MyEnum: {
         variants: [
           {
             name: "Named",
             fields: [
-              { name: "f1", defined: "Other" },
+              { name: "f1", type: "u16" },
               { name: "f2", vec: "u8" },
-              { name: "f3", generic: "G" },
+              { name: "f3", type: "string" },
             ],
           },
           {
@@ -58,13 +58,8 @@ it("run", () => {
   // Assert that all are equivalent
   expect(programIdl1).toStrictEqual(programIdl2);
   // Assert that the content is correct
-  expect(programIdl1.typedefs.get("MyEnum")).toStrictEqual({
-    name: "MyEnum",
-    docs: undefined,
-    serialization: undefined,
-    repr: undefined,
-    generics: [],
-    typeFlat: IdlTypeFlat.enum({
+  expect(programIdl1.accounts.get("MyEnum")!.typeFull).toStrictEqual(
+    IdlTypeFull.enum({
       prefix: IdlTypePrefix.u8,
       mask: 3n,
       indexByName: new Map([
@@ -86,29 +81,22 @@ it("run", () => {
         {
           name: "Named",
           code: 0n,
-          docs: undefined,
-          fields: IdlTypeFlatFields.named([
+          fields: IdlTypeFullFields.named([
             {
-              docs: undefined,
               name: "f1",
-              content: IdlTypeFlat.defined({
-                name: "Other",
-                generics: [],
-              }),
+              content: IdlTypeFull.primitive(IdlTypePrimitive.u16),
             },
             {
-              docs: undefined,
               name: "f2",
-              content: IdlTypeFlat.vec({
+              content: IdlTypeFull.vec({
                 prefix: IdlTypePrefix.u32,
-                items: IdlTypeFlat.primitive(IdlTypePrimitive.u8),
+                items: IdlTypeFull.primitive(IdlTypePrimitive.u8),
               }),
             },
             {
-              docs: undefined,
               name: "f3",
-              content: IdlTypeFlat.generic({
-                symbol: "G",
+              content: IdlTypeFull.string({
+                prefix: IdlTypePrefix.u32,
               }),
             },
           ]),
@@ -116,24 +104,20 @@ it("run", () => {
         {
           name: "Unnamed",
           code: 1n,
-          docs: undefined,
-          fields: IdlTypeFlatFields.unnamed([
+          fields: IdlTypeFullFields.unnamed([
             {
-              docs: undefined,
-              content: IdlTypeFlat.primitive(IdlTypePrimitive.u64),
+              content: IdlTypeFull.primitive(IdlTypePrimitive.u64),
             },
             {
-              docs: undefined,
-              content: IdlTypeFlat.vec({
+              content: IdlTypeFull.vec({
                 prefix: IdlTypePrefix.u32,
-                items: IdlTypeFlat.primitive(IdlTypePrimitive.u8),
+                items: IdlTypeFull.primitive(IdlTypePrimitive.u8),
               }),
             },
             {
-              docs: undefined,
-              content: IdlTypeFlat.vec({
+              content: IdlTypeFull.vec({
                 prefix: IdlTypePrefix.u32,
-                items: IdlTypeFlat.primitive(IdlTypePrimitive.u8),
+                items: IdlTypeFull.primitive(IdlTypePrimitive.u8),
               }),
             },
           ]),
@@ -141,10 +125,9 @@ it("run", () => {
         {
           name: "Empty",
           code: 2n,
-          docs: undefined,
-          fields: IdlTypeFlatFields.nothing(),
+          fields: IdlTypeFullFields.nothing(),
         },
       ],
     }),
-  });
+  );
 });

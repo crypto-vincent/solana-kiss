@@ -186,14 +186,22 @@ const visitorHydrateOrConstLiteral = {
       const code = variant.code ?? BigInt(variantIndex);
       return {
         name: variant.name ?? String(code),
-        code: code,
-        docs: variant.docs,
+        code,
         fields: idlTypeFlatFieldsHydrate(
           variant.fields,
           genericsBySymbol,
           typedefs,
         ),
       };
+    });
+    variants.sort((a, b) => {
+      if (a.code < b.code) {
+        return -1;
+      }
+      if (a.code > b.code) {
+        return 1;
+      }
+      return 0;
     });
     let mask = 0n;
     for (const variant of variants) {
@@ -286,8 +294,7 @@ const visitorHydrateFields = {
     typedefs?: Map<string, IdlTypedef>,
   ): IdlTypeFullFields => {
     return IdlTypeFullFields.unnamed(
-      self.map((field, index) => ({
-        position: index,
+      self.map((field) => ({
         content: idlTypeFlatHydrate(field.content, genericsBySymbol, typedefs),
       })),
     );

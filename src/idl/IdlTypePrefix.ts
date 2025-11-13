@@ -1,4 +1,3 @@
-// TODO (experiment) - support shortvec prefix types ?
 export class IdlTypePrefix {
   public static readonly u8 = new IdlTypePrefix("u8", 1);
   public static readonly u16 = new IdlTypePrefix("u16", 2);
@@ -44,7 +43,7 @@ export function idlTypePrefixDecode(
   data: DataView,
   dataOffset: number,
 ): [number, bigint] {
-  return self.traverse(visitorDecode, data, dataOffset);
+  return [self.size, self.traverse(visitorDecode, data, dataOffset)];
 }
 
 const visitorEncode = {
@@ -71,21 +70,21 @@ const visitorEncode = {
 };
 
 const visitorDecode = {
-  u8: (data: DataView, dataOffset: number): [number, bigint] => {
-    return [1, BigInt(data.getUint8(dataOffset))];
+  u8: (data: DataView, dataOffset: number) => {
+    return BigInt(data.getUint8(dataOffset));
   },
-  u16: (data: DataView, dataOffset: number): [number, bigint] => {
-    return [2, BigInt(data.getUint16(dataOffset, true))];
+  u16: (data: DataView, dataOffset: number) => {
+    return BigInt(data.getUint16(dataOffset, true));
   },
-  u32: (data: DataView, dataOffset: number): [number, bigint] => {
-    return [4, BigInt(data.getUint32(dataOffset, true))];
+  u32: (data: DataView, dataOffset: number) => {
+    return BigInt(data.getUint32(dataOffset, true));
   },
-  u64: (data: DataView, dataOffset: number): [number, bigint] => {
-    return [8, data.getBigUint64(dataOffset, true)];
+  u64: (data: DataView, dataOffset: number) => {
+    return data.getBigUint64(dataOffset, true);
   },
-  u128: (data: DataView, dataOffset: number): [number, bigint] => {
+  u128: (data: DataView, dataOffset: number) => {
     const low = data.getBigUint64(dataOffset, true);
     const high = data.getBigUint64(dataOffset + 8, true);
-    return [16, low | (high << 64n)];
+    return low | (high << 64n);
   },
 };

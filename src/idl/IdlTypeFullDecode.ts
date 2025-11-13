@@ -94,7 +94,7 @@ const visitorDecode = {
         dataItemOffset,
       );
       dataSize += dataItemSize;
-      dataItems.push(dataItem ?? null);
+      dataItems.push(dataItem);
     }
     return [dataSize, dataItems];
   },
@@ -121,7 +121,7 @@ const visitorDecode = {
           return [dataSize, dataItems];
         }
       }
-      dataItems.push(dataItem ?? null);
+      dataItems.push(dataItem);
     }
   },
   array: (
@@ -139,7 +139,7 @@ const visitorDecode = {
         dataItemOffset,
       );
       dataSize += dataItemSize;
-      dataItems.push(dataItem ?? null);
+      dataItems.push(dataItem);
     }
     return [dataSize, dataItems];
   },
@@ -267,9 +267,7 @@ const visitorFieldsDecode = {
         () => idlTypeFullDecode(field.content, data, dataFieldOffset),
       );
       dataSize += dataFieldSize;
-      if (dataField !== undefined) {
-        dataFields[field.name] = dataField;
-      }
+      dataFields[field.name] = dataField;
     }
     return [dataSize, dataFields];
   },
@@ -280,14 +278,15 @@ const visitorFieldsDecode = {
   ): [number, JsonValue] => {
     let dataSize = 0;
     const dataFields = [] as JsonArray;
-    for (const field of self) {
+    for (let index = 0; index < self.length; index++) {
+      const field = self[index]!;
       const dataFieldOffset = dataOffset + dataSize;
       const [dataFieldSize, dataField] = withErrorContext(
-        `Decode: Field: ${field.position} (offset: ${dataFieldOffset})`,
+        `Decode: Field: Unamed: ${index} (offset: ${dataFieldOffset})`,
         () => idlTypeFullDecode(field.content, data, dataFieldOffset),
       );
       dataSize += dataFieldSize;
-      dataFields.push(dataField ?? null);
+      dataFields.push(dataField);
     }
     return [dataSize, dataFields];
   },

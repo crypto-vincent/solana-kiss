@@ -1,15 +1,16 @@
 import { expect, it } from "@jest/globals";
 import {
+  IdlProgram,
   idlProgramParse,
-  IdlTypeFlat,
-  IdlTypeFlatFields,
+  IdlTypeFull,
+  IdlTypeFullFields,
   IdlTypePrefix,
 } from "../src";
 
 it("run", () => {
   // Create IDLs using different shortened formats
   const programIdl1 = idlProgramParse({
-    types: {
+    accounts: {
       MyEnum: {
         variants: [
           { code: 77, name: "77", fields: [] },
@@ -23,7 +24,7 @@ it("run", () => {
     },
   });
   const programIdl2 = idlProgramParse({
-    types: {
+    accounts: {
       MyEnum: {
         variants: [
           { name: "0" },
@@ -37,28 +38,28 @@ it("run", () => {
     },
   });
   const programIdl3 = idlProgramParse({
-    types: {
+    accounts: {
       MyEnum: {
         variants: [{}, {}, "Case2", "Case3", 77, { name: "Case42", code: 42 }],
       },
     },
   });
   const programIdl4 = idlProgramParse({
-    types: {
+    accounts: {
       MyEnum: {
         variants: [0, 1, "Case2", "Case3", { name: "Case42", code: 42 }, 77],
       },
     },
   });
   const programIdl5 = idlProgramParse({
-    types: {
+    accounts: {
       MyEnum: {
         variants: [77, 0, "Case2", "Case3", 1, { name: "Case42", code: 42 }],
       },
     },
   });
   const programIdl6 = idlProgramParse({
-    types: {
+    accounts: {
       MyEnum: {
         variants: [
           "0",
@@ -72,7 +73,7 @@ it("run", () => {
     },
   });
   const programIdl7 = idlProgramParse({
-    types: {
+    accounts: {
       MyEnum: {
         variants: {
           "77": "77",
@@ -86,20 +87,15 @@ it("run", () => {
     },
   });
   // Assert that all are equivalent
-  expect(programIdl1).toStrictEqual(programIdl2);
-  expect(programIdl1).toStrictEqual(programIdl3);
-  expect(programIdl1).toStrictEqual(programIdl4);
-  expect(programIdl1).toStrictEqual(programIdl5);
-  expect(programIdl1).toStrictEqual(programIdl6);
-  expect(programIdl1).toStrictEqual(programIdl7);
+  expectEqualEnum(programIdl1, programIdl2);
+  expectEqualEnum(programIdl1, programIdl3);
+  expectEqualEnum(programIdl1, programIdl4);
+  expectEqualEnum(programIdl1, programIdl5);
+  expectEqualEnum(programIdl1, programIdl6);
+  expectEqualEnum(programIdl1, programIdl7);
   // Assert that the content is correct
-  expect(programIdl1.typedefs.get("MyEnum")).toStrictEqual({
-    name: "MyEnum",
-    docs: undefined,
-    serialization: undefined,
-    repr: undefined,
-    generics: [],
-    typeFlat: IdlTypeFlat.enum({
+  expect(programIdl1.accounts.get("MyEnum")!.typeFull).toStrictEqual(
+    IdlTypeFull.enum({
       prefix: IdlTypePrefix.u8,
       mask: 111n,
       indexByName: new Map([
@@ -130,40 +126,43 @@ it("run", () => {
         {
           name: "0",
           code: 0n,
-          docs: undefined,
-          fields: IdlTypeFlatFields.nothing(),
+          fields: IdlTypeFullFields.nothing(),
         },
         {
           name: "1",
           code: 1n,
-          docs: undefined,
-          fields: IdlTypeFlatFields.nothing(),
+          fields: IdlTypeFullFields.nothing(),
         },
         {
           name: "Case2",
           code: 2n,
-          docs: undefined,
-          fields: IdlTypeFlatFields.nothing(),
+          fields: IdlTypeFullFields.nothing(),
         },
         {
           name: "Case3",
           code: 3n,
-          docs: undefined,
-          fields: IdlTypeFlatFields.nothing(),
+          fields: IdlTypeFullFields.nothing(),
         },
         {
           name: "Case42",
           code: 42n,
-          docs: undefined,
-          fields: IdlTypeFlatFields.nothing(),
+          fields: IdlTypeFullFields.nothing(),
         },
         {
           name: "77",
           code: 77n,
-          docs: undefined,
-          fields: IdlTypeFlatFields.nothing(),
+          fields: IdlTypeFullFields.nothing(),
         },
       ],
     }),
-  });
+  );
 });
+
+function expectEqualEnum(
+  leftProgramIdl: IdlProgram,
+  rightProgramIdl: IdlProgram,
+) {
+  expect(leftProgramIdl.accounts.get("MyEnum")!.typeFull).toStrictEqual(
+    rightProgramIdl.accounts.get("MyEnum")!.typeFull,
+  );
+}

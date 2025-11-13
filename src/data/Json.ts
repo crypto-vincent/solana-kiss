@@ -11,8 +11,8 @@ import { pubkeyFromBase58, pubkeyToBase58 } from "./Pubkey";
 import { signatureFromBase58, signatureToBase58 } from "./Signature";
 import { utf8Decode, utf8Encode } from "./Utf8";
 import {
-  Defined,
   NotNull,
+  NotUndefined,
   objectGetOwnProperty,
   objectGuessIntendedKey,
   withErrorContext,
@@ -320,17 +320,6 @@ export const jsonCodecValue: JsonCodec<JsonValue> = {
   encoder: (decoded) => decoded,
 };
 
-export const jsonCodecNull: JsonCodec<null> = {
-  decoder: (encoded) => {
-    if (encoded !== null && encoded !== undefined) {
-      throw new Error(`JSON: Expected a null (found: ${jsonPreview(encoded)})`);
-    }
-    return null;
-  },
-  encoder: (decoded) => {
-    return decoded;
-  },
-};
 export const jsonCodecBoolean: JsonCodec<boolean> = {
   decoder: (encoded) => {
     const decoded = jsonAsBoolean(encoded);
@@ -848,7 +837,7 @@ export function jsonCodecObjectKey<Content>(
 }
 
 export function jsonDecoderNullable<Content>(
-  contentDecoder: (encoded: NotNull<JsonValue> | undefined) => Content,
+  contentDecoder: (encoded: NotNull<JsonValue | undefined>) => Content,
 ): JsonDecoder<Content | null> {
   return (encoded) => {
     if (encoded === null) {
@@ -868,7 +857,7 @@ export function jsonEncoderNullable<Content>(
   };
 }
 export function jsonCodecNullable<Content>(contentCodec: {
-  decoder: (encoded: NotNull<JsonValue> | undefined) => Content;
+  decoder: (encoded: NotNull<JsonValue | undefined>) => Content;
   encoder: (decoded: NotNull<Content>) => JsonValue;
 }): JsonCodec<Content | null> {
   return {
@@ -878,7 +867,7 @@ export function jsonCodecNullable<Content>(contentCodec: {
 }
 
 export function jsonDecoderOptional<Content>(
-  contentDecoder: (encoded: Defined<NotNull<JsonValue>>) => Content,
+  contentDecoder: (encoded: NotNull<JsonValue>) => Content,
 ): JsonDecoder<Content | undefined> {
   return (encoded) => {
     if (encoded === undefined || encoded === null) {
@@ -888,18 +877,18 @@ export function jsonDecoderOptional<Content>(
   };
 }
 export function jsonEncoderOptional<Content>(
-  contentEncoder: (decoded: Defined<NotNull<Content>>) => JsonValue,
+  contentEncoder: (decoded: NotUndefined<NotNull<Content>>) => JsonValue,
 ): JsonEncoder<Content | undefined> {
   return (decoded) => {
     if (decoded === undefined || decoded === null) {
       return null;
     }
-    return contentEncoder(decoded as Defined<NotNull<Content>>);
+    return contentEncoder(decoded as NotUndefined<NotNull<Content>>);
   };
 }
 export function jsonCodecOptional<Content>(contentCodec: {
-  decoder: (encoded: Defined<NotNull<JsonValue>>) => Content;
-  encoder: (decoded: Defined<NotNull<Content>>) => JsonValue;
+  decoder: (encoded: NotNull<JsonValue>) => Content;
+  encoder: (decoded: NotUndefined<NotNull<Content>>) => JsonValue;
 }): JsonCodec<Content | undefined> {
   return {
     decoder: jsonDecoderOptional(contentCodec.decoder),
