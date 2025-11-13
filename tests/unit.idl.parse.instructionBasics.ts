@@ -101,7 +101,7 @@ it("run", () => {
   });
   const programIdl5 = idlProgramParse({
     instructions: {
-      MyIx: {
+      myIx: {
         accounts: [
           { name: "accountWs", isSigner: true, isMut: true },
           { name: "accountRs", isSigner: true },

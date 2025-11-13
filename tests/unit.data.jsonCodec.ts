@@ -2,8 +2,8 @@ import { expect, it } from "@jest/globals";
 import {
   blockHashFromBytes,
   blockSlotFromNumber,
-  casingConvertToCamel,
-  casingConvertToSnake,
+  casingConvertToCamelLossless,
+  casingConvertToSnakeLossless,
   JsonCodec,
   jsonCodecArray,
   jsonCodecArrayToObject,
@@ -51,7 +51,7 @@ it("run", async () => {
       encoded: { hello_world: 3 },
       codec: jsonCodecObject(
         { helloWorld: jsonCodecNumber },
-        { keysEncoding: casingConvertToSnake },
+        { keysEncoding: casingConvertToSnakeLossless },
       ),
       decoded: { helloWorld: 3 },
     },
@@ -59,7 +59,7 @@ it("run", async () => {
       encoded: { helloWorld: 4 },
       codec: jsonCodecObject(
         { hello_world: jsonCodecNumber },
-        { keysEncoding: casingConvertToCamel },
+        { keysEncoding: casingConvertToCamelLossless },
       ),
       decoded: { hello_world: 4 },
     },

@@ -1,3 +1,4 @@
+import { withErrorContext } from "../data/Error";
 import {
   jsonAsNumber,
   jsonAsObject,
@@ -5,14 +6,11 @@ import {
   jsonCodecArrayValues,
   jsonCodecObjectValues,
   jsonCodecString,
+  jsonPreview,
   JsonValue,
 } from "../data/Json";
 import { utf8Encode } from "../data/Utf8";
-import {
-  objectGetOwnProperty,
-  objectGuessIntendedKey,
-  withErrorContext,
-} from "../data/Utils";
+import { objectGetOwnProperty, objectGuessIntendedKey } from "../data/Utils";
 import {
   IdlTypeFull,
   IdlTypeFullArray,
@@ -243,7 +241,9 @@ const visitorEncode = {
       }
       throw new Error("Could not guess enum variant from object key");
     }
-    throw new Error("Expected enum value to be: number/string or object");
+    throw new Error(
+      `Expected enum value to be: number, string or object (found: ${jsonPreview(value)})`,
+    );
   },
   pad: (
     self: IdlTypeFullPad,

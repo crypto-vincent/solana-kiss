@@ -63,10 +63,7 @@ it("run", async () => {
   const instructionAddresses = await solana.hydrateInstructionAddresses(
     programAddress,
     "initialize_market",
-    {
-      instructionAddresses: {},
-      instructionPayload: { globalMarketSeed: "credix-marketplace" },
-    },
+    { instructionPayload: { globalMarketSeed: "credix-marketplace" } },
   );
   expect(instructionAddresses["global_market_state"]).toStrictEqual(
     globalMarketStateAddress,

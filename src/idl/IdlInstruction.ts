@@ -1,4 +1,5 @@
-import { casingConvertToSnakeIfRevertible } from "../data/Casing";
+import { casingConvertToSnakeLossless } from "../data/Casing";
+import { ErrorStackable, withErrorContext } from "../data/Error";
 import { InstructionInput } from "../data/Instruction";
 import {
   JsonValue,
@@ -7,11 +8,7 @@ import {
   jsonDecoderOptional,
 } from "../data/Json";
 import { Pubkey } from "../data/Pubkey";
-import {
-  objectGetOwnProperty,
-  objectGuessIntendedKey,
-  withErrorContext,
-} from "../data/Utils";
+import { objectGetOwnProperty, objectGuessIntendedKey } from "../data/Utils";
 import { IdlDocs, idlDocsParse } from "./IdlDocs";
 import {
   IdlInstructionAccount,
@@ -21,7 +18,6 @@ import {
 import {
   IdlInstructionBlobAccountFetcher,
   IdlInstructionBlobAccountsContext,
-  IdlInstructionBlobInstructionContent,
 } from "./IdlInstructionBlob";
 import { IdlTypedef } from "./IdlTypedef";
 import { IdlTypeFlat, IdlTypeFlatFields } from "./IdlTypeFlat";
@@ -44,6 +40,11 @@ import {
   idlUtilsBytesJsonDecoder,
   idlUtilsExpectBlobAt,
 } from "./IdlUtils";
+
+export type IdlInstructionInfo = {
+  instructionAddresses: Record<string, Pubkey>;
+  instructionPayload: JsonValue | undefined;
+};
 
 export type IdlInstruction = {
   name: string;
@@ -142,7 +143,7 @@ export function idlInstructionAccountsCheck(
 
 export function idlInstructionArgsEncode(
   self: IdlInstruction,
-  instructionPayload: JsonValue,
+  instructionPayload: JsonValue | undefined,
 ): Uint8Array {
   return idlTypeFullFieldsEncode(
     self.args.typeFullFields,
@@ -175,7 +176,7 @@ export function idlInstructionArgsCheck(
 // TODO (test) - test this return decoding/encoding ?
 export function idlInstructionReturnEncode(
   self: IdlInstruction,
-  instructionResult: JsonValue,
+  instructionResult: JsonValue | undefined,
 ): Uint8Array {
   return idlTypeFullEncode(self.return.typeFull, instructionResult, true);
 }
@@ -195,22 +196,26 @@ export function idlInstructionReturnDecode(
 export async function idlInstructionAddressesHydrate(
   self: IdlInstruction,
   programAddress: Pubkey,
-  instructionContent?: IdlInstructionBlobInstructionContent,
-  accountsContext?: IdlInstructionBlobAccountsContext,
-  accountFetcher?: IdlInstructionBlobAccountFetcher,
+  instructionInfo?: Partial<IdlInstructionInfo>,
+  options?: {
+    throwOnMissing?: boolean;
+    accountsContext?: IdlInstructionBlobAccountsContext;
+    accountFetcher?: IdlInstructionBlobAccountFetcher;
+  },
 ): Promise<Record<string, Pubkey>> {
   const instructionAddresses = {} as Record<string, Pubkey>;
   for (const [key, value] of Object.entries(
-    instructionContent?.instructionAddresses ?? {},
+    instructionInfo?.instructionAddresses ?? {},
   )) {
-    instructionAddresses[casingConvertToSnakeIfRevertible(key)] = value;
+    instructionAddresses[casingConvertToSnakeLossless(key)] = value;
   }
-  instructionContent = {
-    instructionAddresses,
-    instructionPayload: instructionContent?.instructionPayload as any,
+  const sanitizedInstructionInfo = {
+    instructionAddresses: instructionAddresses ?? {},
+    instructionPayload: instructionInfo?.instructionPayload,
   };
   while (true) {
     let madeProgress = false;
+    let errors = [];
     for (let instructionAccountIdl of self.accounts) {
       const instructionAccountName = instructionAccountIdl.name;
       const instructionAddress =
@@ -227,19 +232,25 @@ export async function idlInstructionAddressesHydrate(
             const instructionAddress = await idlInstructionAccountFind(
               instructionAccountIdl,
               programAddress,
-              instructionContent,
-              accountsContext,
-              accountFetcher,
+              sanitizedInstructionInfo,
+              options?.accountsContext,
+              options?.accountFetcher,
             );
             instructionAddresses[instructionAccountName] = instructionAddress;
             madeProgress = true;
           },
         );
-      } catch (_error) {
-        // TODO (error) - better error handling and help with understanding what is missing
+      } catch (error) {
+        errors.push(error);
       }
     }
     if (!madeProgress) {
+      if (options?.throwOnMissing && errors.length > 0) {
+        throw new ErrorStackable(
+          `Idl: Could not resolve all instruction accounts`,
+          errors,
+        );
+      }
       break;
     }
   }

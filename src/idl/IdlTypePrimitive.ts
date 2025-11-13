@@ -1,3 +1,4 @@
+import { withErrorContext } from "../data/Error";
 import {
   JsonValue,
   jsonCodecBoolean,
@@ -6,7 +7,6 @@ import {
   jsonCodecPubkey,
 } from "../data/Json";
 import { pubkeyFromBytes, pubkeyToBytes } from "../data/Pubkey";
-import { withErrorContext } from "../data/Utils";
 
 export class IdlTypePrimitive {
   public static readonly u8 = new IdlTypePrimitive("u8", 1, 1);

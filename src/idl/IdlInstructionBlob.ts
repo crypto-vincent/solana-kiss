@@ -1,4 +1,7 @@
-import { casingConvertToCamel, casingConvertToSnake } from "../data/Casing";
+import {
+  casingConvertToCamelLossless,
+  casingConvertToSnakeLossless,
+} from "../data/Casing";
 import {
   JsonArray,
   JsonPointer,
@@ -12,6 +15,7 @@ import {
   jsonPointerParse,
 } from "../data/Json";
 import { Pubkey, pubkeyToBytes } from "../data/Pubkey";
+import { IdlInstructionInfo } from "./IdlInstruction";
 import { IdlTypedef } from "./IdlTypedef";
 import { IdlTypeFlat } from "./IdlTypeFlat";
 import { idlTypeFlatHydrate } from "./IdlTypeFlatHydrate";
@@ -22,10 +26,6 @@ import { idlTypeFullFieldsGetAt, idlTypeFullGetAt } from "./IdlTypeFullGetAt";
 import { IdlTypePrimitive } from "./IdlTypePrimitive";
 import { idlUtilsInferValueTypeFlat } from "./IdlUtils";
 
-export type IdlInstructionBlobInstructionContent = {
-  instructionAddresses?: Record<string, Pubkey>;
-  instructionPayload?: JsonValue;
-};
 export type IdlInstructionBlobAccountContent = {
   accountState: JsonValue;
   accountTypeFull?: IdlTypeFull | undefined;
@@ -94,13 +94,13 @@ export class IdlInstructionBlob {
 
 export async function idlInstructionBlobCompute(
   self: IdlInstructionBlob,
-  instructionContent: IdlInstructionBlobInstructionContent,
+  instructionInfo: IdlInstructionInfo,
   accountsContext?: IdlInstructionBlobAccountsContext,
   accountFetcher?: IdlInstructionBlobAccountFetcher,
 ) {
   return self.traverse(
     computeVisitor,
-    instructionContent,
+    instructionInfo,
     accountsContext,
     accountFetcher,
   );
@@ -123,7 +123,6 @@ export function idlInstructionBlobParse(
     throw new Error(`Idl: Missing path for instruction blob`);
   }
   if (decoded.kind === "arg") {
-    // TODO - can we auto-detect arg mode ?
     return idlInstructionBlobParseArg(
       decoded.path,
       decoded.type,
@@ -176,8 +175,8 @@ export function idlInstructionBlobParseAccount(
   instructionBlobType: IdlTypeFlat | undefined,
   typedefsIdls?: Map<string, IdlTypedef>,
 ): IdlInstructionBlob {
-  const pathCamel = casingConvertToCamel(instructionBlobPath);
-  const pathSnake = casingConvertToSnake(instructionBlobPath);
+  const pathCamel = casingConvertToCamelLossless(instructionBlobPath);
+  const pathSnake = casingConvertToSnakeLossless(instructionBlobPath);
   const paths = [instructionBlobPath, pathCamel, pathSnake];
   let typeFull = undefined;
   if (instructionBlobType !== undefined) {
@@ -218,30 +217,27 @@ const computeVisitor = {
   },
   arg: async (
     self: IdlInstructionBlobArg,
-    instructionContent: IdlInstructionBlobInstructionContent,
+    instructionInfo: IdlInstructionInfo,
   ) => {
-    const value = jsonGetAt(
-      instructionContent.instructionPayload,
-      self.pointer,
-      { throwOnMissing: true },
-    );
+    const value = jsonGetAt(instructionInfo.instructionPayload, self.pointer, {
+      throwOnMissing: true,
+    });
     return idlTypeFullEncode(self.typeFull, value, false);
   },
   account: async (
     self: IdlInstructionBlobAccount,
-    instructionContent: IdlInstructionBlobInstructionContent,
+    instructionInfo: IdlInstructionInfo,
     accountsContext?: IdlInstructionBlobAccountsContext,
     accountFetcher?: IdlInstructionBlobAccountFetcher,
   ) => {
     if (
-      instructionContent.instructionAddresses &&
-      (self.typeFull === undefined ||
-        self.typeFull.isPrimitive(IdlTypePrimitive.pubkey))
+      self.typeFull === undefined ||
+      self.typeFull.isPrimitive(IdlTypePrimitive.pubkey)
     ) {
       for (const [
         instructionAccountName,
         instructionAddress, // TODO (naming) - naming stands out here
-      ] of Object.entries(instructionContent.instructionAddresses)) {
+      ] of Object.entries(instructionInfo.instructionAddresses)) {
         for (const path of self.paths) {
           if (path === instructionAccountName) {
             return pubkeyToBytes(instructionAddress);
@@ -265,9 +261,9 @@ const computeVisitor = {
         }
       }
     }
-    if (accountFetcher && instructionContent.instructionAddresses) {
+    if (accountFetcher) {
       for (const [instructionAccountName, instructionAddress] of Object.entries(
-        instructionContent.instructionAddresses,
+        instructionInfo.instructionAddresses,
       )) {
         for (const path of self.paths) {
           if (path.startsWith(instructionAccountName)) {

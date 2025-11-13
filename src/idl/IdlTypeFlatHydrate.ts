@@ -1,4 +1,4 @@
-import { casingConvertToCamelIfRevertible } from "../data/Casing";
+import { casingConvertToCamelLossless } from "../data/Casing";
 import { IdlTypedef, idlTypedefGlobalsByName } from "./IdlTypedef";
 import {
   IdlTypeFlat,
@@ -283,7 +283,7 @@ const visitorHydrateFields = {
   ): IdlTypeFullFields => {
     return IdlTypeFullFields.named(
       self.map((field) => ({
-        name: casingConvertToCamelIfRevertible(field.name),
+        name: casingConvertToCamelLossless(field.name),
         content: idlTypeFlatHydrate(field.content, genericsBySymbol, typedefs),
       })),
     );

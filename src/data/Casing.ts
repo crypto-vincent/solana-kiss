@@ -1,38 +1,39 @@
-// TODO - optimize performance for this
-
-export function casingConvertToSnake(string: string): string {
-  return string
-    .replace(/[_\-\s]+/g, " ")
-    .replace(/([a-z0-9])([A-Z])/g, "$1 $2")
-    .trim()
-    .toLowerCase()
-    .replace(/\s+/g, "_");
-}
-
-export function casingConvertToCamel(string: string): string {
-  return string
-    .replace(/[_\-\s]+/g, " ")
-    .replace(/([a-z0-9])([A-Z])/g, "$1 $2")
-    .trim()
-    .toLowerCase()
-    .replace(/\s([a-z])/g, (_, char) => char.toUpperCase())
-    .replace(/\s+/g, "");
-}
-
-export function casingConvertToCamelIfRevertible(keyUntouched: string) {
-  const keyCamel = casingConvertToCamel(keyUntouched);
-  const keySnake = casingConvertToSnake(keyCamel);
-  if (keyUntouched === keySnake) {
-    return keyCamel;
+export function casingConvertToSnakeLossless(string: string): string {
+  const codes = new Array<number>();
+  for (let index = 0; index < string.length; index++) {
+    const code = string.charCodeAt(index)!;
+    if (codeIsUppercase(code)) {
+      codes.push(codeUnderscore);
+      codes.push(code + codeLowerToUpperDiff);
+    } else {
+      codes.push(code);
+    }
   }
-  return keyUntouched;
+  return String.fromCharCode(...codes);
 }
 
-export function casingConvertToSnakeIfRevertible(keyUntouched: string) {
-  const keySnake = casingConvertToSnake(keyUntouched);
-  const keyCamel = casingConvertToCamel(keySnake);
-  if (keyUntouched === keyCamel) {
-    return keySnake;
+export function casingConvertToCamelLossless(string: string): string {
+  const codes = new Array<number>();
+  for (let index = 0; index < string.length; index++) {
+    const codePrev = string.charCodeAt(index - 1);
+    const codeCurr = string.charCodeAt(index);
+    if (codePrev === codeUnderscore && codeIsLowercase(codeCurr)) {
+      codes.splice(codes.length - 1, 1);
+      codes.push(codeCurr - codeLowerToUpperDiff);
+    } else {
+      codes.push(codeCurr);
+    }
   }
-  return keyUntouched;
+  return String.fromCharCode(...codes);
+}
+
+const codeUnderscore = "_".charCodeAt(0)!;
+const codeLowerToUpperDiff = "a".charCodeAt(0)! - "A".charCodeAt(0)!;
+
+function codeIsLowercase(code: number): boolean {
+  return code >= 97 && code <= 122;
+}
+
+function codeIsUppercase(code: number): boolean {
+  return code >= 65 && code <= 90;
 }

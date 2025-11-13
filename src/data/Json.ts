@@ -7,6 +7,7 @@ import {
   blockSlotFromNumber,
   blockSlotToNumber,
 } from "./Block";
+import { withErrorContext } from "./Error";
 import { pubkeyFromBase58, pubkeyToBase58 } from "./Pubkey";
 import { signatureFromBase58, signatureToBase58 } from "./Signature";
 import { utf8Decode, utf8Encode } from "./Utf8";
@@ -15,7 +16,6 @@ import {
   NotUndefined,
   objectGetOwnProperty,
   objectGuessIntendedKey,
-  withErrorContext,
 } from "./Utils";
 
 export type JsonValue = JsonPrimitive | JsonArray | JsonObject;

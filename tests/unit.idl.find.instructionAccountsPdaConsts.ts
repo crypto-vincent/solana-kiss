@@ -137,7 +137,6 @@ it("run", async () => {
   const instructionAddresses = await idlInstructionAddressesHydrate(
     expectDefined(programIdl1.instructions.get("my_ix")),
     programAddress1,
-    { instructionAddresses: {}, instructionPayload: null },
   );
   expect(instructionAddresses["const_bytes_without_program"]).toStrictEqual(
     pdaConstBytes1,

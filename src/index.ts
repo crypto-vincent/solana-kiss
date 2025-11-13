@@ -3,6 +3,7 @@ export * from "./data/Base58";
 export * from "./data/Base64";
 export * from "./data/Block";
 export * from "./data/Casing";
+export * from "./data/Error";
 export * from "./data/Instruction";
 export * from "./data/Json";
 export * from "./data/Lamports";

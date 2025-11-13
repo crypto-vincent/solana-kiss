@@ -101,7 +101,7 @@ async function makeSystemCreateInstruction(
   payerSigner: Signer,
   ownedSigner: Signer,
 ) {
-  return solana.hydrateAndEncodeInstruction(pubkeyDefault, "create", {
+  return solana.hydrateAndEncodeInstruction(pubkeyDefault, "_create", {
     instructionAddresses: {
       payer: payerSigner.address,
       created: ownedSigner.address,

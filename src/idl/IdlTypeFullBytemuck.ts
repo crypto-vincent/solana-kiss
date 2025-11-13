@@ -1,4 +1,4 @@
-import { withErrorContext } from "../data/Utils";
+import { withErrorContext } from "../data/Error";
 import {
   IdlTypeFull,
   IdlTypeFullArray,

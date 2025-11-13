@@ -1,4 +1,5 @@
-import { casingConvertToSnake } from "../data/Casing";
+import { casingConvertToSnakeLossless } from "../data/Casing";
+import { withErrorContext } from "../data/Error";
 import { Instruction } from "../data/Instruction";
 import {
   JsonObject,
@@ -13,7 +14,6 @@ import {
   jsonDecoderObjectToMap,
   jsonDecoderWrapped,
 } from "../data/Json";
-import { withErrorContext } from "../data/Utils";
 import { IdlAccount, idlAccountCheck, idlAccountParse } from "./IdlAccount";
 import { IdlConstant, idlConstantParse } from "./IdlConstant";
 import { IdlError, idlErrorParse } from "./IdlError";
@@ -158,7 +158,7 @@ function parseScopedNamedValues<Content, Param>(
   )) {
     let itemName = name;
     if (convertNameToSnakeCase) {
-      itemName = casingConvertToSnake(name);
+      itemName = casingConvertToSnakeLossless(name);
     }
     values.set(
       itemName,
@@ -174,7 +174,7 @@ const collectionJsonDecoder = jsonDecoderByType({
   undefined: () => new Map<string, JsonValue>(),
   object: jsonDecoderObjectToMap({
     keyDecoder: (name) => name,
-    valueDecoder: jsonCodecValue.decoder,
+    valueDecoder: (value) => value,
   }),
   array: jsonDecoderWrapped(
     jsonDecoderArray(

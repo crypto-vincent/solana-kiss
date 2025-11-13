@@ -87,17 +87,16 @@ it("run", async () => {
       },
     },
     {
-      account_snake: {
-        accountState: { field_snake: 44 },
-        accountTypeFull: myAccountType,
+      accountsContext: {
+        account_snake: {
+          accountState: { field_snake: 44 },
+          accountTypeFull: myAccountType,
+        },
+        account_camel: {
+          accountState: { field_camel: 45 },
+          accountTypeFull: myAccountType,
+        },
       },
-      account_camel: {
-        accountState: { field_camel: 45 },
-        accountTypeFull: myAccountType,
-      },
-    },
-    () => {
-      throw new Error("Check that this should never be called");
     },
   );
   expect(instructionSnakeAddresses["pda"]).toStrictEqual(pdaAddress);
@@ -116,17 +115,16 @@ it("run", async () => {
       },
     },
     {
-      accountSnake: {
-        accountState: { fieldSnake: 44 },
-        accountTypeFull: myAccountType,
+      accountsContext: {
+        accountSnake: {
+          accountState: { fieldSnake: 44 },
+          accountTypeFull: myAccountType,
+        },
+        accountCamel: {
+          accountState: { fieldCamel: 45 },
+          accountTypeFull: myAccountType,
+        },
       },
-      accountCamel: {
-        accountState: { fieldCamel: 45 },
-        accountTypeFull: myAccountType,
-      },
-    },
-    () => {
-      throw new Error("Check that this should never be called");
     },
   );
   expect(instructionCamelAddresses["pda"]).toStrictEqual(pdaAddress);

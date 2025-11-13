@@ -1,3 +1,4 @@
+import { withErrorContext } from "../data/Error";
 import {
   JsonArray,
   jsonIsDeepEqual,
@@ -5,7 +6,6 @@ import {
   JsonValue,
 } from "../data/Json";
 import { utf8Decode } from "../data/Utf8";
-import { withErrorContext } from "../data/Utils";
 import {
   IdlTypeFull,
   IdlTypeFullArray,

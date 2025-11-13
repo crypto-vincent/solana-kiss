@@ -1,4 +1,7 @@
-import { casingConvertToCamel, casingConvertToSnake } from "./Casing";
+import {
+  casingConvertToCamelLossless,
+  casingConvertToSnakeLossless,
+} from "./Casing";
 
 export type NotNull<T> = T extends null ? never : T;
 export type NotUndefined<T> = T extends undefined ? never : T;
@@ -14,6 +17,10 @@ export function expectDefined<T>(value: T | undefined, name?: string): T {
     throw new Error(`Expected ${name ?? "value"} to be defined`);
   }
   return value;
+}
+
+export function timeoutMs(durationMs: number): Promise<void> {
+  return new Promise((resolve) => setTimeout(resolve, durationMs));
 }
 
 export function objectGetOwnProperty<
@@ -43,37 +50,15 @@ export function objectGuessIntendedKey<
     return key;
   }
   if (key.includes("_")) {
-    const keyCamel = casingConvertToCamel(key);
+    const keyCamel = casingConvertToCamelLossless(key);
     if (Object.prototype.hasOwnProperty.call(object, keyCamel)) {
       return keyCamel as Key;
     }
   } else {
-    const keySnake = casingConvertToSnake(key);
+    const keySnake = casingConvertToSnakeLossless(key);
     if (Object.prototype.hasOwnProperty.call(object, keySnake)) {
       return keySnake as Key;
     }
   }
   return key;
 }
-
-export function withErrorContext<T>(message: string, fn: () => T): T {
-  try {
-    return fn();
-  } catch (error) {
-    throw new ErrorWithContext(message, error);
-  }
-}
-
-export function timeoutMs(durationMs: number): Promise<void> {
-  return new Promise((resolve) => setTimeout(resolve, durationMs));
-}
-
-export class ErrorWithContext extends Error {
-  constructor(message: string, error: any) {
-    super(
-      `${message}\n > ${error instanceof Error ? error.message : String(error)}`,
-    );
-  }
-}
-
-// TODO (error) - error stacking util (for what except the find account loop ?)

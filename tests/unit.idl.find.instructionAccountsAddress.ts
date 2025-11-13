@@ -17,7 +17,11 @@ it("run", async () => {
         discriminator: [77, 78],
         accounts: [
           {
-            name: "const_address",
+            name: "constAddressCamel",
+            address: pubkeyToBase58(dummyAddress),
+          },
+          {
+            name: "const_address_snake",
             address: pubkeyToBase58(dummyAddress),
           },
         ],
@@ -29,5 +33,10 @@ it("run", async () => {
     expectDefined(programIdl.instructions.get("my_ix")),
     pubkeyNewDummy(),
   );
-  expect(instructionAddresses["const_address"]).toStrictEqual(dummyAddress);
+  expect(instructionAddresses["const_address_camel"]).toStrictEqual(
+    dummyAddress,
+  );
+  expect(instructionAddresses["const_address_snake"]).toStrictEqual(
+    dummyAddress,
+  );
 });

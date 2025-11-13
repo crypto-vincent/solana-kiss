@@ -44,7 +44,11 @@ it("run", async () => {
       },
       instructionPayload,
     },
-    { borrower_info: { accountState: { numOfDeals: 42 } } },
+    {
+      accountsContext: {
+        borrower_info: { accountState: { numOfDeals: 42 } },
+      },
+    },
   );
   // Check that we can encode it and then decode it
   const instructionInputs = idlInstructionAccountsEncode(

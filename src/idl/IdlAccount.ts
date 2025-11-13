@@ -34,7 +34,7 @@ export type IdlAccount = {
 
 export function idlAccountEncode(
   self: IdlAccount,
-  accountState: JsonValue,
+  accountState: JsonValue | undefined,
 ): Uint8Array {
   return idlTypeFullEncode(
     self.typeFull,

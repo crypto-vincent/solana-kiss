@@ -1,4 +1,5 @@
-import { casingConvertToSnakeIfRevertible } from "../data/Casing";
+import { casingConvertToSnakeLossless } from "../data/Casing";
+import { withErrorContext } from "../data/Error";
 import {
   jsonCodecArrayValues,
   jsonCodecBoolean,
@@ -11,14 +12,14 @@ import {
   JsonValue,
 } from "../data/Json";
 import { Pubkey, pubkeyFindPdaAddress, pubkeyFromBytes } from "../data/Pubkey";
-import { objectGetOwnProperty, withErrorContext } from "../data/Utils";
+import { objectGetOwnProperty } from "../data/Utils";
 import { IdlDocs, idlDocsParse } from "./IdlDocs";
+import { IdlInstructionInfo } from "./IdlInstruction";
 import {
   IdlInstructionBlob,
   IdlInstructionBlobAccountFetcher,
   IdlInstructionBlobAccountsContext,
   idlInstructionBlobCompute,
-  IdlInstructionBlobInstructionContent,
   idlInstructionBlobParse,
 } from "./IdlInstructionBlob";
 import { IdlTypedef } from "./IdlTypedef";
@@ -42,16 +43,16 @@ export type IdlInstructionAccountPda = {
 export async function idlInstructionAccountFind(
   self: IdlInstructionAccount,
   programAddress: Pubkey,
-  instructionContent: IdlInstructionBlobInstructionContent,
+  instructionInfo: IdlInstructionInfo,
   accountsContext?: IdlInstructionBlobAccountsContext,
   accountsFetcher?: IdlInstructionBlobAccountFetcher,
 ) {
-  const instructionAdddress = objectGetOwnProperty(
-    instructionContent.instructionAddresses,
+  const instructionAddress = objectGetOwnProperty(
+    instructionInfo.instructionAddresses,
     self.name,
   );
-  if (instructionAdddress !== undefined) {
-    return instructionAdddress;
+  if (instructionAddress !== undefined) {
+    return instructionAddress;
   }
   if (self.address !== undefined) {
     return self.address;
@@ -63,7 +64,7 @@ export async function idlInstructionAccountFind(
       seedsBytes.push(
         await idlInstructionBlobCompute(
           instructionBlobIdl,
-          instructionContent,
+          instructionInfo,
           accountsContext,
           accountsFetcher,
         ),
@@ -74,7 +75,7 @@ export async function idlInstructionAccountFind(
       pdaProgramAddress = pubkeyFromBytes(
         await idlInstructionBlobCompute(
           self.pda.program,
-          instructionContent,
+          instructionInfo,
           accountsContext,
           accountsFetcher,
         ),
@@ -150,7 +151,7 @@ export function idlInstructionAccountParse(
   return [
     {
       name: [...instructionAccountGroups, decoded.name]
-        .map(casingConvertToSnakeIfRevertible)
+        .map(casingConvertToSnakeLossless)
         .join("."),
       docs: decoded.docs,
       writable: decoded.writable ?? decoded.isMut ?? false,

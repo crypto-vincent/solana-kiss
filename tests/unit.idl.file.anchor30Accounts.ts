@@ -54,7 +54,7 @@ it("run", async () => {
     pubkeyToBytes(campaignAddress),
     pubkeyToBytes(userAddress),
   ]);
-  const onchainAccounts = {
+  const accountsContext = {
     campaign: {
       accountTypeFull: programIdl.accounts.get("Campaign")?.typeFull,
       accountState: {
@@ -77,7 +77,7 @@ it("run", async () => {
         params: { index: campaignIndex },
       },
     },
-    onchainAccounts,
+    { accountsContext },
   );
   // Check outcome
   expect(campaignCreateAddresses["campaign"]).toStrictEqual(campaignAddress);
@@ -97,7 +97,7 @@ it("run", async () => {
       },
       instructionPayload: { params: { index: campaignIndex } },
     },
-    onchainAccounts,
+    { accountsContext },
   );
   // Check outcome
   expect(campaignExtractAddresses["campaign_collateral"]).toStrictEqual(
@@ -113,7 +113,6 @@ it("run", async () => {
         user: userAddress,
         campaign: campaignAddress,
       },
-      instructionPayload: {},
     },
   );
   // Check outcome
@@ -129,9 +128,8 @@ it("run", async () => {
         user_collateral: userCollateralAddress,
         campaign: campaignAddress,
       },
-      instructionPayload: {},
     },
-    onchainAccounts,
+    { accountsContext },
   );
   // Check outcome
   expect(pledgeDepositAddresses["campaign_collateral"]).toStrictEqual(

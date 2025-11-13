@@ -1,4 +1,5 @@
 import { inflate } from "uzip";
+import { ErrorStackable } from "../data/Error";
 import {
   jsonCodecBytesArray,
   jsonCodecObject,
@@ -61,14 +62,18 @@ export function idlLoaderFallbackToUnknown(): IdlLoader {
 
 export function idlLoaderFromLoaderChain(loaders: Array<IdlLoader>): IdlLoader {
   return async (programAddress: Pubkey) => {
+    const errors = [];
     for (const loader of loaders) {
       try {
         return await loader(programAddress);
-      } catch (_error) {
-        // TODO (error) - log error stack ?
+      } catch (error) {
+        errors.push(error);
       }
     }
-    throw new Error(`IDL: Unable to find IDL for program ${programAddress}`);
+    throw new ErrorStackable(
+      `IDL: Unable to find IDL for program ${programAddress}`,
+      errors,
+    );
   };
 }
 

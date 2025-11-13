@@ -30,11 +30,11 @@ it("run", async () => {
                 { kind: "account", path: "first.u16" },
                 { kind: "account", path: "first.u32" },
                 { kind: "account", path: "first.u64" },
-                { account: "MyAccount", path: "first.array_u8_2" },
-                { account: "MyAccount", path: "first.vec_u8_3" },
+                { path: "first.array_u8_2" },
+                { path: "first.vec_u8_3" },
                 { path: "first.string" },
                 { path: "first.inner.u8" },
-                { account: "MyAccount", path: "first.inner.u16" },
+                { path: "first.inner.u16" },
                 { kind: "account", path: "first.inner.u16", type: "u8" },
                 { kind: "account", path: "first.inner.u16", type: "u32" },
                 { kind: "account", path: "nester.nested1" },
@@ -96,30 +96,28 @@ it("run", async () => {
         first: firstAddress,
         "nester.nested1": nested1Address,
       },
-      instructionPayload: {},
     },
     {
-      first: {
-        accountTypeFull: expectDefined(programIdl.accounts.get("MyAccount"))
-          .typeFull,
-        accountState: {
-          u8: 77,
-          u16: 78,
-          u32: 79,
-          u64: 80,
-          array_u8_2: [11, 12],
-          vec_u8_3: [21, 22, 23],
-          string: "hello",
-          inner: {
-            u8: 111,
-            u16: 222,
+      accountsContext: {
+        first: {
+          accountTypeFull: expectDefined(programIdl.accounts.get("MyAccount"))
+            .typeFull,
+          accountState: {
+            u8: 77,
+            u16: 78,
+            u32: 79,
+            u64: 80,
+            array_u8_2: [11, 12],
+            vec_u8_3: [21, 22, 23],
+            string: "hello",
+            inner: {
+              u8: 111,
+              u16: 222,
+            },
           },
         },
+        "nester.nested2": { accountState: 42 },
       },
-      "nester.nested2": { accountState: 42 },
-    },
-    () => {
-      throw new Error("Check that this should never be called");
     },
   );
   expect(instructionAddresses["pda"]).toStrictEqual(pdaAddress);
