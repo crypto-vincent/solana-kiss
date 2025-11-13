@@ -1,6 +1,6 @@
 import {
-  casingConvertToCamelLossless,
-  casingConvertToSnakeLossless,
+  casingLosslessConvertToCamel,
+  casingLosslessConvertToSnake,
 } from "../data/Casing";
 import {
   JsonArray,
@@ -175,8 +175,8 @@ export function idlInstructionBlobParseAccount(
   instructionBlobType: IdlTypeFlat | undefined,
   typedefsIdls?: Map<string, IdlTypedef>,
 ): IdlInstructionBlob {
-  const pathCamel = casingConvertToCamelLossless(instructionBlobPath);
-  const pathSnake = casingConvertToSnakeLossless(instructionBlobPath);
+  const pathCamel = casingLosslessConvertToCamel(instructionBlobPath);
+  const pathSnake = casingLosslessConvertToSnake(instructionBlobPath);
   const paths = [instructionBlobPath, pathCamel, pathSnake];
   let typeFull = undefined;
   if (instructionBlobType !== undefined) {

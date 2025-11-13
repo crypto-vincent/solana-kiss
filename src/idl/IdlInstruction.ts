@@ -1,4 +1,4 @@
-import { casingConvertToSnakeLossless } from "../data/Casing";
+import { casingLosslessConvertToSnake } from "../data/Casing";
 import { ErrorStackable, withErrorContext } from "../data/Error";
 import { InstructionInput } from "../data/Instruction";
 import {
@@ -204,13 +204,14 @@ export async function idlInstructionAddressesHydrate(
   },
 ): Promise<Record<string, Pubkey>> {
   const instructionAddresses = {} as Record<string, Pubkey>;
-  for (const [key, value] of Object.entries(
+  for (const [instructionAccountName, instructionAddress] of Object.entries(
     instructionInfo?.instructionAddresses ?? {},
   )) {
-    instructionAddresses[casingConvertToSnakeLossless(key)] = value;
+    instructionAddresses[casingLosslessConvertToSnake(instructionAccountName)] =
+      instructionAddress;
   }
   const sanitizedInstructionInfo = {
-    instructionAddresses: instructionAddresses ?? {},
+    instructionAddresses,
     instructionPayload: instructionInfo?.instructionPayload,
   };
   while (true) {
@@ -218,10 +219,7 @@ export async function idlInstructionAddressesHydrate(
     let errors = [];
     for (let instructionAccountIdl of self.accounts) {
       const instructionAccountName = instructionAccountIdl.name;
-      const instructionAddress =
-        instructionAddresses[
-          objectGuessIntendedKey(instructionAddresses, instructionAccountName)
-        ];
+      const instructionAddress = instructionAddresses[instructionAccountName];
       if (instructionAddress !== undefined) {
         continue;
       }

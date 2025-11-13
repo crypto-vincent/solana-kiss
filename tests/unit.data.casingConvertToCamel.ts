@@ -1,7 +1,7 @@
 import { expect, it } from "@jest/globals";
 import {
-  casingConvertToCamelLossless,
-  casingConvertToSnakeLossless,
+  casingLosslessConvertToCamel,
+  casingLosslessConvertToSnake,
 } from "../src";
 
 it("run", async () => {
@@ -27,9 +27,9 @@ it("run", async () => {
     { in: "abc_v1_12", out: "abcV1_12" },
   ];
   for (const test of tests) {
-    const camelCase = casingConvertToCamelLossless(test.in);
+    const camelCase = casingLosslessConvertToCamel(test.in);
     expect(camelCase).toStrictEqual(test.out);
-    const snakeCase = casingConvertToSnakeLossless(camelCase);
-    expect(casingConvertToCamelLossless(snakeCase)).toStrictEqual(camelCase);
+    const snakeCase = casingLosslessConvertToSnake(camelCase);
+    expect(casingLosslessConvertToCamel(snakeCase)).toStrictEqual(camelCase);
   }
 });

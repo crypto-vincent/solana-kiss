@@ -1,4 +1,4 @@
-import { casingConvertToSnakeLossless } from "../data/Casing";
+import { casingLosslessConvertToSnake } from "../data/Casing";
 import {
   JsonDecoder,
   JsonValue,
@@ -116,7 +116,7 @@ const fieldsJsonDecoder = jsonDecoderByType({
           named = true;
         }
         return {
-          name: casingConvertToSnakeLossless(
+          name: casingLosslessConvertToSnake(
             fieldMeta.name ?? fieldIndex.toString(),
           ),
           docs: fieldMeta.docs,

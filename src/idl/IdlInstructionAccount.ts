@@ -1,4 +1,4 @@
-import { casingConvertToSnakeLossless } from "../data/Casing";
+import { casingLosslessConvertToSnake } from "../data/Casing";
 import { withErrorContext } from "../data/Error";
 import {
   jsonCodecArrayValues,
@@ -151,7 +151,7 @@ export function idlInstructionAccountParse(
   return [
     {
       name: [...instructionAccountGroups, decoded.name]
-        .map(casingConvertToSnakeLossless)
+        .map(casingLosslessConvertToSnake)
         .join("."),
       docs: decoded.docs,
       writable: decoded.writable ?? decoded.isMut ?? false,

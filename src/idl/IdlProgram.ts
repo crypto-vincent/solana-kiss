@@ -1,4 +1,4 @@
-import { casingConvertToSnakeLossless } from "../data/Casing";
+import { casingLosslessConvertToSnake } from "../data/Casing";
 import { withErrorContext } from "../data/Error";
 import { Instruction } from "../data/Instruction";
 import {
@@ -158,7 +158,7 @@ function parseScopedNamedValues<Content, Param>(
   )) {
     let itemName = name;
     if (convertNameToSnakeCase) {
-      itemName = casingConvertToSnakeLossless(name);
+      itemName = casingLosslessConvertToSnake(name);
     }
     values.set(
       itemName,

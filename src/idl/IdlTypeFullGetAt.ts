@@ -1,7 +1,4 @@
-import {
-  casingConvertToCamelLossless,
-  casingConvertToSnakeLossless,
-} from "../data/Casing";
+import { casingLosslessConvertToCamel } from "../data/Casing";
 import {
   JsonPointer,
   jsonPointerParse,
@@ -197,19 +194,10 @@ const visitorTypeFullFields = {
         return visitTypeFull(field.content, pointer, tokenIndex + 1);
       }
     }
-    if (fieldName.includes("_")) {
-      const fieldNameCamel = casingConvertToCamelLossless(fieldName);
-      for (const field of self) {
-        if (field.name === fieldNameCamel) {
-          return visitTypeFull(field.content, pointer, tokenIndex + 1);
-        }
-      }
-    } else {
-      const fieldNameSnake = casingConvertToSnakeLossless(fieldName);
-      for (const field of self) {
-        if (field.name === fieldNameSnake) {
-          return visitTypeFull(field.content, pointer, tokenIndex + 1);
-        }
+    const fieldNameCamel = casingLosslessConvertToCamel(fieldName);
+    for (const field of self) {
+      if (field.name === fieldNameCamel) {
+        return visitTypeFull(field.content, pointer, tokenIndex + 1);
       }
     }
     const names = self.map((field) => field.name).join("/");

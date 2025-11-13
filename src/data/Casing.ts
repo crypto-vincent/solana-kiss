@@ -1,4 +1,4 @@
-export function casingConvertToSnakeLossless(string: string): string {
+export function casingLosslessConvertToSnake(string: string): string {
   const codes = new Array<number>();
   for (let index = 0; index < string.length; index++) {
     const code = string.charCodeAt(index)!;
@@ -12,7 +12,7 @@ export function casingConvertToSnakeLossless(string: string): string {
   return String.fromCharCode(...codes);
 }
 
-export function casingConvertToCamelLossless(string: string): string {
+export function casingLosslessConvertToCamel(string: string): string {
   const codes = new Array<number>();
   for (let index = 0; index < string.length; index++) {
     const codePrev = string.charCodeAt(index - 1);

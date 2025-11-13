@@ -1,6 +1,6 @@
 import {
-  casingConvertToCamelLossless,
-  casingConvertToSnakeLossless,
+  casingLosslessConvertToCamel,
+  casingLosslessConvertToSnake,
 } from "./Casing";
 
 export type NotNull<T> = T extends null ? never : T;
@@ -49,16 +49,13 @@ export function objectGuessIntendedKey<
   if (Object.prototype.hasOwnProperty.call(object, key)) {
     return key;
   }
-  if (key.includes("_")) {
-    const keyCamel = casingConvertToCamelLossless(key);
-    if (Object.prototype.hasOwnProperty.call(object, keyCamel)) {
-      return keyCamel as Key;
-    }
-  } else {
-    const keySnake = casingConvertToSnakeLossless(key);
-    if (Object.prototype.hasOwnProperty.call(object, keySnake)) {
-      return keySnake as Key;
-    }
+  const keyCamel = casingLosslessConvertToCamel(key);
+  if (Object.prototype.hasOwnProperty.call(object, keyCamel)) {
+    return keyCamel as Key;
+  }
+  const keySnake = casingLosslessConvertToSnake(key);
+  if (Object.prototype.hasOwnProperty.call(object, keySnake)) {
+    return keySnake as Key;
   }
   return key;
 }
