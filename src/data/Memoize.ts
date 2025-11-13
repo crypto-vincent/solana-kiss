@@ -8,57 +8,53 @@ export function memoize<In, Out, CacheKey>(
       input: In,
       context: {
         cacheSize: number;
-        cachedAt: Date;
-        cachedResult: Result<Out>;
+        cacheValue: { result: Result<Out>; at: Date };
       },
     ) => Promise<boolean>;
     cacheSetApprover?: (
       input: In,
       context: {
         cacheSize: number;
-        cachedAt: Date;
-        cachedResult: Result<Out>;
+        cacheValue: { result: Result<Out>; at: Date };
       },
     ) => Promise<boolean>;
   },
 ): (input: In) => Promise<Out> {
   const cacheUseApprover = options?.cacheUseApprover ?? (async () => true);
   const cacheSetApprover = options?.cacheSetApprover ?? (async () => true);
-  const cache = new Map<CacheKey, { result: Result<Out>; at: Date }>();
+  const cacheMap = new Map<CacheKey, { result: Result<Out>; at: Date }>();
   return async (input) => {
     const cacheKey = await inputToCacheKey(input);
-    let context = cache.get(cacheKey);
+    let cacheValue = cacheMap.get(cacheKey);
     if (
-      context !== undefined &&
+      cacheValue !== undefined &&
       !(await cacheUseApprover(input, {
-        cacheSize: cache.size,
-        cachedAt: context.at,
-        cachedResult: context.result,
+        cacheSize: cacheMap.size,
+        cacheValue,
       }))
     ) {
-      context = undefined;
-      cache.delete(cacheKey);
+      cacheValue = undefined;
+      cacheMap.delete(cacheKey);
     }
-    if (context === undefined) {
+    if (cacheValue === undefined) {
       try {
         const value = await invocation(input);
-        context = { result: { value }, at: new Date() };
+        cacheValue = { result: { value }, at: new Date() };
       } catch (error) {
-        context = { result: { error }, at: new Date() };
+        cacheValue = { result: { error }, at: new Date() };
       }
       if (
         await cacheSetApprover(input, {
-          cacheSize: cache.size,
-          cachedAt: context.at,
-          cachedResult: context.result,
+          cacheSize: cacheMap.size,
+          cacheValue,
         })
       ) {
-        cache.set(cacheKey, context);
+        cacheMap.set(cacheKey, cacheValue);
       }
     }
-    if (context.result.error) {
-      throw context.result.error;
+    if (cacheValue.result.error) {
+      throw cacheValue.result.error;
     }
-    return context.result.value!;
+    return cacheValue.result.value!;
   };
 }

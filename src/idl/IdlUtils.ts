@@ -13,7 +13,7 @@ import {
   jsonDecoderObject,
   jsonDecoderOneOfKeys,
   jsonDecoderOptional,
-  jsonDecoderTransform,
+  jsonDecoderWrapped,
   jsonPreview,
   JsonValue,
 } from "../data/Json";
@@ -31,11 +31,11 @@ export const idlUtilsBytesJsonDecoder = jsonDecoderByType({
     base16: jsonCodecBytesBase16.decoder,
     base58: jsonCodecBytesBase58.decoder,
     base64: jsonCodecBytesBase64.decoder,
-    zeroes: jsonDecoderTransform(
+    zeroes: jsonDecoderWrapped(
       jsonCodecNumber.decoder,
       (n) => new Uint8Array(n),
     ),
-    encode: jsonDecoderTransform(
+    encode: jsonDecoderWrapped(
       jsonDecoderObject({
         value: jsonCodecValue.decoder,
         type: jsonDecoderOptional(idlTypeFlatParse),

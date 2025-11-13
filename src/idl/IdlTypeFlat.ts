@@ -34,10 +34,6 @@ export type IdlTypeFlatStruct = {
 };
 export type IdlTypeFlatEnum = {
   prefix: IdlTypePrefix;
-  mask: bigint;
-  indexByName: Map<string, number>;
-  indexByCodeBigInt: Map<bigint, number>;
-  indexByCodeString: Map<string, number>;
   variants: Array<IdlTypeFlatEnumVariant>;
 };
 export type IdlTypeFlatPad = {
@@ -231,8 +227,8 @@ export class IdlTypeFlatFields {
 }
 
 export type IdlTypeFlatEnumVariant = {
-  name: string;
-  code: bigint;
+  name: string | undefined;
+  code: bigint | undefined;
   docs: IdlDocs;
   fields: IdlTypeFlatFields;
 };

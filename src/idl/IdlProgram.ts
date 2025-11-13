@@ -11,7 +11,7 @@ import {
   jsonDecoderForked,
   jsonDecoderObjectKey,
   jsonDecoderObjectToMap,
-  jsonDecoderTransform,
+  jsonDecoderWrapped,
 } from "../data/Json";
 import { withErrorContext } from "../data/Utils";
 import { IdlAccount, idlAccountCheck, idlAccountParse } from "./IdlAccount";
@@ -176,7 +176,7 @@ const collectionJsonDecoder = jsonDecoderByType({
     keyDecoder: (name) => name,
     valueDecoder: jsonCodecValue.decoder,
   }),
-  array: jsonDecoderTransform(
+  array: jsonDecoderWrapped(
     jsonDecoderArray(
       jsonDecoderForked(
         jsonDecoderObjectKey("name", jsonCodecString.decoder),

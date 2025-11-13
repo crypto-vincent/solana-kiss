@@ -182,21 +182,48 @@ const visitorHydrateOrConstLiteral = {
     genericsBySymbol: Map<string, IdlTypeFull | number>,
     typedefs?: Map<string, IdlTypedef>,
   ): IdlTypeFull | number => {
-    return IdlTypeFull.enum({
-      prefix: self.prefix,
-      mask: self.mask,
-      indexByName: self.indexByName,
-      indexByCodeBigInt: self.indexByCodeBigInt,
-      indexByCodeString: self.indexByCodeString,
-      variants: self.variants.map((variant) => ({
-        name: variant.name,
-        code: variant.code,
+    let variants = self.variants.map((variant, variantIndex) => {
+      const code = variant.code ?? BigInt(variantIndex);
+      return {
+        name: variant.name ?? String(code),
+        code: code,
+        docs: variant.docs,
         fields: idlTypeFlatFieldsHydrate(
           variant.fields,
           genericsBySymbol,
           typedefs,
         ),
-      })),
+      };
+    });
+    let mask = 0n;
+    for (const variant of variants) {
+      mask |= variant.code;
+    }
+    const indexByName = new Map<string, number>();
+    const indexByCodeBigInt = new Map<bigint, number>();
+    const indexByCodeString = new Map<string, number>();
+    for (let variantIndex = 0; variantIndex < variants.length; variantIndex++) {
+      const variant = variants[variantIndex]!;
+      if (indexByName.has(variant.name)) {
+        throw new Error(`Duplicate enum variant name: ${variant.name}`);
+      }
+      if (indexByCodeBigInt.has(variant.code)) {
+        throw new Error(`Duplicate enum variant code: ${variant.code}`);
+      }
+      if (indexByCodeString.has(variant.code.toString())) {
+        throw new Error(`Duplicate enum variant code: ${variant.code}`);
+      }
+      indexByName.set(variant.name, variantIndex);
+      indexByCodeBigInt.set(variant.code, variantIndex);
+      indexByCodeString.set(variant.code.toString(), variantIndex);
+    }
+    return IdlTypeFull.enum({
+      prefix: self.prefix,
+      mask,
+      indexByName,
+      indexByCodeBigInt,
+      indexByCodeString,
+      variants,
     });
   },
   pad: (

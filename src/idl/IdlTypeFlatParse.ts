@@ -19,7 +19,7 @@ import {
   jsonDecoderObjectToMap,
   jsonDecoderOneOfKeys,
   jsonDecoderOptional,
-  jsonDecoderTransform,
+  jsonDecoderWrapped,
 } from "../data/Json";
 import { IdlDocs, idlDocsParse } from "./IdlDocs";
 import {
@@ -50,37 +50,7 @@ export function idlTypeFlatParseIsPossible(
   if (object === undefined) {
     return false;
   }
-  if (
-    object.hasOwnProperty("type") ||
-    object.hasOwnProperty("alias") ||
-    object.hasOwnProperty("defined") ||
-    object.hasOwnProperty("generic") ||
-    object.hasOwnProperty("coption") ||
-    object.hasOwnProperty("option") ||
-    object.hasOwnProperty("option8") ||
-    object.hasOwnProperty("option16") ||
-    object.hasOwnProperty("option32") ||
-    object.hasOwnProperty("option64") ||
-    object.hasOwnProperty("option128") ||
-    object.hasOwnProperty("vec") || // TODO (experiment) - support for svec and varint primitives ?
-    object.hasOwnProperty("vec8") ||
-    object.hasOwnProperty("vec16") ||
-    object.hasOwnProperty("vec32") ||
-    object.hasOwnProperty("vec64") ||
-    object.hasOwnProperty("vec128") ||
-    object.hasOwnProperty("loop") ||
-    object.hasOwnProperty("array") ||
-    object.hasOwnProperty("fields") || // TODO (experiment) - support for partial structs ?
-    object.hasOwnProperty("variants") ||
-    object.hasOwnProperty("variants8") ||
-    object.hasOwnProperty("variants16") ||
-    object.hasOwnProperty("variants32") ||
-    object.hasOwnProperty("variants64") ||
-    object.hasOwnProperty("variants128") ||
-    object.hasOwnProperty("padded") ||
-    object.hasOwnProperty("bytes") ||
-    object.hasOwnProperty("value")
-  ) {
+  if (objectJsonDecoderKeys.some((key) => object.hasOwnProperty(key))) {
     return true;
   }
   return false;
@@ -96,7 +66,7 @@ export function idlTypeFlatFieldsParse(
   return fieldsJsonDecoder(value);
 }
 
-const arrayJsonDecoder = jsonDecoderTransform(
+const arrayJsonDecoder = jsonDecoderWrapped(
   jsonDecoderArrayToObject({
     items: idlTypeFlatParse,
     length: jsonDecoderOptional(idlTypeFlatParse),
@@ -130,7 +100,7 @@ const fieldsItemJsonDecoder = jsonDecoderForked(
 const fieldsJsonDecoder = jsonDecoderByType({
   undefined: () => IdlTypeFlatFields.nothing(),
   null: () => IdlTypeFlatFields.nothing(),
-  array: jsonDecoderTransform(
+  array: jsonDecoderWrapped(
     jsonDecoderArray(fieldsItemJsonDecoder),
     (fieldsItems) => {
       if (fieldsItems.length === 0) {
@@ -217,20 +187,8 @@ const variantsObjectValueJsonDecoder = jsonDecoderByType<{
   }),
 });
 const variantsJsonDecoder = jsonDecoderByType({
-  array: jsonDecoderTransform(
-    jsonDecoderArray(variantsArrayItemJsonDecoder),
-    (variantsArray) =>
-      variantsArray.map((variantInfo, variantIndex) => {
-        const code = variantInfo.code ?? BigInt(variantIndex);
-        return {
-          name: variantInfo.name ?? String(code),
-          code,
-          docs: variantInfo.docs,
-          fields: variantInfo.fields,
-        };
-      }),
-  ),
-  object: jsonDecoderTransform(
+  array: jsonDecoderArray(variantsArrayItemJsonDecoder),
+  object: jsonDecoderWrapped(
     jsonDecoderObjectToMap({
       keyDecoder: (key) => key,
       valueDecoder: variantsObjectValueJsonDecoder,
@@ -250,7 +208,7 @@ const variantsJsonDecoder = jsonDecoderByType({
   ),
 });
 
-const objectDefinedJsonDecoder = jsonDecoderTransform(
+const objectDefinedJsonDecoder = jsonDecoderWrapped(
   jsonDecoderByType({
     string: (string) => ({ name: string, generics: undefined }),
     object: jsonDecoderObject({
@@ -265,7 +223,7 @@ const objectDefinedJsonDecoder = jsonDecoderTransform(
     }),
 );
 
-const objectCOptionJsonDecoder = jsonDecoderTransform(
+const objectCOptionJsonDecoder = jsonDecoderWrapped(
   idlTypeFlatParse,
   (content) =>
     IdlTypeFlat.defined({
@@ -280,19 +238,19 @@ function objectGenericJsonDecoder(value: JsonValue | undefined): IdlTypeFlat {
 }
 
 function objectOptionJsonDecoder(prefix: IdlTypePrefix) {
-  return jsonDecoderTransform(idlTypeFlatParse, (content) =>
+  return jsonDecoderWrapped(idlTypeFlatParse, (content) =>
     IdlTypeFlat.option({ prefix, content }),
   );
 }
 
 function objectVecJsonDecoder(prefix: IdlTypePrefix) {
-  return jsonDecoderTransform(idlTypeFlatParse, (items) =>
+  return jsonDecoderWrapped(idlTypeFlatParse, (items) =>
     IdlTypeFlat.vec({ prefix, items }),
   );
 }
 
 // TODO (naming) - nit, more intuitive IDL format like "eof" or "rest"
-const objectLoopJsonDecoder = jsonDecoderTransform(
+const objectLoopJsonDecoder = jsonDecoderWrapped(
   jsonDecoderObject({
     items: idlTypeFlatParse,
     stop: jsonDecoderByType<"end" | { value: JsonValue }>({
@@ -309,50 +267,8 @@ function objectStructJsonDecoder(value: JsonValue | undefined): IdlTypeFlat {
 }
 
 function objectEnumJsonDecoder(prefix: IdlTypePrefix) {
-  return jsonDecoderTransform(variantsJsonDecoder, (variantsRaw) => {
-    const variantsSorted = variantsRaw.sort((a, b) => {
-      if (a.code < b.code) {
-        return -1;
-      }
-      if (a.code > b.code) {
-        return 1;
-      }
-      return 0;
-    });
-    let mask = 0n;
-    for (const variant of variantsSorted) {
-      mask |= variant.code;
-    }
-    const indexByName = new Map<string, number>();
-    const indexByCodeBigInt = new Map<bigint, number>();
-    const indexByCodeString = new Map<string, number>();
-    for (
-      let variantSortedIndex = 0;
-      variantSortedIndex < variantsSorted.length;
-      variantSortedIndex++
-    ) {
-      const variant = variantsSorted[variantSortedIndex]!;
-      if (indexByName.has(variant.name)) {
-        throw new Error(`Duplicate enum variant name: ${variant.name}`);
-      }
-      if (indexByCodeBigInt.has(variant.code)) {
-        throw new Error(`Duplicate enum variant code: ${variant.code}`);
-      }
-      if (indexByCodeString.has(variant.code.toString())) {
-        throw new Error(`Duplicate enum variant code: ${variant.code}`);
-      }
-      indexByName.set(variant.name, variantSortedIndex);
-      indexByCodeBigInt.set(variant.code, variantSortedIndex);
-      indexByCodeString.set(variant.code.toString(), variantSortedIndex);
-    }
-    return IdlTypeFlat.enum({
-      prefix,
-      mask,
-      indexByName,
-      indexByCodeBigInt,
-      indexByCodeString,
-      variants: variantsSorted,
-    });
+  return jsonDecoderWrapped(variantsJsonDecoder, (variants) => {
+    return IdlTypeFlat.enum({ prefix, variants });
   });
 }
 
@@ -382,7 +298,7 @@ function objectConstJsonDecoder(value: JsonValue | undefined): IdlTypeFlat {
   return IdlTypeFlat.const({ literal });
 }
 
-const objectJsonDecoder: JsonDecoder<IdlTypeFlat> = jsonDecoderOneOfKeys({
+const objectJsonDecoderCases = {
   type: idlTypeFlatParse,
   alias: idlTypeFlatParse,
   defined: objectDefinedJsonDecoder,
@@ -394,7 +310,7 @@ const objectJsonDecoder: JsonDecoder<IdlTypeFlat> = jsonDecoderOneOfKeys({
   option32: objectOptionJsonDecoder(IdlTypePrefix.u32),
   option64: objectOptionJsonDecoder(IdlTypePrefix.u64),
   option128: objectOptionJsonDecoder(IdlTypePrefix.u128),
-  vec: objectVecJsonDecoder(IdlTypePrefix.u32),
+  vec: objectVecJsonDecoder(IdlTypePrefix.u32), // TODO (experiment) - support for svec and varint primitives ?
   vec8: objectVecJsonDecoder(IdlTypePrefix.u8),
   vec16: objectVecJsonDecoder(IdlTypePrefix.u16),
   vec32: objectVecJsonDecoder(IdlTypePrefix.u32),
@@ -402,7 +318,7 @@ const objectJsonDecoder: JsonDecoder<IdlTypeFlat> = jsonDecoderOneOfKeys({
   vec128: objectVecJsonDecoder(IdlTypePrefix.u128),
   loop: objectLoopJsonDecoder,
   array: arrayJsonDecoder,
-  fields: objectStructJsonDecoder,
+  fields: objectStructJsonDecoder, // TODO (experiment) - support for partial structs ?
   variants: objectEnumJsonDecoder(IdlTypePrefix.u8),
   variants8: objectEnumJsonDecoder(IdlTypePrefix.u8),
   variants16: objectEnumJsonDecoder(IdlTypePrefix.u16),
@@ -412,7 +328,11 @@ const objectJsonDecoder: JsonDecoder<IdlTypeFlat> = jsonDecoderOneOfKeys({
   padded: objectPadJsonDecoder,
   bytes: objectBlobJsonDecoder,
   value: objectConstJsonDecoder,
-});
+};
+const objectJsonDecoderKeys = Object.keys(objectJsonDecoderCases);
+const objectJsonDecoder: JsonDecoder<IdlTypeFlat> = jsonDecoderOneOfKeys(
+  objectJsonDecoderCases,
+);
 
 const presetsByName = new Map<string, IdlTypeFlat>([
   ["publicKey", IdlTypeFlat.primitive(IdlTypePrimitive.pubkey)],

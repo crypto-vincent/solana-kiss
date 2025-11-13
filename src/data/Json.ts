@@ -11,6 +11,7 @@ import { pubkeyFromBase58, pubkeyToBase58 } from "./Pubkey";
 import { signatureFromBase58, signatureToBase58 } from "./Signature";
 import { utf8Decode, utf8Encode } from "./Utf8";
 import {
+  Defined,
   NotNull,
   objectGetOwnProperty,
   objectGuessIntendedKey,
@@ -363,7 +364,7 @@ export const jsonCodecNumber: JsonCodec<number> = {
       );
     },
   }),
-  encoder: (decoded: number): JsonValue => {
+  encoder: (decoded) => {
     if (isNaN(decoded)) {
       return "NaN";
     }
@@ -386,9 +387,7 @@ export const jsonCodecString: JsonCodec<string> = {
     }
     return decoded;
   },
-  encoder: (decoded) => {
-    return decoded;
-  },
+  encoder: (decoded) => decoded,
 };
 
 export const jsonCodecArrayValues: JsonCodec<JsonArray> = {
@@ -424,47 +423,47 @@ export const jsonCodecInteger: JsonCodec<bigint> = {
   encoder: (decoded) => String(decoded),
 };
 
-export const jsonCodecPubkey = jsonCodecTransform(jsonCodecString, {
+export const jsonCodecPubkey = jsonCodecWrapped(jsonCodecString, {
   decoder: pubkeyFromBase58,
   encoder: pubkeyToBase58,
 });
-export const jsonCodecSignature = jsonCodecTransform(jsonCodecString, {
+export const jsonCodecSignature = jsonCodecWrapped(jsonCodecString, {
   decoder: signatureFromBase58,
   encoder: signatureToBase58,
 });
-export const jsonCodecBlockHash = jsonCodecTransform(jsonCodecString, {
+export const jsonCodecBlockHash = jsonCodecWrapped(jsonCodecString, {
   decoder: blockHashFromBase58,
   encoder: blockHashToBase58,
 });
-export const jsonCodecBlockSlot = jsonCodecTransform(jsonCodecNumber, {
+export const jsonCodecBlockSlot = jsonCodecWrapped(jsonCodecNumber, {
   decoder: blockSlotFromNumber,
   encoder: blockSlotToNumber,
 });
-export const jsonCodecDateTime = jsonCodecTransform(jsonCodecString, {
+export const jsonCodecDateTime = jsonCodecWrapped(jsonCodecString, {
   decoder: (encoded) => new Date(encoded),
   encoder: (decoded) => decoded.toISOString(),
 });
 
-export const jsonCodecBytesArray: JsonCodec<Uint8Array> = jsonCodecTransform(
+export const jsonCodecBytesArray: JsonCodec<Uint8Array> = jsonCodecWrapped(
   jsonCodecArray(jsonCodecNumber),
   {
     decoder: (encoded) => new Uint8Array(encoded) as Uint8Array,
     encoder: (decoded) => Array.from(decoded),
   },
 );
-export const jsonCodecBytesBase16: JsonCodec<Uint8Array> = jsonCodecTransform(
+export const jsonCodecBytesBase16: JsonCodec<Uint8Array> = jsonCodecWrapped(
   jsonCodecString,
   { decoder: base16Decode, encoder: base16Encode },
 );
-export const jsonCodecBytesBase58: JsonCodec<Uint8Array> = jsonCodecTransform(
+export const jsonCodecBytesBase58: JsonCodec<Uint8Array> = jsonCodecWrapped(
   jsonCodecString,
   { decoder: base58Decode, encoder: base58Encode },
 );
-export const jsonCodecBytesBase64: JsonCodec<Uint8Array> = jsonCodecTransform(
+export const jsonCodecBytesBase64: JsonCodec<Uint8Array> = jsonCodecWrapped(
   jsonCodecString,
   { decoder: base64Decode, encoder: base64Encode },
 );
-export const jsonCodecBytesUtf8: JsonCodec<Uint8Array> = jsonCodecTransform(
+export const jsonCodecBytesUtf8: JsonCodec<Uint8Array> = jsonCodecWrapped(
   jsonCodecString,
   { decoder: utf8Encode, encoder: utf8Decode },
 );
@@ -824,7 +823,7 @@ export function jsonDecoderObjectKey<Content>(
   key: string,
   valueDecoder: JsonDecoder<Content>,
 ): JsonDecoder<Content> {
-  return jsonDecoderTransform(
+  return jsonDecoderWrapped(
     jsonDecoderObject({ [key]: valueDecoder }),
     (encoded) => objectGetOwnProperty(encoded, key)!,
   );
@@ -833,7 +832,7 @@ export function jsonEncoderObjectKey<Content>(
   key: string,
   valueEncoder: JsonEncoder<Content>,
 ): JsonEncoder<Content> {
-  return jsonEncoderTransform(
+  return jsonEncoderWrapped(
     jsonEncoderObject({ [key]: valueEncoder }),
     (decoded) => ({ [key]: decoded }),
   );
@@ -859,18 +858,18 @@ export function jsonDecoderNullable<Content>(
   };
 }
 export function jsonEncoderNullable<Content>(
-  contentEncoder: JsonEncoder<Content>,
+  contentEncoder: (decoded: NotNull<Content>) => JsonValue,
 ): JsonEncoder<Content | null> {
   return (decoded) => {
     if (decoded === null) {
       return null;
     }
-    return contentEncoder(decoded);
+    return contentEncoder(decoded as NotNull<Content>);
   };
 }
 export function jsonCodecNullable<Content>(contentCodec: {
   decoder: (encoded: NotNull<JsonValue> | undefined) => Content;
-  encoder: JsonEncoder<Content>;
+  encoder: (decoded: NotNull<Content>) => JsonValue;
 }): JsonCodec<Content | null> {
   return {
     decoder: jsonDecoderNullable(contentCodec.decoder),
@@ -879,7 +878,7 @@ export function jsonCodecNullable<Content>(contentCodec: {
 }
 
 export function jsonDecoderOptional<Content>(
-  contentDecoder: (encoded: NotNull<JsonValue>) => Content,
+  contentDecoder: (encoded: Defined<NotNull<JsonValue>>) => Content,
 ): JsonDecoder<Content | undefined> {
   return (encoded) => {
     if (encoded === undefined || encoded === null) {
@@ -889,18 +888,18 @@ export function jsonDecoderOptional<Content>(
   };
 }
 export function jsonEncoderOptional<Content>(
-  contentEncoder: JsonEncoder<Content>,
+  contentEncoder: (decoded: Defined<NotNull<Content>>) => JsonValue,
 ): JsonEncoder<Content | undefined> {
   return (decoded) => {
     if (decoded === undefined || decoded === null) {
       return null;
     }
-    return contentEncoder(decoded);
+    return contentEncoder(decoded as Defined<NotNull<Content>>);
   };
 }
 export function jsonCodecOptional<Content>(contentCodec: {
-  decoder: (encoded: NotNull<JsonValue>) => Content;
-  encoder: JsonEncoder<Content>;
+  decoder: (encoded: Defined<NotNull<JsonValue>>) => Content;
+  encoder: (decoded: Defined<NotNull<Content>>) => JsonValue;
 }): JsonCodec<Content | undefined> {
   return {
     decoder: jsonDecoderOptional(contentCodec.decoder),
@@ -908,23 +907,19 @@ export function jsonCodecOptional<Content>(contentCodec: {
   };
 }
 
-export function jsonDecoderTransform<Decoded, Encoded>(
+export function jsonDecoderWrapped<Decoded, Encoded>(
   decoderInner: JsonDecoder<Encoded>,
   decoderOuter: (encoded: Encoded) => Decoded,
 ): JsonDecoder<Decoded> {
-  return (encoded) => {
-    return decoderOuter(decoderInner(encoded));
-  };
+  return (encoded) => decoderOuter(decoderInner(encoded));
 }
-export function jsonEncoderTransform<Decoded, Encoded>(
+export function jsonEncoderWrapped<Decoded, Encoded>(
   encoderInner: JsonEncoder<Encoded>,
   encoderOuter: (decoded: Decoded) => Encoded,
 ): JsonEncoder<Decoded> {
-  return (decoded) => {
-    return encoderInner(encoderOuter(decoded));
-  };
+  return (decoded) => encoderInner(encoderOuter(decoded));
 }
-export function jsonCodecTransform<Decoded, Encoded>(
+export function jsonCodecWrapped<Decoded, Encoded>(
   innerCodec: JsonCodec<Encoded>,
   outerCodec: {
     decoder: (encoded: Encoded) => Decoded;
@@ -932,8 +927,8 @@ export function jsonCodecTransform<Decoded, Encoded>(
   },
 ): JsonCodec<Decoded> {
   return {
-    decoder: jsonDecoderTransform(innerCodec.decoder, outerCodec.decoder),
-    encoder: jsonEncoderTransform(innerCodec.encoder, outerCodec.encoder),
+    decoder: jsonDecoderWrapped(innerCodec.decoder, outerCodec.decoder),
+    encoder: jsonEncoderWrapped(innerCodec.encoder, outerCodec.encoder),
   };
 }
 
