@@ -48,21 +48,36 @@ export function idlTypePrefixDecode(
 
 const visitorEncode = {
   u8: (blob: Uint8Array, value: bigint) => {
+    if (value < 0n || value > 0xffn) {
+      throw new Error(`Value out of bounds for u8: ${value}`);
+    }
     blob[0] = Number(value);
   },
   u16: (blob: Uint8Array, value: bigint) => {
+    if (value < 0n || value > 0xffffn) {
+      throw new Error(`Value out of bounds for u16: ${value}`);
+    }
     const data = new DataView(blob.buffer);
     data.setUint16(0, Number(value), true);
   },
   u32: (blob: Uint8Array, value: bigint) => {
+    if (value < 0n || value > 0xffffffffn) {
+      throw new Error(`Value out of bounds for u32: ${value}`);
+    }
     const data = new DataView(blob.buffer);
     data.setUint32(0, Number(value), true);
   },
   u64: (blob: Uint8Array, value: bigint) => {
+    if (value < 0n || value > 0xffffffffffffffffn) {
+      throw new Error(`Value out of bounds for u64: ${value}`);
+    }
     const data = new DataView(blob.buffer);
     data.setBigUint64(0, value, true);
   },
   u128: (blob: Uint8Array, value: bigint) => {
+    if (value < 0n || value > 0xffffffffffffffffffffffffffffffffn) {
+      throw new Error(`Value out of bounds for u128: ${value}`);
+    }
     const data = new DataView(blob.buffer);
     data.setBigUint64(0, value, true);
     data.setBigUint64(8, value >> 64n, true);

@@ -89,7 +89,9 @@ export function idlProgramGuessError(
   return undefined;
 }
 
-export function idlProgramParse(programValue: JsonValue): IdlProgram {
+export function idlProgramParse(
+  programValue: JsonValue | undefined,
+): IdlProgram {
   const programObject = jsonCodecObjectValues.decoder(programValue);
   const metadata = idlMetadataParse(programObject);
   const typedefs = parseScopedNamedValues(

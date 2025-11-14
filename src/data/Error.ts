@@ -15,22 +15,38 @@ export class ErrorStackable extends Error {
     const lines = new Array<string>();
     if (Array.isArray(inner)) {
       for (let index = 0; index < inner.length; index++) {
-        errorStackLines(lines, `Cause ${index + 1}`, inner[index]);
-        if (index + 1 < inner.length) {
-          lines.push("");
-        }
+        errorStackLines(
+          lines,
+          inner[index],
+          index < inner.length - 1 ? false : true,
+        );
       }
     } else {
-      errorStackLines(lines, "Cause", inner);
+      errorStackLines(lines, inner, true);
     }
-    super(`${message}\n\n` + lines.join("\n"));
+    super(`${message}\n` + lines.join("\n"));
   }
 }
 
-function errorStackLines(lines: Array<string>, title: string, error: any) {
-  lines.push(`+-- ${title}:`);
-  for (const line of String(error).split("\n")) {
-    lines.push(`| ${line}`);
+function errorStackLines(
+  messageLines: Array<string>,
+  error: any,
+  isLast: boolean,
+) {
+  const errorLines = String(error).split("\n");
+  for (let index = 0; index < errorLines.length; index++) {
+    if (index === 0) {
+      if (isLast) {
+        messageLines.push(`└── ${errorLines[index]!}`);
+      } else {
+        messageLines.push(`├── ${errorLines[index]!}`);
+      }
+    } else {
+      if (isLast) {
+        messageLines.push(`    ${errorLines[index]!}`);
+      } else {
+        messageLines.push(`│   ${errorLines[index]!}`);
+      }
+    }
   }
-  lines.push("+---");
 }

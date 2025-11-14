@@ -104,7 +104,7 @@ const visitor = {
       entries.push({ key: variant.name, value: variantFields });
     }
     return stringFunctionCall(context, "jsonCodecObjectToEnum", [
-      stringObjectEntries(context, entries),
+      stringObjectEntries(entries),
     ]);
   },
   pad: (self: IdlTypeFullPad, context: CodecContext) => {
@@ -135,7 +135,7 @@ const visitorFields = {
       entries.push({ key: field.name, value: fieldContent });
     }
     return stringFunctionCall(context, "jsonCodecObject", [
-      stringObjectEntries(context, entries),
+      stringObjectEntries(entries),
     ]);
   },
   unnamed: (self: Array<IdlTypeFullFieldUnnamed>, context: CodecContext) => {
@@ -179,7 +179,6 @@ function stringFunctionCall(
 }
 
 function stringObjectEntries(
-  _context: CodecContext,
   objectEntries: Array<{ key: string; value: string }>,
 ): string {
   return `{${objectEntries.map(({ key, value }) => `${key}:${value}`).join(",")}}`;

@@ -106,51 +106,84 @@ export function idlTypePrimitiveDecode(
 const visitorEncode = {
   u8: (blob: Uint8Array, value: JsonValue | undefined) => {
     const num = jsonCodecInteger.decoder(value);
+    if (num < 0 || num > 0xffn) {
+      throw new Error(`Value out of bounds for u8: ${num}`);
+    }
     blob[0] = Number(num);
   },
   u16: (blob: Uint8Array, value: JsonValue | undefined) => {
     const num = jsonCodecInteger.decoder(value);
+    if (num < 0 || num > 0xffffn) {
+      throw new Error(`Value out of bounds for u16: ${num}`);
+    }
     const data = new DataView(blob.buffer);
     data.setUint16(0, Number(num), true);
   },
   u32: (blob: Uint8Array, value: JsonValue | undefined) => {
     const num = jsonCodecInteger.decoder(value);
+    if (num < 0 || num > 0xffffffffn) {
+      throw new Error(`Value out of bounds for u32: ${num}`);
+    }
     const data = new DataView(blob.buffer);
     data.setUint32(0, Number(num), true);
   },
   u64: (blob: Uint8Array, value: JsonValue | undefined) => {
     const num = jsonCodecInteger.decoder(value);
+    if (num < 0 || num > 0xffffffffffffffffn) {
+      throw new Error(`Value out of bounds for u64: ${num}`);
+    }
     const data = new DataView(blob.buffer);
     data.setBigUint64(0, num, true);
   },
   u128: (blob: Uint8Array, value: JsonValue | undefined) => {
     const num = jsonCodecInteger.decoder(value);
+    if (num < 0 || num > 0xffffffffffffffffffffffffffffffffn) {
+      throw new Error(`Value out of bounds for u128: ${num}`);
+    }
     const data = new DataView(blob.buffer);
     data.setBigUint64(0, num, true);
     data.setBigUint64(8, num >> 64n, true);
   },
   i8: (blob: Uint8Array, value: JsonValue | undefined) => {
     const num = jsonCodecInteger.decoder(value);
+    if (num < -0x80n || num > 0x7fn) {
+      throw new Error(`Value out of bounds for i8: ${num}`);
+    }
     const data = new DataView(blob.buffer);
     data.setInt8(0, Number(num));
   },
   i16: (blob: Uint8Array, value: JsonValue | undefined) => {
     const num = jsonCodecInteger.decoder(value);
+    if (num < -0x8000n || num > 0x7fff) {
+      throw new Error(`Value out of bounds for i16: ${num}`);
+    }
     const data = new DataView(blob.buffer);
     data.setInt16(0, Number(num), true);
   },
   i32: (blob: Uint8Array, value: JsonValue | undefined) => {
     const num = jsonCodecInteger.decoder(value);
+    if (num < -0x80000000n || num > 0x7fffffff) {
+      throw new Error(`Value out of bounds for i32: ${num}`);
+    }
     const data = new DataView(blob.buffer);
     data.setInt32(0, Number(num), true);
   },
   i64: (blob: Uint8Array, value: JsonValue | undefined) => {
     const num = jsonCodecInteger.decoder(value);
+    if (num < -0x8000000000000000n || num > 0x7fffffffffffffffn) {
+      throw new Error(`Value out of bounds for i64: ${num}`);
+    }
     const data = new DataView(blob.buffer);
     data.setBigInt64(0, num, true);
   },
   i128: (blob: Uint8Array, value: JsonValue | undefined) => {
     const num = jsonCodecInteger.decoder(value);
+    if (
+      num < -0x80000000000000000000000000000000n ||
+      num > 0x7fffffffffffffffffffffffffffffffn
+    ) {
+      throw new Error(`Value out of bounds for i128: ${num}`);
+    }
     const low = BigInt.asIntN(64, num);
     const high = BigInt.asIntN(64, num >> 64n);
     const data = new DataView(blob.buffer);

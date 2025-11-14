@@ -7,43 +7,34 @@ it("run", async () => {
     new Error("Inner error 1\n- Line 2\n- Line 3"),
   ]);
   const errorOuter2 = new ErrorStackable("Another outer error", [
-    new ErrorStackable("Stackable inner"),
+    new ErrorStackable(
+      "Stackable inner",
+      new ErrorStackable(
+        "Single line inner1",
+        new ErrorStackable("Single line inner2", 42),
+      ),
+    ),
     42,
   ]);
-  const errorTop = new ErrorStackable("Top error\n- Dudu", [
+  const errorTop = new ErrorStackable("Top error\nWith Multiline", [
     errorOuter1,
     errorOuter2,
   ]);
   const expectedLines = [
     "Error: Top error",
-    "- Dudu",
-    "",
-    "+-- Cause 1:",
-    "| Error: Outer error",
-    "| - 2nd Line",
-    "| ",
-    "| +-- Cause 1:",
-    "| | Hello World",
-    "| +---",
-    "| ",
-    "| +-- Cause 2:",
-    "| | Error: Inner error 1",
-    "| | - Line 2",
-    "| | - Line 3",
-    "| +---",
-    "+---",
-    "",
-    "+-- Cause 2:",
-    "| Error: Another outer error",
-    "| ",
-    "| +-- Cause 1:",
-    "| | Error: Stackable inner",
-    "| +---",
-    "| ",
-    "| +-- Cause 2:",
-    "| | 42",
-    "| +---",
-    "+---",
+    "With Multiline",
+    "├── Error: Outer error",
+    "│   - 2nd Line",
+    "│   ├── Hello World",
+    "│   └── Error: Inner error 1",
+    "│       - Line 2",
+    "│       - Line 3",
+    "└── Error: Another outer error",
+    "    ├── Error: Stackable inner",
+    "    │   └── Error: Single line inner1",
+    "    │       └── Error: Single line inner2",
+    "    │           └── 42",
+    "    └── 42",
   ];
   const foundLines = String(errorTop).split("\n");
   expect(foundLines).toStrictEqual(expectedLines);
