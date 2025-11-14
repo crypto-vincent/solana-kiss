@@ -35,7 +35,7 @@ it("run", async () => {
     pubkeyDefault,
     pubkeyNewDummy(),
   ]) {
-    const onchainAnchorAddress = pubkeyCreateFromSeed(
+    const anchorIdlAddress = pubkeyCreateFromSeed(
       pubkeyFindPdaAddress(programAddress, []),
       "anchor:idl",
       programAddress,
@@ -45,14 +45,14 @@ it("run", async () => {
     await solana.getOrLoadProgramIdl(programAddress);
     await solana.getOrLoadProgramIdl(programAddress);
     expect(
-      rpcCounters.get(counterKey("getAccountInfo", [onchainAnchorAddress])),
+      rpcCounters.get(counterKey("getAccountInfo", [anchorIdlAddress])),
     ).toBe(undefined);
 
     solana.setProgramIdl(programAddress, undefined);
     await solana.getOrLoadProgramIdl(programAddress);
     await solana.getOrLoadProgramIdl(programAddress);
     expect(
-      rpcCounters.get(counterKey("getAccountInfo", [onchainAnchorAddress])),
+      rpcCounters.get(counterKey("getAccountInfo", [anchorIdlAddress])),
     ).toBe(1);
 
     rpcCounters.clear();

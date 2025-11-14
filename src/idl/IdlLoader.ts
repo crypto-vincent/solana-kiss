@@ -79,9 +79,7 @@ export function idlLoaderFromLoaderChain(loaders: Array<IdlLoader>): IdlLoader {
 
 export function idlLoaderFromUrl(
   urlBuilder: (programAddress: Pubkey) => string,
-  options?: {
-    customFetcher?: (url: string) => Promise<JsonValue>;
-  },
+  options?: { customFetcher?: (url: string) => Promise<JsonValue> },
 ): IdlLoader {
   const cacheIdls = new Map<Pubkey, IdlProgram>();
   const jsonFetcher =
@@ -105,33 +103,26 @@ export function idlLoaderFromOnchain(
   accountDataFetcher: (accountAddress: Pubkey) => Promise<Uint8Array>,
 ): IdlLoader {
   return async (programAddress: Pubkey) => {
-    const onchainAnchorAddress = pubkeyCreateFromSeed(
+    const anchorIdlAddress = pubkeyCreateFromSeed(
       pubkeyFindPdaAddress(programAddress, []),
       "anchor:idl",
       programAddress,
     );
-    const onchainAnchorData = await accountDataFetcher(onchainAnchorAddress);
-    const onchainAnchorState = idlAccountDecode(
-      onchainAnchorAccountIdl,
-      onchainAnchorData,
-    );
-    const onchainAnchorContent =
-      onchainAnchorJsonCodec.decoder(onchainAnchorState);
-    const onchainAnchorBytes = inflate(onchainAnchorContent.deflatedJson);
-    const onchainAnchorString = utf8Decode(onchainAnchorBytes);
-    const onchainAnchorJson = JSON.parse(onchainAnchorString) as JsonValue;
-    const onchainAnchorIdl = idlProgramParse(onchainAnchorJson);
-    onchainAnchorIdl.metadata.address = programAddress;
-    onchainAnchorIdl.metadata.source = `onchain://${onchainAnchorAddress}/anchor`;
-    onchainAnchorIdl.accounts.set(
-      onchainAnchorAccountIdl.name,
-      onchainAnchorAccountIdl,
-    );
-    return onchainAnchorIdl;
+    const anchorIdlData = await accountDataFetcher(anchorIdlAddress);
+    const anchorIdlState = idlAccountDecode(anchorIdlAccount, anchorIdlData);
+    const anchorIdlContent = anchorIdlJsonCodec.decoder(anchorIdlState);
+    const anchorIdlBytes = inflate(anchorIdlContent.deflatedJson);
+    const anchorIdlString = utf8Decode(anchorIdlBytes);
+    const anchorIdlJson = JSON.parse(anchorIdlString) as JsonValue;
+    const anchorIdl = idlProgramParse(anchorIdlJson);
+    anchorIdl.metadata.address = programAddress;
+    anchorIdl.metadata.source = `onchain://${anchorIdlAddress}/anchor`;
+    anchorIdl.accounts.set(anchorIdlAccount.name, anchorIdlAccount);
+    return anchorIdl;
   };
 }
 
-const onchainAnchorAccountIdl = idlAccountParse("anchor:idl", {
+const anchorIdlAccount = idlAccountParse("anchor:idl", {
   discriminator: [24, 70, 98, 191, 58, 144, 123, 158],
   fields: [
     { name: "authority", type: "pubkey" },
@@ -139,7 +130,7 @@ const onchainAnchorAccountIdl = idlAccountParse("anchor:idl", {
   ],
 });
 
-const onchainAnchorJsonCodec = jsonCodecObject({
+const anchorIdlJsonCodec = jsonCodecObject({
   authority: jsonCodecPubkey,
   deflatedJson: jsonCodecBytesArray,
 });

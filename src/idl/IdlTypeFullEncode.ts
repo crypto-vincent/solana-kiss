@@ -207,8 +207,7 @@ const visitorEncode = {
     }
     const number = jsonAsNumber(value);
     if (number !== undefined) {
-      const codeString = String(number);
-      const variantIndex = self.indexByCodeString.get(codeString);
+      const variantIndex = self.indexByCodeString.get(String(number));
       if (variantIndex === undefined) {
         throw new Error(`Could not find enum variant with code: ${value}`);
       }
