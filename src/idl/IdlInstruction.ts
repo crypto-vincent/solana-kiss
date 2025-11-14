@@ -239,7 +239,9 @@ export async function idlInstructionAddressesHydrate(
           },
         );
       } catch (error) {
-        errors.push(error);
+        if (!instructionAccountIdl.optional) {
+          errors.push(error);
+        }
       }
     }
     if (!madeProgress) {

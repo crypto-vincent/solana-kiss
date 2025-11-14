@@ -25,6 +25,7 @@ export function idlTypeFullJsonCodecModule(
   const codecExpression = idlTypeFullJsonCodecExpression(self, dependencies);
   const importNames = [...dependencies].join(",");
   const lines = [];
+  lines.push("");
   lines.push(`import {${importNames}} from "${importPath ?? "solana-kiss"}";`);
   lines.push("");
   lines.push(`export const ${exportName} = ${codecExpression};`);

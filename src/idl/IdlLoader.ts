@@ -71,7 +71,7 @@ export function idlLoaderFromLoaderChain(loaders: Array<IdlLoader>): IdlLoader {
       }
     }
     throw new ErrorStackable(
-      `IDL: Unable to find IDL for program ${programAddress}`,
+      `IDL: Unable to load IDL for program ${programAddress}`,
       errors,
     );
   };
