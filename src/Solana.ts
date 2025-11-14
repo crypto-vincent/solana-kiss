@@ -1,4 +1,5 @@
 import { BlockHash, blockHashDefault } from "./data/Block";
+import { casingLosslessConvertToSnake } from "./data/Casing";
 import { Instruction } from "./data/Instruction";
 import { Pubkey } from "./data/Pubkey";
 import { Signer } from "./data/Signer";
@@ -91,7 +92,23 @@ export class Solana {
     return await this.#idlLoader(programAddress);
   }
 
-  public async getAndInferAndDecodeAccountInfo(accountAddress: Pubkey) {
+  public async getOrLoadInstructionIdl(
+    programAddress: Pubkey,
+    instructionName: string,
+  ) {
+    const programIdl = await this.getOrLoadProgramIdl(programAddress);
+    const instructionIdl = programIdl.instructions.get(
+      casingLosslessConvertToSnake(instructionName),
+    );
+    if (!instructionIdl) {
+      throw new Error(
+        `IDL Instruction ${instructionName} not found for program ${programAddress}`,
+      );
+    }
+    return instructionIdl;
+  }
+
+  public async getAndInferAndDecodeAccount(accountAddress: Pubkey) {
     const { accountInfo } = await rpcHttpGetAccountWithData(
       this.#rpcHttp,
       accountAddress,
@@ -116,7 +133,7 @@ export class Solana {
     };
   }
 
-  public async inferAndDecodeInstructionInfo(instruction: Instruction) {
+  public async inferAndDecodeInstruction(instruction: Instruction) {
     const programIdl = await this.getOrLoadProgramIdl(
       instruction.programAddress,
     );
@@ -157,13 +174,10 @@ export class Solana {
       instructionName,
       instructionInfo,
     );
-    const programIdl = await this.getOrLoadProgramIdl(programAddress);
-    const instructionIdl = programIdl.instructions.get(instructionName);
-    if (!instructionIdl) {
-      throw new Error(
-        `IDL Instruction ${instructionName} not found for program ${programAddress}`,
-      );
-    }
+    const instructionIdl = await this.getOrLoadInstructionIdl(
+      programAddress,
+      instructionName,
+    );
     const instructionInputs = idlInstructionAccountsEncode(
       instructionIdl,
       hydratedInstructionAddresses,
@@ -184,13 +198,10 @@ export class Solana {
       accountsContext?: IdlInstructionBlobAccountsContext;
     },
   ) {
-    const programIdl = await this.getOrLoadProgramIdl(programAddress);
-    const instructionIdl = programIdl.instructions.get(instructionName);
-    if (!instructionIdl) {
-      throw new Error(
-        `IDL Instruction ${instructionName} not found for program ${programAddress}`,
-      );
-    }
+    const instructionIdl = await this.getOrLoadInstructionIdl(
+      programAddress,
+      instructionName,
+    );
     const accountsCache = new Map<Pubkey, IdlInstructionBlobAccountContent>();
     return await idlInstructionAddressesHydrate(
       instructionIdl,
@@ -205,7 +216,7 @@ export class Solana {
             return accountCached;
           }
           const { accountInfo } =
-            await this.getAndInferAndDecodeAccountInfo(accountAddress);
+            await this.getAndInferAndDecodeAccount(accountAddress);
           const accountContent = {
             accountState: accountInfo.state,
             accountTypeFull: accountInfo.idl.typeFull,

@@ -307,13 +307,9 @@ const visitorFieldsEncode = {
     const object = jsonCodecObjectValues.decoder(value);
     for (const field of self) {
       const fieldName = objectGuessIntendedKey(object, field.name);
+      const fieldValue = objectGetOwnProperty(object, fieldName);
       withErrorContext(`Encode: Field: ${fieldName}`, () => {
-        typeFullEncode(
-          field.content,
-          objectGetOwnProperty(object, fieldName),
-          prefixed,
-          blobs,
-        );
+        typeFullEncode(field.content, fieldValue, prefixed, blobs);
       });
     }
   },

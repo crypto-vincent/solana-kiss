@@ -19,7 +19,7 @@ it("run", async () => {
   const ownedAccountsAddresses = [...accountsAddresses];
   for (const ownedAccountAddress of ownedAccountsAddresses.slice(0, 3)) {
     const { accountInfo: ownedAccountInfo } =
-      await solana.getAndInferAndDecodeAccountInfo(ownedAccountAddress);
+      await solana.getAndInferAndDecodeAccount(ownedAccountAddress);
     expect(ownedAccountInfo.idl?.name).toStrictEqual("Campaign");
     expect(ownedAccountInfo.owner).toStrictEqual(programAddress);
     expect(

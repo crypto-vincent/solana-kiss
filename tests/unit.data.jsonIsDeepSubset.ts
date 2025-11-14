@@ -69,6 +69,11 @@ it("run", async () => {
       result: false,
     },
     {
+      subset: [],
+      superset: [],
+      result: true,
+    },
+    {
       subset: 42,
       superset: 42,
       result: true,

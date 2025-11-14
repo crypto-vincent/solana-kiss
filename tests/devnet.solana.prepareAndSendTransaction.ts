@@ -77,15 +77,17 @@ it("run", async () => {
   );
   expect(transactionExecution.logs?.length).toStrictEqual(4);
   expect(transactionExecution.error).toStrictEqual(null);
-  const { accountInfo: owned1Info } =
-    await solana.getAndInferAndDecodeAccountInfo(owned1Signer.address);
+  const { accountInfo: owned1Info } = await solana.getAndInferAndDecodeAccount(
+    owned1Signer.address,
+  );
   expect(owned1Info.executable).toStrictEqual(false);
   expect(owned1Info.lamports).toStrictEqual(transferLamports);
   expect(owned1Info.owner).toStrictEqual(ownerAddress);
   expect(owned1Info.data.length).toStrictEqual(requestedSpace);
   expect(owned1Info.state).toStrictEqual(null);
-  const { accountInfo: owned2Info } =
-    await solana.getAndInferAndDecodeAccountInfo(owned2Signer.address);
+  const { accountInfo: owned2Info } = await solana.getAndInferAndDecodeAccount(
+    owned2Signer.address,
+  );
   expect(owned2Info.executable).toStrictEqual(false);
   expect(owned2Info.lamports).toStrictEqual(transferLamports + 42n);
   expect(owned2Info.owner).toStrictEqual(ownerAddress);
@@ -101,7 +103,7 @@ async function makeSystemCreateInstruction(
   payerSigner: Signer,
   ownedSigner: Signer,
 ) {
-  return solana.hydrateAndEncodeInstruction(pubkeyDefault, "_create", {
+  return solana.hydrateAndEncodeInstruction(pubkeyDefault, "Create", {
     instructionAddresses: {
       payer: payerSigner.address,
       created: ownedSigner.address,

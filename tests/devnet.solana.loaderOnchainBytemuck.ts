@@ -16,7 +16,7 @@ it("run", async () => {
     "FdoXZqdMysWbzB8j5bK6U5J1Dczsos1vGwQi5Tur2mwk",
   );
   const { accountInfo } =
-    await solana.getAndInferAndDecodeAccountInfo(accountAddress);
+    await solana.getAndInferAndDecodeAccount(accountAddress);
   expect(accountInfo.idl?.name).toStrictEqual("CoordinatorAccount");
   expect(
     jsonGetAt(accountInfo.state, "state.metadata.vocabSize"),

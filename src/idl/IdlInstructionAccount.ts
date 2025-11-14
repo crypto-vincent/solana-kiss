@@ -45,7 +45,7 @@ export async function idlInstructionAccountFind(
   programAddress: Pubkey,
   instructionInfo: IdlInstructionInfo,
   accountsContext?: IdlInstructionBlobAccountsContext,
-  accountsFetcher?: IdlInstructionBlobAccountFetcher,
+  accountFetcher?: IdlInstructionBlobAccountFetcher,
 ) {
   const instructionAddress = objectGetOwnProperty(
     instructionInfo.instructionAddresses,
@@ -66,7 +66,7 @@ export async function idlInstructionAccountFind(
           instructionBlobIdl,
           instructionInfo,
           accountsContext,
-          accountsFetcher,
+          accountFetcher,
         ),
       );
     }
@@ -77,7 +77,7 @@ export async function idlInstructionAccountFind(
           self.pda.program,
           instructionInfo,
           accountsContext,
-          accountsFetcher,
+          accountFetcher,
         ),
       );
     }
@@ -90,7 +90,7 @@ export async function idlInstructionAccountFind(
 
 export function idlInstructionAccountParse(
   instructionAccountGroups: Array<string>,
-  instructionAccountValue: JsonValue,
+  instructionAccountValue: JsonValue | undefined,
   instructionArgsTypeFullFields: IdlTypeFullFields,
   typedefsIdls?: Map<string, IdlTypedef>,
 ): Array<IdlInstructionAccount> {

@@ -65,8 +65,8 @@ it("run", async () => {
   rpcCounters.clear();
 
   const ownedAccountAddress = accountsAddresses.values().next().value!;
-  await solana.getAndInferAndDecodeAccountInfo(ownedAccountAddress);
-  await solana.getAndInferAndDecodeAccountInfo(ownedAccountAddress);
+  await solana.getAndInferAndDecodeAccount(ownedAccountAddress);
+  await solana.getAndInferAndDecodeAccount(ownedAccountAddress);
   expect(rpcCounters.size).toBe(1);
   expect(
     rpcCounters.get(counterKey("getAccountInfo", [ownedAccountAddress])),

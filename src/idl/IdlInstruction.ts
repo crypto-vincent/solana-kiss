@@ -274,15 +274,17 @@ export function idlInstructionParse(
     typedefsIdls,
   );
   const accounts = new Array<IdlInstructionAccount>();
-  for (const instructionAccount of decoded.accounts ?? []) {
-    accounts.push(
-      ...idlInstructionAccountParse(
-        [],
-        instructionAccount,
-        argsTypeFullFields,
-        typedefsIdls,
-      ),
-    );
+  if (decoded.accounts !== undefined) {
+    for (const instructionAccount of decoded.accounts) {
+      accounts.push(
+        ...idlInstructionAccountParse(
+          [],
+          instructionAccount,
+          argsTypeFullFields,
+          typedefsIdls,
+        ),
+      );
+    }
   }
   return {
     name: instructionName,

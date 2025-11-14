@@ -142,19 +142,19 @@ const variantsArrayItemJsonDecoder = jsonDecoderByType<{
   docs: IdlDocs;
   fields: IdlTypeFlatFields;
 }>({
-  number: (number: number) => ({
+  number: (number) => ({
     name: undefined,
     code: BigInt(number),
     docs: undefined,
     fields: IdlTypeFlatFields.nothing(),
   }),
-  string: (string: string) => ({
+  string: (string) => ({
     name: string,
     code: undefined,
     docs: undefined,
     fields: IdlTypeFlatFields.nothing(),
   }),
-  array: (array: Array<JsonValue>) => ({
+  array: (array) => ({
     name: undefined,
     code: undefined,
     docs: undefined,

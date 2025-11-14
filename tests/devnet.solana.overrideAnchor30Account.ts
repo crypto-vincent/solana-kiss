@@ -53,7 +53,7 @@ async function assertAccountInfo(
   accountStateValue: JsonValue,
 ) {
   const { accountInfo } =
-    await solana.getAndInferAndDecodeAccountInfo(accountAddress);
+    await solana.getAndInferAndDecodeAccount(accountAddress);
   expect(accountInfo.idl.name).toStrictEqual(accountName);
   expect(
     jsonCodecObjectValues.decoder(accountInfo.state)[accountStateKey],

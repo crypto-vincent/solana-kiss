@@ -72,8 +72,8 @@ it("run", async () => {
   expect(pledgeAccountNoVerify.data.length).toBeGreaterThan(0);
   expect(pledgeAccountNoVerify.executable).toStrictEqual(false);
   expect(
-    (await solana.getAndInferAndDecodeAccountInfo(pledgeAddress)).accountInfo
-      .data.length,
+    (await solana.getAndInferAndDecodeAccount(pledgeAddress)).accountInfo.data
+      .length,
   ).toStrictEqual(0);
   // Run the simulation with verifying the signers (and recent block hash)
   const resultWithVerify = await solana.prepareAndSimulateTransaction(
@@ -102,8 +102,8 @@ it("run", async () => {
   expect(pledgeAccountWithVerify.data.length).toBeGreaterThan(0);
   expect(pledgeAccountWithVerify.executable).toStrictEqual(false);
   expect(
-    (await solana.getAndInferAndDecodeAccountInfo(pledgeAddress)).accountInfo
-      .data.length,
+    (await solana.getAndInferAndDecodeAccount(pledgeAddress)).accountInfo.data
+      .length,
   ).toStrictEqual(0);
 });
 

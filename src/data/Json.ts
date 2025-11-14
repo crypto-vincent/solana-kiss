@@ -168,7 +168,7 @@ export function jsonIsDeepSubset(
       return false;
     }
     for (let index = 0; index < subsetArray.length; index++) {
-      if (!jsonIsDeepSubset(subsetArray[index]!, supersetArray[index]!)) {
+      if (!jsonIsDeepSubset(subsetArray[index], supersetArray[index])) {
         return false;
       }
     }
@@ -183,7 +183,7 @@ export function jsonIsDeepSubset(
     for (const key of Object.keys(subsetObject)) {
       if (
         !jsonIsDeepSubset(
-          subsetObject[key]!,
+          subsetObject[key],
           objectGetOwnProperty(supersetObject, key),
         )
       ) {

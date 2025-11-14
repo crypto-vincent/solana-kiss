@@ -18,8 +18,7 @@ export function casingLosslessConvertToCamel(string: string): string {
     const codePrev = string.charCodeAt(index - 1);
     const codeCurr = string.charCodeAt(index);
     if (codePrev === codeUnderscore && codeIsLowercase(codeCurr)) {
-      codes.splice(codes.length - 1, 1);
-      codes.push(codeCurr - codeLowerToUpperDiff);
+      codes[codes.length - 1] = codeCurr - codeLowerToUpperDiff;
     } else {
       codes.push(codeCurr);
     }

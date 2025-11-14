@@ -1,4 +1,3 @@
-import { casingLosslessConvertToCamel } from "../data/Casing";
 import {
   IdlTypeFull,
   IdlTypeFullArray,
@@ -129,12 +128,11 @@ const visitorFields = {
   named: (self: Array<IdlTypeFullFieldNamed>, context: CodecContext) => {
     const entries = [];
     for (const field of self) {
-      const fieldName = casingLosslessConvertToCamel(field.name);
       const fieldContent = codec(context, field.content);
       if (fieldContent === "jsonCodecConst(null)") {
         continue;
       }
-      entries.push({ key: fieldName, value: fieldContent });
+      entries.push({ key: field.name, value: fieldContent });
     }
     return stringFunctionCall(context, "jsonCodecObject", [
       stringObjectEntries(context, entries),
