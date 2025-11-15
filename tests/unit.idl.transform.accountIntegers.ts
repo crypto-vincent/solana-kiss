@@ -67,7 +67,10 @@ it("run", () => {
     i128: -128,
   };
   // Check that we can properly serialize every versions
-  const accountDataRaw = idlAccountEncode(accountIdl, accountstateRaw);
+  const { accountData: accountDataRaw } = idlAccountEncode(
+    accountIdl,
+    accountstateRaw,
+  );
   expect(accountDataRaw).toStrictEqual(
     new Uint8Array(
       [
@@ -85,7 +88,10 @@ it("run", () => {
       ].flat(),
     ),
   );
-  const accountDataV1 = idlAccountEncode(accountIdl, accountStateV1);
+  const { accountData: accountDataV1 } = idlAccountEncode(
+    accountIdl,
+    accountStateV1,
+  );
   expect(accountDataV1).toStrictEqual(
     new Uint8Array(
       [
@@ -103,18 +109,21 @@ it("run", () => {
       ].flat(),
     ),
   );
-  const accountDataV2 = idlAccountEncode(accountIdl, accountStateV2);
+  const { accountData: accountDataV2 } = idlAccountEncode(
+    accountIdl,
+    accountStateV2,
+  );
   expect(accountDataV2).toStrictEqual(accountDataV1);
   // Check that we can properly deserialize every versions
-  expect(idlAccountDecode(accountIdl, accountDataRaw)).toStrictEqual(
-    accountstateRaw,
-  );
-  expect(idlAccountDecode(accountIdl, accountDataV1)).toStrictEqual(
-    accountStateV1,
-  );
-  expect(idlAccountDecode(accountIdl, accountDataV2)).toStrictEqual(
-    accountStateV1,
-  );
+  expect(
+    idlAccountDecode(accountIdl, accountDataRaw).accountState,
+  ).toStrictEqual(accountstateRaw);
+  expect(
+    idlAccountDecode(accountIdl, accountDataV1).accountState,
+  ).toStrictEqual(accountStateV1);
+  expect(
+    idlAccountDecode(accountIdl, accountDataV2).accountState,
+  ).toStrictEqual(accountStateV1);
 });
 
 const ff = 0xff;

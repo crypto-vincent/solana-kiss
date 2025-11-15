@@ -32,7 +32,7 @@ it("run", async () => {
   );
   expect(instructionIdl.name).toStrictEqual("update_tranches_amounts_due");
   // Check instruction inputs decoding
-  const instructionAddresses = idlInstructionAccountsDecode(
+  const { instructionAddresses } = idlInstructionAccountsDecode(
     instructionIdl,
     instruction.inputs,
   );
@@ -40,7 +40,7 @@ it("run", async () => {
     "7uZHNgrXDz2NeUBY7g21CUi3LGmCPPn4rFwpnbujA9n4",
   );
   // Check instruction data decoding
-  const instructionPayload = idlInstructionArgsDecode(
+  const { instructionPayload } = idlInstructionArgsDecode(
     instructionIdl,
     instruction.data,
   );

@@ -57,7 +57,7 @@ it("run", async () => {
     },
   };
   // Resolve missing instruction accounts
-  const instructionAddresses = await idlInstructionAddressesHydrate(
+  const { instructionAddresses } = await idlInstructionAddressesHydrate(
     instructionIdl,
     programAddress,
     {
@@ -77,7 +77,7 @@ it("run", async () => {
     pubkeyToBytes(collateralMintAddress),
   ]);
   // Check instruction accounts encoding
-  const instructionInputs = idlInstructionAccountsEncode(
+  const { instructionInputs } = idlInstructionAccountsEncode(
     instructionIdl,
     instructionAddresses,
   );
@@ -92,7 +92,7 @@ it("run", async () => {
   expectInput(instructionInputs[7], tokenProgramAddress, false, false);
   expectInput(instructionInputs[8], systemProgramAddress, false, false);
   // Check instruction data encoding
-  const instructionData = idlInstructionArgsEncode(
+  const { instructionData } = idlInstructionArgsEncode(
     instructionIdl,
     instructionPayload,
   );

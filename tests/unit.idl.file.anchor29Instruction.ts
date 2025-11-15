@@ -21,7 +21,7 @@ it("run", () => {
     programIdl.instructions.get("initialize_realm"),
   );
   // Check instruction accounts encoding
-  const instructionInputs = idlInstructionAccountsEncode(instructionIdl, {
+  const { instructionInputs } = idlInstructionAccountsEncode(instructionIdl, {
     payer: payerAddress,
     funding: fundingAddress,
     funding_usdc: placeholderAddress,
@@ -49,7 +49,7 @@ it("run", () => {
   expectInput(instructionInputs[10], placeholderAddress, false, false);
   expectInput(instructionInputs[11], placeholderAddress, false, false);
   // Check instruction data encoding
-  const instructionData = idlInstructionArgsEncode(instructionIdl, {
+  const { instructionData } = idlInstructionArgsEncode(instructionIdl, {
     params: {
       liquid_insurance_fund_usdc_amount: 41,
       phase_one_duration_seconds: 42,

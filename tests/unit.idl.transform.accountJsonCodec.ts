@@ -166,8 +166,11 @@ function stringObject(record: Record<string, string>): string {
 
 function checkRoundTrip(accountIdl: IdlAccount, jsonCodec: any, decoded: any) {
   const encoded = jsonCodec.encoder(decoded);
-  const bytes = idlAccountEncode(accountIdl, encoded);
+  const { accountData } = idlAccountEncode(accountIdl, encoded);
   expect(
-    idlAccountEncode(accountIdl, idlAccountDecode(accountIdl, bytes)),
-  ).toStrictEqual(bytes);
+    idlAccountEncode(
+      accountIdl,
+      idlAccountDecode(accountIdl, accountData).accountState,
+    ).accountData,
+  ).toStrictEqual(accountData);
 }

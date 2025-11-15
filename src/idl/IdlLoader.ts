@@ -109,7 +109,10 @@ export function idlLoaderFromOnchain(
       programAddress,
     );
     const anchorIdlData = await accountDataFetcher(anchorIdlAddress);
-    const anchorIdlState = idlAccountDecode(anchorIdlAccount, anchorIdlData);
+    const anchorIdlState = idlAccountDecode(
+      anchorIdlAccount,
+      anchorIdlData,
+    ).accountState;
     const anchorIdlContent = anchorIdlJsonCodec.decoder(anchorIdlState);
     const anchorIdlBytes = inflate(anchorIdlContent.deflatedJson);
     const anchorIdlString = utf8Decode(anchorIdlBytes);

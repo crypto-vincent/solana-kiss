@@ -76,12 +76,14 @@ it("run", () => {
     variants32: "D",
   };
   // Check that we can use the manual IDL to encode/decode our account
-  const accountData = idlAccountEncode(accountIdl, accountState);
+  const { accountData } = idlAccountEncode(accountIdl, accountState);
   expect(accountData).toStrictEqual(
     new Uint8Array([
       77, 0, 0, 0, 0, 0, 1, 0, 0, 0, 39, 1, 40, 1, 41, 1, 0, 42, 1, 0, 0, 0, 43,
       1, 0, 0, 0, 50, 1, 51, 1, 0, 52, 1, 0, 0, 0, 53, 0, 1, 2, 0, 3, 0, 0, 0,
     ]),
   );
-  expect(idlAccountDecode(accountIdl, accountData)).toStrictEqual(accountState);
+  expect(idlAccountDecode(accountIdl, accountData).accountState).toStrictEqual(
+    accountState,
+  );
 });

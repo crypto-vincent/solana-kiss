@@ -35,26 +35,25 @@ export type IdlAccount = {
 export function idlAccountEncode(
   self: IdlAccount,
   accountState: JsonValue | undefined,
-): Uint8Array {
-  return idlTypeFullEncode(
-    self.typeFull,
-    accountState,
-    true,
-    self.discriminator,
-  );
+) {
+  return {
+    accountData: idlTypeFullEncode(
+      self.typeFull,
+      accountState,
+      true,
+      self.discriminator,
+    ),
+  };
 }
 
-export function idlAccountDecode(
-  self: IdlAccount,
-  accountData: Uint8Array,
-): JsonValue {
+export function idlAccountDecode(self: IdlAccount, accountData: Uint8Array) {
   idlAccountCheck(self, accountData);
   const [, accountState] = idlTypeFullDecode(
     self.typeFull,
     new DataView(accountData.buffer),
     self.discriminator.length,
   );
-  return accountState;
+  return { accountState };
 }
 
 export function idlAccountCheck(

@@ -61,12 +61,14 @@ it("run", () => {
     padComboOver: [80, 81, 82, 83],
   };
   // Check that we can use the manual IDL to encode/decode our account
-  const accountData = idlAccountEncode(accountIdl, accountState);
+  const { accountData } = idlAccountEncode(accountIdl, accountState);
   expect(accountData).toStrictEqual(
     new Uint8Array([
       22, 0, 0, 0, 40, 50, 51, 0, 60, 61, 62, 63, 0, 70, 71, 0, 0, 80, 81, 82,
       83,
     ]),
   );
-  expect(idlAccountDecode(accountIdl, accountData)).toStrictEqual(accountState);
+  expect(idlAccountDecode(accountIdl, accountData).accountState).toStrictEqual(
+    accountState,
+  );
 });

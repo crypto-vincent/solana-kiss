@@ -62,7 +62,7 @@ it("run", () => {
       { name: 79, code: 89 },
     ],
   };
-  const accountData = idlAccountEncode(accountIdl, accountState);
+  const { accountData } = idlAccountEncode(accountIdl, accountState);
   expect(accountData).toStrictEqual(
     new Uint8Array([
       18, 10, 20, 30, 0, 5, 0, 0, 0, 104, 101, 108, 108, 111, 5, 0, 0, 0, 119,
@@ -70,5 +70,7 @@ it("run", () => {
       0, 0, 77, 87, 78, 88, 79, 89,
     ]),
   );
-  expect(idlAccountDecode(accountIdl, accountData)).toStrictEqual(accountState);
+  expect(idlAccountDecode(accountIdl, accountData).accountState).toStrictEqual(
+    accountState,
+  );
 });

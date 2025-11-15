@@ -125,12 +125,12 @@ function makeCreateInstruction(
     inputs: idlInstructionAccountsEncode(instructionIdl, {
       payer: payerSigner.address,
       owned: ownedSigner.address,
-    }),
+    }).instructionInputs,
     data: idlInstructionArgsEncode(instructionIdl, {
       lamports: String(transferLamports),
       space: requestedSpace,
       owner: pubkeyToBase58(ownerAddress),
-    }),
+    }).instructionData,
   };
 }
 

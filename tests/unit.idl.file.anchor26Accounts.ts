@@ -59,26 +59,27 @@ it("run", async () => {
     utf8Encode("repayment-schedule"),
   ]);
   // Generate all missing IX accounts with just the minimum information
-  const initializeMarketAddresses = await idlInstructionAddressesHydrate(
-    expectDefined(programIdl.instructions.get("initialize_market")),
-    programAddress,
-    {
-      addresses: {
-        owner: ownerAddress,
-        liquidity_pool_token_account: liquidityPoolTokenAccountAddress,
-        treasury: treasuryAddress,
-        treasury_pool_token_account: treasuryPoolTokenAccountAddress,
-        base_token_mint: baseTokenMintAddress,
-        associated_token_program: placeholderAddress,
-        rent: placeholderAddress,
-        token_program: placeholderAddress,
-        system_program: placeholderAddress,
+  const { instructionAddresses: initializeMarketAddresses } =
+    await idlInstructionAddressesHydrate(
+      expectDefined(programIdl.instructions.get("initialize_market")),
+      programAddress,
+      {
+        addresses: {
+          owner: ownerAddress,
+          liquidity_pool_token_account: liquidityPoolTokenAccountAddress,
+          treasury: treasuryAddress,
+          treasury_pool_token_account: treasuryPoolTokenAccountAddress,
+          base_token_mint: baseTokenMintAddress,
+          associated_token_program: placeholderAddress,
+          rent: placeholderAddress,
+          token_program: placeholderAddress,
+          system_program: placeholderAddress,
+        },
+        payload: {
+          global_market_seed: globalMarketSeed,
+        },
       },
-      payload: {
-        global_market_seed: globalMarketSeed,
-      },
-    },
-  );
+    );
   // Check the outcomes
   expect(initializeMarketAddresses["global_market_state"]).toStrictEqual(
     globalMarketStateAddress,
@@ -96,28 +97,29 @@ it("run", async () => {
     lpTokenMintAddress,
   );
   // Generate all missing IX accounts with just the minimum information
-  const openDealAddresses = await idlInstructionAddressesHydrate(
-    expectDefined(programIdl.instructions.get("open_deal")),
-    programAddress,
-    {
-      addresses: {
-        owner: ownerAddress,
-        global_market_state: globalMarketStateAddress,
+  const { instructionAddresses: openDealAddresses } =
+    await idlInstructionAddressesHydrate(
+      expectDefined(programIdl.instructions.get("open_deal")),
+      programAddress,
+      {
+        addresses: {
+          owner: ownerAddress,
+          global_market_state: globalMarketStateAddress,
+        },
+        payload: { global_market_seed: globalMarketSeed },
       },
-      payload: { global_market_seed: globalMarketSeed },
-    },
-    {
-      accountsContext: {
-        deal: {
-          accountTypeFull: undefined,
-          accountState: {
-            deal_number: dealNumber,
-            borrower: pubkeyToBase58(borrowerAddress),
+      {
+        accountsContext: {
+          deal: {
+            accountTypeFull: undefined,
+            accountState: {
+              deal_number: dealNumber,
+              borrower: pubkeyToBase58(borrowerAddress),
+            },
           },
         },
       },
-    },
-  );
+    );
   // Check the outcomes
   expect(openDealAddresses["market_admins"]).toStrictEqual(marketAdminsAddress);
   expect(openDealAddresses["deal"]).toStrictEqual(dealAddress);

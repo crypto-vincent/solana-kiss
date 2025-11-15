@@ -40,17 +40,14 @@ it("run", () => {
     myAccount1: account1Address,
     myAccount2: account2Address,
   };
-  const instructionSnakeInputs = idlInstructionAccountsEncode(
-    instructionIdl,
-    instructionSnakeAddresses,
-  );
-  const instructionCamelInputs = idlInstructionAccountsEncode(
-    instructionIdl,
-    instructionCamelAddresses,
-  );
+  const { instructionInputs: instructionSnakeInputs } =
+    idlInstructionAccountsEncode(instructionIdl, instructionSnakeAddresses);
+  const { instructionInputs: instructionCamelInputs } =
+    idlInstructionAccountsEncode(instructionIdl, instructionCamelAddresses);
   expect(instructionCamelInputs).toStrictEqual(instructionSnakeInputs);
   expect(
-    idlInstructionAccountsDecode(instructionIdl, instructionSnakeInputs),
+    idlInstructionAccountsDecode(instructionIdl, instructionSnakeInputs)
+      .instructionAddresses,
   ).toStrictEqual(instructionSnakeAddresses);
   // Check that both casing styles are supported interchangeably on encoding args
   const instructionSnakePayload = {
@@ -61,16 +58,17 @@ it("run", () => {
     myArg1: 42,
     myArg2: "hello world",
   };
-  const instructionSnakeData = idlInstructionArgsEncode(
+  const { instructionData: instructionSnakeData } = idlInstructionArgsEncode(
     instructionIdl,
     instructionSnakePayload,
   );
-  const instructionCamelData = idlInstructionArgsEncode(
+  const { instructionData: instructionCamelData } = idlInstructionArgsEncode(
     instructionIdl,
     instructionCamelPayload,
   );
   expect(instructionCamelData).toStrictEqual(instructionSnakeData);
   expect(
-    idlInstructionArgsDecode(instructionIdl, instructionSnakeData),
+    idlInstructionArgsDecode(instructionIdl, instructionSnakeData)
+      .instructionPayload,
   ).toStrictEqual(instructionCamelPayload);
 });

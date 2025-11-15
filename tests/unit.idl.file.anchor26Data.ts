@@ -42,12 +42,13 @@ it("run", () => {
     withdrawEpochAvailableLiquiditySeconds: 24,
   };
   // Encode/decode the instruction args and check that they match the original
-  const instructionData = idlInstructionArgsEncode(
+  const { instructionData } = idlInstructionArgsEncode(
     instructionIdl,
     instructionPayload,
   );
   expect(
-    idlInstructionArgsDecode(instructionIdl, instructionData),
+    idlInstructionArgsDecode(instructionIdl, instructionData)
+      .instructionPayload,
   ).toStrictEqual(instructionPayload);
   // Prepare an account contents
   const marketAccountIdl = expectDefined(
@@ -85,10 +86,13 @@ it("run", () => {
     redeemAuthorityBump: 9,
   };
   // Decode the account content and check that it matches the original
-  const accountData = idlAccountEncode(marketAccountIdl, marketAccountState);
-  expect(idlAccountDecode(marketAccountIdl, accountData)).toStrictEqual(
+  const { accountData: marketAccountData } = idlAccountEncode(
+    marketAccountIdl,
     marketAccountState,
   );
+  expect(
+    idlAccountDecode(marketAccountIdl, marketAccountData).accountState,
+  ).toStrictEqual(marketAccountState);
   // Prepare an account contents
   const programAccountIdl = expectDefined(
     programIdl.accounts.get("ProgramState"),
@@ -110,11 +114,11 @@ it("run", () => {
     credixTreasury: pubkeyToBase58(pubkeyNewDummy()),
   };
   // Decode the account content and check that it matches the original
-  const programAccountData = idlAccountEncode(
+  const { accountData: programAccountData } = idlAccountEncode(
     programAccountIdl,
     programAccountState,
   );
-  expect(idlAccountDecode(programAccountIdl, programAccountData)).toStrictEqual(
-    programAccountState,
-  );
+  expect(
+    idlAccountDecode(programAccountIdl, programAccountData).accountState,
+  ).toStrictEqual(programAccountState);
 });

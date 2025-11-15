@@ -32,7 +32,7 @@ it("run", async () => {
     migrated: true,
   };
   // Find missing instruction accounts
-  const instructionAddresses = await idlInstructionAddressesHydrate(
+  const { instructionAddresses } = await idlInstructionAddressesHydrate(
     instructionIdl,
     programAddress,
     {
@@ -54,18 +54,20 @@ it("run", async () => {
     },
   );
   // Check that we can encode it and then decode it
-  const instructionInputs = idlInstructionAccountsEncode(
+  const { instructionInputs } = idlInstructionAccountsEncode(
     instructionIdl,
     instructionAddresses,
   );
   expect(
-    idlInstructionAccountsDecode(instructionIdl, instructionInputs),
+    idlInstructionAccountsDecode(instructionIdl, instructionInputs)
+      .instructionAddresses,
   ).toStrictEqual(instructionAddresses);
-  const instructionData = idlInstructionArgsEncode(
+  const { instructionData } = idlInstructionArgsEncode(
     instructionIdl,
     instructionPayload,
   );
   expect(
-    idlInstructionArgsDecode(instructionIdl, instructionData),
+    idlInstructionArgsDecode(instructionIdl, instructionData)
+      .instructionPayload,
   ).toStrictEqual(instructionPayload);
 });

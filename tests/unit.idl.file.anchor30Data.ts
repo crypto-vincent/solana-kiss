@@ -34,12 +34,13 @@ it("run", () => {
     },
   };
   // Encode / decode the instruction payload and check that they match the original
-  const instructionData = idlInstructionArgsEncode(
+  const { instructionData } = idlInstructionArgsEncode(
     instructionIdl,
     instructionPayload,
   );
   expect(instructionPayload).toStrictEqual(
-    idlInstructionArgsDecode(instructionIdl, instructionData),
+    idlInstructionArgsDecode(instructionIdl, instructionData)
+      .instructionPayload,
   );
   // IDL Account used
   const campaignAccountIdl = expectDefined(programIdl.accounts.get("Campaign"));
@@ -66,13 +67,13 @@ it("run", () => {
     },
   };
   // Encode/decode the account state and check that it matches the original
-  const campaignAccountData = idlAccountEncode(
+  const { accountData: campaignAccountData } = idlAccountEncode(
     campaignAccountIdl,
     campaignAccountState,
   );
   expect(campaignAccountData.length).toStrictEqual(675);
   expect(campaignAccountState).toStrictEqual(
-    idlAccountDecode(campaignAccountIdl, campaignAccountData),
+    idlAccountDecode(campaignAccountIdl, campaignAccountData).accountState,
   );
   // IDL Account used
   const pledgeAccountIdl = expectDefined(programIdl.accounts.get("Pledge"));
@@ -82,12 +83,12 @@ it("run", () => {
     claimedRedeemableAmount: "22",
   };
   // Encode/decode the account content and check that it matches the original
-  const pledgeAccountData = idlAccountEncode(
+  const { accountData: pledgeAccountData } = idlAccountEncode(
     pledgeAccountIdl,
     pledgeAccountState,
   );
   expect(pledgeAccountData.length).toStrictEqual(25);
   expect(pledgeAccountState).toStrictEqual(
-    idlAccountDecode(pledgeAccountIdl, pledgeAccountData),
+    idlAccountDecode(pledgeAccountIdl, pledgeAccountData).accountState,
   );
 });

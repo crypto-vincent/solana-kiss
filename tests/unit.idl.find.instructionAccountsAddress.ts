@@ -29,7 +29,7 @@ it("run", async () => {
     },
   });
   // Assert that the accounts can be properly resolved
-  const instructionAddresses = await idlInstructionAddressesHydrate(
+  const { instructionAddresses } = await idlInstructionAddressesHydrate(
     expectDefined(programIdl.instructions.get("my_ix")),
     pubkeyNewDummy(),
   );

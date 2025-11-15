@@ -32,9 +32,9 @@ it("run", () => {
   // Check that we can properly serialize various strings
   const accountIdl = expectDefined(programIdl.accounts.get("MyAccount"));
   for (const test of tests) {
-    const content = { value: test };
-    const encoded = idlAccountEncode(accountIdl, content);
-    const decoded = idlAccountDecode(accountIdl, encoded);
-    expect(content).toStrictEqual(decoded);
+    const originalState = { value: test };
+    const { accountData } = idlAccountEncode(accountIdl, originalState);
+    const { accountState } = idlAccountDecode(accountIdl, accountData);
+    expect(originalState).toStrictEqual(accountState);
   }
 });

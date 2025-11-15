@@ -41,12 +41,12 @@ it("run", async () => {
   expect(contentDecoded.state.metadata.vocabSize).toStrictEqual(129280n);
   expect(contentDecoded.state.coordinator.config.minClients).toStrictEqual(24);
 
-  const reencoded = idlAccountEncode(
+  const { accountData } = idlAccountEncode(
     accountIdl,
     jsonCodecAccountBytemuck.encoder(contentDecoded),
   );
-  expect(reencoded.length).toStrictEqual(accountInfo.data.length);
-
-  const redecoded = idlAccountDecode(accountIdl, reencoded);
-  expect(redecoded).toStrictEqual(accountState);
+  expect(accountData.length).toStrictEqual(accountInfo.data.length);
+  expect(idlAccountDecode(accountIdl, accountData).accountState).toStrictEqual(
+    accountState,
+  );
 });

@@ -69,9 +69,9 @@ it("run", () => {
   const accountIdl = expectDefined(programIdl1.accounts.get("MyAccount"));
   // Check that we can use the manual IDL to encode/decode our account
   const accountState = { value: 42 };
-  const accountData = idlAccountEncode(accountIdl, accountState);
+  const { accountData } = idlAccountEncode(accountIdl, accountState);
   expect(accountData).toStrictEqual(new Uint8Array([22, 1, 2, 3, 42, 4, 5, 6]));
-  expect(idlAccountDecode(accountIdl, accountData)).toStrictEqual({
+  expect(idlAccountDecode(accountIdl, accountData).accountState).toStrictEqual({
     ...accountState,
     blobBefore: null,
     blobEmpty: null,

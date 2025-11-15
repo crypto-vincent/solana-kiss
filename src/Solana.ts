@@ -114,7 +114,7 @@ export class Solana {
     );
     const { programIdl } = await this.getOrLoadProgramIdl(accountInfo.owner);
     const accountIdl = idlProgramGuessAccount(programIdl, accountInfo.data);
-    const accountState = idlAccountDecode(accountIdl, accountInfo.data);
+    const { accountState } = idlAccountDecode(accountIdl, accountInfo.data);
     return { programIdl, accountIdl, accountInfo, accountState };
   }
 
@@ -128,15 +128,17 @@ export class Solana {
       programIdl,
       instructionRequest,
     );
+    const { instructionAddresses } = idlInstructionAccountsDecode(
+      instructionIdl,
+      instructionRequest.inputs,
+    );
+    const { instructionPayload } = idlInstructionArgsDecode(
+      instructionIdl,
+      instructionRequest.data,
+    );
     const instructionFrame: InstructionFrame = {
-      addresses: idlInstructionAccountsDecode(
-        instructionIdl,
-        instructionRequest.inputs,
-      ),
-      payload: idlInstructionArgsDecode(
-        instructionIdl,
-        instructionRequest.data,
-      ),
+      addresses: instructionAddresses,
+      payload: instructionPayload,
     };
     return {
       programIdl,
@@ -163,13 +165,18 @@ export class Solana {
       programAddress,
       instructionName,
     );
+    const { instructionInputs } = idlInstructionAccountsEncode(
+      instructionIdl,
+      instructionAddresses,
+    );
+    const { instructionData } = idlInstructionArgsEncode(
+      instructionIdl,
+      instructionFrame.payload,
+    );
     const instructionRequest: InstructionRequest = {
       programAddress,
-      inputs: idlInstructionAccountsEncode(
-        instructionIdl,
-        instructionAddresses,
-      ),
-      data: idlInstructionArgsEncode(instructionIdl, instructionFrame.payload),
+      inputs: instructionInputs,
+      data: instructionData,
     };
     return { instructionRequest };
   }
@@ -188,7 +195,7 @@ export class Solana {
       instructionName,
     );
     const accountsCache = new Map<Pubkey, IdlInstructionBlobAccountContent>();
-    const instructionAddresses = await idlInstructionAddressesHydrate(
+    return await idlInstructionAddressesHydrate(
       instructionIdl,
       programAddress,
       instructionFrame,
@@ -210,7 +217,6 @@ export class Solana {
         },
       },
     );
-    return { instructionAddresses };
   }
 
   public async getRecentBlockHash() {

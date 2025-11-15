@@ -134,7 +134,7 @@ it("run", async () => {
     pdaSeedsConstString,
   );
   // Assert that the accounts can be properly resolved
-  const instructionAddresses = await idlInstructionAddressesHydrate(
+  const { instructionAddresses } = await idlInstructionAddressesHydrate(
     expectDefined(programIdl1.instructions.get("my_ix")),
     programAddress1,
   );

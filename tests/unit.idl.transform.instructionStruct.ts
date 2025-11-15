@@ -5,6 +5,8 @@ import {
   idlInstructionAccountsEncode,
   idlInstructionArgsDecode,
   idlInstructionArgsEncode,
+  idlInstructionReturnDecode,
+  idlInstructionReturnEncode,
   idlProgramParse,
   pubkeyNewDummy,
 } from "../src";
@@ -23,6 +25,12 @@ it("run", () => {
           { name: "arg1", type: { defined: "MyArg" } },
           { name: "arg2", type: "i16" },
         ],
+        returns: {
+          fields: [
+            { name: "result1", type: "u16" },
+            { name: "result2", type: ["u8"] },
+          ],
+        },
       },
     },
     types: {
@@ -47,8 +55,12 @@ it("run", () => {
     arg1: { id: 42, data: [1, 2, 3] },
     arg2: -2,
   };
+  const instructionResult = {
+    result1: 100,
+    result2: [2, 0, 42],
+  };
   // Check instruction inputs encoding/decoding
-  const instructionInputs = idlInstructionAccountsEncode(
+  const { instructionInputs } = idlInstructionAccountsEncode(
     instructionIdl,
     instructionAddresses,
   );
@@ -57,10 +69,11 @@ it("run", () => {
     { address: writableAddress, signer: false, writable: true },
   ]);
   expect(
-    idlInstructionAccountsDecode(instructionIdl, instructionInputs),
+    idlInstructionAccountsDecode(instructionIdl, instructionInputs)
+      .instructionAddresses,
   ).toStrictEqual(instructionAddresses);
   // Check instruction data encoding/decoding
-  const instructionData = idlInstructionArgsEncode(
+  const { instructionData } = idlInstructionArgsEncode(
     instructionIdl,
     instructionPayload,
   );
@@ -68,6 +81,19 @@ it("run", () => {
     new Uint8Array([77, 78, 42, 0, 3, 0, 0, 0, 1, 2, 3, 254, 255]),
   );
   expect(
-    idlInstructionArgsDecode(instructionIdl, instructionData),
+    idlInstructionArgsDecode(instructionIdl, instructionData)
+      .instructionPayload,
   ).toStrictEqual(instructionPayload);
+  // Check instruction return data encoding/decoding
+  const { instructionReturned } = idlInstructionReturnEncode(
+    instructionIdl,
+    instructionResult,
+  );
+  expect(instructionReturned).toStrictEqual(
+    new Uint8Array([100, 0, 3, 0, 0, 0, 2, 0, 42]),
+  );
+  expect(
+    idlInstructionReturnDecode(instructionIdl, instructionReturned)
+      .instructionResult,
+  ).toStrictEqual(instructionResult);
 });

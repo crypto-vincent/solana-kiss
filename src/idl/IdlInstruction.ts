@@ -63,7 +63,7 @@ export type IdlInstruction = {
 export function idlInstructionAccountsEncode(
   self: IdlInstruction,
   instructionAddresses: InstructionAddresses,
-): Array<InstructionInput> {
+) {
   const instructionInputs = new Array<InstructionInput>();
   for (const instructionAccountIdl of self.accounts) {
     const instructionAddress = objectGetOwnProperty(
@@ -84,85 +84,90 @@ export function idlInstructionAccountsEncode(
       writable: instructionAccountIdl.writable,
     });
   }
-  return instructionInputs;
+  return { instructionInputs };
 }
 
 export function idlInstructionAccountsDecode(
   self: IdlInstruction,
   instructionInputs: Array<InstructionInput>,
-): InstructionAddresses {
-  idlInstructionAccountsCheck(self, instructionInputs);
-  let instructionOptionalsPossible = 0;
+) {
+  let instructionOptionals = 0;
   for (const instructionAccountIdl of self.accounts) {
     if (instructionAccountIdl.optional) {
-      instructionOptionalsPossible++;
+      instructionOptionals++;
     }
   }
-  const instructionOptionalsUnuseds =
-    self.accounts.length - instructionInputs.length;
-  const instructionOptionalsUsed =
-    instructionOptionalsPossible - instructionOptionalsUnuseds;
+  let inputsRequired = self.accounts.length - instructionOptionals;
+  if (instructionInputs.length < inputsRequired) {
+    throw new Error(
+      `Idl: Not enough instruction inputs to decode all required accounts (required: ${inputsRequired}, found: ${instructionInputs.length})`,
+    );
+  }
+  let inputsOptionals = instructionInputs.length - inputsRequired;
+  let inputsIndex = 0;
   const instructionAddresses: Record<string, Pubkey> = {};
-  let instructionInputIndex = 0;
-  let instructionOptionalsCurrent = 0;
   for (const instructionAccountIdl of self.accounts) {
     if (instructionAccountIdl.optional) {
-      instructionOptionalsCurrent += 1;
-      if (instructionOptionalsCurrent > instructionOptionalsUsed) {
+      if (inputsOptionals > 0) {
+        inputsOptionals--;
+      } else {
         continue;
       }
     }
-    if (instructionInputIndex >= instructionInputs.length) {
-      break;
+    const instructionInput = instructionInputs[inputsIndex++]!;
+    if (
+      instructionInput.signer === false &&
+      instructionAccountIdl.signer === true
+    ) {
+      throw new Error(
+        `Idl: Instruction account ${instructionAccountIdl.name} expected to be a signer`,
+      );
     }
-    instructionAddresses[instructionAccountIdl.name] =
-      instructionInputs[instructionInputIndex]!.address;
-    instructionInputIndex++;
+    if (
+      instructionInput.writable === false &&
+      instructionAccountIdl.writable === true
+    ) {
+      throw new Error(
+        `Idl: Instruction account ${instructionAccountIdl.name} expected to be writable`,
+      );
+    }
+    instructionAddresses[instructionAccountIdl.name] = instructionInput.address;
   }
-  return instructionAddresses;
+  return { instructionAddresses };
 }
 
 export function idlInstructionAccountsCheck(
   self: IdlInstruction,
   instructionInputs: Array<InstructionInput>,
 ): void {
-  // TODO (safety) - improve the check logic
-  let requiredCount = 0;
-  for (const instructionAccountIdl of self.accounts) {
-    if (!instructionAccountIdl.optional) {
-      requiredCount++;
-    }
-  }
-  if (instructionInputs.length < requiredCount) {
-    throw new Error(
-      `Idl: Expected at least ${requiredCount} instruction inputs (found: ${instructionInputs.length})`,
-    );
-  }
+  idlInstructionAccountsDecode(self, instructionInputs);
 }
 
 export function idlInstructionArgsEncode(
   self: IdlInstruction,
   instructionPayload: JsonValue | undefined,
-): Uint8Array {
-  return idlTypeFullFieldsEncode(
-    self.args.typeFullFields,
-    instructionPayload,
-    true,
-    self.discriminator,
-  );
+) {
+  return {
+    instructionData: idlTypeFullFieldsEncode(
+      self.args.typeFullFields,
+      instructionPayload,
+      true,
+      self.discriminator,
+    ),
+  };
 }
 
 export function idlInstructionArgsDecode(
   self: IdlInstruction,
   instructionData: Uint8Array,
-): JsonValue {
+) {
   idlInstructionArgsCheck(self, instructionData);
   const [, instructionPayload] = idlTypeFullFieldsDecode(
     self.args.typeFullFields,
     new DataView(instructionData.buffer),
     self.discriminator.length,
   );
-  return instructionPayload;
+  return { instructionPayload };
 }
 
 export function idlInstructionArgsCheck(
@@ -172,24 +177,29 @@ export function idlInstructionArgsCheck(
   idlUtilsExpectBlobAt(0, self.discriminator, instructionData);
 }
 
-// TODO (test) - test this return decoding/encoding ?
 export function idlInstructionReturnEncode(
   self: IdlInstruction,
   instructionResult: JsonValue | undefined,
-): Uint8Array {
-  return idlTypeFullEncode(self.return.typeFull, instructionResult, true);
+) {
+  return {
+    instructionReturned: idlTypeFullEncode(
+      self.return.typeFull,
+      instructionResult,
+      true,
+    ),
+  };
 }
 
 export function idlInstructionReturnDecode(
   self: IdlInstruction,
   instructionReturned: Uint8Array,
-): JsonValue {
+) {
   const [, instructionResult] = idlTypeFullDecode(
     self.return.typeFull,
     new DataView(instructionReturned.buffer),
-    self.discriminator.length,
+    0,
   );
-  return instructionResult;
+  return { instructionResult };
 }
 
 export async function idlInstructionAddressesHydrate(
@@ -252,7 +262,7 @@ export async function idlInstructionAddressesHydrate(
       break;
     }
   }
-  return instructionAddresses;
+  return { instructionAddresses };
 }
 
 export function idlInstructionParse(

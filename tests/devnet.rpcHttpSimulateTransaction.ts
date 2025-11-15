@@ -54,7 +54,7 @@ it("run", async () => {
     programIdl.instructions.get("pledge_create"),
   );
   // Build the instruction
-  const instruction = {
+  const instructionRequest = {
     programAddress,
     inputs: idlInstructionAccountsEncode(instructionIdl, {
       payer: payerSigner.address,
@@ -62,16 +62,16 @@ it("run", async () => {
       campaign: campaignAddress,
       pledge: pledgeAddress,
       system_program: pubkeyDefault,
-    }),
+    }).instructionInputs,
     data: idlInstructionArgsEncode(instructionIdl, {
       params: null,
-    }),
+    }).instructionData,
   };
   // Run the simulation without verifying the signers
   const transactionPacketNoVerify = transactionCompileUnsigned({
     payerAddress: payerSigner.address,
     recentBlockHash: blockHashDefault,
-    instructions: [instruction],
+    instructions: [instructionRequest],
   });
   const resultNoVerify = await rpcHttpSimulateTransaction(
     rpcHttp,
@@ -104,7 +104,7 @@ it("run", async () => {
     {
       payerAddress: payerSigner.address,
       recentBlockHash: recentBlockInfo.hash,
-      instructions: [instruction],
+      instructions: [instructionRequest],
     },
   );
   const resultWithVerify = await rpcHttpSimulateTransaction(

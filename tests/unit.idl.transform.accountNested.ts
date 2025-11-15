@@ -45,7 +45,7 @@ it("run", () => {
   });
   // MyAccount1 prepared
   const accountIdl1 = expectDefined(programIdl.accounts.get("MyAccount1"));
-  const accountstate1 = {
+  const accountState1 = {
     name: "ABCD",
     struct: {
       integer: 42,
@@ -57,15 +57,18 @@ it("run", () => {
     vec: [-55, 56, 57],
   };
   // Check that we can use the manual IDL to encode/decode our account 1
-  const accountData1 = idlAccountEncode(accountIdl1, accountstate1);
+  const { accountData: accountData1 } = idlAccountEncode(
+    accountIdl1,
+    accountState1,
+  );
   expect(accountData1).toStrictEqual(
     new Uint8Array([
       74, 73, 72, 71, 4, 0, 0, 0, 65, 66, 67, 68, 42, 0, 0, 0, 1, 77, 99, 0, 98,
       0, 97, 0, 3, 0, 0, 0, 201, 255, 56, 0, 57, 0,
     ]),
   );
-  expect(accountstate1).toStrictEqual(
-    idlAccountDecode(accountIdl1, accountData1),
+  expect(accountState1).toStrictEqual(
+    idlAccountDecode(accountIdl1, accountData1).accountState,
   );
   // MyAccount2 prepared
   const accountIdl2 = expectDefined(programIdl.accounts.get("MyAccount2"));
@@ -74,11 +77,14 @@ it("run", () => {
     val2: { integer: 44, myEnum: "Hello2", byte: 79 },
   };
   // Check that we can use the manual IDL to encode/decode our account 2
-  const accountData2 = idlAccountEncode(accountIdl2, accountState2);
+  const { accountData: accountData2 } = idlAccountEncode(
+    accountIdl2,
+    accountState2,
+  );
   expect(
     new Uint8Array([99, 43, 0, 0, 0, 0, 78, 44, 0, 0, 0, 2, 79]),
   ).toStrictEqual(accountData2);
   expect(accountState2).toStrictEqual(
-    idlAccountDecode(accountIdl2, accountData2),
+    idlAccountDecode(accountIdl2, accountData2).accountState,
   );
 });

@@ -32,7 +32,7 @@ it("run", async () => {
   );
   expect(instructionIdl.name).toStrictEqual("redeem_phase_one");
   // Check instruction inputs decoding
-  const instructionAddresses = idlInstructionAccountsDecode(
+  const { instructionAddresses } = idlInstructionAccountsDecode(
     instructionIdl,
     instruction.inputs,
   );
@@ -40,7 +40,7 @@ it("run", async () => {
     "6cGTLr9bTCYis6KjsuZPQS7LrcPjyjibr9gFk2JH65Mn",
   );
   // Check instruction data decoding
-  const instructionPayload = idlInstructionArgsDecode(
+  const { instructionPayload } = idlInstructionArgsDecode(
     instructionIdl,
     instruction.data,
   );

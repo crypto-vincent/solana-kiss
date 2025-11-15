@@ -39,8 +39,13 @@ it("run", () => {
       innerKey2: "Inner Value 2",
     },
   };
-  const encodedCamel = idlAccountEncode(accountIdl, stateCamel);
-  expect(idlAccountDecode(accountIdl, encodedCamel)).toStrictEqual(stateCamel);
+  const { accountData: encodedCamel } = idlAccountEncode(
+    accountIdl,
+    stateCamel,
+  );
+  expect(idlAccountDecode(accountIdl, encodedCamel).accountState).toStrictEqual(
+    stateCamel,
+  );
   // Check that we can properly encode/decode snake case
   const stateSnake = {
     my_key1: "Value 1",
@@ -50,16 +55,21 @@ it("run", () => {
       inner_key2: "Inner Value 2",
     },
   };
-  const encodedSnake = idlAccountEncode(accountIdl, stateSnake);
-  expect(idlAccountDecode(accountIdl, encodedSnake)).toStrictEqual(stateCamel);
+  const { accountData: encodedSnake } = idlAccountEncode(
+    accountIdl,
+    stateSnake,
+  );
+  expect(idlAccountDecode(accountIdl, encodedSnake).accountState).toStrictEqual(
+    stateCamel,
+  );
   // Check that both encodings produce the same bytes
   expect(encodedCamel).toStrictEqual(encodedSnake);
   // Check that we can properly combine it with the json codec system
   expect(
-    jsonCodec.decoder(idlAccountDecode(accountIdl, encodedSnake)),
+    jsonCodec.decoder(idlAccountDecode(accountIdl, encodedSnake).accountState),
   ).toStrictEqual(stateCamel);
   expect(
-    idlAccountEncode(accountIdl, jsonCodec.encoder(stateCamel)),
+    idlAccountEncode(accountIdl, jsonCodec.encoder(stateCamel)).accountData,
   ).toStrictEqual(encodedSnake);
 });
 

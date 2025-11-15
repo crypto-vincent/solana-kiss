@@ -73,59 +73,61 @@ it("run", async () => {
   const pdaAddress = pubkeyFindPdaAddress(programAddress, pdaSeeds);
   const myAccountType = programIdl.accounts.get("MyAccount")?.typeFull;
   // Assert that the accounts can be properly resolved in snake case
-  const instructionSnakeAddresses = await idlInstructionAddressesHydrate(
-    expectDefined(programIdl.instructions.get("my_ix")),
-    programAddress,
-    {
-      addresses: {
-        account_snake: accountSnakeAddress,
-        account_camel: accountCamelAddress,
-      },
-      payload: {
-        arg_snake: 42,
-        arg_camel: 43,
-      },
-    },
-    {
-      accountsContext: {
-        account_snake: {
-          accountState: { field_snake: 44 },
-          accountTypeFull: myAccountType,
+  const { instructionAddresses: instructionSnakeAddresses } =
+    await idlInstructionAddressesHydrate(
+      expectDefined(programIdl.instructions.get("my_ix")),
+      programAddress,
+      {
+        addresses: {
+          account_snake: accountSnakeAddress,
+          account_camel: accountCamelAddress,
         },
-        account_camel: {
-          accountState: { field_camel: 45 },
-          accountTypeFull: myAccountType,
+        payload: {
+          arg_snake: 42,
+          arg_camel: 43,
         },
       },
-    },
-  );
+      {
+        accountsContext: {
+          account_snake: {
+            accountState: { field_snake: 44 },
+            accountTypeFull: myAccountType,
+          },
+          account_camel: {
+            accountState: { field_camel: 45 },
+            accountTypeFull: myAccountType,
+          },
+        },
+      },
+    );
   expect(instructionSnakeAddresses["pda"]).toStrictEqual(pdaAddress);
   // Assert that the accounts can be properly resolved in camel case
-  const instructionCamelAddresses = await idlInstructionAddressesHydrate(
-    expectDefined(programIdl.instructions.get("my_ix")),
-    programAddress,
-    {
-      addresses: {
-        accountSnake: accountSnakeAddress,
-        accountCamel: accountCamelAddress,
-      },
-      payload: {
-        argSnake: 42,
-        argCamel: 43,
-      },
-    },
-    {
-      accountsContext: {
-        accountSnake: {
-          accountState: { fieldSnake: 44 },
-          accountTypeFull: myAccountType,
+  const { instructionAddresses: instructionCamelAddresses } =
+    await idlInstructionAddressesHydrate(
+      expectDefined(programIdl.instructions.get("my_ix")),
+      programAddress,
+      {
+        addresses: {
+          accountSnake: accountSnakeAddress,
+          accountCamel: accountCamelAddress,
         },
-        accountCamel: {
-          accountState: { fieldCamel: 45 },
-          accountTypeFull: myAccountType,
+        payload: {
+          argSnake: 42,
+          argCamel: 43,
         },
       },
-    },
-  );
+      {
+        accountsContext: {
+          accountSnake: {
+            accountState: { fieldSnake: 44 },
+            accountTypeFull: myAccountType,
+          },
+          accountCamel: {
+            accountState: { fieldCamel: 45 },
+            accountTypeFull: myAccountType,
+          },
+        },
+      },
+    );
   expect(instructionCamelAddresses["pda"]).toStrictEqual(pdaAddress);
 });

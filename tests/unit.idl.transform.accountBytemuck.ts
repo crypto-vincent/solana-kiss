@@ -277,15 +277,18 @@ it("run", () => {
   ];
   // Actually assert the correctness of the results
   for (const testCase of cases) {
-    const computedData = idlAccountEncode(accountIdl, testCase.state);
+    const { accountData: computedData } = idlAccountEncode(
+      accountIdl,
+      testCase.state,
+    );
     // dumpData(testCase.name + ":computedData", computedData);
     // dumpData(testCase.name + ":expectedData", testCase.data);
-    expect(idlAccountDecode(accountIdl, testCase.data)).toStrictEqual(
-      testCase.state,
-    );
-    expect(idlAccountDecode(accountIdl, computedData)).toStrictEqual(
-      testCase.state,
-    );
+    expect(
+      idlAccountDecode(accountIdl, testCase.data).accountState,
+    ).toStrictEqual(testCase.state);
+    expect(
+      idlAccountDecode(accountIdl, computedData).accountState,
+    ).toStrictEqual(testCase.state);
   }
 });
 

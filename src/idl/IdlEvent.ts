@@ -28,16 +28,15 @@ export type IdlEvent = {
   typeFull: IdlTypeFull;
 };
 
-export function idlEventEncode(
-  self: IdlEvent,
-  eventPayload: JsonValue,
-): Uint8Array {
-  return idlTypeFullEncode(
-    self.typeFull,
-    eventPayload,
-    true,
-    self.discriminator,
-  );
+export function idlEventEncode(self: IdlEvent, eventPayload: JsonValue) {
+  return {
+    eventData: idlTypeFullEncode(
+      self.typeFull,
+      eventPayload,
+      true,
+      self.discriminator,
+    ),
+  };
 }
 
 export function idlEventDecode(
@@ -50,7 +49,7 @@ export function idlEventDecode(
     new DataView(eventData.buffer),
     self.discriminator.length,
   );
-  return eventPayload;
+  return { eventPayload };
 }
 
 export function idlEventCheck(self: IdlEvent, eventData: Uint8Array): void {

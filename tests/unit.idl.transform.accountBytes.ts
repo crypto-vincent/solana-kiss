@@ -74,9 +74,9 @@ it("run", () => {
       bytesCoordinatorJoinRun,
     ].flat(),
   );
-  expect(case1).toStrictEqual(expected);
-  expect(case2).toStrictEqual(expected);
-  expect(case3).toStrictEqual(expected);
-  expect(case4).toStrictEqual(expected);
-  expect(case5).toStrictEqual(expected);
+  expect(case1.accountData).toStrictEqual(expected);
+  expect(case2.accountData).toStrictEqual(expected);
+  expect(case3.accountData).toStrictEqual(expected);
+  expect(case4.accountData).toStrictEqual(expected);
+  expect(case5.accountData).toStrictEqual(expected);
 });

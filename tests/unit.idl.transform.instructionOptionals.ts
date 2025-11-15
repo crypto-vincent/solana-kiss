@@ -51,10 +51,12 @@ it("run", () => {
     { address: acc_5_3, signer: false, writable: false },
   ];
   expect(
-    idlInstructionAccountsEncode(instructionIdl, caseEmptyAddresses),
+    idlInstructionAccountsEncode(instructionIdl, caseEmptyAddresses)
+      .instructionInputs,
   ).toStrictEqual(caseEmptyInputs);
   expect(
-    idlInstructionAccountsDecode(instructionIdl, caseEmptyInputs),
+    idlInstructionAccountsDecode(instructionIdl, caseEmptyInputs)
+      .instructionAddresses,
   ).toStrictEqual(caseEmptyAddresses);
   idlInstructionAccountsCheck(instructionIdl, caseEmptyInputs);
   // Check that we we can encode the instruction with all of the optional accounts
@@ -79,10 +81,12 @@ it("run", () => {
     { address: acc_7_3, signer: false, writable: false },
   ];
   expect(
-    idlInstructionAccountsEncode(instructionIdl, caseFullAddresses),
+    idlInstructionAccountsEncode(instructionIdl, caseFullAddresses)
+      .instructionInputs,
   ).toStrictEqual(caseFullInputs);
   expect(
-    idlInstructionAccountsDecode(instructionIdl, caseFullInputs),
+    idlInstructionAccountsDecode(instructionIdl, caseFullInputs)
+      .instructionAddresses,
   ).toStrictEqual(caseFullAddresses);
   idlInstructionAccountsCheck(instructionIdl, caseFullInputs);
   // Check that we we can encode the instruction with all of the optional accounts
@@ -101,10 +105,12 @@ it("run", () => {
     { address: acc_5_3, signer: false, writable: false },
   ];
   expect(
-    idlInstructionAccountsEncode(instructionIdl, casePartial1Addresses),
+    idlInstructionAccountsEncode(instructionIdl, casePartial1Addresses)
+      .instructionInputs,
   ).toStrictEqual(casePartial1Inputs);
   expect(
-    idlInstructionAccountsDecode(instructionIdl, casePartial1Inputs),
+    idlInstructionAccountsDecode(instructionIdl, casePartial1Inputs)
+      .instructionAddresses,
   ).toStrictEqual(casePartial1Addresses);
   idlInstructionAccountsCheck(instructionIdl, casePartial1Inputs);
   // Check that we we can encode the instruction with all of the optional accounts
@@ -127,10 +133,12 @@ it("run", () => {
     { address: acc_6_3, signer: false, writable: false },
   ];
   expect(
-    idlInstructionAccountsEncode(instructionIdl, casePartial3Addresses),
+    idlInstructionAccountsEncode(instructionIdl, casePartial3Addresses)
+      .instructionInputs,
   ).toStrictEqual(casePartial3Inputs);
   expect(
-    idlInstructionAccountsDecode(instructionIdl, casePartial3Inputs),
+    idlInstructionAccountsDecode(instructionIdl, casePartial3Inputs)
+      .instructionAddresses,
   ).toStrictEqual(casePartial3Addresses);
   idlInstructionAccountsCheck(instructionIdl, casePartial3Inputs);
 });
