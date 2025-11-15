@@ -39,10 +39,7 @@ export function idlEventEncode(self: IdlEvent, eventPayload: JsonValue) {
   };
 }
 
-export function idlEventDecode(
-  self: IdlEvent,
-  eventData: Uint8Array,
-): JsonValue {
+export function idlEventDecode(self: IdlEvent, eventData: Uint8Array) {
   idlEventCheck(self, eventData);
   const [_, eventPayload] = idlTypeFullDecode(
     self.typeFull,
