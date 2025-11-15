@@ -42,7 +42,7 @@ it("run", async () => {
     payerAddress: payerSigner.address,
     recentBlockHash: recentBlockInfo.hash,
     instructions: [
-      makeCreateInstruction(
+      makeCreateInstructionRequest(
         programAddress,
         ownerAddress,
         transferLamports,
@@ -50,7 +50,7 @@ it("run", async () => {
         payerSigner,
         owned1Signer,
       ),
-      makeCreateInstruction(
+      makeCreateInstructionRequest(
         programAddress,
         ownerAddress,
         transferLamports + 42n,
@@ -112,7 +112,7 @@ it("run", async () => {
   expect(owned2Info.space).toStrictEqual(requestedSpace - 1);
 });
 
-function makeCreateInstruction(
+function makeCreateInstructionRequest(
   programAddress: Pubkey,
   ownerAddress: Pubkey,
   transferLamports: bigint,

@@ -8,6 +8,7 @@ import {
   rpcHttpGetTransaction,
   signatureFromBase58,
   TransactionFlow,
+  TransactionInvocation,
   urlRpcPublicMainnet,
 } from "../src";
 
@@ -34,19 +35,19 @@ it("run", async () => {
   const createParams = new Uint8Array(410);
   expect(transactionFlow).toStrictEqual([
     inv({
-      instruction: ix({
+      instructionRequest: ix({
         programAddress: "ComputeBudget111111111111111111111111111111",
         data: [2, 32, 161, 7, 0],
       }),
     }),
     inv({
-      instruction: ix({
+      instructionRequest: ix({
         programAddress: "ComputeBudget111111111111111111111111111111",
         data: [3, 112, 17, 1, 0, 0, 0, 0, 0],
       }),
     }),
     inv({
-      instruction: ix({
+      instructionRequest: ix({
         programAddress: "11111111111111111111111111111111",
         inputs: [
           i("Ewfot2ZKhuGuEWaSRyFpe3LpK9xSEEUrDZk4AQpTazAR", "ws"),
@@ -56,7 +57,7 @@ it("run", async () => {
       }),
     }),
     inv({
-      instruction: ix({
+      instructionRequest: ix({
         programAddress: "SQDS4ep65T869zMMBKyuUq6aD6EgTu8psMjkvj52pCf",
         inputs: [
           i("95YsCnu6P89y8N52qLLTbRog42eypUNqzDi4JYCSCuA", ""),
@@ -78,7 +79,7 @@ it("run", async () => {
       flow: [
         { log: "Instruction: VaultTransactionExecute" },
         inv({
-          instruction: ix({
+          instructionRequest: ix({
             programAddress: "PsyMP8fXEEMo2C6C84s8eXuRUrvzQnZyquyjipDRohf",
             inputs: [
               i("8PDYaC2zz9UYN3qVoAyZvAF7qRkmTByBT5TnT2mHGPuZ", "w"),
@@ -98,7 +99,7 @@ it("run", async () => {
           flow: [
             { log: "Instruction: PoolCreate" },
             inv({
-              instruction: ix({
+              instructionRequest: ix({
                 programAddress: "11111111111111111111111111111111",
                 inputs: [
                   i("8PDYaC2zz9UYN3qVoAyZvAF7qRkmTByBT5TnT2mHGPuZ", "w"),
@@ -113,7 +114,7 @@ it("run", async () => {
               }),
             }),
             inv({
-              instruction: ix({
+              instructionRequest: ix({
                 programAddress: "ATokenGPvbdGVxr1b2hvZbsiqW5xWH25efTNsLJA8knL",
                 inputs: [
                   i("8PDYaC2zz9UYN3qVoAyZvAF7qRkmTByBT5TnT2mHGPuZ", "w"),
@@ -128,7 +129,7 @@ it("run", async () => {
               flow: [
                 { log: "Create" },
                 inv({
-                  instruction: ix({
+                  instructionRequest: ix({
                     programAddress:
                       "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA",
                     inputs: [
@@ -143,7 +144,7 @@ it("run", async () => {
                   },
                 }),
                 inv({
-                  instruction: ix({
+                  instructionRequest: ix({
                     programAddress: "11111111111111111111111111111111",
                     inputs: [
                       i("8PDYaC2zz9UYN3qVoAyZvAF7qRkmTByBT5TnT2mHGPuZ", "w"),
@@ -159,7 +160,7 @@ it("run", async () => {
                 }),
                 { log: "Initialize the associated token account" },
                 inv({
-                  instruction: ix({
+                  instructionRequest: ix({
                     programAddress:
                       "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA",
                     inputs: [
@@ -178,7 +179,7 @@ it("run", async () => {
                   result: { consumedComputeUnits: 1405 },
                 }),
                 inv({
-                  instruction: ix({
+                  instructionRequest: ix({
                     programAddress:
                       "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA",
                     inputs: [
@@ -207,17 +208,17 @@ it("run", async () => {
 });
 
 function inv(value: {
-  instruction: InstructionRequest;
+  instructionRequest: InstructionRequest;
   flow?: TransactionFlow;
   result?: {
     error?: string;
     returned?: Array<number>;
     consumedComputeUnits?: number;
   };
-}) {
+}): { invocation: TransactionInvocation } {
   return {
     invocation: {
-      instruction: value.instruction,
+      instructionRequest: value.instructionRequest,
       flow: value.flow ?? [],
       error: value.result?.error,
       returned: value.result?.returned

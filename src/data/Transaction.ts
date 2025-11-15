@@ -56,7 +56,7 @@ export type TransactionFlow = Array<
   | { unknown: string }
 >;
 export type TransactionInvocation = {
-  instruction: InstructionRequest;
+  instructionRequest: InstructionRequest;
   flow: TransactionFlow;
   error: string | undefined;
   returned: Uint8Array | undefined;

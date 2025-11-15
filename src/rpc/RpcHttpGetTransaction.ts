@@ -97,8 +97,8 @@ export async function rpcHttpGetTransaction(
     instructionsInputs,
     meta.innerInstructions,
   );
-  const rootInvocation = {
-    instruction: {} as InstructionRequest,
+  const rootInvocation: TransactionInvocation = {
+    instructionRequest: {} as InstructionRequest,
     flow: [],
     error: undefined,
     returned: undefined,
@@ -313,9 +313,11 @@ function parseTransactionInvocations(
         throw new Error(`RpcHttp: Unexpected return log: ${logLine}`);
       }
       const returnProgramAddress = pubkeyFromBase58(parts[0]!);
-      if (invocation.instruction.programAddress !== returnProgramAddress) {
+      if (
+        invocation.instructionRequest.programAddress !== returnProgramAddress
+      ) {
         throw new Error(
-          `RpcHttp: Unexpected return log program address (expected ${invocation.instruction.programAddress}, found ${returnProgramAddress}): ${logLine}`,
+          `RpcHttp: Unexpected return log program address (expected ${invocation.instructionRequest.programAddress}, found ${returnProgramAddress}): ${logLine}`,
         );
       }
       invocation.returned = base64Decode(parts[1]!);
@@ -328,21 +330,21 @@ function parseTransactionInvocations(
         const logProgramAddress = pubkeyFromBase58(logsProgramParts[0]!);
         const logProgramKind = logsProgramParts[1]!;
         if (logProgramKind === "invoke") {
-          const instructionInvocation = instructionsCallStacks[invocationIndex];
+          const instructionCallStack = instructionsCallStacks[invocationIndex];
           invocationIndex++;
-          if (instructionInvocation === undefined) {
+          if (instructionCallStack === undefined) {
             throw new Error(`RpcHttp: Unexpected invoke log: ${logLine}`);
           }
           if (
-            instructionInvocation.instructionRequest.programAddress !==
+            instructionCallStack.instructionRequest.programAddress !==
             logProgramAddress
           ) {
             throw new Error(
-              `RpcHttp: Unexpected invoke log program address (expected ${instructionInvocation.instructionRequest.programAddress}, found ${logProgramAddress}): ${logLine}`,
+              `RpcHttp: Unexpected invoke log program address (expected ${instructionCallStack.instructionRequest.programAddress}, found ${logProgramAddress}): ${logLine}`,
             );
           }
-          const innerInvocation = {
-            instruction: instructionInvocation.instructionRequest,
+          const innerInvocation: TransactionInvocation = {
+            instructionRequest: instructionCallStack.instructionRequest,
             flow: [],
             error: undefined,
             returned: undefined,
@@ -350,7 +352,7 @@ function parseTransactionInvocations(
           };
           const afterParsing = parseTransactionInvocations(
             innerInvocation,
-            instructionInvocation.callStack,
+            instructionCallStack.callStack,
             logs,
             logIndex,
           );

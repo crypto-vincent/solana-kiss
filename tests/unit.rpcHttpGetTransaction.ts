@@ -7,6 +7,7 @@ import {
   rpcHttpGetTransaction,
   TransactionFlow,
   TransactionHandle,
+  TransactionInvocation,
 } from "../src";
 
 function rpcHttp() {
@@ -47,19 +48,19 @@ it("run", async () => {
   // Check the invocations content
   expect(transactionFlow).toStrictEqual([
     invocation({
-      instruction: instruction({
+      instructionRequest: instruction({
         programAddress: "ComputeBudget111111111111111111111111111111",
         data: [2, 32, 161, 7, 0],
       }),
     }),
     invocation({
-      instruction: instruction({
+      instructionRequest: instruction({
         programAddress: "ComputeBudget111111111111111111111111111111",
         data: [3, 236, 214, 0, 0, 0, 0, 0, 0],
       }),
     }),
     invocation({
-      instruction: instruction({
+      instructionRequest: instruction({
         programAddress: "11111111111111111111111111111111",
         inputs: [
           i("Hc3EobqKYuqndAYmPzEhokBab3trofMWDafj4PJxFYUL", "ws"),
@@ -69,7 +70,7 @@ it("run", async () => {
       }),
     }),
     invocation({
-      instruction: instruction({
+      instructionRequest: instruction({
         programAddress: "SQDS4ep65T869zMMBKyuUq6aD6EgTu8psMjkvj52pCf",
         inputs: [
           i("95YsCnu6P89y8N52qLLTbRog42eypUNqzDi4JYCSCuA", ""),
@@ -89,7 +90,7 @@ it("run", async () => {
       flow: [
         { log: "Instruction: VaultTransactionExecute" },
         invocation({
-          instruction: instruction({
+          instructionRequest: instruction({
             programAddress: "PsyMP8fXEEMo2C6C84s8eXuRUrvzQnZyquyjipDRohf",
             inputs: [
               i("8PDYaC2zz9UYN3qVoAyZvAF7qRkmTByBT5TnT2mHGPuZ", "w"),
@@ -103,7 +104,7 @@ it("run", async () => {
           flow: [
             { log: "Instruction: PoolExtract" },
             invocation({
-              instruction: instruction({
+              instructionRequest: instruction({
                 programAddress: "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA",
                 inputs: [
                   i("BLv19rpwzGkZoJndnR3FXMhkdpqaWiW2i2PvgGzh7kRD", "w"),
@@ -115,7 +116,7 @@ it("run", async () => {
               flow: [
                 { log: "Instruction: Transfer" },
                 invocation({
-                  instruction: instruction({
+                  instructionRequest: instruction({
                     programAddress: "11111111111111111111111111111111",
                   }),
                 }),
@@ -126,7 +127,7 @@ it("run", async () => {
           result: { consumedComputeUnits: 13848 },
         }),
         invocation({
-          instruction: instruction({
+          instructionRequest: instruction({
             programAddress: "11111111111111111111111111111111",
           }),
         }),
@@ -137,17 +138,17 @@ it("run", async () => {
 });
 
 function invocation(value: {
-  instruction: InstructionRequest;
+  instructionRequest: InstructionRequest;
   flow?: TransactionFlow;
   result?: {
     error?: string;
     returned?: Uint8Array;
     consumedComputeUnits?: number;
   };
-}) {
+}): { invocation: TransactionInvocation } {
   return {
     invocation: {
-      instruction: value.instruction,
+      instructionRequest: value.instructionRequest,
       flow: value.flow ?? [],
       error: value.result?.error,
       returned: value.result?.returned,
