@@ -55,13 +55,13 @@ export function idlProgramGuessAccount(
 
 export function idlProgramGuessInstruction(
   self: IdlProgram,
-  instruction: InstructionRequest,
+  instructionRequest: InstructionRequest,
 ): IdlInstruction {
   const errors = [];
   for (const instructionIdl of self.instructions.values()) {
     try {
-      idlInstructionAccountsCheck(instructionIdl, instruction.inputs);
-      idlInstructionArgsCheck(instructionIdl, instruction.data);
+      idlInstructionAccountsCheck(instructionIdl, instructionRequest.inputs);
+      idlInstructionArgsCheck(instructionIdl, instructionRequest.data);
       return instructionIdl;
     } catch (error) {
       errors.push(error);

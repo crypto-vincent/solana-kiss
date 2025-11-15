@@ -2,7 +2,7 @@ import { BlockSlot, blockSlotToNumber } from "../data/Block";
 import { jsonCodecNumber, jsonDecoderOptional } from "../data/Json";
 import { RpcHttp } from "./RpcHttp";
 
-export async function rpcHttpGetBlockTime(
+export async function rpcHttpGetBlockTimeOnly(
   self: RpcHttp,
   blockSlot: BlockSlot,
 ): Promise<{ blockInfo: { time: Date | undefined } }> {

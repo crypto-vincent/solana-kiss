@@ -3,7 +3,7 @@ import {
   blockSlotFromNumber,
   rpcHttpFromUrl,
   rpcHttpGetBlockMetadata,
-  rpcHttpGetBlockTime,
+  rpcHttpGetBlockTimeOnly,
   rpcHttpGetBlockWithTransactions,
   urlRpcPublicDevnet,
 } from "../src";
@@ -36,7 +36,7 @@ it("run", async () => {
   expect(transactionsHandles[0]).toStrictEqual(
     "3g4afiLu3KW1G2eYhvP1h3aKx2Pp54CCtqZTRX9q7daY84TQ6RcKMERNk56QJPi5CrhV5dYTHJzSrk6z4aLWKKrd",
   );
-  const { blockInfo: dateBlockInfo } = await rpcHttpGetBlockTime(
+  const { blockInfo: dateBlockInfo } = await rpcHttpGetBlockTimeOnly(
     rpcHttp,
     blockSlot,
   );

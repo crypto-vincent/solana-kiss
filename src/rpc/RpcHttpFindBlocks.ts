@@ -17,6 +17,7 @@ export async function rpcHttpFindBlocks(
   let backward: boolean;
   let lowBlockSlot: number;
   let highBlockSlot: number;
+  // TODO (naming) - simplify ordering and return something like oldToNewBlocksSlots
   if ("lowBlockSlot" in context) {
     backward = false;
     lowBlockSlot = blockSlotToNumber(context.lowBlockSlot);
