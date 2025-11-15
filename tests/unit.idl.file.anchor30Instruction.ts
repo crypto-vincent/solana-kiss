@@ -61,13 +61,13 @@ it("run", async () => {
     instructionIdl,
     programAddress,
     {
-      instructionAddresses: {
+      addresses: {
         payer: payerAddress,
         authority: authorityAddress,
         collateral_mint: collateralMintAddress,
         redeemable_mint: redeemableMintAddress,
       },
-      instructionPayload,
+      payload: instructionPayload,
     },
   );
   // Generate expected accounts

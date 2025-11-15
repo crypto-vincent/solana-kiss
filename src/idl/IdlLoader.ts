@@ -1,5 +1,5 @@
 import { inflate } from "uzip";
-import { ErrorStackable } from "../data/Error";
+import { ErrorStack } from "../data/Error";
 import {
   jsonCodecBytesArray,
   jsonCodecObject,
@@ -70,7 +70,7 @@ export function idlLoaderFromLoaderChain(loaders: Array<IdlLoader>): IdlLoader {
         errors.push(error);
       }
     }
-    throw new ErrorStackable(
+    throw new ErrorStack(
       `IDL: Unable to load IDL for program ${programAddress}`,
       errors,
     );

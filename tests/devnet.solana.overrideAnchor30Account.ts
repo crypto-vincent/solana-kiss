@@ -37,10 +37,10 @@ it("run", async () => {
     "EsQycjp856vTPvrxMuH1L6ymd5K63xT7aULGepiTcgM3",
   );
   // Check that we could indeed find the right accounts programatically
-  const instructionAddresses = await solana.hydrateInstructionAddresses(
+  const { instructionAddresses } = await solana.hydrateInstructionAddresses(
     programAddress,
     "campaign_create",
-    { instructionPayload: { params: { index: "0" } } },
+    { payload: { params: { index: "0" } } },
   );
   expect(instructionAddresses["campaign"]).toStrictEqual(campaign);
 });
@@ -52,10 +52,10 @@ async function assertAccountInfo(
   accountStateKey: string,
   accountStateValue: JsonValue,
 ) {
-  const { accountInfo } =
+  const { accountIdl, accountState } =
     await solana.getAndInferAndDecodeAccount(accountAddress);
-  expect(accountInfo.idl.name).toStrictEqual(accountName);
+  expect(accountIdl.name).toStrictEqual(accountName);
   expect(
-    jsonCodecObjectValues.decoder(accountInfo.state)[accountStateKey],
+    jsonCodecObjectValues.decoder(accountState)[accountStateKey],
   ).toStrictEqual(accountStateValue);
 }

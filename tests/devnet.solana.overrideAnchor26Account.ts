@@ -60,10 +60,10 @@ it("run", async () => {
     "Ej5zJzej7rrUoDngsJ3jcpfuvfVyWpcDcK7uv9cE2LdL",
   );
   // Check that we could indeed find the right accounts programatically
-  const instructionAddresses = await solana.hydrateInstructionAddresses(
+  const { instructionAddresses } = await solana.hydrateInstructionAddresses(
     programAddress,
     "initialize_market",
-    { instructionPayload: { globalMarketSeed: "credix-marketplace" } },
+    { payload: { globalMarketSeed: "credix-marketplace" } },
   );
   expect(instructionAddresses["global_market_state"]).toStrictEqual(
     globalMarketStateAddress,
@@ -83,10 +83,10 @@ async function assertAccountInfo(
   accountStateKey: string,
   accountStateValue: JsonValue,
 ) {
-  const { accountInfo } =
+  const { accountIdl, accountState } =
     await solana.getAndInferAndDecodeAccount(accountAddress);
-  expect(accountInfo.idl.name).toStrictEqual(accountName);
+  expect(accountIdl.name).toStrictEqual(accountName);
   expect(
-    jsonCodecObjectValues.decoder(accountInfo.state)[accountStateKey],
+    jsonCodecObjectValues.decoder(accountState)[accountStateKey],
   ).toStrictEqual(accountStateValue);
 }

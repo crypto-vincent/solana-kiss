@@ -74,20 +74,20 @@ it("run", async () => {
   rpcCounters.clear();
 
   const fakeCollateralMint = pubkeyNewDummy();
-  const hydratedAddresses = await solana.hydrateInstructionAddresses(
+  const { instructionAddresses } = await solana.hydrateInstructionAddresses(
     knownProgramAddress,
     "campaign_create",
     {
-      instructionAddresses: { collateralMint: fakeCollateralMint },
-      instructionPayload: { params: { index: "0" } },
+      addresses: { collateralMint: fakeCollateralMint },
+      payload: { params: { index: "0" } },
     },
   );
   expect(rpcCounters.size).toBe(0);
-  expect(Object.values(hydratedAddresses).length).toBe(6);
-  expect(hydratedAddresses["collateral_mint"]).toStrictEqual(
+  expect(Object.values(instructionAddresses).length).toBe(6);
+  expect(instructionAddresses["collateral_mint"]).toStrictEqual(
     fakeCollateralMint,
   );
-  expect(hydratedAddresses["system_program"]).toStrictEqual(pubkeyDefault);
+  expect(instructionAddresses["system_program"]).toStrictEqual(pubkeyDefault);
 });
 
 function counterKey(method: string, params: JsonArray): string {

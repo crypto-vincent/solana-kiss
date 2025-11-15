@@ -36,13 +36,13 @@ it("run", async () => {
     instructionIdl,
     programAddress,
     {
-      instructionAddresses: {
+      addresses: {
         owner: pubkeyNewDummy(),
         borrower: borrowerAddress,
         globalMarketState: pubkeyNewDummy(),
         systemProgram: pubkeyNewDummy(),
       },
-      instructionPayload,
+      payload: instructionPayload,
     },
     {
       accountsContext: {

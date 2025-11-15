@@ -1,6 +1,6 @@
 import { base58Decode } from "../data/Base58";
 import { base64Decode } from "../data/Base64";
-import { Instruction, InstructionInput } from "../data/Instruction";
+import { InstructionInput, InstructionRequest } from "../data/Instruction";
 import {
   jsonCodecBlockHash,
   jsonCodecBlockSlot,
@@ -98,7 +98,7 @@ export async function rpcHttpGetTransaction(
     meta.innerInstructions,
   );
   const rootInvocation = {
-    instruction: {} as Instruction,
+    instruction: {} as InstructionRequest,
     flow: [],
     error: undefined,
     returned: undefined,
@@ -192,8 +192,8 @@ type InstructionCompiled = {
 function decompileInstructions(
   instructionsInputs: Array<InstructionInput>,
   instructionsCompiled: Array<InstructionCompiled>,
-): Array<Instruction> {
-  const instructions = new Array<Instruction>();
+): Array<InstructionRequest> {
+  const instructions = new Array<InstructionRequest>();
   for (const instructionCompiled of instructionsCompiled) {
     const stackIndex = instructionCompiled.stackHeight - 1;
     if (stackIndex !== 0) {
@@ -211,7 +211,7 @@ function decompileInstructions(
 function decompileInstruction(
   instructionCompiled: InstructionCompiled,
   instructionsInputs: Array<InstructionInput>,
-): Instruction {
+): InstructionRequest {
   const instructionProgram = expectItemInArray(
     instructionsInputs,
     instructionCompiled.programIndex,
@@ -228,12 +228,12 @@ function decompileInstruction(
 }
 
 type InstructionCallStack = {
-  instructionCall: Instruction;
+  instructionRequest: InstructionRequest;
   callStack: Array<InstructionCallStack>;
 };
 
 function decompileInstructionsCallStacks(
-  instructions: Array<Instruction>,
+  instructionsRequests: Array<InstructionRequest>,
   instructionsInputs: Array<InstructionInput>,
   compiledInnerInstructions: Array<{
     index: number;
@@ -241,9 +241,9 @@ function decompileInstructionsCallStacks(
   }>,
 ): Array<InstructionCallStack> {
   const rootInvocations = new Array<InstructionCallStack>();
-  for (let index = 0; index < instructions.length; index++) {
+  for (let index = 0; index < instructionsRequests.length; index++) {
     rootInvocations.push({
-      instructionCall: instructions[index]!,
+      instructionRequest: instructionsRequests[index]!,
       callStack: [],
     });
   }
@@ -256,7 +256,7 @@ function decompileInstructionsCallStacks(
     stackInvocation.push(rootInvocation);
     for (const compiledInnerInstruction of compiledInnerInstructionBlock.instructions) {
       const innerInvocation: InstructionCallStack = {
-        instructionCall: decompileInstruction(
+        instructionRequest: decompileInstruction(
           compiledInnerInstruction,
           instructionsInputs,
         ),
@@ -334,15 +334,15 @@ function parseTransactionInvocations(
             throw new Error(`RpcHttp: Unexpected invoke log: ${logLine}`);
           }
           if (
-            instructionInvocation.instructionCall.programAddress !==
+            instructionInvocation.instructionRequest.programAddress !==
             logProgramAddress
           ) {
             throw new Error(
-              `RpcHttp: Unexpected invoke log program address (expected ${instructionInvocation.instructionCall.programAddress}, found ${logProgramAddress}): ${logLine}`,
+              `RpcHttp: Unexpected invoke log program address (expected ${instructionInvocation.instructionRequest.programAddress}, found ${logProgramAddress}): ${logLine}`,
             );
           }
           const innerInvocation = {
-            instruction: instructionInvocation.instructionCall,
+            instruction: instructionInvocation.instructionRequest,
             flow: [],
             error: undefined,
             returned: undefined,

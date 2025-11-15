@@ -1,6 +1,10 @@
 import { casingLosslessConvertToSnake } from "../data/Casing";
-import { ErrorStackable, withErrorContext } from "../data/Error";
-import { InstructionInput } from "../data/Instruction";
+import { ErrorStack, withErrorContext } from "../data/Error";
+import {
+  InstructionAddresses,
+  InstructionFrame,
+  InstructionInput,
+} from "../data/Instruction";
 import {
   JsonValue,
   jsonCodecArrayValues,
@@ -41,11 +45,6 @@ import {
   idlUtilsExpectBlobAt,
 } from "./IdlUtils";
 
-export type IdlInstructionInfo = {
-  instructionAddresses: Record<string, Pubkey>;
-  instructionPayload: JsonValue | undefined;
-};
-
 export type IdlInstruction = {
   name: string;
   docs: IdlDocs;
@@ -63,7 +62,7 @@ export type IdlInstruction = {
 
 export function idlInstructionAccountsEncode(
   self: IdlInstruction,
-  instructionAddresses: Record<string, Pubkey>,
+  instructionAddresses: InstructionAddresses,
 ): Array<InstructionInput> {
   const instructionInputs = new Array<InstructionInput>();
   for (const instructionAccountIdl of self.accounts) {
@@ -91,7 +90,7 @@ export function idlInstructionAccountsEncode(
 export function idlInstructionAccountsDecode(
   self: IdlInstruction,
   instructionInputs: Array<InstructionInput>,
-): Record<string, Pubkey> {
+): InstructionAddresses {
   idlInstructionAccountsCheck(self, instructionInputs);
   let instructionOptionalsPossible = 0;
   for (const instructionAccountIdl of self.accounts) {
@@ -196,45 +195,44 @@ export function idlInstructionReturnDecode(
 export async function idlInstructionAddressesHydrate(
   self: IdlInstruction,
   programAddress: Pubkey,
-  instructionInfo?: Partial<IdlInstructionInfo>,
+  instructionFramePartial?: Partial<InstructionFrame>,
   options?: {
     throwOnMissing?: boolean;
     accountsContext?: IdlInstructionBlobAccountsContext;
     accountFetcher?: IdlInstructionBlobAccountFetcher;
   },
-): Promise<Record<string, Pubkey>> {
-  const instructionAddresses = {} as Record<string, Pubkey>;
-  for (const [instructionAccountName, instructionAddress] of Object.entries(
-    instructionInfo?.instructionAddresses ?? {},
+) {
+  const instructionAddresses: InstructionAddresses = {};
+  for (const [accountField, instructionAddress] of Object.entries(
+    instructionFramePartial?.addresses ?? {},
   )) {
-    instructionAddresses[casingLosslessConvertToSnake(instructionAccountName)] =
+    instructionAddresses[casingLosslessConvertToSnake(accountField)] =
       instructionAddress;
   }
-  const sanitizedInstructionInfo = {
-    instructionAddresses,
-    instructionPayload: instructionInfo?.instructionPayload,
+  const hydratedInstructionFrame: InstructionFrame = {
+    addresses: instructionAddresses,
+    payload: instructionFramePartial?.payload,
   };
   while (true) {
     let madeProgress = false;
     let errors = [];
     for (let instructionAccountIdl of self.accounts) {
-      const instructionAccountName = instructionAccountIdl.name;
-      const instructionAddress = instructionAddresses[instructionAccountName];
-      if (instructionAddress !== undefined) {
+      const accountField = instructionAccountIdl.name;
+      if (instructionAddresses.hasOwnProperty(accountField)) {
         continue;
       }
       try {
         await withErrorContext(
-          `Idl: Finding address for instruction account ${instructionAccountName}`,
+          `Idl: Finding address for instruction account ${accountField}`,
           async () => {
-            const instructionAddress = await idlInstructionAccountFind(
-              instructionAccountIdl,
-              programAddress,
-              sanitizedInstructionInfo,
-              options?.accountsContext,
-              options?.accountFetcher,
-            );
-            instructionAddresses[instructionAccountName] = instructionAddress;
+            instructionAddresses[accountField] =
+              await idlInstructionAccountFind(
+                instructionAccountIdl,
+                programAddress,
+                hydratedInstructionFrame,
+                options?.accountsContext,
+                options?.accountFetcher,
+              );
             madeProgress = true;
           },
         );
@@ -246,7 +244,7 @@ export async function idlInstructionAddressesHydrate(
     }
     if (!madeProgress) {
       if (options?.throwOnMissing && errors.length > 0) {
-        throw new ErrorStackable(
+        throw new ErrorStack(
           `Idl: Could not resolve all instruction accounts`,
           errors,
         );

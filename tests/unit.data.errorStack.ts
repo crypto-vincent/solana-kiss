@@ -1,22 +1,22 @@
 import { it } from "@jest/globals";
-import { ErrorStackable } from "../src";
+import { ErrorStack } from "../src";
 
 it("run", async () => {
-  const errorOuter1 = new ErrorStackable("Outer error\n- 2nd Line", [
+  const errorOuter1 = new ErrorStack("Outer error\n- 2nd Line", [
     "Hello World",
     new Error("Inner error 1\n- Line 2\n- Line 3"),
   ]);
-  const errorOuter2 = new ErrorStackable("Another outer error", [
-    new ErrorStackable(
+  const errorOuter2 = new ErrorStack("Another outer error", [
+    new ErrorStack(
       "Stackable inner",
-      new ErrorStackable(
+      new ErrorStack(
         "Single line inner1",
-        new ErrorStackable("Single line inner2", 42),
+        new ErrorStack("Single line inner2", 42),
       ),
     ),
     42,
   ]);
-  const errorTop = new ErrorStackable("Top error\nWith Multiline", [
+  const errorTop = new ErrorStack("Top error\nWith Multiline", [
     errorOuter1,
     errorOuter2,
   ]);

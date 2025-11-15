@@ -1,8 +1,8 @@
 import { expect, it } from "@jest/globals";
 import {
   expectDefined,
-  Instruction,
   InstructionInput,
+  InstructionRequest,
   pubkeyFromBase58,
   rpcHttpGetTransaction,
   TransactionFlow,
@@ -137,12 +137,12 @@ it("run", async () => {
 });
 
 function invocation(value: {
-  instruction: Instruction;
+  instruction: InstructionRequest;
   flow?: TransactionFlow;
   result?: {
-    error?: string | undefined;
-    returned?: Uint8Array | undefined;
-    consumedComputeUnits?: number | undefined;
+    error?: string;
+    returned?: Uint8Array;
+    consumedComputeUnits?: number;
   };
 }) {
   return {
@@ -160,7 +160,7 @@ function instruction(value: {
   programAddress: string;
   inputs?: Array<InstructionInput>;
   data?: Array<number>;
-}): Instruction {
+}): InstructionRequest {
   return {
     programAddress: pubkeyFromBase58(value.programAddress),
     inputs: value.inputs ?? [],

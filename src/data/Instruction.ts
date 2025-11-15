@@ -1,7 +1,16 @@
+import { JsonValue } from "./Json";
 import { Pubkey } from "./Pubkey";
 
-// TODO (naming) - rename InstructionRequest or InstructionCall or InstructionInvocation ?
-export type Instruction = {
+export type InstructionFrame = {
+  addresses: InstructionAddresses;
+  payload?: JsonValue | undefined;
+};
+
+export type InstructionAddresses = {
+  [accountField: string]: Pubkey;
+};
+
+export type InstructionRequest = {
   programAddress: Pubkey;
   inputs: Array<InstructionInput>;
   data: Uint8Array;

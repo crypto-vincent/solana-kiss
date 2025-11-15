@@ -67,13 +67,13 @@ it("run", async () => {
     expectDefined(programIdl.instructions.get("campaign_create")),
     programAddress,
     {
-      instructionAddresses: {
+      addresses: {
         payer: payerAddress,
         authority: authorityAddress,
         collateral_mint: collateralMintAddress,
         redeemable_mint: redeemableMintAddress,
       },
-      instructionPayload: {
+      payload: {
         params: { index: campaignIndex },
       },
     },
@@ -89,13 +89,13 @@ it("run", async () => {
     expectDefined(programIdl.instructions.get("campaign_extract")),
     programAddress,
     {
-      instructionAddresses: {
+      addresses: {
         payer: payerAddress,
         authority: authorityAddress,
         authority_collateral: authorityCollateralAddress,
         campaign: campaignAddress,
       },
-      instructionPayload: { params: { index: campaignIndex } },
+      payload: { params: { index: campaignIndex } },
     },
     { accountsContext },
   );
@@ -108,7 +108,7 @@ it("run", async () => {
     expectDefined(programIdl.instructions.get("pledge_create")),
     programAddress,
     {
-      instructionAddresses: {
+      addresses: {
         payer: payerAddress,
         user: userAddress,
         campaign: campaignAddress,
@@ -122,7 +122,7 @@ it("run", async () => {
     expectDefined(programIdl.instructions.get("pledge_deposit")),
     programAddress,
     {
-      instructionAddresses: {
+      addresses: {
         payer: payerAddress,
         user: userAddress,
         user_collateral: userCollateralAddress,

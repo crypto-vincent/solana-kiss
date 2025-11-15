@@ -77,11 +77,11 @@ it("run", async () => {
     expectDefined(programIdl.instructions.get("my_ix")),
     programAddress,
     {
-      instructionAddresses: {
+      addresses: {
         account_snake: accountSnakeAddress,
         account_camel: accountCamelAddress,
       },
-      instructionPayload: {
+      payload: {
         arg_snake: 42,
         arg_camel: 43,
       },
@@ -105,11 +105,11 @@ it("run", async () => {
     expectDefined(programIdl.instructions.get("my_ix")),
     programAddress,
     {
-      instructionAddresses: {
+      addresses: {
         accountSnake: accountSnakeAddress,
         accountCamel: accountCamelAddress,
       },
-      instructionPayload: {
+      payload: {
         argSnake: 42,
         argCamel: 43,
       },

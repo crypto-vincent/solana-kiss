@@ -15,20 +15,20 @@ it("run", async () => {
   const accountAddress = pubkeyFromBase58(
     "FdoXZqdMysWbzB8j5bK6U5J1Dczsos1vGwQi5Tur2mwk",
   );
-  const { accountInfo } =
+  const { accountIdl, accountInfo, accountState } =
     await solana.getAndInferAndDecodeAccount(accountAddress);
-  expect(accountInfo.idl?.name).toStrictEqual("CoordinatorAccount");
+  expect(accountIdl.name).toStrictEqual("CoordinatorAccount");
+  expect(jsonGetAt(accountState, "state.metadata.vocabSize")).toStrictEqual(
+    "129280",
+  );
   expect(
-    jsonGetAt(accountInfo.state, "state.metadata.vocabSize"),
-  ).toStrictEqual("129280");
-  expect(
-    jsonGetAt(accountInfo.state, "state.coordinator.config.min_clients"),
+    jsonGetAt(accountState, "state.coordinator.config.min_clients"),
   ).toStrictEqual(24);
 
   const moduleName = "jsonCodecAccountBytemuck";
   const modulePath = `./tests/fixtures/${moduleName}.ts`;
   const moduleCode = idlTypeFullJsonCodecModule(
-    accountInfo.idl.typeFull,
+    accountIdl.typeFull,
     moduleName,
     "../../src",
   );
@@ -37,16 +37,16 @@ it("run", async () => {
   delete require.cache[require.resolve(requirePath)];
   const { jsonCodecAccountBytemuck } = require(requirePath);
 
-  const contentDecoded = jsonCodecAccountBytemuck.decoder(accountInfo.state);
+  const contentDecoded = jsonCodecAccountBytemuck.decoder(accountState);
   expect(contentDecoded.state.metadata.vocabSize).toStrictEqual(129280n);
   expect(contentDecoded.state.coordinator.config.minClients).toStrictEqual(24);
 
   const reencoded = idlAccountEncode(
-    accountInfo.idl,
+    accountIdl,
     jsonCodecAccountBytemuck.encoder(contentDecoded),
   );
   expect(reencoded.length).toStrictEqual(accountInfo.data.length);
 
-  const redecoded = idlAccountDecode(accountInfo.idl, reencoded);
-  expect(redecoded).toStrictEqual(accountInfo.state);
+  const redecoded = idlAccountDecode(accountIdl, reencoded);
+  expect(redecoded).toStrictEqual(accountState);
 });

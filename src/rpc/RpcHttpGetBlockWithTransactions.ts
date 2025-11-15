@@ -21,7 +21,7 @@ export async function rpcHttpGetBlockWithTransactions(
     time: Date | undefined;
     hash: BlockHash;
   };
-  transactionsHandles: Array<TransactionHandle>; // TODO (naming) - are those ordered ? in which order ?
+  oldToNewTransactionsHandles: Array<TransactionHandle>;
 }> {
   const result = resultJsonDecoder(
     await self("getBlock", [blockSlotToNumber(blockSlot)], {
@@ -38,7 +38,7 @@ export async function rpcHttpGetBlockWithTransactions(
       time: result.blockTime ? new Date(result.blockTime * 1000) : undefined,
       hash: result.blockhash,
     },
-    transactionsHandles: result.signatures,
+    oldToNewTransactionsHandles: result.signatures,
   };
 }
 

@@ -1,5 +1,6 @@
 import { casingLosslessConvertToSnake } from "../data/Casing";
 import { withErrorContext } from "../data/Error";
+import { InstructionFrame } from "../data/Instruction";
 import {
   jsonCodecArrayValues,
   jsonCodecBoolean,
@@ -14,7 +15,6 @@ import {
 import { Pubkey, pubkeyFindPdaAddress, pubkeyFromBytes } from "../data/Pubkey";
 import { objectGetOwnProperty } from "../data/Utils";
 import { IdlDocs, idlDocsParse } from "./IdlDocs";
-import { IdlInstructionInfo } from "./IdlInstruction";
 import {
   IdlInstructionBlob,
   IdlInstructionBlobAccountFetcher,
@@ -43,12 +43,12 @@ export type IdlInstructionAccountPda = {
 export async function idlInstructionAccountFind(
   self: IdlInstructionAccount,
   programAddress: Pubkey,
-  instructionInfo: IdlInstructionInfo,
+  instructionFrame: InstructionFrame,
   accountsContext?: IdlInstructionBlobAccountsContext,
   accountFetcher?: IdlInstructionBlobAccountFetcher,
 ) {
   const instructionAddress = objectGetOwnProperty(
-    instructionInfo.instructionAddresses,
+    instructionFrame.addresses,
     self.name,
   );
   if (instructionAddress !== undefined) {
@@ -64,7 +64,7 @@ export async function idlInstructionAccountFind(
       seedsBytes.push(
         await idlInstructionBlobCompute(
           instructionBlobIdl,
-          instructionInfo,
+          instructionFrame,
           accountsContext,
           accountFetcher,
         ),
@@ -75,7 +75,7 @@ export async function idlInstructionAccountFind(
       pdaProgramAddress = pubkeyFromBytes(
         await idlInstructionBlobCompute(
           self.pda.program,
-          instructionInfo,
+          instructionFrame,
           accountsContext,
           accountFetcher,
         ),

@@ -15,11 +15,11 @@ export async function rpcHttpFindAccountTransactions(
     startBeforeTransactionHandle?: TransactionHandle;
     rewindUntilTransactionHandle?: TransactionHandle;
   },
-): Promise<{ rewindingTransactionsHandles: Array<TransactionHandle> }> {
-  const rewindingTransactionsHandles = new Array<TransactionHandle>();
+): Promise<{ newToOldTransactionsHandles: Array<TransactionHandle> }> {
+  const newToOldTransactionsHandles = new Array<TransactionHandle>();
   const batchSize = Math.min(
     1000,
-    maxResultLength - rewindingTransactionsHandles.length,
+    maxResultLength - newToOldTransactionsHandles.length,
   );
   const rewindUntilTransactionHandle = pagination?.rewindUntilTransactionHandle;
   let startBeforeTransactionHandle = pagination?.startBeforeTransactionHandle;
@@ -34,17 +34,17 @@ export async function rpcHttpFindAccountTransactions(
     );
     for (const item of result) {
       const transactionHandle = item.signature;
-      rewindingTransactionsHandles.push(transactionHandle);
-      if (rewindingTransactionsHandles.length >= maxResultLength) {
-        return { rewindingTransactionsHandles };
+      newToOldTransactionsHandles.push(transactionHandle);
+      if (newToOldTransactionsHandles.length >= maxResultLength) {
+        return { newToOldTransactionsHandles };
       }
       if (transactionHandle === rewindUntilTransactionHandle) {
-        return { rewindingTransactionsHandles };
+        return { newToOldTransactionsHandles };
       }
       startBeforeTransactionHandle = transactionHandle;
     }
     if (result.length < batchSize) {
-      return { rewindingTransactionsHandles };
+      return { newToOldTransactionsHandles };
     }
   }
 }

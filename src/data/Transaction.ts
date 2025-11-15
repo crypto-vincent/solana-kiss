@@ -4,7 +4,7 @@ import {
   blockHashToBytes,
   BlockSlot,
 } from "./Block";
-import { Instruction, InstructionInput } from "./Instruction";
+import { InstructionInput, InstructionRequest } from "./Instruction";
 import { JsonObject } from "./Json";
 import {
   Pubkey,
@@ -21,7 +21,7 @@ import { WalletAccount } from "./Wallet";
 export type TransactionRequest = {
   payerAddress: Pubkey;
   recentBlockHash: BlockHash;
-  instructions: Array<Instruction>;
+  instructions: Array<InstructionRequest>;
 };
 export type TransactionAddressLookupTable = {
   tableAddress: Pubkey;
@@ -49,7 +49,6 @@ export type TransactionExecution = {
   chargedFeesLamports: bigint | undefined;
 };
 
-// TODO - this should be rooted at a program call not a statement list ? (improve naming also?)
 export type TransactionFlow = Array<
   | { invocation: TransactionInvocation }
   | { data: Uint8Array }
@@ -57,7 +56,7 @@ export type TransactionFlow = Array<
   | { unknown: string }
 >;
 export type TransactionInvocation = {
-  instruction: Instruction;
+  instruction: InstructionRequest;
   flow: TransactionFlow;
   error: string | undefined;
   returned: Uint8Array | undefined;
@@ -411,7 +410,7 @@ export function transactionDecompileRequest(
     }
   }
   const payerAddress = lookupInput(instructionsInputs, 0).address;
-  const instructions = new Array<Instruction>();
+  const instructions = new Array<InstructionRequest>();
   for (const compiledInstruction of compiledInstructions) {
     instructions.push({
       programAddress: lookupInput(
@@ -429,7 +428,9 @@ export function transactionDecompileRequest(
 
 function addressesMetasByCategory(
   transactionRequest: TransactionRequest,
-  options?: { legacyAddressSorting?: boolean },
+  options?: {
+    legacyAddressSorting?: boolean;
+  },
 ) {
   const metaByAddress = new Map<
     Pubkey,

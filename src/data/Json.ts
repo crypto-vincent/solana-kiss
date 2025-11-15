@@ -255,7 +255,9 @@ export function jsonPointerTokenAsArrayIndex(
 export function jsonGetAt(
   value: JsonValue | undefined,
   pathOrPointer: string | JsonPointer,
-  options?: { throwOnMissing?: boolean },
+  options?: {
+    throwOnMissing?: boolean;
+  },
 ) {
   const pointer = Array.isArray(pathOrPointer)
     ? pathOrPointer
@@ -654,7 +656,7 @@ export function jsonEncoderObject<
   options?: {
     keysEncoding?:
       | { [K in keyof Shape]?: string }
-      | ((keyDecoded: Extract<keyof Shape, string>) => string);
+      | ((keyDecoded: Extract<keyof Shape, string>) => string | undefined);
   },
 ): JsonEncoder<{ [K in keyof Shape]: JsonEncoderContent<Shape[K]> }> {
   return (decoded) => {
@@ -688,8 +690,8 @@ export function jsonCodecObject<
     Object.entries(shape).map(([key, type]) => [key, type.encoder]),
   ) as { [K in keyof Shape]: JsonEncoder<any> };
   return {
-    decoder: jsonDecoderObject(decodeShape, options as any),
-    encoder: jsonEncoderObject(encodeShape, options as any),
+    decoder: jsonDecoderObject(decodeShape, options),
+    encoder: jsonEncoderObject(encodeShape, options),
   } as JsonCodec<{ [K in keyof Shape]: JsonCodecContent<Shape[K]> }>;
 }
 

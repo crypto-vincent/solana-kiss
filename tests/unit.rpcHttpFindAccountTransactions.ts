@@ -6,16 +6,16 @@ function rpcHttp() {
 }
 
 it("run", async () => {
-  const { rewindingTransactionsHandles } = await rpcHttpFindAccountTransactions(
+  const { newToOldTransactionsHandles } = await rpcHttpFindAccountTransactions(
     rpcHttp,
     pubkeyNewDummy(),
     15,
   );
-  expect(rewindingTransactionsHandles.length).toStrictEqual(15);
-  expect(rewindingTransactionsHandles[0]).toStrictEqual(
+  expect(newToOldTransactionsHandles.length).toStrictEqual(15);
+  expect(newToOldTransactionsHandles[0]).toStrictEqual(
     "ap239tUavGE8jWq9NKxTYqbwznBPxc4TTfcVWi6S5pJwnvEGjEZQrXqZ4SX44aPrAptwd1rG4f7JJwHRRwXrqNL",
   );
-  expect(rewindingTransactionsHandles[5]).toStrictEqual(
+  expect(newToOldTransactionsHandles[5]).toStrictEqual(
     "4xCgKR42j964F97d9KzFzUzucX9QMWxdrWuF3FYz5WhexjrzzXvSycxeNcz2TnUkGazWskG3rgjC5eaVfR8ncgC7",
   );
 });

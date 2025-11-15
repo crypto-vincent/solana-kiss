@@ -1,6 +1,6 @@
 import { casingLosslessConvertToSnake } from "../data/Casing";
-import { withErrorContext } from "../data/Error";
-import { Instruction } from "../data/Instruction";
+import { ErrorStack, withErrorContext } from "../data/Error";
+import { InstructionRequest } from "../data/Instruction";
 import {
   JsonObject,
   JsonValue,
@@ -40,53 +40,64 @@ export type IdlProgram = {
 export function idlProgramGuessAccount(
   self: IdlProgram,
   accountData: Uint8Array,
-): IdlAccount | undefined {
+): IdlAccount {
+  const errors = [];
   for (const accountIdl of self.accounts.values()) {
     try {
       idlAccountCheck(accountIdl, accountData);
       return accountIdl;
-    } catch {}
+    } catch (error) {
+      errors.push(error);
+    }
   }
-  return undefined;
+  throw new ErrorStack("Idl: Failed to guess account", errors);
 }
 
 export function idlProgramGuessInstruction(
   self: IdlProgram,
-  instruction: Instruction,
-): IdlInstruction | undefined {
+  instruction: InstructionRequest,
+): IdlInstruction {
+  const errors = [];
   for (const instructionIdl of self.instructions.values()) {
     try {
       idlInstructionAccountsCheck(instructionIdl, instruction.inputs);
       idlInstructionArgsCheck(instructionIdl, instruction.data);
       return instructionIdl;
-    } catch {}
+    } catch (error) {
+      errors.push(error);
+    }
   }
-  return undefined;
+  throw new ErrorStack("Idl: Failed to guess instruction", errors);
 }
 
 export function idlProgramGuessEvent(
   self: IdlProgram,
   eventData: Uint8Array,
-): IdlEvent | undefined {
+): IdlEvent {
+  const errors = [];
   for (const eventIdl of self.events.values()) {
     try {
       idlEventCheck(eventIdl, eventData);
       return eventIdl;
-    } catch {}
+    } catch (error) {
+      errors.push(error);
+    }
   }
-  return undefined;
+  throw new ErrorStack("Idl: Failed to guess event", errors);
 }
 
 export function idlProgramGuessError(
   self: IdlProgram,
   errorCode: number,
-): IdlError | undefined {
+): IdlError {
+  const codes = [];
   for (const errorIdl of self.errors.values()) {
     if (errorIdl.code === errorCode) {
       return errorIdl;
     }
+    codes.push(errorIdl.code);
   }
-  return undefined;
+  throw new ErrorStack("Idl: Failed to guess error", codes);
 }
 
 export function idlProgramParse(

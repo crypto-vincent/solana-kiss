@@ -92,7 +92,7 @@ it("run", async () => {
     expectDefined(programIdl.instructions.get("my_ix")),
     programAddress,
     {
-      instructionAddresses: {
+      addresses: {
         first: firstAddress,
         "nester.nested1": nested1Address,
       },

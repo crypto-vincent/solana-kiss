@@ -2,11 +2,11 @@ export function withErrorContext<T>(message: string, fn: () => T): T {
   try {
     return fn();
   } catch (error) {
-    throw new ErrorStackable(message, error);
+    throw new ErrorStack(message, error);
   }
 }
 
-export class ErrorStackable extends Error {
+export class ErrorStack extends Error {
   constructor(message: string, inner?: any | Array<any>) {
     if (inner === undefined) {
       super(message);
@@ -30,22 +30,22 @@ export class ErrorStackable extends Error {
 
 function errorStackLines(
   messageLines: Array<string>,
-  error: any,
-  isLast: boolean,
+  innerError: any,
+  isLastInner: boolean,
 ) {
-  const errorLines = String(error).split("\n");
-  for (let index = 0; index < errorLines.length; index++) {
+  const innerLines = String(innerError).split("\n");
+  for (let index = 0; index < innerLines.length; index++) {
     if (index === 0) {
-      if (isLast) {
-        messageLines.push(`└── ${errorLines[index]!}`);
+      if (isLastInner) {
+        messageLines.push(`└── ${innerLines[index]!}`);
       } else {
-        messageLines.push(`├── ${errorLines[index]!}`);
+        messageLines.push(`├── ${innerLines[index]!}`);
       }
     } else {
-      if (isLast) {
-        messageLines.push(`    ${errorLines[index]!}`);
+      if (isLastInner) {
+        messageLines.push(`    ${innerLines[index]!}`);
       } else {
-        messageLines.push(`│   ${errorLines[index]!}`);
+        messageLines.push(`│   ${innerLines[index]!}`);
       }
     }
   }

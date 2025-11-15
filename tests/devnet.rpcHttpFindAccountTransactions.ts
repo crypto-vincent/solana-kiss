@@ -10,16 +10,16 @@ import {
 
 it("run", async () => {
   const rpcHttp = rpcHttpFromUrl(urlRpcPublicDevnet);
-  const { rewindingTransactionsHandles } = await rpcHttpFindAccountTransactions(
+  const { newToOldTransactionsHandles } = await rpcHttpFindAccountTransactions(
     rpcHttp,
     pubkeyFromBase58("vVeH6Xd43HAScbxjVtvfwDGqBMaMvNDLsAxwM5WK1pG"),
     4200,
   );
-  expect(rewindingTransactionsHandles.length).toBeGreaterThan(0);
+  expect(newToOldTransactionsHandles.length).toBeGreaterThan(0);
   const { transactionExecution } = expectDefined(
     await rpcHttpGetTransaction(
       rpcHttp,
-      expectDefined(rewindingTransactionsHandles[0]),
+      expectDefined(newToOldTransactionsHandles[0]),
     ),
   );
   expect(transactionExecution.blockInfo.time?.toISOString()).toStrictEqual(

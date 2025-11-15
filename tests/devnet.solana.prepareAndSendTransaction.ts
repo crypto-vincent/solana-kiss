@@ -26,8 +26,8 @@ it("run", async () => {
   const payerSigner = await signerFromSecret(secret);
   const owned1Signer = await signerGenerate();
   const owned2Signer = await signerGenerate();
-  const instructions = [
-    await makeSystemCreateInstruction(
+  const instructionsRequests = [
+    await makeSystemCreateInstructionRequest(
       solana,
       ownerAddress,
       transferLamports,
@@ -35,7 +35,7 @@ it("run", async () => {
       payerSigner,
       owned1Signer,
     ),
-    await makeSystemCreateInstruction(
+    await makeSystemCreateInstructionRequest(
       solana,
       ownerAddress,
       transferLamports + 42n,
@@ -58,7 +58,7 @@ it("run", async () => {
   };
   const { transactionHandle } = await solana.prepareAndSendTransaction(
     payerSigner,
-    instructions,
+    instructionsRequests,
     { extraSigners: [owned1FakePhantomWalletWithAutoSend, owned2Signer] },
   );
   const { transactionExecution } = await rpcHttpWaitForTransaction(
@@ -77,25 +77,23 @@ it("run", async () => {
   );
   expect(transactionExecution.logs?.length).toStrictEqual(4);
   expect(transactionExecution.error).toStrictEqual(null);
-  const { accountInfo: owned1Info } = await solana.getAndInferAndDecodeAccount(
-    owned1Signer.address,
-  );
+  const { accountInfo: owned1Info, accountState: owned1State } =
+    await solana.getAndInferAndDecodeAccount(owned1Signer.address);
   expect(owned1Info.executable).toStrictEqual(false);
   expect(owned1Info.lamports).toStrictEqual(transferLamports);
   expect(owned1Info.owner).toStrictEqual(ownerAddress);
   expect(owned1Info.data.length).toStrictEqual(requestedSpace);
-  expect(owned1Info.state).toStrictEqual(null);
-  const { accountInfo: owned2Info } = await solana.getAndInferAndDecodeAccount(
-    owned2Signer.address,
-  );
+  expect(owned1State).toStrictEqual(null);
+  const { accountInfo: owned2Info, accountState: owned2State } =
+    await solana.getAndInferAndDecodeAccount(owned2Signer.address);
   expect(owned2Info.executable).toStrictEqual(false);
   expect(owned2Info.lamports).toStrictEqual(transferLamports + 42n);
   expect(owned2Info.owner).toStrictEqual(ownerAddress);
   expect(owned2Info.data.length).toStrictEqual(requestedSpace - 1);
-  expect(owned1Info.state).toStrictEqual(null);
+  expect(owned2State).toStrictEqual(null);
 });
 
-async function makeSystemCreateInstruction(
+async function makeSystemCreateInstructionRequest(
   solana: Solana,
   ownerAddress: Pubkey,
   transferLamports: bigint,
@@ -103,17 +101,22 @@ async function makeSystemCreateInstruction(
   payerSigner: Signer,
   ownedSigner: Signer,
 ) {
-  return solana.hydrateAndEncodeInstruction(pubkeyDefault, "Create", {
-    instructionAddresses: {
-      payer: payerSigner.address,
-      created: ownedSigner.address,
+  const { instructionRequest } = await solana.hydrateAndEncodeInstruction(
+    pubkeyDefault,
+    "Create",
+    {
+      addresses: {
+        payer: payerSigner.address,
+        created: ownedSigner.address,
+      },
+      payload: {
+        lamports: String(transferLamports),
+        space: requestedSpace,
+        owner: pubkeyToBase58(ownerAddress),
+      },
     },
-    instructionPayload: {
-      lamports: String(transferLamports),
-      space: requestedSpace,
-      owner: pubkeyToBase58(ownerAddress),
-    },
-  });
+  );
+  return instructionRequest;
 }
 
 const secret = new Uint8Array([

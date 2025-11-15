@@ -26,7 +26,7 @@ it("run", async () => {
   const {
     previousBlockSlot: withTransactionPreviousBlockSlot,
     blockInfo: withTransactionBlockInfo,
-    transactionsHandles,
+    oldToNewTransactionsHandles: transactionsHandles,
   } = await rpcHttpGetBlockWithTransactions(rpcHttp, blockSlot);
   expect(withTransactionPreviousBlockSlot).toStrictEqual(
     metadataPreviousBlockSlot,

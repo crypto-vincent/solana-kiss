@@ -74,7 +74,7 @@ it("run", async () => {
     expectDefined(programIdl.instructions.get("my_ix")),
     programAddress,
     {
-      instructionPayload: {
+      payload: {
         u8: 77,
         u16: 78,
         u32: 79,

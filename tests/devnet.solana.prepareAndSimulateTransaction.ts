@@ -18,39 +18,37 @@ it("run", async () => {
   const payerSigner = await signerFromSecret(secret);
   const userSigner = await signerGenerate();
   // Resolve the necessary addresses
-  const campaignCreateAddresses = await solana.hydrateInstructionAddresses(
-    programAddress,
-    "campaign_create",
-    { instructionPayload: { params: { index: "0" } } },
-  );
+  const { instructionAddresses: campaignCreateAddresses } =
+    await solana.hydrateInstructionAddresses(
+      programAddress,
+      "campaign_create",
+      { payload: { params: { index: "0" } } },
+    );
   const campaignAddress = expectDefined(campaignCreateAddresses["campaign"]);
-  const pledgeCreateAddresses = await solana.hydrateInstructionAddresses(
-    programAddress,
-    "pledge_create",
-    {
-      instructionAddresses: {
+  const { instructionAddresses: pledgeCreateAddresses } =
+    await solana.hydrateInstructionAddresses(programAddress, "pledge_create", {
+      addresses: {
         user: userSigner.address,
         campaign: campaignAddress,
       },
-    },
-  );
+    });
   const pledgeAddress = expectDefined(pledgeCreateAddresses["pledge"]);
   // Run the simulation without verifying the signers
-  const instruction = await solana.hydrateAndEncodeInstruction(
+  const { instructionRequest } = await solana.hydrateAndEncodeInstruction(
     programAddress,
     "pledge_create",
     {
-      instructionAddresses: {
+      addresses: {
         payer: payerSigner.address,
         user: userSigner.address,
         campaign: campaignAddress,
       },
-      instructionPayload: { params: null },
+      payload: { params: null },
     },
   );
   const resultNoVerify = await solana.prepareAndSimulateTransaction(
     payerSigner.address,
-    [instruction],
+    [instructionRequest],
     {
       verifySignaturesAndBlockHash: false,
       simulatedAccountsAddresses: new Set([pledgeAddress]),
@@ -78,7 +76,7 @@ it("run", async () => {
   // Run the simulation with verifying the signers (and recent block hash)
   const resultWithVerify = await solana.prepareAndSimulateTransaction(
     payerSigner,
-    [instruction],
+    [instructionRequest],
     {
       extraSigners: [userSigner],
       verifySignaturesAndBlockHash: true,

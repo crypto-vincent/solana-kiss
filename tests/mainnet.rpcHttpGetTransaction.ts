@@ -1,8 +1,8 @@
 import { expect, it } from "@jest/globals";
 import {
   expectDefined,
-  Instruction,
   InstructionInput,
+  InstructionRequest,
   pubkeyFromBase58,
   rpcHttpFromUrl,
   rpcHttpGetTransaction,
@@ -33,20 +33,20 @@ it("run", async () => {
   // Check the invocations tree shape
   const createParams = new Uint8Array(410);
   expect(transactionFlow).toStrictEqual([
-    invocation({
-      instruction: instruction({
+    inv({
+      instruction: ix({
         programAddress: "ComputeBudget111111111111111111111111111111",
         data: [2, 32, 161, 7, 0],
       }),
     }),
-    invocation({
-      instruction: instruction({
+    inv({
+      instruction: ix({
         programAddress: "ComputeBudget111111111111111111111111111111",
         data: [3, 112, 17, 1, 0, 0, 0, 0, 0],
       }),
     }),
-    invocation({
-      instruction: instruction({
+    inv({
+      instruction: ix({
         programAddress: "11111111111111111111111111111111",
         inputs: [
           i("Ewfot2ZKhuGuEWaSRyFpe3LpK9xSEEUrDZk4AQpTazAR", "ws"),
@@ -55,8 +55,8 @@ it("run", async () => {
         data: [2, 0, 0, 0, 160, 134, 1, 0, 0, 0, 0, 0],
       }),
     }),
-    invocation({
-      instruction: instruction({
+    inv({
+      instruction: ix({
         programAddress: "SQDS4ep65T869zMMBKyuUq6aD6EgTu8psMjkvj52pCf",
         inputs: [
           i("95YsCnu6P89y8N52qLLTbRog42eypUNqzDi4JYCSCuA", ""),
@@ -77,8 +77,8 @@ it("run", async () => {
       }),
       flow: [
         { log: "Instruction: VaultTransactionExecute" },
-        invocation({
-          instruction: instruction({
+        inv({
+          instruction: ix({
             programAddress: "PsyMP8fXEEMo2C6C84s8eXuRUrvzQnZyquyjipDRohf",
             inputs: [
               i("8PDYaC2zz9UYN3qVoAyZvAF7qRkmTByBT5TnT2mHGPuZ", "w"),
@@ -97,8 +97,8 @@ it("run", async () => {
           }),
           flow: [
             { log: "Instruction: PoolCreate" },
-            invocation({
-              instruction: instruction({
+            inv({
+              instruction: ix({
                 programAddress: "11111111111111111111111111111111",
                 inputs: [
                   i("8PDYaC2zz9UYN3qVoAyZvAF7qRkmTByBT5TnT2mHGPuZ", "w"),
@@ -112,8 +112,8 @@ it("run", async () => {
                 ],
               }),
             }),
-            invocation({
-              instruction: instruction({
+            inv({
+              instruction: ix({
                 programAddress: "ATokenGPvbdGVxr1b2hvZbsiqW5xWH25efTNsLJA8knL",
                 inputs: [
                   i("8PDYaC2zz9UYN3qVoAyZvAF7qRkmTByBT5TnT2mHGPuZ", "w"),
@@ -127,8 +127,8 @@ it("run", async () => {
               }),
               flow: [
                 { log: "Create" },
-                invocation({
-                  instruction: instruction({
+                inv({
+                  instruction: ix({
                     programAddress:
                       "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA",
                     inputs: [
@@ -142,8 +142,8 @@ it("run", async () => {
                     consumedComputeUnits: 1622,
                   },
                 }),
-                invocation({
-                  instruction: instruction({
+                inv({
+                  instruction: ix({
                     programAddress: "11111111111111111111111111111111",
                     inputs: [
                       i("8PDYaC2zz9UYN3qVoAyZvAF7qRkmTByBT5TnT2mHGPuZ", "w"),
@@ -158,8 +158,8 @@ it("run", async () => {
                   }),
                 }),
                 { log: "Initialize the associated token account" },
-                invocation({
-                  instruction: instruction({
+                inv({
+                  instruction: ix({
                     programAddress:
                       "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA",
                     inputs: [
@@ -177,8 +177,8 @@ it("run", async () => {
                   ],
                   result: { consumedComputeUnits: 1405 },
                 }),
-                invocation({
-                  instruction: instruction({
+                inv({
+                  instruction: ix({
                     programAddress:
                       "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA",
                     inputs: [
@@ -206,13 +206,13 @@ it("run", async () => {
   ]);
 });
 
-function invocation(value: {
-  instruction: Instruction;
+function inv(value: {
+  instruction: InstructionRequest;
   flow?: TransactionFlow;
   result?: {
-    error?: string | undefined;
-    returned?: Array<number> | undefined;
-    consumedComputeUnits?: number | undefined;
+    error?: string;
+    returned?: Array<number>;
+    consumedComputeUnits?: number;
   };
 }) {
   return {
@@ -228,11 +228,11 @@ function invocation(value: {
   };
 }
 
-function instruction(value: {
+function ix(value: {
   programAddress: string;
   inputs?: Array<InstructionInput>;
   data?: Array<number>;
-}): Instruction {
+}): InstructionRequest {
   return {
     programAddress: pubkeyFromBase58(value.programAddress),
     inputs: value.inputs ?? [],

@@ -66,9 +66,9 @@ async function assertAccountState(
   expectedAccountName: string,
   expectedState: JsonValue,
 ) {
-  const { programInfo, accountInfo } =
+  const { programIdl, accountIdl, accountState } =
     await solana.getAndInferAndDecodeAccount(accountAddress);
-  expect(programInfo.idl.metadata.name).toStrictEqual(expectedProgramName);
-  expect(accountInfo.idl.name).toStrictEqual(expectedAccountName);
-  expect(accountInfo.state).toStrictEqual(expectedState);
+  expect(programIdl.metadata.name).toStrictEqual(expectedProgramName);
+  expect(accountIdl.name).toStrictEqual(expectedAccountName);
+  expect(accountState).toStrictEqual(expectedState);
 }

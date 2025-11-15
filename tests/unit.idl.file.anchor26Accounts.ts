@@ -63,7 +63,7 @@ it("run", async () => {
     expectDefined(programIdl.instructions.get("initialize_market")),
     programAddress,
     {
-      instructionAddresses: {
+      addresses: {
         owner: ownerAddress,
         liquidity_pool_token_account: liquidityPoolTokenAccountAddress,
         treasury: treasuryAddress,
@@ -74,7 +74,7 @@ it("run", async () => {
         token_program: placeholderAddress,
         system_program: placeholderAddress,
       },
-      instructionPayload: {
+      payload: {
         global_market_seed: globalMarketSeed,
       },
     },
@@ -100,11 +100,11 @@ it("run", async () => {
     expectDefined(programIdl.instructions.get("open_deal")),
     programAddress,
     {
-      instructionAddresses: {
+      addresses: {
         owner: ownerAddress,
         global_market_state: globalMarketStateAddress,
       },
-      instructionPayload: { global_market_seed: globalMarketSeed },
+      payload: { global_market_seed: globalMarketSeed },
     },
     {
       accountsContext: {
