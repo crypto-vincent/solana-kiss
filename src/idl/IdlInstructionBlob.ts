@@ -36,7 +36,7 @@ export type IdlInstructionBlobAccountFetcher = (
 
 export type IdlInstructionBlobAccountContent = {
   accountState: JsonValue;
-  accountTypeFull?: IdlTypeFull;
+  accountTypeFull: IdlTypeFull | undefined;
 };
 
 export type IdlInstructionBlobConst = {

@@ -59,7 +59,10 @@ it("run", async () => {
   const { transactionHandle } = await solana.prepareAndSendTransaction(
     payerSigner,
     instructionsRequests,
-    { extraSigners: [owned1FakePhantomWalletWithAutoSend, owned2Signer] },
+    {
+      extraSigners: [owned1FakePhantomWalletWithAutoSend, owned2Signer],
+      skipPreflight: true,
+    },
   );
   const { transactionExecution } = await rpcHttpWaitForTransaction(
     solana.getRpcHttp(),

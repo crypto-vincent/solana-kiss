@@ -5,7 +5,6 @@ export type InstructionFrame = {
   addresses: InstructionAddresses;
   payload?: JsonValue | undefined;
 };
-
 export type InstructionAddresses = {
   [accountField: string]: Pubkey;
 };
@@ -15,7 +14,6 @@ export type InstructionRequest = {
   inputs: Array<InstructionInput>;
   data: Uint8Array;
 };
-
 export type InstructionInput = {
   address: Pubkey;
   signer: boolean;

@@ -109,6 +109,7 @@ it("run", async () => {
     {
       accountsContext: {
         deal: {
+          accountTypeFull: undefined,
           accountState: {
             deal_number: dealNumber,
             borrower: pubkeyToBase58(borrowerAddress),

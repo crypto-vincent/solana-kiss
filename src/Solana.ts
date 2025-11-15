@@ -157,10 +157,7 @@ export class Solana {
       programAddress,
       instructionName,
       instructionFrame,
-      {
-        throwOnMissing: true,
-        accountsContext: options?.accountsContext,
-      } as any,
+      { throwOnMissing: true, ...options },
     );
     const { instructionIdl } = await this.getOrLoadInstructionIdl(
       programAddress,
@@ -196,8 +193,7 @@ export class Solana {
       programAddress,
       instructionFrame,
       {
-        throwOnMissing: options?.throwOnMissing,
-        accountsContext: options?.accountsContext,
+        ...options,
         accountFetcher: async (accountAddress: Pubkey) => {
           const accountCached = accountsCache.get(accountAddress);
           if (accountCached) {
@@ -212,7 +208,7 @@ export class Solana {
           accountsCache.set(accountAddress, accountContent);
           return accountContent;
         },
-      } as any,
+      },
     );
     return { instructionAddresses };
   }
@@ -239,7 +235,6 @@ export class Solana {
       extraSigners?: Array<Signer | WalletAccount>;
       transactionLookupTables?: Array<TransactionAddressLookupTable>;
       skipPreflight?: boolean;
-      failOnAlreadyProcessed?: boolean;
     },
   ) {
     const recentBlockHash = await this.getRecentBlockHash();
@@ -316,9 +311,9 @@ export class Solana {
       this.#rpcHttp,
       programAddress,
       {
-        dataSpace: accountIdl.dataSpace,
         dataBlobs: accountIdl.dataBlobs,
-      } as any, // TODO (typing) - fix typing of optionals
+        dataSpace: accountIdl.dataSpace,
+      },
     );
   }
 }

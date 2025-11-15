@@ -85,25 +85,32 @@ it("run", () => {
   expect(
     idlProgramGuessAccount(programIdl, new Uint8Array([2, 9, 9, 9, 9, 9])),
   ).toStrictEqual(programIdl.accounts.get("MyAccount2_x6"));
-  expect(
-    idlProgramGuessAccount(programIdl, new Uint8Array([1, 2])),
-  ).toStrictEqual(undefined);
-  expect(
+  expectFail(() => idlProgramGuessAccount(programIdl, new Uint8Array([1, 2])));
+  expectFail(() =>
     idlProgramGuessAccount(programIdl, new Uint8Array([1, 2, 3, 4])),
-  ).toStrictEqual(undefined);
-  expect(
+  );
+  expectFail(() =>
     idlProgramGuessAccount(
       programIdl,
       new Uint8Array([1, 2, 3, 4, 5, 6, 7, 8]),
     ),
-  ).toStrictEqual(undefined);
-  expect(
+  );
+  expectFail(() =>
     idlProgramGuessAccount(programIdl, new Uint8Array([2, 2, 2])),
-  ).toStrictEqual(undefined);
-  expect(
+  );
+  expectFail(() =>
     idlProgramGuessAccount(
       programIdl,
       new Uint8Array([2, 2, 2, 2, 2, 2, 2, 2]),
     ),
-  ).toStrictEqual(undefined);
+  );
 });
+
+function expectFail(fn: () => void) {
+  try {
+    fn();
+  } catch (_error) {
+    return;
+  }
+  throw new Error("Expected function to fail but it succeeded");
+}

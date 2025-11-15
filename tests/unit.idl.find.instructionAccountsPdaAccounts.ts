@@ -116,7 +116,10 @@ it("run", async () => {
             },
           },
         },
-        "nester.nested2": { accountState: 42 },
+        "nester.nested2": {
+          accountTypeFull: undefined,
+          accountState: 42,
+        },
       },
     },
   );

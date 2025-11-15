@@ -81,7 +81,7 @@ it("run", async () => {
     await transactionSign(transactionPacket, [
       owned1FakePhantomWalletWithAutoSend,
     ]),
-    { skipPreflight: false, failOnAlreadyProcessed: false },
+    { skipPreflight: true },
   );
   const { transactionRequest, transactionExecution } =
     await rpcHttpWaitForTransaction(rpcHttp, transactionHandle, async () => {

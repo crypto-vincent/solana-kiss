@@ -11,8 +11,8 @@ export async function rpcHttpFindProgramOwnedAccounts(
   self: RpcHttp,
   programAddress: Pubkey,
   filters?: {
-    dataSpace?: number;
-    dataBlobs?: Array<{ offset: number; bytes: Uint8Array }>;
+    dataSpace?: number | undefined;
+    dataBlobs?: Array<{ offset: number; bytes: Uint8Array }> | undefined;
   },
 ): Promise<{ accountsAddresses: Set<Pubkey> }> {
   const paramFilters = [];

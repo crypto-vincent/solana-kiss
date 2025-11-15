@@ -46,7 +46,10 @@ it("run", async () => {
     },
     {
       accountsContext: {
-        borrower_info: { accountState: { numOfDeals: 42 } },
+        borrower_info: {
+          accountTypeFull: undefined,
+          accountState: { numOfDeals: 42 },
+        },
       },
     },
   );
