@@ -19,9 +19,13 @@ export type RpcHttp = (
 export class RpcHttpError extends Error {
   public readonly code: number;
   public readonly desc: string;
-  public readonly data: JsonValue;
-
-  constructor(message: string, code: number, desc: string, data: JsonValue) {
+  public readonly data: JsonValue | undefined;
+  constructor(
+    message: string,
+    code: number,
+    desc: string,
+    data: JsonValue | undefined,
+  ) {
     super(message);
     this.code = code;
     this.desc = desc;
@@ -180,7 +184,7 @@ const responseJsonDecoder = jsonDecoderObject({
     jsonDecoderObject({
       code: jsonCodecNumber.decoder,
       message: jsonCodecString.decoder,
-      data: jsonCodecValue.decoder,
+      data: jsonDecoderOptional(jsonCodecValue.decoder),
     }),
   ),
   result: jsonDecoderOptional(jsonCodecValue.decoder),
