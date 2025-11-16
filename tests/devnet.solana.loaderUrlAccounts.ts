@@ -1,7 +1,10 @@
 import {
   JsonValue,
   Pubkey,
+  pubkeyFindPdaAddress,
   pubkeyFromBase58,
+  pubkeyNewDummy,
+  pubkeyToBytes,
   rpcHttpFromUrl,
   Solana,
   urlRpcPublicDevnet,
@@ -9,6 +12,7 @@ import {
 
 it("run", async () => {
   const solana = new Solana(rpcHttpFromUrl(urlRpcPublicDevnet));
+  // Check that we can parse a bunch of known on-chain accounts
   await assertAccountState(
     solana,
     pubkeyFromBase58("Ady55LhZxWFABzdg8NCNTAZv5XstBqyNZYCMfWqW3Rq9"),
@@ -56,6 +60,26 @@ it("run", async () => {
       owner: "8aU2gq8XgzNZr8z4noV87Sx8a3EV29gmi645qQERsaTD",
       parentName: "11111111111111111111111111111111",
     },
+  );
+  // Check PDA derivation for an associated token account
+  const dummyAddressOwner = pubkeyNewDummy();
+  const dummyAddressMint = pubkeyNewDummy();
+  const { instructionAddresses } = await solana.hydrateInstructionAddresses(
+    pubkeyFromBase58("ATokenGPvbdGVxr1b2hvZbsiqW5xWH25efTNsLJA8knL"),
+    "create",
+    { addresses: { owner: dummyAddressOwner, mint: dummyAddressMint } },
+  );
+  expect(instructionAddresses["ata"]).toStrictEqual(
+    pubkeyFindPdaAddress(
+      pubkeyFromBase58("ATokenGPvbdGVxr1b2hvZbsiqW5xWH25efTNsLJA8knL"),
+      [
+        pubkeyToBytes(dummyAddressOwner),
+        pubkeyToBytes(
+          pubkeyFromBase58("TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA"),
+        ),
+        pubkeyToBytes(dummyAddressMint),
+      ],
+    ),
   );
 });
 

@@ -114,9 +114,9 @@ export class Solana {
     const accountIdl = idlProgramGuessAccount(programIdl, accountData);
     const { accountState } = idlAccountDecode(accountIdl, accountData);
     return {
-      programAddress,
       programIdl,
       accountIdl,
+      programAddress,
       accountExecutable,
       accountLamports,
       accountData,

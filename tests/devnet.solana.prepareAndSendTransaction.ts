@@ -102,7 +102,7 @@ async function makeSystemCreateInstructionRequest(
 ) {
   const { instructionRequest } = await solana.hydrateAndEncodeInstruction(
     pubkeyDefault,
-    "Create",
+    "create",
     {
       addresses: {
         payer: payerSigner.address,
