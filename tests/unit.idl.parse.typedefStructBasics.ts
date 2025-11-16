@@ -36,7 +36,8 @@ it("run", () => {
         fields: [],
       },
     },
-  }); // Assert that all are equivalent
+  });
+  // Assert that all are equivalent
   expect(programIdl1).toStrictEqual(programIdl2);
   expect(programIdl1).toStrictEqual(programIdl3);
   expect(programIdl1).toStrictEqual(programIdl4);
