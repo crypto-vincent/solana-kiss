@@ -18,15 +18,12 @@ it("run", async () => {
   );
   const ownedAccountsAddresses = [...accountsAddresses];
   for (const ownedAccountAddress of ownedAccountsAddresses.slice(0, 3)) {
-    const {
-      accountIdl: ownedAccountIdl,
-      accountInfo: ownedAccountInfo,
-      accountState: ownedAccountState,
-    } = await solana.getAndInferAndDecodeAccount(ownedAccountAddress);
-    expect(ownedAccountIdl.name).toStrictEqual("Campaign");
-    expect(ownedAccountInfo.owner).toStrictEqual(programAddress);
+    const ownedInfo =
+      await solana.getAndInferAndDecodeAccount(ownedAccountAddress);
+    expect(ownedInfo.programAddress).toStrictEqual(programAddress);
+    expect(ownedInfo.accountIdl.name).toStrictEqual("Campaign");
     expect(
-      jsonIsDeepSubset({ metadata: { bytes: [] } }, ownedAccountState),
+      jsonIsDeepSubset({ metadata: { bytes: [] } }, ownedInfo.accountState),
     ).toStrictEqual(true);
   }
 });

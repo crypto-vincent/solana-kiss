@@ -16,11 +16,9 @@ export async function rpcHttpGetBlockWithTransactions(
   blockSlot: BlockSlot,
 ): Promise<{
   previousBlockSlot: BlockSlot;
-  blockInfo: {
-    height: number | undefined;
-    time: Date | undefined;
-    hash: BlockHash;
-  };
+  blockHeight: number | undefined;
+  blockTime: Date | undefined;
+  blockHash: BlockHash;
   oldToNewTransactionsHandles: Array<TransactionHandle>;
 }> {
   const result = resultJsonDecoder(
@@ -33,11 +31,9 @@ export async function rpcHttpGetBlockWithTransactions(
   );
   return {
     previousBlockSlot: result.parentSlot,
-    blockInfo: {
-      height: result.blockHeight,
-      time: result.blockTime ? new Date(result.blockTime * 1000) : undefined,
-      hash: result.blockhash,
-    },
+    blockHeight: result.blockHeight,
+    blockTime: result.blockTime ? new Date(result.blockTime * 1000) : undefined,
+    blockHash: result.blockhash,
     oldToNewTransactionsHandles: result.signatures,
   };
 }

@@ -15,7 +15,7 @@ it("run", async () => {
   const accountAddress = pubkeyFromBase58(
     "FdoXZqdMysWbzB8j5bK6U5J1Dczsos1vGwQi5Tur2mwk",
   );
-  const { accountIdl, accountInfo, accountState } =
+  const { accountIdl, accountData, accountState } =
     await solana.getAndInferAndDecodeAccount(accountAddress);
   expect(accountIdl.name).toStrictEqual("CoordinatorAccount");
   expect(jsonGetAt(accountState, "state.metadata.vocabSize")).toStrictEqual(
@@ -41,12 +41,12 @@ it("run", async () => {
   expect(contentDecoded.state.metadata.vocabSize).toStrictEqual(129280n);
   expect(contentDecoded.state.coordinator.config.minClients).toStrictEqual(24);
 
-  const { accountData } = idlAccountEncode(
+  const { accountData: rencoded } = idlAccountEncode(
     accountIdl,
     jsonCodecAccountBytemuck.encoder(contentDecoded),
   );
-  expect(accountData.length).toStrictEqual(accountInfo.data.length);
-  expect(idlAccountDecode(accountIdl, accountData).accountState).toStrictEqual(
+  expect(rencoded.length).toStrictEqual(accountData.length);
+  expect(idlAccountDecode(accountIdl, rencoded).accountState).toStrictEqual(
     accountState,
   );
 });

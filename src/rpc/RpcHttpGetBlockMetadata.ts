@@ -13,11 +13,9 @@ export async function rpcHttpGetBlockMetadata(
   blockSlot: BlockSlot,
 ): Promise<{
   previousBlockSlot: BlockSlot;
-  blockInfo: {
-    height: number | undefined;
-    time: Date | undefined;
-    hash: BlockHash;
-  };
+  blockHeight: number | undefined;
+  blockTime: Date | undefined;
+  blockHash: BlockHash;
 }> {
   const result = resultJsonDecoder(
     await self("getBlock", [blockSlotToNumber(blockSlot)], {
@@ -29,11 +27,9 @@ export async function rpcHttpGetBlockMetadata(
   );
   return {
     previousBlockSlot: result.parentSlot,
-    blockInfo: {
-      height: result.blockHeight,
-      time: result.blockTime ? new Date(result.blockTime * 1000) : undefined,
-      hash: result.blockhash,
-    },
+    blockHeight: result.blockHeight,
+    blockTime: result.blockTime ? new Date(result.blockTime * 1000) : undefined,
+    blockHash: result.blockhash,
   };
 }
 

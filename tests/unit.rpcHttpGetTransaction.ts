@@ -20,10 +20,10 @@ it("run", async () => {
       await rpcHttpGetTransaction(rpcHttp, "!" as TransactionHandle),
     );
   // Check basic stuff about the transaction
-  expect(transactionExecution.blockInfo.time?.toISOString()).toStrictEqual(
+  expect(transactionExecution.blockTime?.toISOString()).toStrictEqual(
     "2025-03-24T14:28:45.000Z",
   );
-  expect(transactionExecution.blockInfo.slot).toStrictEqual(328883613);
+  expect(transactionExecution.blockSlot).toStrictEqual(328883613);
   expect(transactionExecution.chargedFeesLamports).toStrictEqual(32510n);
   expect(transactionExecution.consumedComputeUnits).toStrictEqual(42381);
   expect(transactionExecution.logs?.length).toStrictEqual(22);

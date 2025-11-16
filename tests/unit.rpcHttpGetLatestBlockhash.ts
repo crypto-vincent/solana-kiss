@@ -6,8 +6,8 @@ function rpcHttp() {
 }
 
 it("run", async () => {
-  const { blockInfo } = await rpcHttpGetLatestBlockHash(rpcHttp);
-  expect(blockInfo.hash).toStrictEqual(
+  const { blockHash } = await rpcHttpGetLatestBlockHash(rpcHttp);
+  expect(blockHash).toStrictEqual(
     "Bq5mEjePv8j6f6675JjmapsyzyG7F83rz9EqAzV62sSe",
   );
 });

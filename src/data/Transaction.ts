@@ -39,10 +39,8 @@ export type TransactionPacket = Branded<Uint8Array, "TransactionPacket"> & {
 export type TransactionHandle = Signature;
 
 export type TransactionExecution = {
-  blockInfo: {
-    time: Date | undefined;
-    slot: BlockSlot;
-  };
+  blockTime: Date | undefined;
+  blockSlot: BlockSlot;
   logs: Array<string> | undefined;
   error: null | string | JsonObject;
   consumedComputeUnits: number;

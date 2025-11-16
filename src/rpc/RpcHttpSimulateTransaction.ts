@@ -28,13 +28,13 @@ export async function rpcHttpSimulateTransaction(
   },
 ): Promise<{
   transactionExecution: TransactionExecution;
-  simulatedAccountInfoByAddress: Map<
+  simulatedAccountsByAddress: Map<
     Pubkey,
     {
-      executable: boolean;
-      lamports: bigint;
-      owner: Pubkey;
-      data: Uint8Array;
+      programAddress: Pubkey;
+      accountExecutable: boolean;
+      accountLamports: bigint;
+      accountData: Uint8Array;
     }
   >;
 }> {
@@ -62,10 +62,8 @@ export async function rpcHttpSimulateTransaction(
     ),
   );
   const transactionExecution = {
-    blockInfo: {
-      time: undefined,
-      slot: result.context.slot,
-    },
+    blockTime: undefined,
+    blockSlot: result.context.slot,
     logs: result.value.logs,
     error: result.value.err,
     consumedComputeUnits: result.value.unitsConsumed,
@@ -73,7 +71,7 @@ export async function rpcHttpSimulateTransaction(
       ? BigInt(result.value.fee)
       : undefined,
   };
-  const simulatedAccountInfoByAddress = new Map(
+  const simulatedAccountsByAddress = new Map(
     simulatedAccountsAddresses.map(
       (simulatedAccountAddress, simulatedAccountIndex) => {
         const simulatedAccountInfo =
@@ -82,22 +80,25 @@ export async function rpcHttpSimulateTransaction(
           simulatedAccountAddress,
           simulatedAccountInfo
             ? {
-                executable: simulatedAccountInfo.executable,
-                lamports: BigInt(simulatedAccountInfo.lamports),
-                owner: simulatedAccountInfo.owner,
-                data: simulatedAccountInfo.data.bytes,
+                programAddress: simulatedAccountInfo.owner,
+                accountExecutable: simulatedAccountInfo.executable,
+                accountLamports: BigInt(simulatedAccountInfo.lamports),
+                accountData: simulatedAccountInfo.data.bytes,
               }
             : {
-                executable: false,
-                lamports: 0n,
-                owner: pubkeyDefault,
-                data: new Uint8Array(0),
+                programAddress: pubkeyDefault,
+                accountExecutable: false,
+                accountLamports: 0n,
+                accountData: new Uint8Array(0),
               },
         ];
       },
     ),
   );
-  return { transactionExecution, simulatedAccountInfoByAddress };
+  return {
+    transactionExecution,
+    simulatedAccountsByAddress,
+  };
 }
 
 const resultJsonDecoder = jsonDecoderObject({

@@ -108,14 +108,20 @@ export class Solana {
   }
 
   public async getAndInferAndDecodeAccount(accountAddress: Pubkey) {
-    const { accountInfo } = await rpcHttpGetAccountWithData(
-      this.#rpcHttp,
-      accountAddress,
-    );
-    const { programIdl } = await this.getOrLoadProgramIdl(accountInfo.owner);
-    const accountIdl = idlProgramGuessAccount(programIdl, accountInfo.data);
-    const { accountState } = idlAccountDecode(accountIdl, accountInfo.data);
-    return { programIdl, accountIdl, accountInfo, accountState };
+    const { programAddress, accountExecutable, accountLamports, accountData } =
+      await rpcHttpGetAccountWithData(this.#rpcHttp, accountAddress);
+    const { programIdl } = await this.getOrLoadProgramIdl(programAddress);
+    const accountIdl = idlProgramGuessAccount(programIdl, accountData);
+    const { accountState } = idlAccountDecode(accountIdl, accountData);
+    return {
+      programAddress,
+      programIdl,
+      accountIdl,
+      accountExecutable,
+      accountLamports,
+      accountData,
+      accountState,
+    };
   }
 
   public async inferAndDecodeInstruction(
@@ -226,12 +232,9 @@ export class Solana {
         return this.#cacheBlockHash.blockHash;
       }
     }
-    const { blockInfo } = await rpcHttpGetLatestBlockHash(this.#rpcHttp);
-    this.#cacheBlockHash = {
-      blockHash: blockInfo.hash,
-      fetchTimeMs: nowTimeMs,
-    };
-    return blockInfo.hash;
+    const { blockHash } = await rpcHttpGetLatestBlockHash(this.#rpcHttp);
+    this.#cacheBlockHash = { blockHash, fetchTimeMs: nowTimeMs };
+    return blockHash;
   }
 
   public async prepareAndSendTransaction(
@@ -328,11 +331,11 @@ function recommendedIdlLoader(rpcHttp: RpcHttp) {
   return idlLoaderMemoized(
     idlLoaderFromLoaderChain([
       idlLoaderFromOnchain(async (programAddress) => {
-        const { accountInfo } = await rpcHttpGetAccountWithData(
+        const { accountData } = await rpcHttpGetAccountWithData(
           rpcHttp,
           programAddress,
         );
-        return accountInfo.data;
+        return accountData;
       }),
       idlLoaderFromUrl((programAddress) => {
         const githubRawBase = "https://raw.githubusercontent.com";

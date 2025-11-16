@@ -12,15 +12,18 @@ const expectedDiscriminatorBytes = new Uint8Array([
 ]);
 
 it("run", async () => {
+  const programAddress = pubkeyFromBase58(
+    "vVeH6Xd43HAScbxjVtvfwDGqBMaMvNDLsAxwM5WK1pG",
+  );
   const rpcHttp = rpcHttpFromUrl(urlRpcPublicDevnet);
   const ownedAccountsBySize = await rpcHttpFindProgramOwnedAccounts(
     rpcHttp,
-    pubkeyFromBase58("vVeH6Xd43HAScbxjVtvfwDGqBMaMvNDLsAxwM5WK1pG"),
+    programAddress,
     { dataSpace: 32 },
   );
   const ownedAccountsByBlob = await rpcHttpFindProgramOwnedAccounts(
     rpcHttp,
-    pubkeyFromBase58("vVeH6Xd43HAScbxjVtvfwDGqBMaMvNDLsAxwM5WK1pG"),
+    programAddress,
     {
       dataBlobs: [
         { offset: 0, bytes: expectedDiscriminatorBytes.slice(0, 6) },
@@ -33,16 +36,11 @@ it("run", async () => {
   );
   const ownedAccountsAddresses = [...ownedAccountsBySize.accountsAddresses];
   for (const ownedAccountAddress of ownedAccountsAddresses.slice(0, 3)) {
-    const { accountInfo: ownedAccountInfo } = await rpcHttpGetAccountWithData(
-      rpcHttp,
-      ownedAccountAddress,
-    );
-    expect(ownedAccountInfo.data.length).toStrictEqual(32);
-    expect(ownedAccountInfo.data.slice(0, 8)).toStrictEqual(
+    const owned = await rpcHttpGetAccountWithData(rpcHttp, ownedAccountAddress);
+    expect(owned.programAddress).toStrictEqual(programAddress);
+    expect(owned.accountData.length).toStrictEqual(32);
+    expect(owned.accountData.slice(0, 8)).toStrictEqual(
       expectedDiscriminatorBytes,
-    );
-    expect(ownedAccountInfo.owner).toStrictEqual(
-      "vVeH6Xd43HAScbxjVtvfwDGqBMaMvNDLsAxwM5WK1pG",
     );
   }
 });

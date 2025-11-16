@@ -16,12 +16,10 @@ export async function rpcHttpGetAccountWithData(
   self: RpcHttp,
   accountAddress: Pubkey,
 ): Promise<{
-  accountInfo: {
-    executable: boolean;
-    lamports: bigint;
-    owner: Pubkey;
-    data: Uint8Array;
-  };
+  programAddress: Pubkey;
+  accountExecutable: boolean;
+  accountLamports: bigint;
+  accountData: Uint8Array;
 }> {
   const result = resultJsonDecoder(
     await self("getAccountInfo", [pubkeyToBase58(accountAddress)], {
@@ -30,25 +28,28 @@ export async function rpcHttpGetAccountWithData(
   );
   if (result.value === undefined) {
     return {
-      accountInfo: {
-        executable: false,
-        lamports: 0n,
-        owner: pubkeyDefault,
-        data: new Uint8Array(0),
-      },
+      programAddress: pubkeyDefault,
+      accountExecutable: false,
+      accountLamports: 0n,
+      accountData: new Uint8Array(0),
     };
   }
   const value = result.value;
-  const executable = value.executable;
-  const lamports = BigInt(value.lamports);
-  const owner = value.owner;
-  const data = base64Decode(value.data.encoded);
-  if (data.length != value.space) {
+  const programAddress = value.owner;
+  const accountExecutable = value.executable;
+  const accountLamports = BigInt(value.lamports);
+  const accountData = base64Decode(value.data.encoded);
+  if (accountData.length != value.space) {
     throw new Error(
-      `RpcHttp: Expected account data length (${data.length}) to match space (${value.space})`,
+      `RpcHttp: Expected account data length (${accountData.length}) to match space (${value.space})`,
     );
   }
-  return { accountInfo: { executable, lamports, owner, data } };
+  return {
+    programAddress,
+    accountExecutable,
+    accountLamports,
+    accountData,
+  };
 }
 
 const resultJsonDecoder = jsonDecoderObject({

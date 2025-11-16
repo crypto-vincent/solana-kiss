@@ -72,10 +72,8 @@ export async function rpcHttpGetTransaction(
     instructions,
   };
   const transactionExecution = {
-    blockInfo: {
-      time: result.blockTime ? new Date(result.blockTime * 1000) : undefined,
-      slot: result.slot,
-    },
+    blockTime: result.blockTime ? new Date(result.blockTime * 1000) : undefined,
+    blockSlot: result.slot,
     logs: meta.logMessages,
     error: meta.err, // TODO - parse error to find custom program errors ?
     consumedComputeUnits: meta.computeUnitsConsumed,

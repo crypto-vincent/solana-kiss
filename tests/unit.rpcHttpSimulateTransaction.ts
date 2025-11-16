@@ -12,7 +12,7 @@ function rpcHttp() {
 
 it("run", async () => {
   const dummyAddress = pubkeyNewDummy();
-  const { transactionExecution, simulatedAccountInfoByAddress } = expectDefined(
+  const { transactionExecution, simulatedAccountsByAddress } = expectDefined(
     await rpcHttpSimulateTransaction(
       rpcHttp,
       new Uint8Array() as TransactionPacket,
@@ -20,8 +20,8 @@ it("run", async () => {
     ),
   );
   // Check basic stuff about the transaction
-  expect(transactionExecution.blockInfo.time).toStrictEqual(undefined);
-  expect(transactionExecution.blockInfo.slot).toStrictEqual(412853857);
+  expect(transactionExecution.blockTime).toStrictEqual(undefined);
+  expect(transactionExecution.blockSlot).toStrictEqual(412853857);
   expect(transactionExecution.chargedFeesLamports).toStrictEqual(10000n);
   expect(transactionExecution.consumedComputeUnits).toStrictEqual(150);
   expect(transactionExecution.logs?.length).toStrictEqual(2);
@@ -30,14 +30,14 @@ it("run", async () => {
   );
   expect(transactionExecution.error).toStrictEqual(null);
   // Check simulated accounts info
-  expect(simulatedAccountInfoByAddress.size).toStrictEqual(1);
+  expect(simulatedAccountsByAddress.size).toStrictEqual(1);
   const simulatedAccountInfo = expectDefined(
-    simulatedAccountInfoByAddress.get(dummyAddress),
+    simulatedAccountsByAddress.get(dummyAddress),
   );
-  expect(simulatedAccountInfo.executable).toStrictEqual(false);
-  expect(simulatedAccountInfo.lamports).toStrictEqual(1183200n);
-  expect(simulatedAccountInfo.owner).toStrictEqual(
+  expect(simulatedAccountInfo.accountExecutable).toStrictEqual(false);
+  expect(simulatedAccountInfo.accountLamports).toStrictEqual(1183200n);
+  expect(simulatedAccountInfo.programAddress).toStrictEqual(
     "Dummy1Lt6vKTjNUWvktsufk3aUS9yDspXnzgr4TAe3y",
   );
-  expect(simulatedAccountInfo.data).toStrictEqual(new Uint8Array(42));
+  expect(simulatedAccountInfo.accountData).toStrictEqual(new Uint8Array(42));
 });

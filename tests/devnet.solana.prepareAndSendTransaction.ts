@@ -80,20 +80,16 @@ it("run", async () => {
   );
   expect(transactionExecution.logs?.length).toStrictEqual(4);
   expect(transactionExecution.error).toStrictEqual(null);
-  const { accountInfo: owned1Info, accountState: owned1State } =
-    await solana.getAndInferAndDecodeAccount(owned1Signer.address);
-  expect(owned1Info.executable).toStrictEqual(false);
-  expect(owned1Info.lamports).toStrictEqual(transferLamports);
-  expect(owned1Info.owner).toStrictEqual(ownerAddress);
-  expect(owned1Info.data.length).toStrictEqual(requestedSpace);
-  expect(owned1State).toStrictEqual(null);
-  const { accountInfo: owned2Info, accountState: owned2State } =
-    await solana.getAndInferAndDecodeAccount(owned2Signer.address);
-  expect(owned2Info.executable).toStrictEqual(false);
-  expect(owned2Info.lamports).toStrictEqual(transferLamports + 42n);
-  expect(owned2Info.owner).toStrictEqual(ownerAddress);
-  expect(owned2Info.data.length).toStrictEqual(requestedSpace - 1);
-  expect(owned2State).toStrictEqual(null);
+  const owned1 = await solana.getAndInferAndDecodeAccount(owned1Signer.address);
+  expect(owned1.programAddress).toStrictEqual(ownerAddress);
+  expect(owned1.accountLamports).toStrictEqual(transferLamports);
+  expect(owned1.accountData.length).toStrictEqual(requestedSpace);
+  expect(owned1.accountState).toStrictEqual(null);
+  const owned2 = await solana.getAndInferAndDecodeAccount(owned2Signer.address);
+  expect(owned2.programAddress).toStrictEqual(ownerAddress);
+  expect(owned2.accountLamports).toStrictEqual(transferLamports + 42n);
+  expect(owned2.accountData.length).toStrictEqual(requestedSpace - 1);
+  expect(owned2.accountState).toStrictEqual(null);
 });
 
 async function makeSystemCreateInstructionRequest(

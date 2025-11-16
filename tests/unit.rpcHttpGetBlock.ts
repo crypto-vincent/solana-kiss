@@ -9,29 +9,27 @@ function rpcHttp() {
 }
 
 it("run", async () => {
-  const {
-    previousBlockSlot: metadataPreviousBlockSlot,
-    blockInfo: metadataBlockInfo,
-  } = await rpcHttpGetBlockMetadata(rpcHttp, null as any);
-  expect(metadataPreviousBlockSlot).toStrictEqual(378967387);
-  expect(metadataBlockInfo.hash).toStrictEqual(
+  const metadata = await rpcHttpGetBlockMetadata(rpcHttp, null as any);
+  expect(metadata.previousBlockSlot).toStrictEqual(378967387);
+  expect(metadata.blockHash).toStrictEqual(
     "CFPsud8DsrxUJGs5WjnB1jbqBCajYXJtuEmBfPUNXBh3",
   );
-  expect(metadataBlockInfo.height).toStrictEqual(366940434);
-  expect(metadataBlockInfo.time?.toISOString()).toStrictEqual(
+  expect(metadata.blockHeight).toStrictEqual(366940434);
+  expect(metadata.blockTime?.toISOString()).toStrictEqual(
     "2025-05-06T02:42:34.000Z",
   );
-  const {
-    previousBlockSlot: withTransactionPreviousBlockSlot,
-    blockInfo: withTransactionBlockInfo,
-    oldToNewTransactionsHandles: transactionsHandles,
-  } = await rpcHttpGetBlockWithTransactions(rpcHttp, null as any);
-  expect(withTransactionPreviousBlockSlot).toStrictEqual(
-    metadataPreviousBlockSlot,
+  const withTransaction = await rpcHttpGetBlockWithTransactions(
+    rpcHttp,
+    null as any,
   );
-  expect(withTransactionBlockInfo).toStrictEqual(metadataBlockInfo);
-  expect(transactionsHandles.length).toStrictEqual(44);
-  expect(transactionsHandles[0]).toStrictEqual(
+  expect(withTransaction.previousBlockSlot).toStrictEqual(
+    metadata.previousBlockSlot,
+  );
+  expect(withTransaction.blockHash).toStrictEqual(metadata.blockHash);
+  expect(withTransaction.blockHeight).toStrictEqual(metadata.blockHeight);
+  expect(withTransaction.blockTime).toStrictEqual(metadata.blockTime);
+  expect(withTransaction.oldToNewTransactionsHandles.length).toStrictEqual(44);
+  expect(withTransaction.oldToNewTransactionsHandles[0]).toStrictEqual(
     "2ekepJV7psmVsBsWhFRw9JeSMpqzemtR2F3kFxTQ5uHYEEFto7FsZAVnhzAwhP9sgJwDukcmLYRUT7m9DGgt6sq8",
   );
 });

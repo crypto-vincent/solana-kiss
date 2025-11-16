@@ -43,11 +43,11 @@ it("run", async () => {
   ]);
   // Find and load the IDL
   const loaderIdl = idlLoaderFromOnchain(async (programAddress) => {
-    const { accountInfo } = await rpcHttpGetAccountWithData(
+    const { accountData } = await rpcHttpGetAccountWithData(
       rpcHttp,
       programAddress,
     );
-    return accountInfo.data;
+    return accountData;
   });
   const programIdl = await loaderIdl(programAddress);
   const instructionIdl = expectDefined(
@@ -90,20 +90,20 @@ it("run", async () => {
     resultNoVerify.transactionExecution.consumedComputeUnits,
   ).toBeGreaterThan(0);
   const pledgeAccountNoVerify = expectDefined(
-    resultNoVerify.simulatedAccountInfoByAddress.get(pledgeAddress),
+    resultNoVerify.simulatedAccountsByAddress.get(pledgeAddress),
   );
-  expect(pledgeAccountNoVerify.owner).toStrictEqual(programAddress);
-  expect(pledgeAccountNoVerify.lamports).toBeGreaterThan(0n);
-  expect(pledgeAccountNoVerify.data.length).toBeGreaterThan(0);
-  expect(pledgeAccountNoVerify.executable).toStrictEqual(false);
+  expect(pledgeAccountNoVerify.programAddress).toStrictEqual(programAddress);
+  expect(pledgeAccountNoVerify.accountExecutable).toStrictEqual(false);
+  expect(pledgeAccountNoVerify.accountLamports).toBeGreaterThan(0n);
+  expect(pledgeAccountNoVerify.accountData.length).toBeGreaterThan(0);
   // Run the simulation with verifying the signers (and recent block hash)
-  const { blockInfo: recentBlockInfo } =
+  const { blockHash: recentBlockHash } =
     await rpcHttpGetLatestBlockHash(rpcHttp);
   const transactionPacketWithVerify = await transactionCompileAndSign(
     [payerSigner, userSigner],
     {
       payerAddress: payerSigner.address,
-      recentBlockHash: recentBlockInfo.hash,
+      recentBlockHash,
       instructions: [instructionRequest],
     },
   );
@@ -120,14 +120,14 @@ it("run", async () => {
   expect(
     resultWithVerify.transactionExecution.consumedComputeUnits,
   ).toBeGreaterThan(0);
-  expect(resultWithVerify.simulatedAccountInfoByAddress.size).toStrictEqual(1);
+  expect(resultWithVerify.simulatedAccountsByAddress.size).toStrictEqual(1);
   const pledgeAccountWithVerify = expectDefined(
-    resultWithVerify.simulatedAccountInfoByAddress.get(pledgeAddress),
+    resultWithVerify.simulatedAccountsByAddress.get(pledgeAddress),
   );
-  expect(pledgeAccountWithVerify.owner).toStrictEqual(programAddress);
-  expect(pledgeAccountWithVerify.lamports).toBeGreaterThan(0n);
-  expect(pledgeAccountWithVerify.data.length).toBeGreaterThan(0);
-  expect(pledgeAccountWithVerify.executable).toStrictEqual(false);
+  expect(pledgeAccountWithVerify.programAddress).toStrictEqual(programAddress);
+  expect(pledgeAccountWithVerify.accountExecutable).toStrictEqual(false);
+  expect(pledgeAccountWithVerify.accountLamports).toBeGreaterThan(0n);
+  expect(pledgeAccountWithVerify.accountData.length).toBeGreaterThan(0);
 });
 
 const secret = new Uint8Array([

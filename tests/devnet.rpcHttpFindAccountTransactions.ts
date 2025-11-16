@@ -22,7 +22,7 @@ it("run", async () => {
       expectDefined(newToOldTransactionsHandles[0]),
     ),
   );
-  expect(transactionExecution.blockInfo.time?.toISOString()).toStrictEqual(
+  expect(transactionExecution.blockTime?.toISOString()).toStrictEqual(
     "2025-08-21T15:26:48.000Z",
   );
   let found = 0;

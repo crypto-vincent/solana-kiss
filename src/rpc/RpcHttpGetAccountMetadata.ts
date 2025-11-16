@@ -12,12 +12,10 @@ export async function rpcHttpGetAccountMetadata(
   self: RpcHttp,
   accountAddress: Pubkey,
 ): Promise<{
-  accountInfo: {
-    executable: boolean;
-    lamports: bigint;
-    owner: Pubkey;
-    space: number;
-  };
+  programAddress: Pubkey;
+  accountExecutable: boolean;
+  accountLamports: bigint;
+  accountSpace: number;
 }> {
   const result = resultJsonDecoder(
     await self("getAccountInfo", [pubkeyToBase58(accountAddress)], {
@@ -27,20 +25,23 @@ export async function rpcHttpGetAccountMetadata(
   );
   if (result.value === undefined) {
     return {
-      accountInfo: {
-        executable: false,
-        lamports: 0n,
-        owner: pubkeyDefault,
-        space: 0,
-      },
+      programAddress: pubkeyDefault,
+      accountExecutable: false,
+      accountLamports: 0n,
+      accountSpace: 0,
     };
   }
   const value = result.value;
-  const executable = value.executable;
-  const lamports = BigInt(value.lamports);
-  const owner = value.owner;
-  const space = value.space;
-  return { accountInfo: { executable, lamports, owner, space } };
+  const programAddress = value.owner;
+  const accountExecutable = value.executable;
+  const accountLamports = BigInt(value.lamports);
+  const accountSpace = value.space;
+  return {
+    programAddress,
+    accountExecutable,
+    accountLamports,
+    accountSpace,
+  };
 }
 
 const resultJsonDecoder = jsonDecoderObject({

@@ -36,11 +36,11 @@ it("run", async () => {
   const payerSigner = await signerFromSecret(secret);
   const owned1Signer = await signerGenerate();
   const owned2Signer = await signerGenerate();
-  const { blockInfo: recentBlockInfo } =
+  const { blockHash: recentBlockHash } =
     await rpcHttpGetLatestBlockHash(rpcHttp);
   const originalRequest = {
     payerAddress: payerSigner.address,
-    recentBlockHash: recentBlockInfo.hash,
+    recentBlockHash,
     instructions: [
       makeCreateInstructionRequest(
         programAddress,
@@ -94,22 +94,16 @@ it("run", async () => {
   );
   expect(transactionExecution.logs?.length).toStrictEqual(4);
   expect(transactionExecution.error).toStrictEqual(null);
-  const { accountInfo: owned1Info } = await rpcHttpGetAccountMetadata(
-    rpcHttp,
-    owned1Signer.address,
-  );
-  expect(owned1Info.executable).toStrictEqual(false);
-  expect(owned1Info.lamports).toStrictEqual(transferLamports);
-  expect(owned1Info.owner).toStrictEqual(ownerAddress);
-  expect(owned1Info.space).toStrictEqual(requestedSpace);
-  const { accountInfo: owned2Info } = await rpcHttpGetAccountMetadata(
-    rpcHttp,
-    owned2Signer.address,
-  );
-  expect(owned2Info.executable).toStrictEqual(false);
-  expect(owned2Info.lamports).toStrictEqual(transferLamports + 42n);
-  expect(owned2Info.owner).toStrictEqual(ownerAddress);
-  expect(owned2Info.space).toStrictEqual(requestedSpace - 1);
+  const owned1 = await rpcHttpGetAccountMetadata(rpcHttp, owned1Signer.address);
+  expect(owned1.programAddress).toStrictEqual(ownerAddress);
+  expect(owned1.accountExecutable).toStrictEqual(false);
+  expect(owned1.accountLamports).toStrictEqual(transferLamports);
+  expect(owned1.accountSpace).toStrictEqual(requestedSpace);
+  const owned2 = await rpcHttpGetAccountMetadata(rpcHttp, owned2Signer.address);
+  expect(owned2.programAddress).toStrictEqual(ownerAddress);
+  expect(owned2.accountExecutable).toStrictEqual(false);
+  expect(owned2.accountLamports).toStrictEqual(transferLamports + 42n);
+  expect(owned2.accountSpace).toStrictEqual(requestedSpace - 1);
 });
 
 function makeCreateInstructionRequest(
