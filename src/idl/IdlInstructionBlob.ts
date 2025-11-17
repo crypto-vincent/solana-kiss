@@ -105,7 +105,7 @@ export function idlInstructionBlobParse(
   typedefsIdls?: Map<string, IdlTypedef>,
 ): IdlInstructionBlob {
   const decoded = jsonDecoder(instructionBlobValue);
-  if (decoded.value !== undefined || decoded.kind === "const") {
+  if (decoded.value !== undefined) {
     return idlInstructionBlobParseConst(
       decoded.value,
       decoded.type,
@@ -113,7 +113,7 @@ export function idlInstructionBlobParse(
     );
   }
   if (decoded.path === undefined) {
-    throw new Error(`Idl: Missing path for instruction blob`);
+    throw new Error(`Idl: Expected path/value for instruction blob`);
   }
   if (decoded.kind === "arg") {
     return idlInstructionBlobParseArg(
@@ -134,13 +134,10 @@ export function idlInstructionBlobParse(
 }
 
 export function idlInstructionBlobParseConst(
-  instructionBlobValue: JsonValue | undefined,
+  instructionBlobValue: JsonValue,
   instructionBlobType: IdlTypeFlat | undefined,
   typedefsIdls?: Map<string, IdlTypedef>,
 ): IdlInstructionBlob {
-  if (instructionBlobValue === undefined) {
-    throw new Error(`Idl: Missing value for const instruction blob`);
-  }
   const typeFull = idlTypeFlatHydrate(
     instructionBlobType ?? idlUtilsInferValueTypeFlat(instructionBlobValue),
     new Map(),
@@ -212,9 +209,10 @@ const computeVisitor = {
     self: IdlInstructionBlobArg,
     findContext: IdlInstructionAccountFindContext,
   ) => {
-    const value = jsonGetAt(findContext.instructionPayload, self.pointer, {
-      throwOnMissing: true,
-    });
+    const value =
+      jsonGetAt(findContext.instructionPayload, self.pointer, {
+        throwOnMissing: true,
+      }) ?? null;
     return idlTypeFullEncode(self.typeFull, value, false);
   },
   account: async (
@@ -283,9 +281,10 @@ function encodeExtractedAccountState(
 ) {
   const statePath = path.slice(accountField.length);
   const statePointer = jsonPointerParse(statePath);
-  const stateValue = jsonGetAt(accountContent.accountState, statePointer, {
-    throwOnMissing: true,
-  });
+  const stateValue =
+    jsonGetAt(accountContent.accountState, statePointer, {
+      throwOnMissing: true,
+    }) ?? null;
   if (typeFull !== undefined) {
     return idlTypeFullEncode(typeFull, stateValue, false);
   }

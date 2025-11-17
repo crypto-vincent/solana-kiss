@@ -8,13 +8,12 @@ import {
 
 it("run", async () => {
   const solana = new Solana(rpcHttpFromUrl(urlRpcPublicDevnet));
-  const { programIdl } = await solana.getOrLoadProgramIdl(
-    pubkeyFromBase58("UCNcQRtrbGmvuLKA3Jv719Cc6DS4r661ZRpyZduxu2j"),
-  );
-  expect(programIdl.metadata.name).toStrictEqual("psyche_crowd_funding");
-  expect(programIdl.metadata.address).toStrictEqual(
+  const programAddress = pubkeyFromBase58(
     "UCNcQRtrbGmvuLKA3Jv719Cc6DS4r661ZRpyZduxu2j",
   );
+  const { programIdl } = await solana.getOrLoadProgramIdl(programAddress);
+  expect(programIdl.metadata.name).toStrictEqual("psyche_crowd_funding");
+  expect(programIdl.metadata.address).toStrictEqual(programAddress);
   expect(programIdl.typedefs.size).toStrictEqual(9);
   expect(programIdl.accounts.size).toStrictEqual(3);
   expect(programIdl.instructions.size).toStrictEqual(6);

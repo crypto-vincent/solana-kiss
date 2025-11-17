@@ -10,7 +10,6 @@ import {
   jsonCodecString,
   jsonDecoderArray,
   jsonDecoderByType,
-  jsonDecoderNullable,
   jsonDecoderObject,
   jsonDecoderOptional,
   JsonObject,
@@ -401,12 +400,11 @@ const resultJsonDecoder = jsonDecoderOptional(
     blockTime: jsonDecoderOptional(jsonCodecNumber.decoder),
     meta: jsonDecoderObject({
       computeUnitsConsumed: jsonCodecNumber.decoder,
-      err: jsonDecoderNullable(
-        jsonDecoderByType<string | JsonObject>({
-          object: (object) => object,
-          string: (string) => string,
-        }),
-      ),
+      err: jsonDecoderByType<null | string | JsonObject>({
+        null: () => null,
+        string: (string) => string,
+        object: (object) => object,
+      }),
       fee: jsonDecoderOptional(jsonCodecNumber.decoder),
       innerInstructions: jsonDecoderOptional(
         jsonDecoderArray(

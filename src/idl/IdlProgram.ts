@@ -106,9 +106,7 @@ export function idlProgramGuessError(
   throw new ErrorStack("Idl: Failed to guess error", codes);
 }
 
-export function idlProgramParse(
-  programValue: JsonValue | undefined,
-): IdlProgram {
+export function idlProgramParse(programValue: JsonValue): IdlProgram {
   const programObject = jsonCodecObjectValues.decoder(programValue);
   const metadata = idlMetadataParse(programObject);
   const typedefs = parseScopedNamedValues(

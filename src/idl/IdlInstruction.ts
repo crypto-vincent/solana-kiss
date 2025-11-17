@@ -208,7 +208,7 @@ export function idlInstructionAccountsCheck(
 
 export function idlInstructionArgsEncode(
   self: IdlInstruction,
-  instructionPayload: JsonValue | undefined,
+  instructionPayload: JsonValue,
 ) {
   return {
     instructionData: idlTypeFullFieldsEncode(
@@ -242,7 +242,7 @@ export function idlInstructionArgsCheck(
 
 export function idlInstructionReturnEncode(
   self: IdlInstruction,
-  instructionResult: JsonValue | undefined,
+  instructionResult: JsonValue,
 ) {
   return {
     instructionReturned: idlTypeFullEncode(

@@ -85,7 +85,7 @@ export const idlTypePrimitiveByName: ReadonlyMap<string, IdlTypePrimitive> =
 
 export function idlTypePrimitiveEncode(
   self: IdlTypePrimitive,
-  value: JsonValue | undefined,
+  value: JsonValue,
   blobs: Array<Uint8Array>,
 ) {
   return withErrorContext(`Encode: ${self.name}`, () => {
@@ -104,14 +104,14 @@ export function idlTypePrimitiveDecode(
 }
 
 const visitorEncode = {
-  u8: (blob: Uint8Array, value: JsonValue | undefined) => {
+  u8: (blob: Uint8Array, value: JsonValue) => {
     const num = jsonCodecInteger.decoder(value);
     if (num < 0 || num > 0xffn) {
       throw new Error(`Value out of bounds for u8: ${num}`);
     }
     blob[0] = Number(num);
   },
-  u16: (blob: Uint8Array, value: JsonValue | undefined) => {
+  u16: (blob: Uint8Array, value: JsonValue) => {
     const num = jsonCodecInteger.decoder(value);
     if (num < 0 || num > 0xffffn) {
       throw new Error(`Value out of bounds for u16: ${num}`);
@@ -119,7 +119,7 @@ const visitorEncode = {
     const data = new DataView(blob.buffer);
     data.setUint16(0, Number(num), true);
   },
-  u32: (blob: Uint8Array, value: JsonValue | undefined) => {
+  u32: (blob: Uint8Array, value: JsonValue) => {
     const num = jsonCodecInteger.decoder(value);
     if (num < 0 || num > 0xffffffffn) {
       throw new Error(`Value out of bounds for u32: ${num}`);
@@ -127,7 +127,7 @@ const visitorEncode = {
     const data = new DataView(blob.buffer);
     data.setUint32(0, Number(num), true);
   },
-  u64: (blob: Uint8Array, value: JsonValue | undefined) => {
+  u64: (blob: Uint8Array, value: JsonValue) => {
     const num = jsonCodecInteger.decoder(value);
     if (num < 0 || num > 0xffffffffffffffffn) {
       throw new Error(`Value out of bounds for u64: ${num}`);
@@ -135,7 +135,7 @@ const visitorEncode = {
     const data = new DataView(blob.buffer);
     data.setBigUint64(0, num, true);
   },
-  u128: (blob: Uint8Array, value: JsonValue | undefined) => {
+  u128: (blob: Uint8Array, value: JsonValue) => {
     const num = jsonCodecInteger.decoder(value);
     if (num < 0 || num > 0xffffffffffffffffffffffffffffffffn) {
       throw new Error(`Value out of bounds for u128: ${num}`);
@@ -144,7 +144,7 @@ const visitorEncode = {
     data.setBigUint64(0, num, true);
     data.setBigUint64(8, num >> 64n, true);
   },
-  i8: (blob: Uint8Array, value: JsonValue | undefined) => {
+  i8: (blob: Uint8Array, value: JsonValue) => {
     const num = jsonCodecInteger.decoder(value);
     if (num < -0x80n || num > 0x7fn) {
       throw new Error(`Value out of bounds for i8: ${num}`);
@@ -152,7 +152,7 @@ const visitorEncode = {
     const data = new DataView(blob.buffer);
     data.setInt8(0, Number(num));
   },
-  i16: (blob: Uint8Array, value: JsonValue | undefined) => {
+  i16: (blob: Uint8Array, value: JsonValue) => {
     const num = jsonCodecInteger.decoder(value);
     if (num < -0x8000n || num > 0x7fff) {
       throw new Error(`Value out of bounds for i16: ${num}`);
@@ -160,7 +160,7 @@ const visitorEncode = {
     const data = new DataView(blob.buffer);
     data.setInt16(0, Number(num), true);
   },
-  i32: (blob: Uint8Array, value: JsonValue | undefined) => {
+  i32: (blob: Uint8Array, value: JsonValue) => {
     const num = jsonCodecInteger.decoder(value);
     if (num < -0x80000000n || num > 0x7fffffff) {
       throw new Error(`Value out of bounds for i32: ${num}`);
@@ -168,7 +168,7 @@ const visitorEncode = {
     const data = new DataView(blob.buffer);
     data.setInt32(0, Number(num), true);
   },
-  i64: (blob: Uint8Array, value: JsonValue | undefined) => {
+  i64: (blob: Uint8Array, value: JsonValue) => {
     const num = jsonCodecInteger.decoder(value);
     if (num < -0x8000000000000000n || num > 0x7fffffffffffffffn) {
       throw new Error(`Value out of bounds for i64: ${num}`);
@@ -176,7 +176,7 @@ const visitorEncode = {
     const data = new DataView(blob.buffer);
     data.setBigInt64(0, num, true);
   },
-  i128: (blob: Uint8Array, value: JsonValue | undefined) => {
+  i128: (blob: Uint8Array, value: JsonValue) => {
     const num = jsonCodecInteger.decoder(value);
     if (
       num < -0x80000000000000000000000000000000n ||
@@ -190,20 +190,20 @@ const visitorEncode = {
     data.setBigInt64(0, low, true);
     data.setBigInt64(8, high, true);
   },
-  f32: (blob: Uint8Array, value: JsonValue | undefined) => {
+  f32: (blob: Uint8Array, value: JsonValue) => {
     const num = jsonCodecNumber.decoder(value);
     const data = new DataView(blob.buffer);
     data.setFloat32(0, num, true);
   },
-  f64: (blob: Uint8Array, value: JsonValue | undefined) => {
+  f64: (blob: Uint8Array, value: JsonValue) => {
     const num = jsonCodecNumber.decoder(value);
     const data = new DataView(blob.buffer);
     data.setFloat64(0, num, true);
   },
-  bool: (blob: Uint8Array, value: JsonValue | undefined) => {
+  bool: (blob: Uint8Array, value: JsonValue) => {
     blob[0] = jsonCodecBoolean.decoder(value) ? 1 : 0;
   },
-  pubkey: (blob: Uint8Array, value: JsonValue | undefined) => {
+  pubkey: (blob: Uint8Array, value: JsonValue) => {
     blob.set(pubkeyToBytes(jsonCodecPubkey.decoder(value)));
   },
 };

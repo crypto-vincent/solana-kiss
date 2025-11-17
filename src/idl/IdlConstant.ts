@@ -3,7 +3,6 @@ import {
   jsonCodecString,
   jsonCodecValue,
   jsonDecoderObject,
-  jsonDecoderOptional,
 } from "../data/Json";
 import { IdlDocs, idlDocsParse } from "./IdlDocs";
 import { IdlTypedef } from "./IdlTypedef";
@@ -42,5 +41,5 @@ export function idlConstantParse(
 const jsonDecoder = jsonDecoderObject({
   docs: idlDocsParse,
   value: jsonCodecString.decoder,
-  type: jsonDecoderOptional(jsonCodecValue.decoder),
+  type: jsonCodecValue.decoder,
 });

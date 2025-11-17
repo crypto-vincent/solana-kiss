@@ -62,10 +62,16 @@ it("run", async () => {
     },
   );
   // Check PDA derivation for an associated token account
+  const ataProgramAddress = pubkeyFromBase58(
+    "ATokenGPvbdGVxr1b2hvZbsiqW5xWH25efTNsLJA8knL",
+  );
+  const tokenProgramAddress = pubkeyFromBase58(
+    "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA",
+  );
   const dummyAddressOwner = pubkeyNewDummy();
   const dummyAddressMint = pubkeyNewDummy();
   const { instructionAddresses } = await solana.hydrateInstructionAddresses(
-    pubkeyFromBase58("ATokenGPvbdGVxr1b2hvZbsiqW5xWH25efTNsLJA8knL"),
+    ataProgramAddress,
     "create",
     {
       instructionAddresses: {
@@ -75,16 +81,11 @@ it("run", async () => {
     },
   );
   expect(instructionAddresses["ata"]).toStrictEqual(
-    pubkeyFindPdaAddress(
-      pubkeyFromBase58("ATokenGPvbdGVxr1b2hvZbsiqW5xWH25efTNsLJA8knL"),
-      [
-        pubkeyToBytes(dummyAddressOwner),
-        pubkeyToBytes(
-          pubkeyFromBase58("TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA"),
-        ),
-        pubkeyToBytes(dummyAddressMint),
-      ],
-    ),
+    pubkeyFindPdaAddress(ataProgramAddress, [
+      pubkeyToBytes(dummyAddressOwner),
+      pubkeyToBytes(tokenProgramAddress),
+      pubkeyToBytes(dummyAddressMint),
+    ]),
   );
 });
 

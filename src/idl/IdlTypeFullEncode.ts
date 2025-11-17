@@ -34,7 +34,7 @@ import { idlUtilsBytesJsonDecoder } from "./IdlUtils";
 
 export function idlTypeFullEncode(
   self: IdlTypeFull,
-  value: JsonValue | undefined,
+  value: JsonValue,
   prefixed: boolean,
   discriminator?: Uint8Array,
 ): Uint8Array {
@@ -48,7 +48,7 @@ export function idlTypeFullEncode(
 
 export function idlTypeFullFieldsEncode(
   self: IdlTypeFullFields,
-  value: JsonValue | undefined,
+  value: JsonValue,
   prefixed: boolean,
   discriminator?: Uint8Array,
 ): Uint8Array {
@@ -62,7 +62,7 @@ export function idlTypeFullFieldsEncode(
 
 function typeFullEncode(
   self: IdlTypeFull,
-  value: JsonValue | undefined,
+  value: JsonValue,
   prefixed: boolean,
   blobs: Array<Uint8Array>,
 ) {
@@ -71,7 +71,7 @@ function typeFullEncode(
 
 function typeFullFieldsEncode(
   self: IdlTypeFullFields,
-  value: JsonValue | undefined,
+  value: JsonValue,
   prefixed: boolean,
   blobs: Array<Uint8Array>,
 ) {
@@ -81,7 +81,7 @@ function typeFullFieldsEncode(
 const visitorEncode = {
   typedef: (
     self: IdlTypeFullTypedef,
-    value: JsonValue | undefined,
+    value: JsonValue,
     blobs: Array<Uint8Array>,
     prefixed: boolean,
   ) => {
@@ -91,7 +91,7 @@ const visitorEncode = {
   },
   option: (
     self: IdlTypeFullOption,
-    value: JsonValue | undefined,
+    value: JsonValue,
     blobs: Array<Uint8Array>,
     prefixed: boolean,
   ) => {
@@ -104,7 +104,7 @@ const visitorEncode = {
   },
   vec: (
     self: IdlTypeFullVec,
-    value: JsonValue | undefined,
+    value: JsonValue,
     blobs: Array<Uint8Array>,
     prefixed: boolean,
   ) => {
@@ -126,7 +126,7 @@ const visitorEncode = {
   },
   loop: (
     self: IdlTypeFullLoop,
-    value: JsonValue | undefined,
+    value: JsonValue,
     blobs: Array<Uint8Array>,
     prefixed: boolean,
   ) => {
@@ -140,7 +140,7 @@ const visitorEncode = {
   },
   array: (
     self: IdlTypeFullArray,
-    value: JsonValue | undefined,
+    value: JsonValue,
     blobs: Array<Uint8Array>,
     prefixed: boolean,
   ) => {
@@ -166,7 +166,7 @@ const visitorEncode = {
   },
   string: (
     self: IdlTypeFullString,
-    value: JsonValue | undefined,
+    value: JsonValue,
     blobs: Array<Uint8Array>,
     prefixed: boolean,
   ) => {
@@ -178,7 +178,7 @@ const visitorEncode = {
   },
   struct: (
     self: IdlTypeFullStruct,
-    value: JsonValue | undefined,
+    value: JsonValue,
     blobs: Array<Uint8Array>,
     prefixed: boolean,
   ) => {
@@ -186,7 +186,7 @@ const visitorEncode = {
   },
   enum: (
     self: IdlTypeFullEnum,
-    value: JsonValue | undefined,
+    value: JsonValue,
     blobs: Array<Uint8Array>,
     prefixed: boolean,
   ) => {
@@ -198,7 +198,7 @@ const visitorEncode = {
     }
     function enumVariantEncode(
       variant: IdlTypeFullEnumVariant,
-      value: JsonValue | undefined,
+      value: JsonValue,
     ) {
       withErrorContext(`Encode: Enum Variant: ${variant.name}`, () => {
         idlTypePrefixEncode(self.prefix, variant.code, blobs);
@@ -211,7 +211,7 @@ const visitorEncode = {
       if (variantIndex === undefined) {
         throw new Error(`Could not find enum variant with code: ${value}`);
       }
-      return enumVariantEncode(self.variants[variantIndex]!, undefined);
+      return enumVariantEncode(self.variants[variantIndex]!, null);
     }
     const string = jsonAsString(value);
     if (string !== undefined) {
@@ -222,7 +222,7 @@ const visitorEncode = {
           `Could not find enum variant with name or code: ${value}`,
         );
       }
-      return enumVariantEncode(self.variants[variantIndex]!, undefined);
+      return enumVariantEncode(self.variants[variantIndex]!, null);
     }
     const object = jsonAsObject(value);
     if (object !== undefined) {
@@ -246,7 +246,7 @@ const visitorEncode = {
   },
   pad: (
     self: IdlTypeFullPad,
-    value: JsonValue | undefined,
+    value: JsonValue,
     blobs: Array<Uint8Array>,
     prefixed: boolean,
   ) => {
@@ -266,18 +266,18 @@ const visitorEncode = {
   },
   blob: (
     self: IdlTypeFullBlob,
-    value: JsonValue | undefined,
+    value: JsonValue,
     blobs: Array<Uint8Array>,
     _prefixed: boolean,
   ) => {
-    if (value !== null && value !== undefined) {
+    if (value !== null) {
       throw new Error("Expected value to be null for blob type");
     }
     blobs.push(self.bytes);
   },
   primitive: (
     self: IdlTypePrimitive,
-    value: JsonValue | undefined,
+    value: JsonValue,
     blobs: Array<Uint8Array>,
     _prefixed: boolean,
   ) => {
@@ -288,18 +288,18 @@ const visitorEncode = {
 const visitorFieldsEncode = {
   nothing: (
     _self: null,
-    value: JsonValue | undefined,
+    value: JsonValue,
     _blobs: Array<Uint8Array>,
     _prefixed: boolean,
   ) => {
-    if (value !== null && value !== undefined) {
+    if (value !== null) {
       throw new Error("Expected value to be null for empty fields");
     }
     return;
   },
   named: (
     self: Array<IdlTypeFullFieldNamed>,
-    value: JsonValue | undefined,
+    value: JsonValue,
     blobs: Array<Uint8Array>,
     prefixed: boolean,
   ) => {
@@ -308,13 +308,13 @@ const visitorFieldsEncode = {
       const fieldName = objectGuessIntendedKey(object, field.name);
       const fieldValue = objectGetOwnProperty(object, fieldName);
       withErrorContext(`Encode: Field: ${fieldName}`, () => {
-        typeFullEncode(field.content, fieldValue, prefixed, blobs);
+        typeFullEncode(field.content, fieldValue ?? null, prefixed, blobs);
       });
     }
   },
   unnamed: (
     self: Array<IdlTypeFullFieldUnnamed>,
-    value: JsonValue | undefined,
+    value: JsonValue,
     blobs: Array<Uint8Array>,
     prefixed: boolean,
   ) => {
@@ -322,7 +322,7 @@ const visitorFieldsEncode = {
     for (let index = 0; index < self.length; index++) {
       const field = self[index]!;
       withErrorContext(`Encode: Field: Unamed: ${index}`, () => {
-        typeFullEncode(field.content, array[index], prefixed, blobs);
+        typeFullEncode(field.content, array[index] ?? null, prefixed, blobs);
       });
     }
   },

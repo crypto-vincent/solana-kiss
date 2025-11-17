@@ -32,10 +32,7 @@ export type IdlAccount = {
   typeFull: IdlTypeFull;
 };
 
-export function idlAccountEncode(
-  self: IdlAccount,
-  accountState: JsonValue | undefined,
-) {
+export function idlAccountEncode(self: IdlAccount, accountState: JsonValue) {
   return {
     accountData: idlTypeFullEncode(
       self.typeFull,

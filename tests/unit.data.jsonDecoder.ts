@@ -32,6 +32,14 @@ it("run", async () => {
       decoded: null,
     },
     {
+      encoded: null,
+      decoder: jsonDecoderByType({
+        null: () => null,
+        number: jsonCodecNumber.decoder,
+      }),
+      decoded: null,
+    },
+    {
       encoded: "Infinity",
       decoder: jsonCodecNumber.decoder,
       decoded: Infinity,

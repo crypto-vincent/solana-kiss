@@ -31,9 +31,7 @@ import { IdlTypePrefix } from "./IdlTypePrefix";
 import { IdlTypePrimitive, idlTypePrimitiveByName } from "./IdlTypePrimitive";
 import { idlUtilsBytesJsonDecoder, idlUtilsJsonRustedParse } from "./IdlUtils";
 
-export function idlTypeFlatParseIsPossible(
-  value: JsonValue | undefined,
-): boolean {
+export function idlTypeFlatParseIsPossible(value: JsonValue): boolean {
   if (value === null) {
     return true;
   }
@@ -58,19 +56,17 @@ export function idlTypeFlatParseIsPossible(
   return false;
 }
 
-export function idlTypeFlatParse(value: JsonValue | undefined): IdlTypeFlat {
+export function idlTypeFlatParse(value: JsonValue): IdlTypeFlat {
   return valueJsonDecoder(value);
 }
 
-export function idlTypeFlatFieldsParse(
-  value: JsonValue | undefined,
-): IdlTypeFlatFields {
+export function idlTypeFlatFieldsParse(value: JsonValue): IdlTypeFlatFields {
   return fieldsJsonDecoder(value);
 }
 
 const arrayJsonDecoder = jsonDecoderWrapped(
   jsonDecoderArrayToObject({
-    items: idlTypeFlatParse,
+    items: jsonDecoderWrapped(jsonCodecValue.decoder, idlTypeFlatParse),
     length: jsonDecoderOptional(idlTypeFlatParse),
   }),
   (array) => {
@@ -97,7 +93,7 @@ const fieldsItemJsonDecoder = jsonDecoderForked(
       docs: idlDocsParse,
     }),
   }),
-  idlTypeFlatParse,
+  jsonDecoderWrapped(jsonCodecValue.decoder, idlTypeFlatParse),
 );
 const fieldsJsonDecoder = jsonDecoderByType({
   undefined: () => IdlTypeFlatFields.nothing(),
@@ -234,7 +230,7 @@ const objectCOptionJsonDecoder = jsonDecoderWrapped(
     }),
 );
 
-function objectGenericJsonDecoder(value: JsonValue | undefined): IdlTypeFlat {
+function objectGenericJsonDecoder(value: JsonValue): IdlTypeFlat {
   const symbol = jsonCodecString.decoder(value);
   return IdlTypeFlat.generic({ symbol });
 }
@@ -253,7 +249,7 @@ function objectVecJsonDecoder(prefix: IdlTypePrefix) {
 
 const objectLoopJsonDecoder = jsonDecoderWrapped(
   jsonDecoderObject({
-    items: idlTypeFlatParse,
+    items: jsonDecoderWrapped(jsonCodecValue.decoder, idlTypeFlatParse),
     stop: jsonDecoderByType<"end" | { value: JsonValue }>({
       string: jsonDecoderConst("end"),
       object: jsonDecoderObject({ value: jsonCodecValue.decoder }),
@@ -262,7 +258,7 @@ const objectLoopJsonDecoder = jsonDecoderWrapped(
   (content) => IdlTypeFlat.loop(content),
 );
 
-function objectStructJsonDecoder(value: JsonValue | undefined): IdlTypeFlat {
+function objectStructJsonDecoder(value: JsonValue): IdlTypeFlat {
   const fields = fieldsJsonDecoder(value);
   return IdlTypeFlat.struct({ fields });
 }
@@ -277,7 +273,7 @@ const objectPadInfoJsonDecoder = jsonDecoderObject({
   before: jsonDecoderOptional(jsonCodecNumber.decoder),
   end: jsonDecoderOptional(jsonCodecNumber.decoder),
 });
-function objectPadJsonDecoder(value: JsonValue | undefined): IdlTypeFlat {
+function objectPadJsonDecoder(value: JsonValue): IdlTypeFlat {
   const info = objectPadInfoJsonDecoder(value);
   return IdlTypeFlat.pad({
     before: info.before ?? 0,
@@ -288,12 +284,12 @@ function objectPadJsonDecoder(value: JsonValue | undefined): IdlTypeFlat {
   });
 }
 
-function objectBlobJsonDecoder(value: JsonValue | undefined): IdlTypeFlat {
+function objectBlobJsonDecoder(value: JsonValue): IdlTypeFlat {
   const bytes = idlUtilsBytesJsonDecoder(value);
   return IdlTypeFlat.blob({ bytes });
 }
 
-function objectConstJsonDecoder(value: JsonValue | undefined): IdlTypeFlat {
+function objectConstJsonDecoder(value: JsonValue): IdlTypeFlat {
   const encoded = idlUtilsJsonRustedParse(jsonCodecString.decoder(value));
   const literal = jsonCodecNumber.decoder(encoded);
   return IdlTypeFlat.const({ literal });

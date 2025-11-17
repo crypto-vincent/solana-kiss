@@ -10,7 +10,6 @@ import {
   jsonDecoderArrayToObject,
   jsonDecoderByType,
   jsonDecoderConst,
-  jsonDecoderNullable,
   jsonDecoderObject,
   jsonDecoderOptional,
   JsonObject,
@@ -106,17 +105,17 @@ const resultJsonDecoder = jsonDecoderObject({
   value: jsonDecoderObject({
     unitsConsumed: jsonCodecNumber.decoder,
     fee: jsonDecoderOptional(jsonCodecNumber.decoder),
-    err: jsonDecoderNullable(
-      jsonDecoderByType<string | JsonObject>({
-        object: (object) => object,
-        string: (string) => string,
-      }),
-    ),
+    err: jsonDecoderByType<null | string | JsonObject>({
+      null: () => null,
+      string: (string) => string,
+      object: (object) => object,
+    }),
     logs: jsonDecoderOptional(jsonDecoderArray(jsonCodecString.decoder)),
     accounts: jsonDecoderOptional(
       jsonDecoderArray(
-        jsonDecoderNullable(
-          jsonDecoderObject({
+        jsonDecoderByType({
+          null: () => null,
+          object: jsonDecoderObject({
             executable: jsonCodecBoolean.decoder,
             lamports: jsonCodecNumber.decoder,
             owner: jsonCodecPubkey.decoder,
@@ -125,7 +124,7 @@ const resultJsonDecoder = jsonDecoderObject({
               encoding: jsonDecoderConst("base64"),
             }),
           }),
-        ),
+        }),
       ),
     ),
   }),

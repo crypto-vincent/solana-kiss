@@ -29,7 +29,7 @@ it("run", async () => {
     utf8Encode("Campaign"),
     new Uint8Array(8).fill(0),
   ]);
-  await assertAccount(
+  await assertAccountNameAndState(
     solana,
     campaign,
     "Campaign",
@@ -40,12 +40,16 @@ it("run", async () => {
   const { instructionAddresses } = await solana.hydrateInstructionAddresses(
     programAddress,
     "campaign_create",
-    { instructionPayload: { params: { index: "0" } } },
+    {
+      instructionPayload: {
+        params: { index: "0" },
+      },
+    },
   );
   expect(instructionAddresses["campaign"]).toStrictEqual(campaign);
 });
 
-async function assertAccount(
+async function assertAccountNameAndState(
   solana: Solana,
   accountAddress: Pubkey,
   accountName: string,

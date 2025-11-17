@@ -176,7 +176,7 @@ export class Solana {
     );
     const { instructionData } = idlInstructionArgsEncode(
       instructionIdl,
-      options?.instructionPayload,
+      options?.instructionPayload ?? null,
     );
     return {
       instructionRequest: {
@@ -272,7 +272,7 @@ export class Solana {
     },
   ) {
     let recentBlockHash = blockHashDefault;
-    let signers = new Array<Signer | WalletAccount>();
+    const signers = new Array<Signer | WalletAccount>();
     if (options?.verifySignaturesAndBlockHash ?? true) {
       recentBlockHash = await this.getRecentBlockHash();
       if (payer instanceof Object && "address" in payer) {

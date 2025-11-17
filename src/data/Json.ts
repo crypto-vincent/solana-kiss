@@ -7,7 +7,7 @@ import {
   blockSlotFromNumber,
   blockSlotToNumber,
 } from "./Block";
-import { withErrorContext } from "./Error";
+import { ErrorStack, withErrorContext } from "./Error";
 import { pubkeyFromBase58, pubkeyToBase58 } from "./Pubkey";
 import { signatureFromBase58, signatureToBase58 } from "./Signature";
 import { utf8Decode, utf8Encode } from "./Utf8";
@@ -838,6 +838,7 @@ export function jsonCodecObjectKey<Content>(
   };
 }
 
+// TODO - is that really necessary ?
 export function jsonDecoderNullable<Content>(
   contentDecoder: (encoded: NotNull<JsonValue | undefined>) => Content,
 ): JsonDecoder<Content | null> {
@@ -898,25 +899,28 @@ export function jsonCodecOptional<Content>(contentCodec: {
   };
 }
 
-export function jsonDecoderWrapped<Decoded, Encoded>(
-  decoderInner: JsonDecoder<Encoded>,
+export function jsonDecoderWrapped<Decoded, Encoded, JsonInput>(
+  decoderInner: (encoded: JsonInput) => Encoded,
   decoderOuter: (encoded: Encoded) => Decoded,
-): JsonDecoder<Decoded> {
-  return (encoded) => decoderOuter(decoderInner(encoded));
+) {
+  return (encoded: JsonInput) => decoderOuter(decoderInner(encoded));
 }
 export function jsonEncoderWrapped<Decoded, Encoded>(
-  encoderInner: JsonEncoder<Encoded>,
+  encoderInner: (decoded: Encoded) => JsonValue,
   encoderOuter: (decoded: Decoded) => Encoded,
-): JsonEncoder<Decoded> {
-  return (decoded) => encoderInner(encoderOuter(decoded));
+) {
+  return (decoded: Decoded) => encoderInner(encoderOuter(decoded));
 }
-export function jsonCodecWrapped<Decoded, Encoded>(
-  innerCodec: JsonCodec<Encoded>,
+export function jsonCodecWrapped<Decoded, Encoded, JsonInput>(
+  innerCodec: {
+    decoder: (encoded: JsonInput) => Encoded;
+    encoder: (decoded: Encoded) => JsonValue;
+  },
   outerCodec: {
     decoder: (encoded: Encoded) => Decoded;
     encoder: (decoded: Decoded) => Encoded;
   },
-): JsonCodec<Decoded> {
+) {
   return {
     decoder: jsonDecoderWrapped(innerCodec.decoder, outerCodec.decoder),
     encoder: jsonEncoderWrapped(innerCodec.encoder, outerCodec.encoder),
@@ -1006,6 +1010,7 @@ export function jsonDecoderByType<Content>(decoders: {
   };
 }
 
+// TODO - this should probably be an object generator with a merger function instead
 export function jsonDecoderForked<Items extends Array<JsonDecoder<any>>>(
   ...decoders: Items
 ): JsonDecoder<{
@@ -1026,9 +1031,7 @@ export function jsonDecoderTryAnyOf<Content>(
         errors.push(error);
       }
     }
-    throw new Error(
-      `JSON: No matching decoder found. Errors:\n- ${errors.join("\n- ")}`,
-    );
+    throw new ErrorStack(`JSON: All known decoders failed`, errors);
   };
 }
 
