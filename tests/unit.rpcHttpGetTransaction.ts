@@ -26,22 +26,22 @@ it("run", async () => {
   expect(transactionExecution.blockSlot).toStrictEqual(328883613);
   expect(transactionExecution.chargedFeesLamports).toStrictEqual(32510n);
   expect(transactionExecution.consumedComputeUnits).toStrictEqual(42381);
-  expect(transactionExecution.logs?.length).toStrictEqual(22);
-  expect(transactionExecution.logs?.[0]).toStrictEqual(
+  expect(transactionExecution.transactionLogs?.length).toStrictEqual(22);
+  expect(transactionExecution.transactionLogs?.[0]).toStrictEqual(
     "Program ComputeBudget111111111111111111111111111111 invoke [1]",
   );
-  expect(transactionExecution.error).toStrictEqual(null);
+  expect(transactionExecution.transactionError).toStrictEqual(null);
   // Check the message content
   expect(transactionRequest.payerAddress).toStrictEqual(
     "Hc3EobqKYuqndAYmPzEhokBab3trofMWDafj4PJxFYUL",
   );
-  expect(transactionRequest.instructions.length).toStrictEqual(4);
-  expect(transactionRequest.instructions[0]!.programAddress).toStrictEqual(
-    "ComputeBudget111111111111111111111111111111",
-  );
-  expect(transactionRequest.instructions[0]!.data).toStrictEqual(
-    new Uint8Array([2, 32, 161, 7, 0]),
-  );
+  expect(transactionRequest.instructionsRequests.length).toStrictEqual(4);
+  expect(
+    transactionRequest.instructionsRequests[0]!.programAddress,
+  ).toStrictEqual("ComputeBudget111111111111111111111111111111");
+  expect(
+    transactionRequest.instructionsRequests[0]!.instructionData,
+  ).toStrictEqual(new Uint8Array([2, 32, 161, 7, 0]));
   expect(transactionRequest.recentBlockHash).toStrictEqual(
     "4nTobZxuiA9xZDuSMfSQE6WJSswAkoVoF7ycve42iiy2",
   );
@@ -150,8 +150,8 @@ function invocation(value: {
     invocation: {
       instructionRequest: value.instructionRequest,
       flow: value.flow ?? [],
-      error: value.result?.error,
-      returned: value.result?.returned,
+      instructionError: value.result?.error,
+      instructionReturned: value.result?.returned,
       consumedComputeUnits: value.result?.consumedComputeUnits,
     },
   };
@@ -164,8 +164,8 @@ function instruction(value: {
 }): InstructionRequest {
   return {
     programAddress: pubkeyFromBase58(value.programAddress),
-    inputs: value.inputs ?? [],
-    data: new Uint8Array(value.data ?? []),
+    instructionInputs: value.inputs ?? [],
+    instructionData: new Uint8Array(value.data ?? []),
   };
 }
 

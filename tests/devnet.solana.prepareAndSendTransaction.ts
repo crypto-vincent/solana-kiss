@@ -1,6 +1,6 @@
 import { expect, it } from "@jest/globals";
 import {
-  lamportsFeePerSigner,
+  lamportsFeePerSignature,
   lamportsRentExemptionMinimumForSpace,
   Pubkey,
   pubkeyDefault,
@@ -76,10 +76,10 @@ it("run", async () => {
     },
   );
   expect(transactionExecution.chargedFeesLamports).toStrictEqual(
-    lamportsFeePerSigner * 3n,
+    lamportsFeePerSignature * 3n,
   );
-  expect(transactionExecution.logs?.length).toStrictEqual(4);
-  expect(transactionExecution.error).toStrictEqual(null);
+  expect(transactionExecution.transactionLogs?.length).toStrictEqual(4);
+  expect(transactionExecution.transactionError).toStrictEqual(null);
   const owned1 = await solana.getAndInferAndDecodeAccount(owned1Signer.address);
   expect(owned1.programAddress).toStrictEqual(ownerAddress);
   expect(owned1.accountLamports).toStrictEqual(transferLamports);
@@ -104,11 +104,11 @@ async function makeSystemCreateInstructionRequest(
     pubkeyDefault,
     "create",
     {
-      addresses: {
+      instructionAddresses: {
         payer: payerSigner.address,
         created: ownedSigner.address,
       },
-      payload: {
+      instructionPayload: {
         lamports: String(transferLamports),
         space: requestedSpace,
         owner: pubkeyToBase58(ownerAddress),

@@ -1,7 +1,7 @@
 import { expect, it } from "@jest/globals";
 import {
   expectDefined,
-  lamportsFeePerSigner,
+  lamportsFeePerSignature,
   pubkeyFromBase58,
   rpcHttpFromUrl,
   signerFromSecret,
@@ -22,12 +22,12 @@ it("run", async () => {
     await solana.hydrateInstructionAddresses(
       programAddress,
       "campaign_create",
-      { payload: { params: { index: "0" } } },
+      { instructionPayload: { params: { index: "0" } } },
     );
   const campaignAddress = expectDefined(campaignCreateAddresses["campaign"]);
   const { instructionAddresses: pledgeCreateAddresses } =
     await solana.hydrateInstructionAddresses(programAddress, "pledge_create", {
-      addresses: {
+      instructionAddresses: {
         user: userSigner.address,
         campaign: campaignAddress,
       },
@@ -38,12 +38,14 @@ it("run", async () => {
     programAddress,
     "pledge_create",
     {
-      addresses: {
+      instructionAddresses: {
         payer: payerSigner.address,
         user: userSigner.address,
         campaign: campaignAddress,
       },
-      payload: { params: null },
+      instructionPayload: {
+        params: null,
+      },
     },
   );
   const resultNoVerify = await solana.prepareAndSimulateTransaction(
@@ -54,10 +56,14 @@ it("run", async () => {
       simulatedAccountsAddresses: new Set([pledgeAddress]),
     },
   );
-  expect(resultNoVerify.transactionExecution.error).toStrictEqual(null);
-  expect(resultNoVerify.transactionExecution.logs?.length).toStrictEqual(6);
+  expect(resultNoVerify.transactionExecution.transactionError).toStrictEqual(
+    null,
+  );
+  expect(
+    resultNoVerify.transactionExecution.transactionLogs?.length,
+  ).toStrictEqual(6);
   expect(resultNoVerify.transactionExecution.chargedFeesLamports).toStrictEqual(
-    lamportsFeePerSigner * 2n,
+    lamportsFeePerSignature * 2n,
   );
   expect(
     resultNoVerify.transactionExecution.consumedComputeUnits,
@@ -83,11 +89,15 @@ it("run", async () => {
       simulatedAccountsAddresses: new Set([pledgeAddress]),
     },
   );
-  expect(resultWithVerify.transactionExecution.error).toStrictEqual(null);
-  expect(resultWithVerify.transactionExecution.logs?.length).toStrictEqual(6);
+  expect(resultWithVerify.transactionExecution.transactionError).toStrictEqual(
+    null,
+  );
+  expect(
+    resultWithVerify.transactionExecution.transactionLogs?.length,
+  ).toStrictEqual(6);
   expect(
     resultWithVerify.transactionExecution.chargedFeesLamports,
-  ).toStrictEqual(lamportsFeePerSigner * 2n);
+  ).toStrictEqual(lamportsFeePerSignature * 2n);
   expect(
     resultWithVerify.transactionExecution.consumedComputeUnits,
   ).toBeGreaterThan(0);

@@ -60,8 +60,14 @@ export function idlProgramGuessInstruction(
   const errors = [];
   for (const instructionIdl of self.instructions.values()) {
     try {
-      idlInstructionAccountsCheck(instructionIdl, instructionRequest.inputs);
-      idlInstructionArgsCheck(instructionIdl, instructionRequest.data);
+      idlInstructionAccountsCheck(
+        instructionIdl,
+        instructionRequest.instructionInputs,
+      );
+      idlInstructionArgsCheck(
+        instructionIdl,
+        instructionRequest.instructionData,
+      );
       return instructionIdl;
     } catch (error) {
       errors.push(error);

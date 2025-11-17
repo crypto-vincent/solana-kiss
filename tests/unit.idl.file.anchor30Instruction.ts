@@ -2,7 +2,7 @@ import { expect, it } from "@jest/globals";
 import {
   expectDefined,
   idlInstructionAccountsEncode,
-  idlInstructionAddressesHydrate,
+  idlInstructionAccountsFind,
   idlInstructionArgsEncode,
   idlProgramParse,
   InstructionInput,
@@ -57,17 +57,17 @@ it("run", async () => {
     },
   };
   // Resolve missing instruction accounts
-  const { instructionAddresses } = await idlInstructionAddressesHydrate(
+  const { instructionAddresses } = await idlInstructionAccountsFind(
     instructionIdl,
     programAddress,
     {
-      addresses: {
+      instructionAddresses: {
         payer: payerAddress,
         authority: authorityAddress,
         collateral_mint: collateralMintAddress,
         redeemable_mint: redeemableMintAddress,
       },
-      payload: instructionPayload,
+      instructionPayload: instructionPayload,
     },
   );
   // Generate expected accounts

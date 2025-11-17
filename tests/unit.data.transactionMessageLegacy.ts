@@ -3,6 +3,7 @@ import { Keypair, PublicKey, Transaction } from "@solana/web3.js";
 import {
   blockHashFromBytes,
   blockHashToBase58,
+  InstructionRequest,
   Pubkey,
   pubkeyFromBase58,
   pubkeyNewDummy,
@@ -10,6 +11,7 @@ import {
   transactionCompileAndSign,
   transactionDecompileRequest,
   transactionExtractMessage,
+  TransactionRequest,
   transactionVerify,
 } from "../src";
 
@@ -51,10 +53,10 @@ it("run", async () => {
     referenceTransaction.serializeMessage(),
   );
   const referencePacketBytes = new Uint8Array(referenceTransaction.serialize());
-  const currentRequest = {
+  const currentRequest: TransactionRequest = {
     payerAddress: payerCurrent.address,
     recentBlockHash: blockHash,
-    instructions: [
+    instructionsRequests: [
       generatedInstruction1.current,
       generatedInstruction2.current,
       ...generatedDummyInstructions.map((ix) => ix.current),
@@ -102,15 +104,15 @@ function generateInstruction(
     ],
     data: Buffer.from(data),
   };
-  const current = {
+  const current: InstructionRequest = {
     programAddress,
-    inputs: [
+    instructionInputs: [
       { address: signerWritableAddress, signer: true, writable: true },
       { address: signerReadonlyAddress, signer: true, writable: false },
       { address: writableAddress, signer: false, writable: true },
       { address: readonlyAddress, signer: false, writable: false },
     ],
-    data,
+    instructionData: data,
   };
   return { reference, current };
 }
@@ -121,10 +123,10 @@ function generateInstructionDummy(programAddress: Pubkey) {
     keys: [],
     data: Buffer.from([]),
   };
-  const current = {
+  const current: InstructionRequest = {
     programAddress,
-    inputs: [],
-    data: new Uint8Array([]),
+    instructionInputs: [],
+    instructionData: new Uint8Array([]),
   };
   return { reference, current };
 }

@@ -61,11 +61,11 @@ export async function rpcHttpSimulateTransaction(
       },
     ),
   );
-  const transactionExecution = {
+  const transactionExecution: TransactionExecution = {
     blockTime: undefined,
     blockSlot: result.context.slot,
-    logs: result.value.logs,
-    error: result.value.err,
+    transactionLogs: result.value.logs,
+    transactionError: result.value.err,
     consumedComputeUnits: result.value.unitsConsumed,
     chargedFeesLamports: result.value.fee
       ? BigInt(result.value.fee)
@@ -74,16 +74,16 @@ export async function rpcHttpSimulateTransaction(
   const simulatedAccountsByAddress = new Map(
     simulatedAccountsAddresses.map(
       (simulatedAccountAddress, simulatedAccountIndex) => {
-        const simulatedAccountInfo =
+        const simulatedAccountWithData =
           result.value.accounts?.[simulatedAccountIndex];
         return [
           simulatedAccountAddress,
-          simulatedAccountInfo
+          simulatedAccountWithData
             ? {
-                programAddress: simulatedAccountInfo.owner,
-                accountExecutable: simulatedAccountInfo.executable,
-                accountLamports: BigInt(simulatedAccountInfo.lamports),
-                accountData: simulatedAccountInfo.data.bytes,
+                programAddress: simulatedAccountWithData.owner,
+                accountExecutable: simulatedAccountWithData.executable,
+                accountLamports: BigInt(simulatedAccountWithData.lamports),
+                accountData: simulatedAccountWithData.data.bytes,
               }
             : {
                 programAddress: pubkeyDefault,

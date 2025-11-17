@@ -1,7 +1,7 @@
 import { expect, it } from "@jest/globals";
 import {
   expectDefined,
-  idlInstructionAddressesHydrate,
+  idlInstructionAccountsFind,
   idlProgramParse,
   pubkeyFindPdaAddress,
   pubkeyNewDummy,
@@ -60,11 +60,11 @@ it("run", async () => {
   ]);
   // Generate all missing IX accounts with just the minimum information
   const { instructionAddresses: initializeMarketAddresses } =
-    await idlInstructionAddressesHydrate(
+    await idlInstructionAccountsFind(
       expectDefined(programIdl.instructions.get("initialize_market")),
       programAddress,
       {
-        addresses: {
+        instructionAddresses: {
           owner: ownerAddress,
           liquidity_pool_token_account: liquidityPoolTokenAccountAddress,
           treasury: treasuryAddress,
@@ -75,7 +75,7 @@ it("run", async () => {
           token_program: placeholderAddress,
           system_program: placeholderAddress,
         },
-        payload: {
+        instructionPayload: {
           global_market_seed: globalMarketSeed,
         },
       },
@@ -98,17 +98,17 @@ it("run", async () => {
   );
   // Generate all missing IX accounts with just the minimum information
   const { instructionAddresses: openDealAddresses } =
-    await idlInstructionAddressesHydrate(
+    await idlInstructionAccountsFind(
       expectDefined(programIdl.instructions.get("open_deal")),
       programAddress,
       {
-        addresses: {
+        instructionAddresses: {
           owner: ownerAddress,
           global_market_state: globalMarketStateAddress,
         },
-        payload: { global_market_seed: globalMarketSeed },
-      },
-      {
+        instructionPayload: {
+          global_market_seed: globalMarketSeed,
+        },
         accountsContext: {
           deal: {
             accountTypeFull: undefined,

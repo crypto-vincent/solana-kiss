@@ -21,7 +21,7 @@ import { WalletAccount } from "./Wallet";
 export type TransactionRequest = {
   payerAddress: Pubkey;
   recentBlockHash: BlockHash;
-  instructions: Array<InstructionRequest>;
+  instructionsRequests: Array<InstructionRequest>;
 };
 export type TransactionAddressLookupTable = {
   tableAddress: Pubkey;
@@ -41,8 +41,8 @@ export type TransactionHandle = Signature;
 export type TransactionExecution = {
   blockTime: Date | undefined;
   blockSlot: BlockSlot;
-  logs: Array<string> | undefined;
-  error: null | string | JsonObject;
+  transactionLogs: Array<string> | undefined;
+  transactionError: null | string | JsonObject;
   consumedComputeUnits: number;
   chargedFeesLamports: bigint | undefined;
 };
@@ -56,8 +56,8 @@ export type TransactionFlow = Array<
 export type TransactionInvocation = {
   instructionRequest: InstructionRequest;
   flow: TransactionFlow;
-  error: string | undefined;
-  returned: Uint8Array | undefined;
+  instructionError: string | undefined;
+  instructionReturned: Uint8Array | undefined;
   consumedComputeUnits: number | undefined;
 };
 
@@ -163,15 +163,15 @@ export function transactionCompileUnsigned(
     byteArray.push(...pubkeyToBytes(staticAddress));
   }
   byteArray.push(...blockHashToBytes(transactionRequest.recentBlockHash));
-  varIntWrite(byteArray, transactionRequest.instructions.length);
-  for (const instruction of transactionRequest.instructions) {
+  varIntWrite(byteArray, transactionRequest.instructionsRequests.length);
+  for (const instruction of transactionRequest.instructionsRequests) {
     byteArray.push(indexByAddress.get(instruction.programAddress)!);
-    varIntWrite(byteArray, instruction.inputs.length);
-    for (const input of instruction.inputs) {
+    varIntWrite(byteArray, instruction.instructionInputs.length);
+    for (const input of instruction.instructionInputs) {
       byteArray.push(indexByAddress.get(input.address)!);
     }
-    varIntWrite(byteArray, instruction.data.length);
-    byteArray.push(...instruction.data);
+    varIntWrite(byteArray, instruction.instructionData.length);
+    byteArray.push(...instruction.instructionData);
   }
   if (transactionAddressLookupTables !== undefined) {
     byteArray.push(loadedAddressLookupTables.length);
@@ -415,13 +415,13 @@ export function transactionDecompileRequest(
         instructionsInputs,
         compiledInstruction.programIndex,
       ).address,
-      inputs: compiledInstruction.inputsIndexes.map((inputIndex) =>
+      instructionInputs: compiledInstruction.inputsIndexes.map((inputIndex) =>
         lookupInput(instructionsInputs, inputIndex),
       ),
-      data: compiledInstruction.dataBytes,
+      instructionData: compiledInstruction.dataBytes,
     });
   }
-  return { payerAddress, recentBlockHash, instructions };
+  return { payerAddress, recentBlockHash, instructionsRequests: instructions };
 }
 
 function addressesMetasByCategory(
@@ -439,7 +439,7 @@ function addressesMetasByCategory(
     signer: true,
     writable: true,
   });
-  for (const instruction of transactionRequest.instructions) {
+  for (const instruction of transactionRequest.instructionsRequests) {
     const programMeta = metaByAddress.get(instruction.programAddress) ?? {
       invoked: false,
       signer: false,
@@ -447,7 +447,7 @@ function addressesMetasByCategory(
     };
     programMeta.invoked = true;
     metaByAddress.set(instruction.programAddress, programMeta);
-    for (const input of instruction.inputs) {
+    for (const input of instruction.instructionInputs) {
       const inputMeta = metaByAddress.get(input.address) ?? {
         invoked: false,
         signer: false,

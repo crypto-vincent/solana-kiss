@@ -2,7 +2,6 @@ import {
   casingLosslessConvertToCamel,
   casingLosslessConvertToSnake,
 } from "../data/Casing";
-import { InstructionFrame } from "../data/Instruction";
 import {
   JsonArray,
   JsonPointer,
@@ -16,6 +15,7 @@ import {
   jsonPointerParse,
 } from "../data/Json";
 import { Pubkey, pubkeyToBytes } from "../data/Pubkey";
+import { IdlInstructionAccountFindContext } from "./IdlInstructionAccount";
 import { IdlTypedef } from "./IdlTypedef";
 import { IdlTypeFlat } from "./IdlTypeFlat";
 import { idlTypeFlatHydrate } from "./IdlTypeFlatHydrate";
@@ -27,9 +27,8 @@ import { IdlTypePrimitive } from "./IdlTypePrimitive";
 import { idlUtilsInferValueTypeFlat } from "./IdlUtils";
 
 export type IdlInstructionBlobAccountsContext = {
-  [accountField: string]: IdlInstructionBlobAccountContent;
+  [instructionAccountName: string]: IdlInstructionBlobAccountContent;
 };
-
 export type IdlInstructionBlobAccountFetcher = (
   accountAddress: Pubkey,
 ) => Promise<IdlInstructionBlobAccountContent>;
@@ -95,16 +94,9 @@ export class IdlInstructionBlob {
 
 export async function idlInstructionBlobCompute(
   self: IdlInstructionBlob,
-  instructionFrame: InstructionFrame,
-  accountsContext?: IdlInstructionBlobAccountsContext,
-  accountFetcher?: IdlInstructionBlobAccountFetcher,
+  findContext: IdlInstructionAccountFindContext,
 ) {
-  return self.traverse(
-    computeVisitor,
-    instructionFrame,
-    accountsContext,
-    accountFetcher,
-  );
+  return self.traverse(computeVisitor, findContext, undefined, undefined);
 }
 
 export function idlInstructionBlobParse(
@@ -218,36 +210,36 @@ const computeVisitor = {
   },
   arg: async (
     self: IdlInstructionBlobArg,
-    instructionFrame: InstructionFrame,
+    findContext: IdlInstructionAccountFindContext,
   ) => {
-    const value = jsonGetAt(instructionFrame.payload, self.pointer, {
+    const value = jsonGetAt(findContext.instructionPayload, self.pointer, {
       throwOnMissing: true,
     });
     return idlTypeFullEncode(self.typeFull, value, false);
   },
   account: async (
     self: IdlInstructionBlobAccount,
-    instructionFrame: InstructionFrame,
-    accountsContext?: IdlInstructionBlobAccountsContext,
-    accountFetcher?: IdlInstructionBlobAccountFetcher,
+    findContext: IdlInstructionAccountFindContext,
   ) => {
     if (
       self.typeFull === undefined ||
       self.typeFull.isPrimitive(IdlTypePrimitive.pubkey)
     ) {
-      for (const [accountField, instructionAddress] of Object.entries(
-        instructionFrame.addresses,
-      )) {
-        for (const path of self.paths) {
-          if (path === accountField) {
-            return pubkeyToBytes(instructionAddress);
+      if (findContext.instructionAddresses !== undefined) {
+        for (const [accountField, instructionAddress] of Object.entries(
+          findContext.instructionAddresses,
+        )) {
+          for (const path of self.paths) {
+            if (path === accountField) {
+              return pubkeyToBytes(instructionAddress);
+            }
           }
         }
       }
     }
-    if (accountsContext) {
+    if (findContext.accountsContext) {
       for (const [accountField, accountContent] of Object.entries(
-        accountsContext,
+        findContext.accountsContext,
       )) {
         for (const path of self.paths) {
           if (path.startsWith(accountField)) {
@@ -261,9 +253,9 @@ const computeVisitor = {
         }
       }
     }
-    if (accountFetcher) {
+    if (findContext.accountFetcher && findContext.instructionAddresses) {
       for (const [accountField, instructionAddress] of Object.entries(
-        instructionFrame.addresses,
+        findContext.instructionAddresses,
       )) {
         for (const path of self.paths) {
           if (path.startsWith(accountField)) {
@@ -271,7 +263,7 @@ const computeVisitor = {
               path,
               self.typeFull,
               accountField,
-              await accountFetcher(instructionAddress),
+              await findContext.accountFetcher(instructionAddress),
             );
           }
         }

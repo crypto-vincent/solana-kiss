@@ -1,7 +1,7 @@
 import { expect, it } from "@jest/globals";
 import {
   expectDefined,
-  idlInstructionAddressesHydrate,
+  idlInstructionAccountsFind,
   idlProgramParse,
   pubkeyFindPdaAddress,
   pubkeyNewDummy,
@@ -74,20 +74,18 @@ it("run", async () => {
   const myAccountType = programIdl.accounts.get("MyAccount")?.typeFull;
   // Assert that the accounts can be properly resolved in snake case
   const { instructionAddresses: instructionSnakeAddresses } =
-    await idlInstructionAddressesHydrate(
+    await idlInstructionAccountsFind(
       expectDefined(programIdl.instructions.get("my_ix")),
       programAddress,
       {
-        addresses: {
+        instructionAddresses: {
           account_snake: accountSnakeAddress,
           account_camel: accountCamelAddress,
         },
-        payload: {
+        instructionPayload: {
           arg_snake: 42,
           arg_camel: 43,
         },
-      },
-      {
         accountsContext: {
           account_snake: {
             accountState: { field_snake: 44 },
@@ -103,20 +101,18 @@ it("run", async () => {
   expect(instructionSnakeAddresses["pda"]).toStrictEqual(pdaAddress);
   // Assert that the accounts can be properly resolved in camel case
   const { instructionAddresses: instructionCamelAddresses } =
-    await idlInstructionAddressesHydrate(
+    await idlInstructionAccountsFind(
       expectDefined(programIdl.instructions.get("my_ix")),
       programAddress,
       {
-        addresses: {
+        instructionAddresses: {
           accountSnake: accountSnakeAddress,
           accountCamel: accountCamelAddress,
         },
-        payload: {
+        instructionPayload: {
           argSnake: 42,
           argCamel: 43,
         },
-      },
-      {
         accountsContext: {
           accountSnake: {
             accountState: { fieldSnake: 44 },

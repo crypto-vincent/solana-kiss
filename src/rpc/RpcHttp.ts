@@ -75,8 +75,8 @@ export function rpcHttpFromUrl(
         params,
       }),
     });
-    const responseInfo = responseJsonDecoder(responseJson);
-    const responseError = responseInfo.error;
+    const responseValue = responseJsonDecoder(responseJson);
+    const responseError = responseValue.error;
     if (responseError !== undefined) {
       throw new RpcHttpError(
         `RpcHttp: Error ${responseError.code}: ${responseError.message}`,
@@ -85,20 +85,20 @@ export function rpcHttpFromUrl(
         responseError.data,
       );
     }
-    if (responseInfo.jsonrpc !== "2.0") {
+    if (responseValue.jsonrpc !== "2.0") {
       throw new Error(
-        `RpcHttp: Expected response jsonrpc: "2.0" (found: "${responseInfo.jsonrpc}")`,
+        `RpcHttp: Expected response jsonrpc: "2.0" (found: "${responseValue.jsonrpc}")`,
       );
     }
-    if (responseInfo.id !== requestId) {
+    if (responseValue.id !== requestId) {
       throw new Error(
-        `RpcHttp: Expected response id: ${requestId} (found: ${responseInfo.id})`,
+        `RpcHttp: Expected response id: ${requestId} (found: ${responseValue.id})`,
       );
     }
-    if (responseInfo.result === undefined) {
+    if (responseValue.result === undefined) {
       throw new Error(`RpcHttp: Missing response result`);
     }
-    return responseInfo.result;
+    return responseValue.result;
   };
 }
 

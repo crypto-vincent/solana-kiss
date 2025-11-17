@@ -1,6 +1,5 @@
 import { casingLosslessConvertToSnake } from "../data/Casing";
 import { withErrorContext } from "../data/Error";
-import { InstructionFrame } from "../data/Instruction";
 import {
   jsonCodecArrayValues,
   jsonCodecBoolean,
@@ -15,6 +14,7 @@ import {
 import { Pubkey, pubkeyFindPdaAddress, pubkeyFromBytes } from "../data/Pubkey";
 import { objectGetOwnProperty } from "../data/Utils";
 import { IdlDocs, idlDocsParse } from "./IdlDocs";
+import { IdlInstructionAddresses } from "./IdlInstruction";
 import {
   IdlInstructionBlob,
   IdlInstructionBlobAccountFetcher,
@@ -40,15 +40,20 @@ export type IdlInstructionAccountPda = {
   program: IdlInstructionBlob | undefined;
 };
 
+export type IdlInstructionAccountFindContext = {
+  instructionAddresses?: IdlInstructionAddresses;
+  instructionPayload?: JsonValue | undefined;
+  accountsContext?: IdlInstructionBlobAccountsContext;
+  accountFetcher?: IdlInstructionBlobAccountFetcher;
+};
+
 export async function idlInstructionAccountFind(
   self: IdlInstructionAccount,
   programAddress: Pubkey,
-  instructionFrame: InstructionFrame,
-  accountsContext?: IdlInstructionBlobAccountsContext,
-  accountFetcher?: IdlInstructionBlobAccountFetcher,
+  findContext: IdlInstructionAccountFindContext,
 ) {
   const instructionAddress = objectGetOwnProperty(
-    instructionFrame.addresses,
+    findContext.instructionAddresses,
     self.name,
   );
   if (instructionAddress !== undefined) {
@@ -62,23 +67,13 @@ export async function idlInstructionAccountFind(
     const seedsBytes = new Array<Uint8Array>();
     for (const instructionBlobIdl of self.pda.seeds) {
       seedsBytes.push(
-        await idlInstructionBlobCompute(
-          instructionBlobIdl,
-          instructionFrame,
-          accountsContext,
-          accountFetcher,
-        ),
+        await idlInstructionBlobCompute(instructionBlobIdl, findContext),
       );
     }
     let pdaProgramAddress = programAddress;
     if (self.pda.program !== undefined) {
       pdaProgramAddress = pubkeyFromBytes(
-        await idlInstructionBlobCompute(
-          self.pda.program,
-          instructionFrame,
-          accountsContext,
-          accountFetcher,
-        ),
+        await idlInstructionBlobCompute(self.pda.program, findContext),
       );
     }
     return pubkeyFindPdaAddress(pdaProgramAddress, seedsBytes);

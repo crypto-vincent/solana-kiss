@@ -26,15 +26,17 @@ it("run", async () => {
     ),
   );
   // Check we can decode the instruction correctly
-  const instruction = expectDefined(transactionRequest.instructions[1]);
+  const instructionRequest = expectDefined(
+    transactionRequest.instructionsRequests[1],
+  );
   const instructionIdl = expectDefined(
-    idlProgramGuessInstruction(programIdl, instruction),
+    idlProgramGuessInstruction(programIdl, instructionRequest),
   );
   expect(instructionIdl.name).toStrictEqual("pledge_deposit");
   // Check instruction inputs decoding
   const { instructionAddresses } = idlInstructionAccountsDecode(
     instructionIdl,
-    instruction.inputs,
+    instructionRequest.instructionInputs,
   );
   expect(instructionAddresses["user"]).toStrictEqual(
     "99ywHQcPAYZ2te68Dah5CiSapqptNXvwGUqC1wP2qsi2",
@@ -42,7 +44,7 @@ it("run", async () => {
   // Check instruction data decoding
   const { instructionPayload } = idlInstructionArgsDecode(
     instructionIdl,
-    instruction.data,
+    instructionRequest.instructionData,
   );
   expect(instructionPayload).toStrictEqual({
     params: { collateralAmount: "0" },

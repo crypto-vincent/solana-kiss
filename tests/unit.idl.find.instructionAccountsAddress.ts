@@ -1,7 +1,7 @@
 import { expect, it } from "@jest/globals";
 import {
   expectDefined,
-  idlInstructionAddressesHydrate,
+  idlInstructionAccountsFind,
   idlProgramParse,
   pubkeyNewDummy,
   pubkeyToBase58,
@@ -29,7 +29,7 @@ it("run", async () => {
     },
   });
   // Assert that the accounts can be properly resolved
-  const { instructionAddresses } = await idlInstructionAddressesHydrate(
+  const { instructionAddresses } = await idlInstructionAccountsFind(
     expectDefined(programIdl.instructions.get("my_ix")),
     pubkeyNewDummy(),
   );

@@ -3,7 +3,7 @@ import {
   expectDefined,
   idlInstructionAccountsDecode,
   idlInstructionAccountsEncode,
-  idlInstructionAddressesHydrate,
+  idlInstructionAccountsFind,
   idlInstructionArgsDecode,
   idlInstructionArgsEncode,
   idlProgramParse,
@@ -32,19 +32,17 @@ it("run", async () => {
     migrated: true,
   };
   // Find missing instruction accounts
-  const { instructionAddresses } = await idlInstructionAddressesHydrate(
+  const { instructionAddresses } = await idlInstructionAccountsFind(
     instructionIdl,
     programAddress,
     {
-      addresses: {
+      instructionPayload,
+      instructionAddresses: {
         owner: pubkeyNewDummy(),
         borrower: borrowerAddress,
         globalMarketState: pubkeyNewDummy(),
         systemProgram: pubkeyNewDummy(),
       },
-      payload: instructionPayload,
-    },
-    {
       accountsContext: {
         borrower_info: {
           accountTypeFull: undefined,

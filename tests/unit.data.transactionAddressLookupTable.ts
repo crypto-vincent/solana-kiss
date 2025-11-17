@@ -7,6 +7,7 @@ import {
 } from "@solana/web3.js";
 import {
   blockHashDefault,
+  InstructionRequest,
   Pubkey,
   pubkeyDefault,
   pubkeyNewDummy,
@@ -15,6 +16,7 @@ import {
   transactionCompileAndSign,
   transactionDecompileRequest,
   transactionExtractMessage,
+  TransactionRequest,
 } from "../src";
 
 it("run", async () => {
@@ -38,21 +40,21 @@ it("run", async () => {
     tableAddress: pubkeyNewDummy(),
     lookupAddresses: dummyAddresses.filter((_, i) => i % 2 === 0),
   });
-  const instructions = [
+  const instructionsRequests: Array<InstructionRequest> = [
     {
       programAddress,
-      inputs: dummyAddresses.map((address, index) => ({
+      instructionInputs: dummyAddresses.map((address, index) => ({
         address,
         signer: false,
         writable: index % 3 === 0,
       })),
-      data: new Uint8Array([42, 42, 42]),
+      instructionData: new Uint8Array([42, 42, 42]),
     },
   ];
-  const transactionRequest = {
+  const transactionRequest: TransactionRequest = {
     payerAddress: payerSigner.address,
     recentBlockHash: blockHashDefault,
-    instructions,
+    instructionsRequests,
   };
   const currentPacket = await transactionCompileAndSign(
     [payerSigner],
@@ -67,14 +69,14 @@ it("run", async () => {
   const referenceMessage = new TransactionMessage({
     payerKey: new PublicKey(payerSigner.address),
     recentBlockhash: transactionRequest.recentBlockHash as string,
-    instructions: instructions.map((instruction) => ({
-      programId: new PublicKey(instruction.programAddress),
-      keys: instruction.inputs.map((instructionInput) => ({
+    instructions: instructionsRequests.map((instructionRequest) => ({
+      programId: new PublicKey(instructionRequest.programAddress),
+      keys: instructionRequest.instructionInputs.map((instructionInput) => ({
         pubkey: new PublicKey(instructionInput.address),
         isSigner: instructionInput.signer,
         isWritable: instructionInput.writable,
       })),
-      data: Buffer.from(instruction.data),
+      data: Buffer.from(instructionRequest.instructionData),
     })),
   }).compileToV0Message(
     transactionAddressLookupTables.map((alt) => ({

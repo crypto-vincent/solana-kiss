@@ -78,8 +78,12 @@ it("run", async () => {
     knownProgramAddress,
     "campaign_create",
     {
-      addresses: { collateralMint: fakeCollateralMint },
-      payload: { params: { index: "0" } },
+      instructionAddresses: {
+        collateralMint: fakeCollateralMint,
+      },
+      instructionPayload: {
+        params: { index: "0" },
+      },
     },
   );
   expect(rpcCounters.size).toBe(0);

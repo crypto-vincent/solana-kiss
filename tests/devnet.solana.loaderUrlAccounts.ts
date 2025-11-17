@@ -67,7 +67,12 @@ it("run", async () => {
   const { instructionAddresses } = await solana.hydrateInstructionAddresses(
     pubkeyFromBase58("ATokenGPvbdGVxr1b2hvZbsiqW5xWH25efTNsLJA8knL"),
     "create",
-    { addresses: { owner: dummyAddressOwner, mint: dummyAddressMint } },
+    {
+      instructionAddresses: {
+        owner: dummyAddressOwner,
+        mint: dummyAddressMint,
+      },
+    },
   );
   expect(instructionAddresses["ata"]).toStrictEqual(
     pubkeyFindPdaAddress(

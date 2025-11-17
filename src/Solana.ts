@@ -1,6 +1,7 @@
 import { BlockHash, blockHashDefault } from "./data/Block";
 import { casingLosslessConvertToSnake } from "./data/Casing";
-import { InstructionFrame, InstructionRequest } from "./data/Instruction";
+import { InstructionRequest } from "./data/Instruction";
+import { JsonValue } from "./data/Json";
 import { Pubkey } from "./data/Pubkey";
 import { Signer } from "./data/Signer";
 import {
@@ -13,7 +14,8 @@ import { idlAccountDecode } from "./idl/IdlAccount";
 import {
   idlInstructionAccountsDecode,
   idlInstructionAccountsEncode,
-  idlInstructionAddressesHydrate,
+  idlInstructionAccountsFind,
+  IdlInstructionAddresses,
   idlInstructionArgsDecode,
   idlInstructionArgsEncode,
 } from "./idl/IdlInstruction";
@@ -136,63 +138,62 @@ export class Solana {
     );
     const { instructionAddresses } = idlInstructionAccountsDecode(
       instructionIdl,
-      instructionRequest.inputs,
+      instructionRequest.instructionInputs,
     );
     const { instructionPayload } = idlInstructionArgsDecode(
       instructionIdl,
-      instructionRequest.data,
+      instructionRequest.instructionData,
     );
-    const instructionFrame: InstructionFrame = {
-      addresses: instructionAddresses,
-      payload: instructionPayload,
-    };
     return {
       programIdl,
       instructionIdl,
-      instructionFrame,
+      instructionAddresses,
+      instructionPayload,
     };
   }
 
   public async hydrateAndEncodeInstruction(
     programAddress: Pubkey,
     instructionName: string,
-    instructionFrame: InstructionFrame,
-    options?: {
+    options: {
+      instructionAddresses: IdlInstructionAddresses;
+      instructionPayload: JsonValue | undefined;
       accountsContext?: IdlInstructionBlobAccountsContext;
     },
   ): Promise<{ instructionRequest: InstructionRequest }> {
-    const { instructionAddresses } = await this.hydrateInstructionAddresses(
-      programAddress,
-      instructionName,
-      instructionFrame,
-      { throwOnMissing: true, ...options },
-    );
+    const { instructionAddresses: hydratedInstructionAddresses } =
+      await this.hydrateInstructionAddresses(programAddress, instructionName, {
+        throwOnMissing: true,
+        ...options,
+      });
     const { instructionIdl } = await this.getOrLoadInstructionIdl(
       programAddress,
       instructionName,
     );
     const { instructionInputs } = idlInstructionAccountsEncode(
       instructionIdl,
-      instructionAddresses,
+      hydratedInstructionAddresses,
     );
     const { instructionData } = idlInstructionArgsEncode(
       instructionIdl,
-      instructionFrame.payload,
+      options?.instructionPayload,
     );
-    const instructionRequest: InstructionRequest = {
-      programAddress,
-      inputs: instructionInputs,
-      data: instructionData,
+    return {
+      instructionRequest: {
+        programAddress,
+        instructionInputs,
+        instructionData,
+      },
     };
-    return { instructionRequest };
   }
 
   public async hydrateInstructionAddresses(
     programAddress: Pubkey,
     instructionName: string,
-    instructionFrame?: Partial<InstructionFrame>,
     options?: {
       throwOnMissing?: boolean;
+      instructionAddresses?: IdlInstructionAddresses;
+      instructionPayload?: JsonValue | undefined;
       accountsContext?: IdlInstructionBlobAccountsContext;
     },
   ) {
@@ -201,28 +202,23 @@ export class Solana {
       instructionName,
     );
     const accountsCache = new Map<Pubkey, IdlInstructionBlobAccountContent>();
-    return await idlInstructionAddressesHydrate(
-      instructionIdl,
-      programAddress,
-      instructionFrame,
-      {
-        ...options,
-        accountFetcher: async (accountAddress: Pubkey) => {
-          const accountCached = accountsCache.get(accountAddress);
-          if (accountCached) {
-            return accountCached;
-          }
-          const { accountIdl, accountState } =
-            await this.getAndInferAndDecodeAccount(accountAddress);
-          const accountContent = {
-            accountState,
-            accountTypeFull: accountIdl.typeFull,
-          };
-          accountsCache.set(accountAddress, accountContent);
-          return accountContent;
-        },
+    return await idlInstructionAccountsFind(instructionIdl, programAddress, {
+      ...options,
+      accountFetcher: async (accountAddress: Pubkey) => {
+        const accountCached = accountsCache.get(accountAddress);
+        if (accountCached) {
+          return accountCached;
+        }
+        const { accountIdl, accountState } =
+          await this.getAndInferAndDecodeAccount(accountAddress);
+        const accountContent = {
+          accountState,
+          accountTypeFull: accountIdl.typeFull,
+        };
+        accountsCache.set(accountAddress, accountContent);
+        return accountContent;
       },
-    );
+    });
   }
 
   public async getRecentBlockHash() {
@@ -246,6 +242,7 @@ export class Solana {
       skipPreflight?: boolean;
     },
   ) {
+    const payerAddress = payerSigner.address;
     const recentBlockHash = await this.getRecentBlockHash();
     const signers = [payerSigner];
     if (options?.extraSigners) {
@@ -253,11 +250,7 @@ export class Solana {
     }
     const transactionPacket = await transactionCompileAndSign(
       signers,
-      {
-        payerAddress: payerSigner.address,
-        recentBlockHash,
-        instructions: instructionsRequests,
-      },
+      { payerAddress, recentBlockHash, instructionsRequests },
       options?.transactionLookupTables,
     );
     const { transactionHandle } = await rpcHttpSendTransaction(
@@ -295,7 +288,7 @@ export class Solana {
         : (payer as Pubkey);
     const transactionPacket = await transactionCompileAndSign(
       signers,
-      { payerAddress, recentBlockHash, instructions: instructionsRequests },
+      { payerAddress, recentBlockHash, instructionsRequests },
       options?.transactionLookupTables,
     );
     return await rpcHttpSimulateTransaction(

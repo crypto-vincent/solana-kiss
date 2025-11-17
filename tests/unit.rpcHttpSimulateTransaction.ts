@@ -24,20 +24,20 @@ it("run", async () => {
   expect(transactionExecution.blockSlot).toStrictEqual(412853857);
   expect(transactionExecution.chargedFeesLamports).toStrictEqual(10000n);
   expect(transactionExecution.consumedComputeUnits).toStrictEqual(150);
-  expect(transactionExecution.logs?.length).toStrictEqual(2);
-  expect(transactionExecution.logs?.[0]).toStrictEqual(
+  expect(transactionExecution.transactionLogs?.length).toStrictEqual(2);
+  expect(transactionExecution.transactionLogs?.[0]).toStrictEqual(
     "Program 11111111111111111111111111111111 invoke [1]",
   );
-  expect(transactionExecution.error).toStrictEqual(null);
+  expect(transactionExecution.transactionError).toStrictEqual(null);
   // Check simulated accounts info
   expect(simulatedAccountsByAddress.size).toStrictEqual(1);
-  const simulatedAccountInfo = expectDefined(
+  const simulatedAccount = expectDefined(
     simulatedAccountsByAddress.get(dummyAddress),
   );
-  expect(simulatedAccountInfo.accountExecutable).toStrictEqual(false);
-  expect(simulatedAccountInfo.accountLamports).toStrictEqual(1183200n);
-  expect(simulatedAccountInfo.programAddress).toStrictEqual(
+  expect(simulatedAccount.accountExecutable).toStrictEqual(false);
+  expect(simulatedAccount.accountLamports).toStrictEqual(1183200n);
+  expect(simulatedAccount.programAddress).toStrictEqual(
     "Dummy1Lt6vKTjNUWvktsufk3aUS9yDspXnzgr4TAe3y",
   );
-  expect(simulatedAccountInfo.accountData).toStrictEqual(new Uint8Array(42));
+  expect(simulatedAccount.accountData).toStrictEqual(new Uint8Array(42));
 });

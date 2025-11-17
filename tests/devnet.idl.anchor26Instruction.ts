@@ -26,15 +26,17 @@ it("run", async () => {
     ),
   );
   // Check we can decode the instruction correctly
-  const instruction = expectDefined(transactionRequest.instructions[1]);
+  const instructionRequest = expectDefined(
+    transactionRequest.instructionsRequests[1],
+  );
   const instructionIdl = expectDefined(
-    idlProgramGuessInstruction(programIdl, instruction),
+    idlProgramGuessInstruction(programIdl, instructionRequest),
   );
   expect(instructionIdl.name).toStrictEqual("update_tranches_amounts_due");
   // Check instruction inputs decoding
   const { instructionAddresses } = idlInstructionAccountsDecode(
     instructionIdl,
-    instruction.inputs,
+    instructionRequest.instructionInputs,
   );
   expect(instructionAddresses["deal"]).toStrictEqual(
     "7uZHNgrXDz2NeUBY7g21CUi3LGmCPPn4rFwpnbujA9n4",
@@ -42,7 +44,7 @@ it("run", async () => {
   // Check instruction data decoding
   const { instructionPayload } = idlInstructionArgsDecode(
     instructionIdl,
-    instruction.data,
+    instructionRequest.instructionData,
   );
   expect(instructionPayload).toStrictEqual(null);
 });

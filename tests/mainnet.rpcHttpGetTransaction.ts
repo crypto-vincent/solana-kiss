@@ -30,7 +30,7 @@ it("run", async () => {
   expect(transactionRequest.recentBlockHash).toStrictEqual(
     "ETzLkjyxUNupAQxQRnTuG2u7wnQCWEgtdTLegeQycCPv",
   );
-  expect(transactionExecution.error).toStrictEqual(null);
+  expect(transactionExecution.transactionError).toStrictEqual(null);
   // Check the invocations tree shape
   const createParams = new Uint8Array(410);
   expect(transactionFlow).toStrictEqual([
@@ -220,8 +220,8 @@ function inv(value: {
     invocation: {
       instructionRequest: value.instructionRequest,
       flow: value.flow ?? [],
-      error: value.result?.error,
-      returned: value.result?.returned
+      instructionError: value.result?.error,
+      instructionReturned: value.result?.returned
         ? new Uint8Array(value.result.returned)
         : undefined,
       consumedComputeUnits: value.result?.consumedComputeUnits,
@@ -236,8 +236,8 @@ function ix(value: {
 }): InstructionRequest {
   return {
     programAddress: pubkeyFromBase58(value.programAddress),
-    inputs: value.inputs ?? [],
-    data: new Uint8Array(value.data ?? []),
+    instructionInputs: value.inputs ?? [],
+    instructionData: new Uint8Array(value.data ?? []),
   };
 }
 

@@ -4,6 +4,7 @@ import {
   signerGenerate,
   transactionCompileAndSign,
   transactionCompileUnsigned,
+  TransactionRequest,
   transactionSign,
   transactionVerify,
 } from "../src";
@@ -14,17 +15,17 @@ it("run", async () => {
   const dummySigner2 = await signerGenerate();
   const dummySigner3 = await signerGenerate();
 
-  const transactionRequest = {
+  const transactionRequest: TransactionRequest = {
     payerAddress: payerSigner.address,
     recentBlockHash: blockHashDefault,
-    instructions: [
+    instructionsRequests: [
       {
         programAddress: pubkeyNewDummy(),
-        inputs: [
+        instructionInputs: [
           { address: dummySigner1.address, signer: true, writable: false },
           { address: dummySigner2.address, signer: true, writable: false },
         ],
-        data: new Uint8Array([42, 43, 44]),
+        instructionData: new Uint8Array([42, 43, 44]),
       },
     ],
   };

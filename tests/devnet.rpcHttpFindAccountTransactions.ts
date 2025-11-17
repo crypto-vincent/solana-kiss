@@ -26,7 +26,7 @@ it("run", async () => {
     "2025-08-21T15:26:48.000Z",
   );
   let found = 0;
-  for (const log of transactionExecution.logs ?? []) {
+  for (const log of transactionExecution.transactionLogs ?? []) {
     if (log.includes("vVeH6Xd43HAScbxjVtvfwDGqBMaMvNDLsAxwM5WK1pG")) {
       found += 1;
     }

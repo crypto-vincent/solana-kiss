@@ -5,7 +5,8 @@ import {
   idlInstructionAccountsEncode,
   idlInstructionArgsEncode,
   idlLoaderFromOnchain,
-  lamportsFeePerSigner,
+  InstructionRequest,
+  lamportsFeePerSignature,
   pubkeyDefault,
   pubkeyFindPdaAddress,
   pubkeyFromBase58,
@@ -54,16 +55,16 @@ it("run", async () => {
     programIdl.instructions.get("pledge_create"),
   );
   // Build the instruction
-  const instructionRequest = {
+  const instructionRequest: InstructionRequest = {
     programAddress,
-    inputs: idlInstructionAccountsEncode(instructionIdl, {
+    instructionInputs: idlInstructionAccountsEncode(instructionIdl, {
       payer: payerSigner.address,
       user: userSigner.address,
       campaign: campaignAddress,
       pledge: pledgeAddress,
       system_program: pubkeyDefault,
     }).instructionInputs,
-    data: idlInstructionArgsEncode(instructionIdl, {
+    instructionData: idlInstructionArgsEncode(instructionIdl, {
       params: null,
     }).instructionData,
   };
@@ -71,7 +72,7 @@ it("run", async () => {
   const transactionPacketNoVerify = transactionCompileUnsigned({
     payerAddress: payerSigner.address,
     recentBlockHash: blockHashDefault,
-    instructions: [instructionRequest],
+    instructionsRequests: [instructionRequest],
   });
   const resultNoVerify = await rpcHttpSimulateTransaction(
     rpcHttp,
@@ -81,10 +82,14 @@ it("run", async () => {
       simulatedAccountsAddresses: new Set([pledgeAddress]),
     },
   );
-  expect(resultNoVerify.transactionExecution.error).toStrictEqual(null);
-  expect(resultNoVerify.transactionExecution.logs?.length).toStrictEqual(6);
+  expect(resultNoVerify.transactionExecution.transactionError).toStrictEqual(
+    null,
+  );
+  expect(
+    resultNoVerify.transactionExecution.transactionLogs?.length,
+  ).toStrictEqual(6);
   expect(resultNoVerify.transactionExecution.chargedFeesLamports).toStrictEqual(
-    lamportsFeePerSigner * 2n,
+    lamportsFeePerSignature * 2n,
   );
   expect(
     resultNoVerify.transactionExecution.consumedComputeUnits,
@@ -104,7 +109,7 @@ it("run", async () => {
     {
       payerAddress: payerSigner.address,
       recentBlockHash,
-      instructions: [instructionRequest],
+      instructionsRequests: [instructionRequest],
     },
   );
   const resultWithVerify = await rpcHttpSimulateTransaction(
@@ -112,11 +117,15 @@ it("run", async () => {
     transactionPacketWithVerify,
     { simulatedAccountsAddresses: new Set([pledgeAddress]) },
   );
-  expect(resultWithVerify.transactionExecution.error).toStrictEqual(null);
-  expect(resultWithVerify.transactionExecution.logs?.length).toStrictEqual(6);
+  expect(resultWithVerify.transactionExecution.transactionError).toStrictEqual(
+    null,
+  );
+  expect(
+    resultWithVerify.transactionExecution.transactionLogs?.length,
+  ).toStrictEqual(6);
   expect(
     resultWithVerify.transactionExecution.chargedFeesLamports,
-  ).toStrictEqual(lamportsFeePerSigner * 2n);
+  ).toStrictEqual(lamportsFeePerSignature * 2n);
   expect(
     resultWithVerify.transactionExecution.consumedComputeUnits,
   ).toBeGreaterThan(0);

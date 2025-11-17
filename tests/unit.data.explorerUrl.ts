@@ -57,7 +57,13 @@ it("run", async () => {
   const transactionPacket = await transactionCompileAndSign([payerSigner], {
     payerAddress: payerSigner.address,
     recentBlockHash: blockHashFromBytes(new Uint8Array(32).fill(1)),
-    instructions: [{ programAddress, inputs: [], data: new Uint8Array([42]) }],
+    instructionsRequests: [
+      {
+        programAddress,
+        instructionInputs: [],
+        instructionData: new Uint8Array([42]),
+      },
+    ],
   });
   expect(
     urlExplorerSimulation(urlRpcPublicDevnet, transactionPacket),

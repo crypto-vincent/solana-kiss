@@ -28,7 +28,7 @@ it("run", async () => {
   expect(transactionRequest1.recentBlockHash).toStrictEqual(
     "EZY4BjNgBeSKEnCV2DycDchJg1kjqiwJ3cb9GFc5Avhy",
   );
-  expect(transactionExecution1.error).toStrictEqual(null);
+  expect(transactionExecution1.transactionError).toStrictEqual(null);
   expect(transactionFlow1?.length).toStrictEqual(1);
   // This should be a failure with error
   const {
@@ -49,13 +49,13 @@ it("run", async () => {
   expect(transactionRequest2.recentBlockHash).toStrictEqual(
     "EEkjZAAnF3qd5VRRt62GXjcoBqQYm2ezt9vNVZgZi6xQ",
   );
-  expect(transactionExecution2.error).toEqual({
+  expect(transactionExecution2.transactionError).toEqual({
     InstructionError: [1, { Custom: 3012 }],
   });
   expect(transactionFlow2?.length).toStrictEqual(2);
-  expect((transactionFlow2 as any)[1].invocation.error).toStrictEqual(
-    "custom program error: 0xbc4",
-  );
+  expect(
+    (transactionFlow2 as any)[1].invocation.instructionError,
+  ).toStrictEqual("custom program error: 0xbc4");
   // This should be a transaction with many instructions (> 50)
   const {
     transactionRequest: transactionRequest3,
@@ -75,6 +75,6 @@ it("run", async () => {
   expect(transactionRequest3.recentBlockHash).toStrictEqual(
     "6gtmFZxPgbkS5b2Wxw9bk5XUGZXqwjRTwn2rLVYJiRJS",
   );
-  expect(transactionExecution3.error).toStrictEqual(null);
+  expect(transactionExecution3.transactionError).toStrictEqual(null);
   expect(transactionFlow3?.length).toStrictEqual(50);
 });

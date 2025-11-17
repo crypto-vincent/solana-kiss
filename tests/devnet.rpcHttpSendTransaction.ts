@@ -3,7 +3,8 @@ import {
   idlInstructionAccountsEncode,
   idlInstructionArgsEncode,
   idlInstructionParse,
-  lamportsFeePerSigner,
+  InstructionRequest,
+  lamportsFeePerSignature,
   lamportsRentExemptionMinimumForSpace,
   Pubkey,
   pubkeyDefault,
@@ -20,6 +21,7 @@ import {
   timeoutMs,
   transactionCompileAndSign,
   TransactionPacket,
+  TransactionRequest,
   transactionSign,
   urlRpcPublicDevnet,
   WalletAccount,
@@ -38,10 +40,10 @@ it("run", async () => {
   const owned2Signer = await signerGenerate();
   const { blockHash: recentBlockHash } =
     await rpcHttpGetLatestBlockHash(rpcHttp);
-  const originalRequest = {
+  const originalRequest: TransactionRequest = {
     payerAddress: payerSigner.address,
     recentBlockHash,
-    instructions: [
+    instructionsRequests: [
       makeCreateInstructionRequest(
         programAddress,
         ownerAddress,
@@ -90,10 +92,10 @@ it("run", async () => {
     });
   expect(transactionRequest).toStrictEqual(originalRequest);
   expect(transactionExecution.chargedFeesLamports).toStrictEqual(
-    lamportsFeePerSigner * 3n,
+    lamportsFeePerSignature * 3n,
   );
-  expect(transactionExecution.logs?.length).toStrictEqual(4);
-  expect(transactionExecution.error).toStrictEqual(null);
+  expect(transactionExecution.transactionLogs?.length).toStrictEqual(4);
+  expect(transactionExecution.transactionError).toStrictEqual(null);
   const owned1 = await rpcHttpGetAccountMetadata(rpcHttp, owned1Signer.address);
   expect(owned1.programAddress).toStrictEqual(ownerAddress);
   expect(owned1.accountExecutable).toStrictEqual(false);
@@ -113,14 +115,14 @@ function makeCreateInstructionRequest(
   requestedSpace: number,
   payerSigner: Signer,
   ownedSigner: Signer,
-) {
+): InstructionRequest {
   return {
     programAddress,
-    inputs: idlInstructionAccountsEncode(instructionIdl, {
+    instructionInputs: idlInstructionAccountsEncode(instructionIdl, {
       payer: payerSigner.address,
       owned: ownedSigner.address,
     }).instructionInputs,
-    data: idlInstructionArgsEncode(instructionIdl, {
+    instructionData: idlInstructionArgsEncode(instructionIdl, {
       lamports: String(transferLamports),
       space: requestedSpace,
       owner: pubkeyToBase58(ownerAddress),

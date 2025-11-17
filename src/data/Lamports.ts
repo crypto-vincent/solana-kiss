@@ -12,4 +12,4 @@ export function lamportsRentExemptionMinimumForSpace(space: number): bigint {
 }
 
 export const lamportsFeePerBytePerYear = 3480n;
-export const lamportsFeePerSigner = 5000n;
+export const lamportsFeePerSignature = 5000n;

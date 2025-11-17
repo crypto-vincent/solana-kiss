@@ -29,7 +29,7 @@ it("run", async () => {
   const globalMarketStateAddress = pubkeyFindPdaAddress(programAddress, [
     utf8Encode("credix-marketplace"),
   ]);
-  await assertAccountInfo(
+  await assertAccountNameAndState(
     solana,
     globalMarketStateAddress,
     "GlobalMarketState",
@@ -40,7 +40,7 @@ it("run", async () => {
   const programStateAddress = pubkeyFindPdaAddress(programAddress, [
     utf8Encode("program-state"),
   ]);
-  await assertAccountInfo(
+  await assertAccountNameAndState(
     solana,
     programStateAddress,
     "ProgramState",
@@ -52,7 +52,7 @@ it("run", async () => {
     pubkeyToBytes(globalMarketStateAddress),
     utf8Encode("admins"),
   ]);
-  await assertAccountInfo(
+  await assertAccountNameAndState(
     solana,
     marketAdminsAddress,
     "MarketAdmins",
@@ -63,7 +63,7 @@ it("run", async () => {
   const { instructionAddresses } = await solana.hydrateInstructionAddresses(
     programAddress,
     "initialize_market",
-    { payload: { globalMarketSeed: "credix-marketplace" } },
+    { instructionPayload: { globalMarketSeed: "credix-marketplace" } },
   );
   expect(instructionAddresses["global_market_state"]).toStrictEqual(
     globalMarketStateAddress,
@@ -76,7 +76,7 @@ it("run", async () => {
   );
 });
 
-async function assertAccountInfo(
+async function assertAccountNameAndState(
   solana: Solana,
   accountAddress: Pubkey,
   accountName: string,
