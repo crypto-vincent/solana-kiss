@@ -57,15 +57,15 @@ type IdlInstructionBlobContent =
   | IdlInstructionBlobAccount;
 
 export class IdlInstructionBlob {
-  private discriminant: IdlInstructionBlobDiscriminant;
-  private content: IdlInstructionBlobContent;
+  readonly #discriminant: IdlInstructionBlobDiscriminant;
+  readonly #content: IdlInstructionBlobContent;
 
   private constructor(
     discriminant: IdlInstructionBlobDiscriminant,
     content: IdlInstructionBlobContent,
   ) {
-    this.discriminant = discriminant;
-    this.content = content;
+    this.#discriminant = discriminant;
+    this.#content = content;
   }
 
   public static const(value: IdlInstructionBlobConst): IdlInstructionBlob {
@@ -88,7 +88,7 @@ export class IdlInstructionBlob {
     p2: P2,
     p3: P3,
   ): T {
-    return visitor[this.discriminant](this.content as any, p1, p2, p3);
+    return visitor[this.#discriminant](this.#content as any, p1, p2, p3);
   }
 }
 

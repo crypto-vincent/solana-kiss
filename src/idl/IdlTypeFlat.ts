@@ -78,15 +78,15 @@ type IdlTypeFlatContent =
   | IdlTypePrimitive;
 
 export class IdlTypeFlat {
-  private discriminant: IdlTypeFlatDiscriminant;
-  private content: IdlTypeFlatContent;
+  readonly #discriminant: IdlTypeFlatDiscriminant;
+  readonly #content: IdlTypeFlatContent;
 
   private constructor(
     discriminant: IdlTypeFlatDiscriminant,
     content: IdlTypeFlatContent,
   ) {
-    this.discriminant = discriminant;
-    this.content = content;
+    this.#discriminant = discriminant;
+    this.#content = content;
   }
 
   public static defined(value: IdlTypeFlatDefined): IdlTypeFlat {
@@ -154,7 +154,7 @@ export class IdlTypeFlat {
     p1: P1,
     p2: P2,
   ): T {
-    return visitor[this.discriminant](this.content as any, p1, p2);
+    return visitor[this.#discriminant](this.#content as any, p1, p2);
   }
 }
 
@@ -175,15 +175,15 @@ type IdlTypeFlatFieldsContent =
   | Array<IdlTypeFlatFieldUnnamed>;
 
 export class IdlTypeFlatFields {
-  private readonly discriminant: IdlTypeFlatFieldsDiscriminant;
-  private readonly content: IdlTypeFlatFieldsContent;
+  readonly #discriminant: IdlTypeFlatFieldsDiscriminant;
+  readonly #content: IdlTypeFlatFieldsContent;
 
   private constructor(
     discriminant: IdlTypeFlatFieldsDiscriminant,
     content: IdlTypeFlatFieldsContent,
   ) {
-    this.discriminant = discriminant;
-    this.content = content;
+    this.#discriminant = discriminant;
+    this.#content = content;
   }
 
   public static nothing(): IdlTypeFlatFields {
@@ -207,18 +207,18 @@ export class IdlTypeFlatFields {
     p1: P1,
     p2: P2,
   ) {
-    switch (this.discriminant) {
+    switch (this.#discriminant) {
       case "nothing":
-        return visitor.nothing(this.content as null, p1, p2);
+        return visitor.nothing(this.#content as null, p1, p2);
       case "named":
         return visitor.named(
-          this.content as Array<IdlTypeFlatFieldNamed>,
+          this.#content as Array<IdlTypeFlatFieldNamed>,
           p1,
           p2,
         );
       case "unnamed":
         return visitor.unnamed(
-          this.content as Array<IdlTypeFlatFieldUnnamed>,
+          this.#content as Array<IdlTypeFlatFieldUnnamed>,
           p1,
           p2,
         );
