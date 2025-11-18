@@ -1,7 +1,7 @@
 import {
   JsonValue,
+  jsonDecoderNullable,
   jsonDecoderObject,
-  jsonDecoderOptional,
 } from "../data/Json";
 import { IdlDocs, idlDocsParse } from "./IdlDocs";
 import { IdlTypedef } from "./IdlTypedef";
@@ -76,5 +76,5 @@ export function idlEventParse(
 
 const jsonDecoder = jsonDecoderObject({
   docs: idlDocsParse,
-  discriminator: jsonDecoderOptional(idlUtilsBytesJsonDecoder),
+  discriminator: jsonDecoderNullable(idlUtilsBytesJsonDecoder),
 });

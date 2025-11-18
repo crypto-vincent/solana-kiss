@@ -2,17 +2,17 @@ import {
   jsonCodecString,
   jsonDecoderArray,
   jsonDecoderByType,
-  jsonDecoderOptional,
+  jsonDecoderNullable,
   JsonValue,
 } from "../data/Json";
 
 export type IdlDocs = Array<string> | undefined;
 
 export function idlDocsParse(docsValue: JsonValue | undefined): IdlDocs {
-  return jsonDecoder(docsValue);
+  return jsonDecoder(docsValue) ?? undefined;
 }
 
-const jsonDecoder = jsonDecoderOptional(
+const jsonDecoder = jsonDecoderNullable(
   jsonDecoderByType({
     string: (string: string) => [string],
     array: jsonDecoderArray(jsonCodecString.decoder),

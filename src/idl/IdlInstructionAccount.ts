@@ -7,8 +7,8 @@ import {
   jsonCodecString,
   jsonCodecValue,
   jsonDecoderArray,
+  jsonDecoderNullable,
   jsonDecoderObject,
-  jsonDecoderOptional,
   JsonValue,
 } from "../data/Json";
 import { Pubkey, pubkeyFindPdaAddress, pubkeyFromBytes } from "../data/Pubkey";
@@ -90,17 +90,17 @@ export function idlInstructionAccountParse(
   typedefsIdls?: Map<string, IdlTypedef>,
 ): Array<IdlInstructionAccount> {
   const decoded = jsonDecoder(instructionAccountValue);
-  if (decoded.accounts !== undefined) {
+  if (decoded.accounts !== null) {
     // TODO - docs field is lost in this case ?
     if (
-      decoded.signer !== undefined ||
-      decoded.isSigner !== undefined ||
-      decoded.writable !== undefined ||
-      decoded.isMut !== undefined ||
-      decoded.optional !== undefined ||
-      decoded.isOptional !== undefined ||
-      decoded.address !== undefined ||
-      decoded.pda !== undefined
+      decoded.signer !== null ||
+      decoded.isSigner !== null ||
+      decoded.writable !== null ||
+      decoded.isMut !== null ||
+      decoded.optional !== null ||
+      decoded.isOptional !== null ||
+      decoded.address !== null ||
+      decoded.pda !== null
     ) {
       throw new Error(
         `Idl: Instruction Account: Cannot mix nested accounts with other properties: ${decoded.name}`,
@@ -122,7 +122,7 @@ export function idlInstructionAccountParse(
   const pda = withErrorContext(
     `Idl: Instruction Account: Pda: ${decoded.name}`,
     () => {
-      if (decoded.pda === undefined) {
+      if (decoded.pda === null) {
         return undefined;
       }
       const seeds = decoded.pda.seeds.map((seedValue) =>
@@ -133,7 +133,7 @@ export function idlInstructionAccountParse(
         ),
       );
       let program: IdlInstructionBlob | undefined = undefined;
-      if (decoded.pda.program !== undefined) {
+      if (decoded.pda.program !== null) {
         program = idlInstructionBlobParse(
           decoded.pda.program,
           instructionArgsTypeFullFields,
@@ -152,7 +152,7 @@ export function idlInstructionAccountParse(
       writable: decoded.writable ?? decoded.isMut ?? false,
       signer: decoded.signer ?? decoded.isSigner ?? false,
       optional: decoded.optional ?? decoded.isOptional ?? false,
-      address: decoded.address,
+      address: decoded.address ?? undefined,
       pda,
     },
   ];
@@ -161,18 +161,18 @@ export function idlInstructionAccountParse(
 const jsonDecoder = jsonDecoderObject({
   name: jsonCodecString.decoder,
   docs: idlDocsParse,
-  accounts: jsonDecoderOptional(jsonCodecArrayValues.decoder),
-  signer: jsonDecoderOptional(jsonCodecBoolean.decoder),
-  writable: jsonDecoderOptional(jsonCodecBoolean.decoder),
-  isSigner: jsonDecoderOptional(jsonCodecBoolean.decoder),
-  isMut: jsonDecoderOptional(jsonCodecBoolean.decoder),
-  optional: jsonDecoderOptional(jsonCodecBoolean.decoder),
-  isOptional: jsonDecoderOptional(jsonCodecBoolean.decoder),
-  address: jsonDecoderOptional(jsonCodecPubkey.decoder),
-  pda: jsonDecoderOptional(
+  accounts: jsonDecoderNullable(jsonCodecArrayValues.decoder),
+  signer: jsonDecoderNullable(jsonCodecBoolean.decoder),
+  writable: jsonDecoderNullable(jsonCodecBoolean.decoder),
+  isSigner: jsonDecoderNullable(jsonCodecBoolean.decoder),
+  isMut: jsonDecoderNullable(jsonCodecBoolean.decoder),
+  optional: jsonDecoderNullable(jsonCodecBoolean.decoder),
+  isOptional: jsonDecoderNullable(jsonCodecBoolean.decoder),
+  address: jsonDecoderNullable(jsonCodecPubkey.decoder),
+  pda: jsonDecoderNullable(
     jsonDecoderObject({
       seeds: jsonDecoderArray(jsonCodecValue.decoder),
-      program: jsonDecoderOptional(jsonCodecValue.decoder),
+      program: jsonDecoderNullable(jsonCodecValue.decoder),
     }),
   ),
 });

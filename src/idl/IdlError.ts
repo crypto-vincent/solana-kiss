@@ -3,8 +3,8 @@ import {
   jsonCodecNumber,
   jsonCodecString,
   jsonDecoderByType,
+  jsonDecoderNullable,
   jsonDecoderObject,
-  jsonDecoderOptional,
 } from "../data/Json";
 import { IdlDocs, idlDocsParse } from "./IdlDocs";
 
@@ -24,7 +24,7 @@ export function idlErrorParse(
     name: errorName,
     docs: decoded.docs,
     code: decoded.code,
-    msg: decoded.msg,
+    msg: decoded.msg ?? undefined,
   };
 }
 
@@ -32,11 +32,11 @@ export const jsonDecoder = jsonDecoderByType({
   number: (number: number) => ({
     docs: undefined,
     code: number,
-    msg: undefined,
+    msg: null,
   }),
   object: jsonDecoderObject({
     docs: idlDocsParse,
     code: jsonCodecNumber.decoder,
-    msg: jsonDecoderOptional(jsonCodecString.decoder),
+    msg: jsonDecoderNullable(jsonCodecString.decoder),
   }),
 });

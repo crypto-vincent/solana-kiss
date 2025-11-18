@@ -6,8 +6,8 @@ import {
   jsonCodecString,
   jsonDecoderArrayToObject,
   jsonDecoderConst,
+  jsonDecoderNullable,
   jsonDecoderObject,
-  jsonDecoderOptional,
 } from "../data/Json";
 import { Pubkey, pubkeyDefault, pubkeyToBase58 } from "../data/Pubkey";
 import { RpcHttp } from "./RpcHttp";
@@ -26,7 +26,7 @@ export async function rpcHttpGetAccountWithData(
       encoding: "base64",
     }),
   );
-  if (result.value === undefined) {
+  if (result.value === null) {
     return {
       programAddress: pubkeyDefault,
       accountExecutable: false,
@@ -53,7 +53,7 @@ export async function rpcHttpGetAccountWithData(
 }
 
 const resultJsonDecoder = jsonDecoderObject({
-  value: jsonDecoderOptional(
+  value: jsonDecoderNullable(
     jsonDecoderObject({
       executable: jsonCodecBoolean.decoder,
       lamports: jsonCodecNumber.decoder,

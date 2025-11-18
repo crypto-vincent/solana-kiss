@@ -2,10 +2,10 @@ import {
   JsonValue,
   jsonCodecPubkey,
   jsonCodecString,
-  jsonDecoderForked,
+  jsonDecoderMultiplexed,
+  jsonDecoderNullable,
   jsonDecoderObject,
   jsonDecoderObjectKey,
-  jsonDecoderOptional,
 } from "../data/Json";
 import { Pubkey } from "../data/Pubkey";
 import { IdlDocs, idlDocsParse } from "./IdlDocs";
@@ -23,35 +23,37 @@ export type IdlMetadata = {
 };
 
 export function idlMetadataParse(value: JsonValue): IdlMetadata {
-  const [keyed, root] = outerJsonDecoder(value);
+  const { keyed, root } = outerJsonDecoder(value);
   return {
-    name: keyed?.name ?? root?.name,
-    description: keyed?.description ?? root?.description,
-    repository: keyed?.repository ?? root?.repository,
-    contact: keyed?.contact ?? root?.contact,
-    address: keyed?.address ?? root?.address,
-    version: keyed?.version ?? root?.version,
-    source: keyed?.source ?? root?.source,
-    spec: keyed?.spec ?? root?.spec,
-    docs: keyed?.docs ?? root?.docs,
+    name: keyed?.name ?? root?.name ?? undefined,
+    description: keyed?.description ?? root?.description ?? undefined,
+    repository: keyed?.repository ?? root?.repository ?? undefined,
+    contact: keyed?.contact ?? root?.contact ?? undefined,
+    address: keyed?.address ?? root?.address ?? undefined,
+    version: keyed?.version ?? root?.version ?? undefined,
+    source: keyed?.source ?? root?.source ?? undefined,
+    spec: keyed?.spec ?? root?.spec ?? undefined,
+    docs: keyed?.docs ?? root?.docs ?? undefined,
   };
 }
 
-const innerJsonDecoder = jsonDecoderOptional(
+const innerJsonDecoder = jsonDecoderNullable(
   jsonDecoderObject({
-    name: jsonDecoderOptional(jsonCodecString.decoder),
-    description: jsonDecoderOptional(jsonCodecString.decoder),
-    repository: jsonDecoderOptional(jsonCodecString.decoder),
-    contact: jsonDecoderOptional(jsonCodecString.decoder),
-    address: jsonDecoderOptional(jsonCodecPubkey.decoder),
-    version: jsonDecoderOptional(jsonCodecString.decoder),
-    source: jsonDecoderOptional(jsonCodecString.decoder),
-    spec: jsonDecoderOptional(jsonCodecString.decoder),
+    name: jsonDecoderNullable(jsonCodecString.decoder),
+    description: jsonDecoderNullable(jsonCodecString.decoder),
+    repository: jsonDecoderNullable(jsonCodecString.decoder),
+    contact: jsonDecoderNullable(jsonCodecString.decoder),
+    address: jsonDecoderNullable(jsonCodecPubkey.decoder),
+    version: jsonDecoderNullable(jsonCodecString.decoder),
+    source: jsonDecoderNullable(jsonCodecString.decoder),
+    spec: jsonDecoderNullable(jsonCodecString.decoder),
     docs: idlDocsParse,
   }),
 );
 
-const outerJsonDecoder = jsonDecoderForked(
-  jsonDecoderOptional(jsonDecoderObjectKey("metadata", innerJsonDecoder)),
-  innerJsonDecoder,
-);
+const outerJsonDecoder = jsonDecoderMultiplexed({
+  keyed: jsonDecoderNullable(
+    jsonDecoderObjectKey("metadata", innerJsonDecoder),
+  ),
+  root: innerJsonDecoder,
+});

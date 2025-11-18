@@ -2,8 +2,8 @@ import {
   JsonValue,
   jsonCodecNumber,
   jsonDecoderArray,
+  jsonDecoderNullable,
   jsonDecoderObject,
-  jsonDecoderOptional,
 } from "../data/Json";
 import { IdlDocs, idlDocsParse } from "./IdlDocs";
 import { IdlTypedef } from "./IdlTypedef";
@@ -78,10 +78,10 @@ export function idlAccountParse(
   const discriminator =
     decoded.discriminator ??
     idlUtilsAnchorDiscriminator(`account:${accountName}`);
-  const dataSpace = decoded.space;
+  const dataSpace = decoded.space ?? undefined;
   const dataBlobs = new Array<{ offset: number; bytes: Uint8Array }>();
   dataBlobs.push({ offset: 0, bytes: discriminator });
-  if (decoded.blobs !== undefined) {
+  if (decoded.blobs !== null) {
     for (const blob of decoded.blobs) {
       if (blob.offset < 0) {
         throw new Error(
@@ -108,8 +108,8 @@ export function idlAccountParse(
 
 const jsonDecoder = jsonDecoderObject({
   docs: idlDocsParse,
-  space: jsonDecoderOptional(jsonCodecNumber.decoder),
-  blobs: jsonDecoderOptional(
+  space: jsonDecoderNullable(jsonCodecNumber.decoder),
+  blobs: jsonDecoderNullable(
     jsonDecoderArray(
       jsonDecoderObject({
         offset: jsonCodecNumber.decoder,
@@ -117,5 +117,5 @@ const jsonDecoder = jsonDecoderObject({
       }),
     ),
   ),
-  discriminator: jsonDecoderOptional(idlUtilsBytesJsonDecoder),
+  discriminator: jsonDecoderNullable(idlUtilsBytesJsonDecoder),
 });

@@ -5,8 +5,8 @@ import {
   jsonCodecNumber,
   jsonCodecString,
   jsonCodecValue,
+  jsonDecoderNullable,
   jsonDecoderObject,
-  jsonDecoderOptional,
 } from "../data/Json";
 
 // TODO - RPC WS ?
@@ -19,13 +19,8 @@ export type RpcHttp = (
 export class RpcHttpError extends Error {
   public readonly code: number;
   public readonly desc: string;
-  public readonly data: JsonValue | undefined;
-  constructor(
-    message: string,
-    code: number,
-    desc: string,
-    data: JsonValue | undefined,
-  ) {
+  public readonly data: JsonValue;
+  constructor(message: string, code: number, desc: string, data: JsonValue) {
     super(message);
     this.code = code;
     this.desc = desc;
@@ -77,7 +72,7 @@ export function rpcHttpFromUrl(
     });
     const responseValue = responseJsonDecoder(responseJson);
     const responseError = responseValue.error;
-    if (responseError !== undefined) {
+    if (responseError !== null) {
       throw new RpcHttpError(
         `RpcHttp: Error ${responseError.code}: ${responseError.message}`,
         responseError.code,
@@ -95,7 +90,7 @@ export function rpcHttpFromUrl(
         `RpcHttp: Expected response id: ${requestId} (found: ${responseValue.id})`,
       );
     }
-    if (responseValue.result === undefined) {
+    if (responseValue.result === null) {
       throw new Error(`RpcHttp: Missing response result`);
     }
     return responseValue.result;
@@ -180,12 +175,12 @@ let uniqueRequestId = 1;
 const responseJsonDecoder = jsonDecoderObject({
   jsonrpc: jsonCodecString.decoder,
   id: jsonCodecNumber.decoder,
-  error: jsonDecoderOptional(
+  error: jsonDecoderNullable(
     jsonDecoderObject({
       code: jsonCodecNumber.decoder,
       message: jsonCodecString.decoder,
-      data: jsonDecoderOptional(jsonCodecValue.decoder),
+      data: jsonDecoderNullable(jsonCodecValue.decoder),
     }),
   ),
-  result: jsonDecoderOptional(jsonCodecValue.decoder),
+  result: jsonDecoderNullable(jsonCodecValue.decoder),
 });

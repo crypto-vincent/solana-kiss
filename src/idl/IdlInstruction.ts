@@ -3,8 +3,8 @@ import { ErrorStack, withErrorContext } from "../data/Error";
 import { InstructionInput } from "../data/Instruction";
 import {
   jsonCodecArrayValues,
+  jsonDecoderNullable,
   jsonDecoderObject,
-  jsonDecoderOptional,
   JsonValue,
 } from "../data/Json";
 import { Pubkey } from "../data/Pubkey";
@@ -284,7 +284,7 @@ export function idlInstructionParse(
     typedefsIdls,
   );
   const accounts = new Array<IdlInstructionAccount>();
-  if (decoded.accounts !== undefined) {
+  if (decoded.accounts !== null) {
     for (const instructionAccount of decoded.accounts) {
       accounts.push(
         ...idlInstructionAccountParse(
@@ -316,8 +316,8 @@ export function idlInstructionParse(
 
 const jsonDecoder = jsonDecoderObject({
   docs: idlDocsParse,
-  discriminator: jsonDecoderOptional(idlUtilsBytesJsonDecoder),
-  args: jsonDecoderOptional(idlTypeFlatFieldsParse),
-  returns: jsonDecoderOptional(idlTypeFlatParse),
-  accounts: jsonDecoderOptional(jsonCodecArrayValues.decoder),
+  discriminator: jsonDecoderNullable(idlUtilsBytesJsonDecoder),
+  args: jsonDecoderNullable(idlTypeFlatFieldsParse),
+  returns: jsonDecoderNullable(idlTypeFlatParse),
+  accounts: jsonDecoderNullable(jsonCodecArrayValues.decoder),
 });

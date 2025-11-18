@@ -3,7 +3,6 @@ import {
   jsonCodecNumber,
   JsonEncoder,
   jsonEncoderNullable,
-  jsonEncoderOptional,
   JsonValue,
 } from "../src";
 
@@ -27,21 +26,6 @@ it("run", async () => {
     {
       decoded: null,
       encoder: jsonEncoderNullable(jsonCodecNumber.encoder),
-      encoded: null,
-    },
-    {
-      decoded: undefined,
-      encoder: jsonEncoderNullable(jsonCodecNumber.encoder),
-      encoded: "NaN",
-    },
-    {
-      decoded: null,
-      encoder: jsonEncoderOptional(jsonCodecNumber.encoder),
-      encoded: null,
-    },
-    {
-      decoded: undefined,
-      encoder: jsonEncoderOptional(jsonCodecNumber.encoder),
       encoded: null,
     },
   ];

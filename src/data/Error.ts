@@ -35,17 +35,18 @@ function errorStackLines(
 ) {
   const innerLines = String(innerError).split("\n");
   for (let index = 0; index < innerLines.length; index++) {
+    const innerLine = innerLines[index]!;
     if (index === 0) {
-      if (isLastInner) {
-        messageLines.push(`└── ${innerLines[index]!}`);
+      if (!isLastInner) {
+        messageLines.push(`├── ${innerLine}`);
       } else {
-        messageLines.push(`├── ${innerLines[index]!}`);
+        messageLines.push(`└── ${innerLine}`);
       }
     } else {
-      if (isLastInner) {
-        messageLines.push(`    ${innerLines[index]!}`);
+      if (!isLastInner) {
+        messageLines.push(`│   ${innerLine}`);
       } else {
-        messageLines.push(`│   ${innerLines[index]!}`);
+        messageLines.push(`    ${innerLine}`);
       }
     }
   }

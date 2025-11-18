@@ -3,9 +3,9 @@ import {
   jsonCodecString,
   jsonDecoderArray,
   jsonDecoderByType,
+  jsonDecoderNullable,
   jsonDecoderObject,
   jsonDecoderObjectKey,
-  jsonDecoderOptional,
 } from "../data/Json";
 import { IdlDocs, idlDocsParse } from "./IdlDocs";
 import { IdlTypeFlat } from "./IdlTypeFlat";
@@ -28,8 +28,8 @@ export function idlTypedefParse(
   return {
     name: typedefName,
     docs: decoded.docs,
-    repr: decoded.repr,
-    serialization: decoded.serialization,
+    repr: decoded.repr ?? undefined,
+    serialization: decoded.serialization ?? undefined,
     generics: decoded.generics ?? [],
     typeFlat: idlTypeFlatParse(typedefValue),
   };
@@ -63,9 +63,9 @@ export const idlTypedefGlobalsByName: ReadonlyMap<string, IdlTypedef> = (() => {
 
 const jsonDecoder = jsonDecoderObject({
   docs: idlDocsParse,
-  repr: jsonDecoderOptional(stringOrObjectKeyJsonDecoder("kind")),
-  serialization: jsonDecoderOptional(jsonCodecString.decoder),
-  generics: jsonDecoderOptional(
+  repr: jsonDecoderNullable(stringOrObjectKeyJsonDecoder("kind")),
+  serialization: jsonDecoderNullable(jsonCodecString.decoder),
+  generics: jsonDecoderNullable(
     jsonDecoderArray(stringOrObjectKeyJsonDecoder("name")),
   ),
 });

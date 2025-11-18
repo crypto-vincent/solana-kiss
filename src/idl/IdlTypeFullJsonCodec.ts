@@ -65,7 +65,7 @@ const visitor = {
     return codec(context, self.content);
   },
   option: (self: IdlTypeFullOption, context: CodecContext) => {
-    return stringFunctionCall(context, "jsonCodecOptional", [
+    return stringFunctionCall(context, "jsonCodecNullable", [
       codec(context, self.content),
     ]);
   },

@@ -9,8 +9,8 @@ import {
   jsonCodecString,
   jsonCodecValue,
   jsonDecoderByType,
+  jsonDecoderNullable,
   jsonDecoderObject,
-  jsonDecoderOptional,
   jsonGetAt,
   jsonPointerParse,
 } from "../data/Json";
@@ -105,14 +105,14 @@ export function idlInstructionBlobParse(
   typedefsIdls?: Map<string, IdlTypedef>,
 ): IdlInstructionBlob {
   const decoded = jsonDecoder(instructionBlobValue);
-  if (decoded.value !== undefined) {
+  if (decoded.value !== null) {
     return idlInstructionBlobParseConst(
       decoded.value,
       decoded.type,
       typedefsIdls,
     );
   }
-  if (decoded.path === undefined) {
+  if (decoded.path === null) {
     throw new Error(`Idl: Expected path/value for instruction blob`);
   }
   if (decoded.kind === "arg") {
@@ -123,7 +123,7 @@ export function idlInstructionBlobParse(
       typedefsIdls,
     );
   }
-  if (decoded.kind === undefined || decoded.kind === "account") {
+  if (decoded.kind === null || decoded.kind === "account") {
     return idlInstructionBlobParseAccount(
       decoded.path,
       decoded.type,
@@ -135,7 +135,7 @@ export function idlInstructionBlobParse(
 
 export function idlInstructionBlobParseConst(
   instructionBlobValue: JsonValue,
-  instructionBlobType: IdlTypeFlat | undefined,
+  instructionBlobType: IdlTypeFlat | null,
   typedefsIdls?: Map<string, IdlTypedef>,
 ): IdlInstructionBlob {
   const typeFull = idlTypeFlatHydrate(
@@ -149,7 +149,7 @@ export function idlInstructionBlobParseConst(
 
 export function idlInstructionBlobParseArg(
   instructionBlobPath: string,
-  instructionBlobType: IdlTypeFlat | undefined,
+  instructionBlobType: IdlTypeFlat | null,
   instructionArgsTypeFullFields: IdlTypeFullFields,
   typedefsIdls?: Map<string, IdlTypedef>,
 ): IdlInstructionBlob {
@@ -162,42 +162,42 @@ export function idlInstructionBlobParseArg(
 
 export function idlInstructionBlobParseAccount(
   instructionBlobPath: string,
-  instructionBlobType: IdlTypeFlat | undefined,
+  instructionBlobType: IdlTypeFlat | null,
   typedefsIdls?: Map<string, IdlTypedef>,
 ): IdlInstructionBlob {
   const pathCamel = casingLosslessConvertToCamel(instructionBlobPath);
   const pathSnake = casingLosslessConvertToSnake(instructionBlobPath);
   const paths = [instructionBlobPath, pathCamel, pathSnake];
   let typeFull = undefined;
-  if (instructionBlobType !== undefined) {
+  if (instructionBlobType !== null) {
     typeFull = idlTypeFlatHydrate(instructionBlobType, new Map(), typedefsIdls);
   }
   return IdlInstructionBlob.account({ paths, typeFull });
 }
 
 const jsonDecoder = jsonDecoderByType<{
-  value: JsonValue | undefined;
-  type: IdlTypeFlat | undefined;
-  kind: string | undefined;
-  path: string | undefined;
+  value: JsonValue | null;
+  type: IdlTypeFlat | null;
+  kind: string | null;
+  path: string | null;
 }>({
   object: jsonDecoderObject({
-    value: jsonDecoderOptional(jsonCodecValue.decoder),
-    type: jsonDecoderOptional(idlTypeFlatParse),
-    kind: jsonDecoderOptional(jsonCodecString.decoder),
-    path: jsonDecoderOptional(jsonCodecString.decoder),
+    value: jsonDecoderNullable(jsonCodecValue.decoder),
+    type: jsonDecoderNullable(idlTypeFlatParse),
+    kind: jsonDecoderNullable(jsonCodecString.decoder),
+    path: jsonDecoderNullable(jsonCodecString.decoder),
   }),
   string: (string: string) => ({
     value: string,
-    type: undefined,
-    kind: undefined,
-    path: undefined,
+    type: null,
+    kind: null,
+    path: null,
   }),
   array: (array: JsonArray) => ({
     value: array,
-    type: undefined,
-    kind: undefined,
-    path: undefined,
+    type: null,
+    kind: null,
+    path: null,
   }),
 });
 

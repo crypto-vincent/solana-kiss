@@ -3,10 +3,11 @@ import {
   casingLosslessConvertToSnake,
 } from "./Casing";
 
-export type NotNull<T> = T extends null ? never : T;
-export type NotUndefined<T> = T extends undefined ? never : T;
-
 export type Result<Value, Error = any> = { value?: Value; error?: Error };
+
+export type OneKeyOf<T extends Record<string, any>> = {
+  [K in keyof T]: { [P in K]: T[P] } & { [Q in Exclude<keyof T, K>]?: never };
+}[keyof T];
 
 export type Branded<T, Name> =
   | (T & { readonly __brand: Name })

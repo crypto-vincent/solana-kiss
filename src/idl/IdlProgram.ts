@@ -9,7 +9,7 @@ import {
   jsonCodecValue,
   jsonDecoderArray,
   jsonDecoderByType,
-  jsonDecoderForked,
+  jsonDecoderMultiplexed,
   jsonDecoderObjectKey,
   jsonDecoderObjectToMap,
   jsonDecoderWrapped,
@@ -195,13 +195,15 @@ const collectionJsonDecoder = jsonDecoderByType({
   }),
   array: jsonDecoderWrapped(
     jsonDecoderArray(
-      jsonDecoderForked(
-        jsonDecoderObjectKey("name", jsonCodecString.decoder),
-        jsonCodecValue.decoder,
-      ),
+      jsonDecoderMultiplexed({
+        key: jsonDecoderObjectKey("name", jsonCodecString.decoder),
+        value: jsonCodecValue.decoder,
+      }),
     ),
     (entries) => {
-      return new Map<string, JsonValue>(entries);
+      return new Map<string, JsonValue>(
+        entries.map(({ key, value }) => [key, value]),
+      );
     },
   ),
 });

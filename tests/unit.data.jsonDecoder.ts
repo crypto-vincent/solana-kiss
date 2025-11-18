@@ -9,13 +9,12 @@ import {
   jsonDecoderArrayToTuple,
   jsonDecoderByType,
   jsonDecoderConst,
-  jsonDecoderForked,
+  jsonDecoderMultiplexed,
   jsonDecoderNullable,
   jsonDecoderObject,
   jsonDecoderObjectKey,
   jsonDecoderObjectToEnum,
   jsonDecoderObjectToMap,
-  jsonDecoderOptional,
   JsonValue,
 } from "../src";
 
@@ -63,11 +62,11 @@ it("run", async () => {
     },
     {
       encoded: 42,
-      decoder: jsonDecoderForked(
-        jsonCodecNumber.decoder,
-        jsonCodecInteger.decoder,
-      ),
-      decoded: [42, 42n],
+      decoder: jsonDecoderMultiplexed({
+        number: jsonCodecNumber.decoder,
+        bigint: jsonCodecInteger.decoder,
+      }),
+      decoded: { number: 42, bigint: 42n },
     },
     {
       encoded: { a: null, b: 42, c: "hello" },
@@ -89,33 +88,33 @@ it("run", async () => {
       encoded: { constructor: 14, toString: undefined },
       decoder: jsonDecoderObjectToMap({
         keyDecoder: (key) => key,
-        valueDecoder: jsonDecoderOptional(jsonCodecNumber.decoder),
+        valueDecoder: jsonDecoderNullable(jsonCodecNumber.decoder),
       }),
       decoded: new Map<string, number | undefined>([["constructor", 14]]),
     },
     {
       encoded: { constructor: 12 },
       decoder: jsonDecoderObject({
-        constructor: jsonDecoderOptional(jsonCodecNumber.decoder),
-        toString: jsonDecoderOptional(jsonCodecNumber.decoder),
+        constructor: jsonDecoderNullable(jsonCodecNumber.decoder),
+        toString: jsonDecoderNullable(jsonCodecNumber.decoder),
       }),
-      decoded: { constructor: 12 },
+      decoded: { constructor: 12, toString: null },
     },
     {
-      encoded: { constructor: 12, toString: undefined },
+      encoded: { constructor: 77, toString: undefined },
       decoder: jsonDecoderObject({
-        constructor: jsonDecoderOptional(jsonCodecNumber.decoder),
-        toString: jsonDecoderOptional(jsonCodecNumber.decoder),
+        constructor: jsonDecoderNullable(jsonCodecNumber.decoder),
+        toString: jsonDecoderNullable(jsonCodecNumber.decoder),
       }),
-      decoded: { constructor: 12 },
+      decoded: { constructor: 77, toString: null },
     },
     {
       encoded: {},
       decoder: jsonDecoderObjectKey(
         "toString",
-        jsonDecoderOptional(jsonCodecString.decoder),
+        jsonDecoderNullable(jsonCodecString.decoder),
       ),
-      decoded: undefined,
+      decoded: null,
     },
     {
       encoded: { lowerBase16: "f2f2", upperBase16: "F2F2" },
@@ -131,8 +130,8 @@ it("run", async () => {
     {
       encoded: { snake_case: 142, camelCase: 143 },
       decoder: jsonDecoderObject({
-        snakeCase: jsonDecoderOptional(jsonCodecNumber.decoder),
-        camelCase: jsonDecoderOptional(jsonCodecNumber.decoder),
+        snakeCase: jsonDecoderNullable(jsonCodecNumber.decoder),
+        camelCase: jsonDecoderNullable(jsonCodecNumber.decoder),
       }),
       decoded: { snakeCase: 142, camelCase: 143 },
     },
@@ -148,17 +147,17 @@ it("run", async () => {
       encoded: [13],
       decoder: jsonDecoderArrayToObject({
         constructor: jsonCodecNumber.decoder,
-        toString: jsonDecoderOptional(jsonCodecNumber.decoder),
+        toString: jsonDecoderNullable(jsonCodecNumber.decoder),
       }),
-      decoded: { constructor: 13 },
+      decoded: { constructor: 13, toString: null },
     },
     {
-      encoded: [13],
+      encoded: [999],
       decoder: jsonDecoderArrayToTuple(
         jsonCodecNumber.decoder,
-        jsonDecoderOptional(jsonCodecNumber.decoder),
+        jsonDecoderNullable(jsonCodecNumber.decoder),
       ),
-      decoded: [13, undefined],
+      decoded: [999, null],
     },
   ];
   for (const test of tests) {

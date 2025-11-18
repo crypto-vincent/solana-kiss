@@ -20,7 +20,6 @@ import {
   jsonCodecObjectKey,
   jsonCodecObjectToEnum,
   jsonCodecObjectToMap,
-  jsonCodecOptional,
   jsonCodecPubkey,
   jsonCodecSignature,
   jsonCodecString,
@@ -151,37 +150,37 @@ it("run", async () => {
     {
       encoded: { toString: 12, constructor: null },
       codec: jsonCodecObject({
-        constructor: jsonCodecOptional(jsonCodecNumber),
-        toString: jsonCodecOptional(jsonCodecNumber),
+        constructor: jsonCodecNullable(jsonCodecNumber),
+        toString: jsonCodecNullable(jsonCodecNumber),
       }),
-      decoded: { toString: 12 },
+      decoded: { toString: 12, constructor: null },
     },
     {
       encoded: [13, null],
       codec: jsonCodecArrayToObject({
-        constructor: jsonCodecOptional(jsonCodecNumber),
-        toString: jsonCodecOptional(jsonCodecNumber),
+        constructor: jsonCodecNullable(jsonCodecNumber),
+        toString: jsonCodecNullable(jsonCodecNumber),
       }),
-      decoded: { constructor: 13 },
+      decoded: { constructor: 13, toString: null },
     },
     {
       encoded: { constructor: 14, toString: null },
-      codec: jsonCodecObjectToMap<string, number | undefined>({
+      codec: jsonCodecObjectToMap<string, number | null>({
         keyCodec: {
           encoder: (key) => key,
           decoder: (key) => key,
         },
-        valueCodec: jsonCodecOptional(jsonCodecNumber),
+        valueCodec: jsonCodecNullable(jsonCodecNumber),
       }),
-      decoded: new Map<string, number | undefined>([
+      decoded: new Map<string, number | null>([
         ["constructor", 14],
-        ["toString", undefined],
+        ["toString", null],
       ]),
     },
     {
       encoded: { toString: null },
-      codec: jsonCodecObjectKey("toString", jsonCodecOptional(jsonCodecString)),
-      decoded: undefined,
+      codec: jsonCodecObjectKey("toString", jsonCodecNullable(jsonCodecString)),
+      decoded: null,
     },
     {
       encoded: [1, "hello", { nested: "world" }],

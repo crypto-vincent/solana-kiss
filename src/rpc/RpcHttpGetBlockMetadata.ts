@@ -3,8 +3,8 @@ import {
   jsonCodecBlockHash,
   jsonCodecBlockSlot,
   jsonCodecNumber,
+  jsonDecoderNullable,
   jsonDecoderObject,
-  jsonDecoderOptional,
 } from "../data/Json";
 import { RpcHttp } from "./RpcHttp";
 
@@ -27,7 +27,7 @@ export async function rpcHttpGetBlockMetadata(
   );
   return {
     previousBlockSlot: result.parentSlot,
-    blockHeight: result.blockHeight,
+    blockHeight: result.blockHeight ?? undefined,
     blockTime: result.blockTime ? new Date(result.blockTime * 1000) : undefined,
     blockHash: result.blockhash,
   };
@@ -35,7 +35,7 @@ export async function rpcHttpGetBlockMetadata(
 
 const resultJsonDecoder = jsonDecoderObject({
   parentSlot: jsonCodecBlockSlot.decoder,
-  blockHeight: jsonDecoderOptional(jsonCodecNumber.decoder),
-  blockTime: jsonDecoderOptional(jsonCodecNumber.decoder),
+  blockHeight: jsonDecoderNullable(jsonCodecNumber.decoder),
+  blockTime: jsonDecoderNullable(jsonCodecNumber.decoder),
   blockhash: jsonCodecBlockHash.decoder,
 });

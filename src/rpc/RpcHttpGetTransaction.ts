@@ -10,8 +10,8 @@ import {
   jsonCodecString,
   jsonDecoderArray,
   jsonDecoderByType,
+  jsonDecoderNullable,
   jsonDecoderObject,
-  jsonDecoderOptional,
   JsonObject,
 } from "../data/Json";
 import { Pubkey, pubkeyFromBase58 } from "../data/Pubkey";
@@ -42,7 +42,7 @@ export async function rpcHttpGetTransaction(
       maxSupportedTransactionVersion: 0,
     }),
   );
-  if (result === undefined) {
+  if (result === null) {
     return undefined;
   }
   const meta = result.meta;
@@ -73,15 +73,15 @@ export async function rpcHttpGetTransaction(
   const transactionExecution: TransactionExecution = {
     blockTime: result.blockTime ? new Date(result.blockTime * 1000) : undefined,
     blockSlot: result.slot,
-    transactionLogs: meta.logMessages,
+    transactionLogs: meta.logMessages ?? undefined,
     transactionError: meta.err, // TODO - parse error to find custom program errors ?
     consumedComputeUnits: meta.computeUnitsConsumed,
     chargedFeesLamports: meta.fee ? BigInt(meta.fee) : undefined,
   };
   if (
     options?.skipTransactionFlow ||
-    meta.innerInstructions === undefined ||
-    meta.logMessages === undefined
+    meta.innerInstructions === null ||
+    meta.logMessages === null
   ) {
     return {
       transactionRequest,
@@ -395,9 +395,9 @@ const compiledInstructionsJsonDecoder = jsonDecoderArray(
   ),
 );
 
-const resultJsonDecoder = jsonDecoderOptional(
+const resultJsonDecoder = jsonDecoderNullable(
   jsonDecoderObject({
-    blockTime: jsonDecoderOptional(jsonCodecNumber.decoder),
+    blockTime: jsonDecoderNullable(jsonCodecNumber.decoder),
     meta: jsonDecoderObject({
       computeUnitsConsumed: jsonCodecNumber.decoder,
       err: jsonDecoderByType<null | string | JsonObject>({
@@ -405,8 +405,8 @@ const resultJsonDecoder = jsonDecoderOptional(
         string: (string) => string,
         object: (object) => object,
       }),
-      fee: jsonDecoderOptional(jsonCodecNumber.decoder),
-      innerInstructions: jsonDecoderOptional(
+      fee: jsonDecoderNullable(jsonCodecNumber.decoder),
+      innerInstructions: jsonDecoderNullable(
         jsonDecoderArray(
           jsonDecoderObject({
             index: jsonCodecNumber.decoder,
@@ -414,13 +414,13 @@ const resultJsonDecoder = jsonDecoderOptional(
           }),
         ),
       ),
-      loadedAddresses: jsonDecoderOptional(
+      loadedAddresses: jsonDecoderNullable(
         jsonDecoderObject({
           writable: jsonDecoderArray(jsonCodecPubkey.decoder),
           readonly: jsonDecoderArray(jsonCodecPubkey.decoder),
         }),
       ),
-      logMessages: jsonDecoderOptional(
+      logMessages: jsonDecoderNullable(
         jsonDecoderArray(jsonCodecString.decoder),
       ),
     }),
@@ -428,7 +428,7 @@ const resultJsonDecoder = jsonDecoderOptional(
     transaction: jsonDecoderObject({
       message: jsonDecoderObject({
         accountKeys: jsonDecoderArray(jsonCodecPubkey.decoder),
-        addressTableLookups: jsonDecoderOptional(
+        addressTableLookups: jsonDecoderNullable(
           jsonDecoderArray(
             jsonDecoderObject({
               accountKey: jsonCodecPubkey.decoder,

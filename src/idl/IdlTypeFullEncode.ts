@@ -95,7 +95,7 @@ const visitorEncode = {
     blobs: Array<Uint8Array>,
     prefixed: boolean,
   ) => {
-    if (value === null || value === undefined) {
+    if (value === null) {
       idlTypePrefixEncode(self.prefix, 0n, blobs);
       return;
     }

@@ -10,9 +10,9 @@ import {
   jsonCodecNumber,
   jsonCodecValue,
   jsonDecoderByType,
+  jsonDecoderNullable,
   jsonDecoderObject,
   jsonDecoderOneOfKeys,
-  jsonDecoderOptional,
   jsonDecoderWrapped,
   jsonPreview,
   JsonValue,
@@ -38,8 +38,8 @@ export const idlUtilsBytesJsonDecoder = jsonDecoderByType({
     encode: jsonDecoderWrapped(
       jsonDecoderObject({
         value: jsonCodecValue.decoder,
-        type: jsonDecoderOptional(idlTypeFlatParse),
-        prefixed: jsonDecoderOptional(jsonCodecBoolean.decoder),
+        type: jsonDecoderNullable(idlTypeFlatParse),
+        prefixed: jsonDecoderNullable(jsonCodecBoolean.decoder),
       }),
       (info) => {
         const typeFlat = info.type ?? idlUtilsInferValueTypeFlat(info.value);

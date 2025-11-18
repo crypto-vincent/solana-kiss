@@ -10,8 +10,8 @@ import {
   jsonDecoderArrayToObject,
   jsonDecoderByType,
   jsonDecoderConst,
+  jsonDecoderNullable,
   jsonDecoderObject,
-  jsonDecoderOptional,
   JsonObject,
 } from "../data/Json";
 import { Pubkey, pubkeyDefault } from "../data/Pubkey";
@@ -63,7 +63,7 @@ export async function rpcHttpSimulateTransaction(
   const transactionExecution: TransactionExecution = {
     blockTime: undefined,
     blockSlot: result.context.slot,
-    transactionLogs: result.value.logs,
+    transactionLogs: result.value.logs ?? undefined,
     transactionError: result.value.err,
     consumedComputeUnits: result.value.unitsConsumed,
     chargedFeesLamports: result.value.fee
@@ -104,14 +104,14 @@ const resultJsonDecoder = jsonDecoderObject({
   context: jsonDecoderObject({ slot: jsonCodecBlockSlot.decoder }),
   value: jsonDecoderObject({
     unitsConsumed: jsonCodecNumber.decoder,
-    fee: jsonDecoderOptional(jsonCodecNumber.decoder),
+    fee: jsonDecoderNullable(jsonCodecNumber.decoder),
     err: jsonDecoderByType<null | string | JsonObject>({
       null: () => null,
       string: (string) => string,
       object: (object) => object,
     }),
-    logs: jsonDecoderOptional(jsonDecoderArray(jsonCodecString.decoder)),
-    accounts: jsonDecoderOptional(
+    logs: jsonDecoderNullable(jsonDecoderArray(jsonCodecString.decoder)),
+    accounts: jsonDecoderNullable(
       jsonDecoderArray(
         jsonDecoderByType({
           null: () => null,

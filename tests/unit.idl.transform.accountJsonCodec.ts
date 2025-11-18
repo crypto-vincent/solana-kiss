@@ -57,7 +57,7 @@ it("run", async () => {
       "jsonCodecObject",
       "jsonCodecArray",
       "jsonCodecNumber",
-      "jsonCodecOptional",
+      "jsonCodecNullable",
       "jsonCodecConst",
       "jsonCodecObjectToEnum",
       "jsonCodecArrayToTuple",
@@ -74,7 +74,7 @@ it("run", async () => {
       stringObject({
         field1: "jsonCodecNumber",
         field2: stringCall("jsonCodecArray", "jsonCodecNumber"),
-        field3: stringCall("jsonCodecOptional", "jsonCodecNumber"),
+        field3: stringCall("jsonCodecNullable", "jsonCodecNumber"),
         field4: stringCall(
           "jsonCodecConst",
           JSON.stringify("variant1"),
