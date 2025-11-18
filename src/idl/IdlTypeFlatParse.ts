@@ -18,7 +18,7 @@ import {
   jsonDecoderNullable,
   jsonDecoderObject,
   jsonDecoderObjectToMap,
-  jsonDecoderOneOfKeys,
+  jsonDecoderOneKeyOf,
   jsonDecoderWrapped,
 } from "../data/Json";
 import { IdlDocs, idlDocsParse } from "./IdlDocs";
@@ -337,7 +337,7 @@ const objectJsonDecoderCases = {
   value: objectConstJsonDecoder,
 };
 const objectJsonDecoderKeys = new Set(Object.keys(objectJsonDecoderCases));
-const objectJsonDecoder: JsonDecoder<IdlTypeFlat> = jsonDecoderOneOfKeys(
+const objectJsonDecoder: JsonDecoder<IdlTypeFlat> = jsonDecoderOneKeyOf(
   objectJsonDecoderCases,
 );
 

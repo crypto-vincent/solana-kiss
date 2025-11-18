@@ -18,17 +18,19 @@ import { IdlTypePrimitive } from "./IdlTypePrimitive";
 
 export function idlTypeFullJsonCodecModule(
   self: IdlTypeFull,
-  exportName: string,
   importPath?: string,
 ): string {
   const dependencies = new Set<string>();
+  dependencies.add("JsonCodecContent");
   const codecExpression = idlTypeFullJsonCodecExpression(self, dependencies);
   const importNames = [...dependencies].join(",");
   const lines = [];
   lines.push("");
   lines.push(`import {${importNames}} from "${importPath ?? "solana-kiss"}";`);
   lines.push("");
-  lines.push(`export const ${exportName} = ${codecExpression};`);
+  lines.push(`export type JsonContent = JsonCodecContent<typeof jsonCodec>;`);
+  lines.push("");
+  lines.push(`export const jsonCodec = ${codecExpression};`);
   lines.push("");
   return lines.join("\n");
 }

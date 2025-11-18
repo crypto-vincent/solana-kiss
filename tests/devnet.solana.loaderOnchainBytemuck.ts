@@ -29,21 +29,20 @@ it("run", async () => {
   const modulePath = `./tests/fixtures/${moduleName}.ts`;
   const moduleCode = idlTypeFullJsonCodecModule(
     accountIdl.typeFull,
-    moduleName,
     "../../src",
   );
   await fsp.writeFile(modulePath, moduleCode);
   const requirePath = `./fixtures/${moduleName}.ts`;
   delete require.cache[require.resolve(requirePath)];
-  const { jsonCodecAccountBytemuck } = require(requirePath);
+  const { jsonCodec } = require(requirePath);
 
-  const contentDecoded = jsonCodecAccountBytemuck.decoder(accountState);
+  const contentDecoded = jsonCodec.decoder(accountState);
   expect(contentDecoded.state.metadata.vocabSize).toStrictEqual(129280n);
   expect(contentDecoded.state.coordinator.config.minClients).toStrictEqual(24);
 
   const { accountData: rencoded } = idlAccountEncode(
     accountIdl,
-    jsonCodecAccountBytemuck.encoder(contentDecoded),
+    jsonCodec.encoder(contentDecoded),
   );
   expect(rencoded.length).toStrictEqual(accountData.length);
   expect(idlAccountDecode(accountIdl, rencoded).accountState).toStrictEqual(

@@ -112,13 +112,12 @@ it("run", async () => {
   const modulePath = `./tests/fixtures/${moduleName}.ts`;
   const moduleCode = idlTypeFullJsonCodecModule(
     accountIdl.typeFull,
-    moduleName,
     "../../src",
   );
   await fsp.writeFile(modulePath, moduleCode);
   const requirePath = `./fixtures/${moduleName}.ts`;
   delete require.cache[require.resolve(requirePath)];
-  const { jsonCodecAccountDummy: jsonCodec } = require(requirePath);
+  const { jsonCodec } = require(requirePath);
 
   checkRoundTrip(accountIdl, jsonCodec, {
     field1: 42,

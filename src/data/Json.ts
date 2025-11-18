@@ -574,9 +574,7 @@ export function jsonDecoderArrayToTuple<Items extends Array<JsonDecoder<any>>>(
   ...items: Items
 ): JsonDecoder<{ [K in keyof Items]: JsonDecoderContent<Items[K]> }> {
   return (encoded) => {
-    const decoded = [] as {
-      [K in keyof Items]: JsonDecoderContent<Items[K]>;
-    };
+    const decoded = [] as { [K in keyof Items]: JsonDecoderContent<Items[K]> };
     const array = jsonCodecArrayValues.decoder(encoded);
     for (let index = 0; index < items.length; index++) {
       const itemEncoded = array[index];
@@ -696,7 +694,7 @@ export function jsonDecoderObjectToMap<Key, Value>(params: {
       }
       const keyDecoded = params.keyDecoder(keyEncoded);
       const valueDecoded = withErrorContext(
-        `JSON: Decode Object["${keyEncoded}"] =>`,
+        `JSON: Decode Object["${keyEncoded}"] (${keyDecoded}) =>`,
         () => params.valueDecoder(valueEncoded),
       );
       decoded.set(keyDecoded, valueDecoded);
@@ -745,7 +743,7 @@ export function jsonDecoderObjectToEnum<
 >(
   shape: Shape,
 ): JsonDecoder<OneKeyOf<{ [K in keyof Shape]: JsonDecoderContent<Shape[K]> }>> {
-  return jsonDecoderOneOfKeys(
+  return jsonDecoderOneKeyOf(
     Object.fromEntries(
       Object.entries(shape).map(([key, decoder]) => [
         key,
@@ -871,7 +869,7 @@ export function jsonCodecWrapped<Decoded, Encoded, JsonInput>(
   };
 }
 
-export function jsonDecoderOneOfKeys<
+export function jsonDecoderOneKeyOf<
   Shape extends { [key: string]: (encoded: JsonValue) => Content },
   Content,
 >(shape: Shape): JsonDecoder<Content> {
