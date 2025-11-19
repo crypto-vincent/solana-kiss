@@ -781,6 +781,7 @@ export function jsonCodecObjectToEnum<
   } as any;
 }
 
+// TODO - this seems a bit useless of a shortcut to have
 export function jsonDecoderObjectKey<Content>(
   key: string,
   valueDecoder: JsonDecoder<Content>,

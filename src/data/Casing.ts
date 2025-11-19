@@ -28,13 +28,17 @@ export function casingLosslessConvertToCamel(string: string): string {
   return String.fromCharCode(...codes);
 }
 
+const codeLowerA = "a".charCodeAt(0)!;
+const codeLowerZ = "z".charCodeAt(0)!;
+const codeUpperA = "A".charCodeAt(0)!;
+const codeUpperZ = "Z".charCodeAt(0)!;
 const codeUnderscore = "_".charCodeAt(0)!;
-const codeUpperToLower = "a".charCodeAt(0)! - "A".charCodeAt(0)!;
+const codeUpperToLower = codeLowerA - codeUpperA;
 
 function codeIsLowercase(code: number): boolean {
-  return code >= 97 && code <= 122;
+  return code >= codeLowerA && code <= codeLowerZ;
 }
 
 function codeIsUppercase(code: number): boolean {
-  return code >= 65 && code <= 90;
+  return code >= codeUpperA && code <= codeUpperZ;
 }
