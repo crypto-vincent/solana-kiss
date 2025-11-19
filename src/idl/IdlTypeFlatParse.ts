@@ -14,11 +14,11 @@ import {
   jsonDecoderArrayToObject,
   jsonDecoderByType,
   jsonDecoderConst,
-  jsonDecoderMultiplexed,
+  jsonDecoderInParallel,
   jsonDecoderNullable,
   jsonDecoderObject,
   jsonDecoderObjectToMap,
-  jsonDecoderOneKeyOf,
+  jsonDecoderOneOfKeys,
   jsonDecoderWrapped,
 } from "../data/Json";
 import { IdlDocs, idlDocsParse } from "./IdlDocs";
@@ -83,7 +83,7 @@ const arrayJsonDecoder = jsonDecoderWrapped(
   },
 );
 
-const fieldsItemJsonDecoder = jsonDecoderMultiplexed({
+const fieldsItemJsonDecoder = jsonDecoderInParallel({
   meta: jsonDecoderByType({
     null: () => ({ name: null, docs: undefined }),
     string: () => ({ name: null, docs: undefined }),
@@ -337,7 +337,7 @@ const objectJsonDecoderCases = {
   value: objectConstJsonDecoder,
 };
 const objectJsonDecoderKeys = new Set(Object.keys(objectJsonDecoderCases));
-const objectJsonDecoder: JsonDecoder<IdlTypeFlat> = jsonDecoderOneKeyOf(
+const objectJsonDecoder: JsonDecoder<IdlTypeFlat> = jsonDecoderOneOfKeys(
   objectJsonDecoderCases,
 );
 

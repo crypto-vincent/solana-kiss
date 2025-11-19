@@ -2,7 +2,7 @@ import {
   JsonValue,
   jsonCodecPubkey,
   jsonCodecString,
-  jsonDecoderMultiplexed,
+  jsonDecoderInParallel,
   jsonDecoderNullable,
   jsonDecoderObject,
   jsonDecoderObjectKey,
@@ -51,7 +51,7 @@ const innerJsonDecoder = jsonDecoderNullable(
   }),
 );
 
-const outerJsonDecoder = jsonDecoderMultiplexed({
+const outerJsonDecoder = jsonDecoderInParallel({
   keyed: jsonDecoderNullable(
     jsonDecoderObjectKey("metadata", innerJsonDecoder),
   ),

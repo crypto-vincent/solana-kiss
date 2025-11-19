@@ -743,7 +743,7 @@ export function jsonDecoderObjectToEnum<
 >(
   shape: Shape,
 ): JsonDecoder<OneKeyOf<{ [K in keyof Shape]: JsonDecoderContent<Shape[K]> }>> {
-  return jsonDecoderOneKeyOf(
+  return jsonDecoderOneOfKeys(
     Object.fromEntries(
       Object.entries(shape).map(([key, decoder]) => [
         key,
@@ -870,7 +870,7 @@ export function jsonCodecWrapped<Decoded, Encoded, JsonInput>(
   };
 }
 
-export function jsonDecoderOneKeyOf<
+export function jsonDecoderOneOfKeys<
   Shape extends { [key: string]: (encoded: JsonValue) => Content },
   Content,
 >(shape: Shape): JsonDecoder<Content> {
@@ -951,7 +951,7 @@ export function jsonDecoderByType<Content>(decoders: {
   };
 }
 
-export function jsonDecoderMultiplexed<
+export function jsonDecoderInParallel<
   Shape extends { [key: string]: JsonDecoder<any> },
 >(
   shape: Shape,
