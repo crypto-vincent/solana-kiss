@@ -5,7 +5,7 @@ import {
   jsonDecoderByType,
   jsonDecoderNullable,
   jsonDecoderObject,
-  jsonDecoderObjectKey,
+  jsonDecoderWrapped,
 } from "../data/Json";
 import { IdlDocs, idlDocsParse } from "./IdlDocs";
 import { IdlTypeFlat } from "./IdlTypeFlat";
@@ -73,6 +73,9 @@ const jsonDecoder = jsonDecoderObject({
 function stringOrObjectKeyJsonDecoder(objectKey: string) {
   return jsonDecoderByType({
     string: (string) => string,
-    object: jsonDecoderObjectKey(objectKey, jsonCodecString.decoder),
+    object: jsonDecoderWrapped(
+      jsonDecoderObject({ [objectKey]: jsonCodecString.decoder }),
+      ({ [objectKey]: value }) => value!,
+    ),
   });
 }

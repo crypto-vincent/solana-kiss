@@ -172,7 +172,7 @@ const jsonDecoder = jsonDecoderObject({
   pda: jsonDecoderNullable(
     jsonDecoderObject({
       seeds: jsonDecoderArray(jsonCodecValue.decoder),
-      program: jsonDecoderNullable(jsonCodecValue.decoder),
+      program: jsonCodecValue.decoder,
     }),
   ),
 });

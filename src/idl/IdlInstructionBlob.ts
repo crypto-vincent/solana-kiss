@@ -13,6 +13,7 @@ import {
   jsonDecoderObject,
   jsonGetAt,
   jsonPointerParse,
+  jsonPointerPreview,
 } from "../data/Json";
 import { Pubkey, pubkeyToBytes } from "../data/Pubkey";
 import { IdlInstructionAccountFindContext } from "./IdlInstructionAccount";
@@ -182,7 +183,7 @@ const jsonDecoder = jsonDecoderByType<{
   path: string | null;
 }>({
   object: jsonDecoderObject({
-    value: jsonDecoderNullable(jsonCodecValue.decoder),
+    value: jsonCodecValue.decoder,
     type: jsonDecoderNullable(idlTypeFlatParse),
     kind: jsonDecoderNullable(jsonCodecString.decoder),
     path: jsonDecoderNullable(jsonCodecString.decoder),
@@ -209,10 +210,14 @@ const computeVisitor = {
     self: IdlInstructionBlobArg,
     findContext: IdlInstructionAccountFindContext,
   ) => {
-    const value =
-      jsonGetAt(findContext.instructionPayload, self.pointer, {
-        throwOnMissing: true,
-      }) ?? null;
+    const instructionPayload = findContext.instructionPayload;
+    if (instructionPayload === undefined) {
+      const pointerPreview = jsonPointerPreview(self.pointer);
+      throw new Error(
+        `Idl: Cannot compute instruction blob arg at path: ${pointerPreview} without instruction payload`,
+      );
+    }
+    const value = jsonGetAt(instructionPayload, self.pointer);
     return idlTypeFullEncode(self.typeFull, value, false);
   },
   account: async (
@@ -281,10 +286,7 @@ function encodeExtractedAccountState(
 ) {
   const statePath = path.slice(accountField.length);
   const statePointer = jsonPointerParse(statePath);
-  const stateValue =
-    jsonGetAt(accountContent.accountState, statePointer, {
-      throwOnMissing: true,
-    }) ?? null;
+  const stateValue = jsonGetAt(accountContent.accountState, statePointer);
   if (typeFull !== undefined) {
     return idlTypeFullEncode(typeFull, stateValue, false);
   }

@@ -85,13 +85,11 @@ it("run", async () => {
           stringObject({
             0: stringCall(
               "jsonCodecArrayToTuple",
-              "jsonCodecString",
-              "jsonCodecBytesArray",
+              stringArray(["jsonCodecString", "jsonCodecBytesArray"]),
             ),
             1: stringCall(
               "jsonCodecArrayToTuple",
-              "jsonCodecNumber",
-              "jsonCodecInteger",
+              stringArray(["jsonCodecNumber", "jsonCodecInteger"]),
             ),
             Misc: stringCall(
               "jsonCodecObject",
@@ -138,6 +136,7 @@ it("run", async () => {
   checkRoundTrip(accountIdl, jsonCodec, {
     field1: 128,
     field2: [1, 2, 3, 4, 5],
+    field3: null,
     field4: "variant1",
     field5: { 1: [255, -1234567890123456789n] },
     fieldSnakeCase: 3,
@@ -145,6 +144,7 @@ it("run", async () => {
   checkRoundTrip(accountIdl, jsonCodec, {
     field1: 7,
     field2: [42, 43],
+    field3: null,
     field4: "variant2",
     field5: { Misc: { key: pubkeyDefault, bool: true } },
     fieldSnakeCase: 4,
@@ -161,6 +161,10 @@ function stringObject(record: Record<string, string>): string {
     entries.push(`${key}:${value}`);
   }
   return `{${entries.join(",")}}`;
+}
+
+function stringArray(items: Array<string>): string {
+  return `[${items.join(",")}]`;
 }
 
 function checkRoundTrip(accountIdl: IdlAccount, jsonCodec: any, decoded: any) {

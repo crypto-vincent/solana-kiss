@@ -17,7 +17,6 @@ import {
   jsonCodecNullable,
   jsonCodecNumber,
   jsonCodecObject,
-  jsonCodecObjectKey,
   jsonCodecObjectToEnum,
   jsonCodecObjectToMap,
   jsonCodecPubkey,
@@ -87,14 +86,6 @@ it("run", async () => {
         nullables: jsonCodecArray(jsonCodecNullable(jsonCodecBoolean)),
       }),
       decoded: { const: 8, nullables: [null, true, false, null] },
-    },
-    {
-      encoded: { keyed: { value: "Hello" } },
-      codec: jsonCodecObjectKey(
-        "keyed",
-        jsonCodecObjectKey("value", jsonCodecString),
-      ),
-      decoded: "Hello",
     },
     {
       encoded: {
@@ -178,11 +169,6 @@ it("run", async () => {
       ]),
     },
     {
-      encoded: { toString: null },
-      codec: jsonCodecObjectKey("toString", jsonCodecNullable(jsonCodecString)),
-      decoded: null,
-    },
-    {
       encoded: [1, "hello", { nested: "world" }],
       codec: jsonCodecArrayToObject({
         0: jsonCodecNumber,
@@ -193,11 +179,11 @@ it("run", async () => {
     },
     {
       encoded: [42, "hello", { nested: "world" }],
-      codec: jsonCodecArrayToTuple(
+      codec: jsonCodecArrayToTuple([
         jsonCodecNumber,
         jsonCodecString,
         jsonCodecObject({ nested: jsonCodecString }),
-      ),
+      ]),
       decoded: [42, "hello", { nested: "world" }],
     },
     {

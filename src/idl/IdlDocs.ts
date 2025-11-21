@@ -8,7 +8,7 @@ import {
 
 export type IdlDocs = Array<string> | undefined;
 
-export function idlDocsParse(docsValue: JsonValue | undefined): IdlDocs {
+export function idlDocsParse(docsValue: JsonValue): IdlDocs {
   return jsonDecoder(docsValue) ?? undefined;
 }
 

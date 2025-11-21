@@ -10,7 +10,7 @@ import {
   jsonDecoderArray,
   jsonDecoderByType,
   jsonDecoderInParallel,
-  jsonDecoderObjectKey,
+  jsonDecoderObject,
   jsonDecoderObjectToMap,
   jsonDecoderWrapped,
 } from "../data/Json";
@@ -170,9 +170,11 @@ function parseScopedNamedValues<Content, Param>(
   parsingFunction: (name: string, value: JsonValue, param: Param) => Content,
 ): Map<string, Content> {
   const values = new Map<string, Content>();
-  for (const [name, value] of collectionJsonDecoder(
-    programObject[collectionName],
-  )) {
+  const collectionValue = programObject[collectionName];
+  if (collectionValue === undefined) {
+    return values;
+  }
+  for (const [name, value] of collectionJsonDecoder(collectionValue)) {
     let itemName = name;
     if (convertNameToSnakeCase) {
       itemName = casingLosslessConvertToSnake(name);
@@ -188,7 +190,6 @@ function parseScopedNamedValues<Content, Param>(
 }
 
 const collectionJsonDecoder = jsonDecoderByType({
-  undefined: () => new Map<string, JsonValue>(),
   object: jsonDecoderObjectToMap({
     keyDecoder: (name) => name,
     valueDecoder: (value) => value,
@@ -196,13 +197,13 @@ const collectionJsonDecoder = jsonDecoderByType({
   array: jsonDecoderWrapped(
     jsonDecoderArray(
       jsonDecoderInParallel({
-        key: jsonDecoderObjectKey("name", jsonCodecString.decoder),
+        key: jsonDecoderObject({ name: jsonCodecString.decoder }),
         value: jsonCodecValue.decoder,
       }),
     ),
     (entries) => {
       return new Map<string, JsonValue>(
-        entries.map(({ key, value }) => [key, value]),
+        entries.map((entry) => [entry.key.name, entry.value]),
       );
     },
   ),

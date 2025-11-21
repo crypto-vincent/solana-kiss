@@ -24,48 +24,39 @@ export interface JsonObject {
   [key: string]: JsonValue | undefined;
 }
 
-export function jsonAsBoolean(
-  value: JsonValue | undefined,
-): boolean | undefined {
+export function jsonAsBoolean(value: JsonValue): boolean | undefined {
   if (typeof value === "boolean" || value instanceof Boolean) {
     return value as boolean;
   }
   return undefined;
 }
-export function jsonAsNumber(value: JsonValue | undefined): number | undefined {
+export function jsonAsNumber(value: JsonValue): number | undefined {
   if (typeof value === "number" || value instanceof Number) {
     return value as number;
   }
   return undefined;
 }
-export function jsonAsString(value: JsonValue | undefined): string | undefined {
+export function jsonAsString(value: JsonValue): string | undefined {
   if (typeof value === "string" || value instanceof String) {
     return value as string;
   }
   return undefined;
 }
 
-export function jsonAsArray(
-  value: JsonValue | undefined,
-): JsonArray | undefined {
+export function jsonAsArray(value: JsonValue): JsonArray | undefined {
   if (Array.isArray(value)) {
     return value as JsonArray;
   }
   return undefined;
 }
-export function jsonAsObject(
-  value: JsonValue | undefined,
-): JsonObject | undefined {
+export function jsonAsObject(value: JsonValue): JsonObject | undefined {
   if (typeof value === "object" && !Array.isArray(value) && value !== null) {
     return value as JsonObject;
   }
   return undefined;
 }
 
-export function jsonPreview(value: JsonValue | undefined): string {
-  if (value === undefined) {
-    return "undefined";
-  }
+export function jsonPreview(value: JsonValue): string {
   if (value === null) {
     return "null";
   }
@@ -84,7 +75,7 @@ export function jsonPreview(value: JsonValue | undefined): string {
   const maxColumns = 40;
   const array = jsonAsArray(value);
   if (array !== undefined) {
-    let previews = array.map(jsonPreview).join(", ");
+    let previews = array.map(jsonPreview).join(",");
     if (previews.length > maxColumns) {
       previews = previews.slice(0, maxColumns - 3) + "...";
     }
@@ -92,21 +83,23 @@ export function jsonPreview(value: JsonValue | undefined): string {
   }
   const object = jsonAsObject(value);
   if (object !== undefined) {
-    const entries = Object.entries(object);
-    let previews = entries
-      .map(([key, val]) => `${key}: ${jsonPreview(val)}`)
-      .join(", ");
-    if (previews.length > maxColumns) {
-      previews = previews.slice(0, maxColumns - 3) + "...";
+    const previewEntries = new Array<string>();
+    for (const key in object) {
+      const value = object[key];
+      if (value === undefined) {
+        continue;
+      }
+      previewEntries.push(`${key}:${jsonPreview(value)}`);
     }
-    return `${entries.length}x{${previews}}`;
+    let previewString = previewEntries.join(",");
+    if (previewString.length > maxColumns) {
+      previewString = previewString.slice(0, maxColumns - 3) + "...";
+    }
+    return `${previewEntries.length}x{${previewString}}`;
   }
   throw new Error(`JSON: Unknown value: ${value?.toString()}`);
 }
-export function jsonIsDeepEqual(
-  leftValue: JsonValue | undefined,
-  rightValue: JsonValue | undefined,
-) {
+export function jsonIsDeepEqual(leftValue: JsonValue, rightValue: JsonValue) {
   if (leftValue === rightValue) {
     return true;
   }
@@ -131,14 +124,26 @@ export function jsonIsDeepEqual(
     }
     for (const leftObjectKey in leftObject) {
       const leftObjectValue = leftObject[leftObjectKey];
+      if (leftObjectValue === undefined) {
+        continue;
+      }
       const rightObjectValue = objectGetOwnProperty(rightObject, leftObjectKey);
+      if (rightObjectValue === undefined) {
+        return false;
+      }
       if (!jsonIsDeepEqual(leftObjectValue, rightObjectValue)) {
         return false;
       }
     }
     for (const rightObjectKey in rightObject) {
-      const leftObjectValue = objectGetOwnProperty(leftObject, rightObjectKey);
       const rightObjectValue = rightObject[rightObjectKey];
+      if (rightObjectValue === undefined) {
+        continue;
+      }
+      const leftObjectValue = objectGetOwnProperty(leftObject, rightObjectKey);
+      if (leftObjectValue === undefined) {
+        return false;
+      }
       if (!jsonIsDeepEqual(leftObjectValue, rightObjectValue)) {
         return false;
       }
@@ -148,12 +153,9 @@ export function jsonIsDeepEqual(
   return false;
 }
 export function jsonIsDeepSubset(
-  subsetValue: JsonValue | undefined,
-  supersetValue: JsonValue | undefined,
+  subsetValue: JsonValue,
+  supersetValue: JsonValue,
 ) {
-  if (subsetValue === undefined) {
-    return true;
-  }
   if (subsetValue === supersetValue) {
     return true;
   }
@@ -167,7 +169,7 @@ export function jsonIsDeepSubset(
       return false;
     }
     for (let index = 0; index < subsetArray.length; index++) {
-      if (!jsonIsDeepSubset(subsetArray[index], supersetArray[index])) {
+      if (!jsonIsDeepSubset(subsetArray[index]!, supersetArray[index]!)) {
         return false;
       }
     }
@@ -179,13 +181,19 @@ export function jsonIsDeepSubset(
     if (supersetObject === undefined) {
       return false;
     }
-    for (const key of Object.keys(subsetObject)) {
-      if (
-        !jsonIsDeepSubset(
-          subsetObject[key],
-          objectGetOwnProperty(supersetObject, key),
-        )
-      ) {
+    for (const subsetObjectKey in subsetObject) {
+      const subsetObjectValue = subsetObject[subsetObjectKey]!;
+      if (subsetObjectValue === undefined) {
+        continue;
+      }
+      const supersetObjectValue = objectGetOwnProperty(
+        supersetObject,
+        subsetObjectKey,
+      );
+      if (supersetObjectValue === undefined) {
+        return false;
+      }
+      if (!jsonIsDeepSubset(subsetObjectValue, supersetObjectValue)) {
         return false;
       }
     }
@@ -254,12 +262,9 @@ export function jsonPointerTokenAsArrayIndex(
 }
 
 export function jsonGetAt(
-  value: JsonValue | undefined,
+  value: JsonValue,
   pathOrPointer: string | JsonPointer,
-  options?: {
-    throwOnMissing?: boolean;
-  },
-) {
+): JsonValue {
   const pointer = Array.isArray(pathOrPointer)
     ? pathOrPointer
     : jsonPointerParse(pathOrPointer);
@@ -273,36 +278,34 @@ export function jsonGetAt(
         array.length,
       );
       if (arrayIndex === undefined) {
-        if (options?.throwOnMissing) {
-          throw new Error(
-            `JSON: Expected path ${jsonPointerPreview(pointer, tokenIndex)} to be a valid index for an array of length ${array.length}`,
-          );
-        }
-        return undefined;
+        throw new Error(
+          `JSON: Expected path ${jsonPointerPreview(pointer, tokenIndex)} to be a valid index for an array of length ${array.length}`,
+        );
       }
-      current = array[arrayIndex];
+      current = array[arrayIndex]!;
       continue;
     }
     const object = jsonAsObject(current);
     if (object !== undefined) {
-      current = objectGetOwnProperty(
-        object,
-        objectGuessIntendedKey(object, pointerToken),
-      );
+      const objectKey = objectGuessIntendedKey(object, pointerToken);
+      const objectValue = objectGetOwnProperty(object, objectKey);
+      if (objectValue === undefined) {
+        throw new Error(
+          `JSON: Expected path ${jsonPointerPreview(pointer, tokenIndex)} to be a valid key for an object (found keys: ${Object.keys(object).join("/")})`,
+        );
+      }
+      current = objectValue;
       continue;
     }
-    if (options?.throwOnMissing) {
-      throw new Error(
-        `JSON: Expected an object or array at path ${jsonPointerPreview(pointer, tokenIndex)} (found: ${jsonPreview(current)})`,
-      );
-    }
-    return undefined;
+    throw new Error(
+      `JSON: Expected an object or array at path ${jsonPointerPreview(pointer, tokenIndex)} (found: ${jsonPreview(current)})`,
+    );
   }
   return current;
 }
 
 export type JsonDecoderContent<S> = S extends JsonDecoder<infer T> ? T : never;
-export type JsonDecoder<Content> = (encoded: JsonValue | undefined) => Content;
+export type JsonDecoder<Content> = (encoded: JsonValue) => Content;
 
 export type JsonEncoderContent<S> = S extends JsonEncoder<infer T> ? T : never;
 export type JsonEncoder<Content> = (decoded: Content) => JsonValue;
@@ -314,12 +317,7 @@ export type JsonCodec<Content> = {
 };
 
 export const jsonCodecValue: JsonCodec<JsonValue> = {
-  decoder: (encoded) => {
-    if (encoded === undefined) {
-      throw new Error(`JSON: Expected a value (found: undefined)`);
-    }
-    return encoded;
-  },
+  decoder: (encoded) => encoded,
   encoder: (decoded) => decoded,
 };
 
@@ -333,9 +331,7 @@ export const jsonCodecBoolean: JsonCodec<boolean> = {
     }
     return decoded;
   },
-  encoder: (decoded) => {
-    return decoded;
-  },
+  encoder: (decoded) => decoded,
 };
 export const jsonCodecNumber: JsonCodec<number> = {
   decoder: jsonDecoderByType({
@@ -410,7 +406,12 @@ export const jsonCodecObjectValues: JsonCodec<JsonObject> = {
 export const jsonCodecInteger: JsonCodec<bigint> = {
   decoder: jsonDecoderByType({
     number: (number) => BigInt(number),
-    string: (string) => BigInt(string.replace(/_/g, "")),
+    string: (string) => {
+      if (string.includes("_")) {
+        return BigInt(string.replace(/_/g, ""));
+      }
+      return BigInt(string);
+    },
   }),
   encoder: (decoded) => String(decoded),
 };
@@ -489,7 +490,7 @@ export function jsonCodecConst<Values extends Array<JsonPrimitive>>(
 }
 
 export function jsonDecoderArray<Item>(
-  itemDecoder: (itemEncoded: JsonValue) => Item,
+  itemDecoder: JsonDecoder<Item>,
 ): JsonDecoder<Array<Item>> {
   return (encoded) => {
     const array = jsonAsArray(encoded);
@@ -506,14 +507,13 @@ export function jsonDecoderArray<Item>(
   };
 }
 export function jsonEncoderArray<Item>(
-  itemEncoder: (itemDecoded: Item) => JsonValue,
+  itemEncoder: JsonEncoder<Item>,
 ): JsonEncoder<Array<Item>> {
   return (decoded) => decoded.map((item) => itemEncoder(item));
 }
-export function jsonCodecArray<Item>(itemCodec: {
-  decoder: (itemEncoded: JsonValue) => Item;
-  encoder: (itemDecoded: Item) => JsonValue;
-}): JsonCodec<Array<Item>> {
+export function jsonCodecArray<Item>(
+  itemCodec: JsonCodec<Item>,
+): JsonCodec<Array<Item>> {
   return {
     decoder: jsonDecoderArray(itemCodec.decoder),
     encoder: jsonEncoderArray(itemCodec.encoder),
@@ -530,7 +530,7 @@ export function jsonDecoderArrayToObject<
     const array = jsonCodecArrayValues.decoder(encoded);
     let index = 0;
     for (const key in shape) {
-      const valueEncoded = array[index++];
+      const valueEncoded = array[index++] ?? null;
       const valueDecoded = withErrorContext(
         `JSON: Decode Array[${index}] (${key}) =>`,
         () => shape[key]!(valueEncoded),
@@ -571,13 +571,13 @@ export function jsonCodecArrayToObject<
 }
 
 export function jsonDecoderArrayToTuple<Items extends Array<JsonDecoder<any>>>(
-  ...items: Items
+  items: Items,
 ): JsonDecoder<{ [K in keyof Items]: JsonDecoderContent<Items[K]> }> {
   return (encoded) => {
     const decoded = [] as { [K in keyof Items]: JsonDecoderContent<Items[K]> };
     const array = jsonCodecArrayValues.decoder(encoded);
     for (let index = 0; index < items.length; index++) {
-      const itemEncoded = array[index];
+      const itemEncoded = array[index] ?? null;
       const itemDecoded = withErrorContext(
         `JSON: Decode Array[${index}] =>`,
         () => items[index]!(itemEncoded),
@@ -588,7 +588,7 @@ export function jsonDecoderArrayToTuple<Items extends Array<JsonDecoder<any>>>(
   };
 }
 export function jsonEncoderArrayToTuple<Items extends Array<JsonEncoder<any>>>(
-  ...items: Items
+  items: Items,
 ): JsonEncoder<{ [K in keyof Items]: JsonEncoderContent<Items[K]> }> {
   return (decoded) => {
     const encoded = [] as JsonArray;
@@ -601,11 +601,11 @@ export function jsonEncoderArrayToTuple<Items extends Array<JsonEncoder<any>>>(
   };
 }
 export function jsonCodecArrayToTuple<Items extends Array<JsonCodec<any>>>(
-  ...items: Items
+  items: Items,
 ): JsonCodec<{ [K in keyof Items]: JsonCodecContent<Items[K]> }> {
   return {
-    decoder: jsonDecoderArrayToTuple(...items.map((item) => item.decoder)),
-    encoder: jsonEncoderArrayToTuple(...items.map((item) => item.encoder)),
+    decoder: jsonDecoderArrayToTuple(items.map((item) => item.decoder)),
+    encoder: jsonEncoderArrayToTuple(items.map((item) => item.encoder)),
   } as JsonCodec<{ [K in keyof Items]: JsonCodecContent<Items[K]> }>;
 }
 
@@ -623,11 +623,11 @@ export function jsonDecoderObject<
     const decoded = {} as { [K in keyof Shape]: JsonDecoderContent<Shape[K]> };
     const object = jsonCodecObjectValues.decoder(encoded);
     for (const keyDecoded in shape) {
-      let keyEncoded = objectGuessIntendedKey(
+      const keyEncoded = objectGuessIntendedKey(
         object,
         objectKeyEncode(keyDecoded, options?.keysEncoding),
       );
-      const valueEncoded = objectGetOwnProperty(object, keyEncoded);
+      const valueEncoded = objectGetOwnProperty(object, keyEncoded) ?? null;
       const valueDecoded = withErrorContext(
         `JSON: Decode Object["${keyEncoded}"] (${keyDecoded}) =>`,
         () => shape[keyDecoded]!(valueEncoded),
@@ -682,7 +682,7 @@ export function jsonCodecObject<
 
 export function jsonDecoderObjectToMap<Key, Value>(params: {
   keyDecoder: (keyEncoded: string) => Key;
-  valueDecoder: (valueEncoded: JsonValue) => Value;
+  valueDecoder: JsonDecoder<Value>;
 }): JsonDecoder<Map<Key, Value>> {
   return (encoded) => {
     const decoded = new Map<Key, Value>();
@@ -704,7 +704,7 @@ export function jsonDecoderObjectToMap<Key, Value>(params: {
 }
 export function jsonEncoderObjectToMap<Key, Value>(params: {
   keyEncoder: (keyDecoded: Key) => string;
-  valueEncoder: (valueDecoded: Value) => JsonValue;
+  valueEncoder: JsonEncoder<Value>;
 }): JsonEncoder<Map<Key, Value>> {
   return (decoded) => {
     const encoded = {} as JsonObject;
@@ -721,10 +721,7 @@ export function jsonCodecObjectToMap<Key, Value>(params: {
     decoder: (keyEncoded: string) => Key;
     encoder: (keyDecoded: Key) => string;
   };
-  valueCodec: {
-    decoder: (valueEncoded: JsonValue) => Value;
-    encoder: (valueDecoded: Value) => JsonValue;
-  };
+  valueCodec: JsonCodec<Value>;
 }): JsonCodec<Map<Key, Value>> {
   return {
     decoder: jsonDecoderObjectToMap({
@@ -781,60 +778,29 @@ export function jsonCodecObjectToEnum<
   } as any;
 }
 
-// TODO - this seems a bit useless of a shortcut to have
-export function jsonDecoderObjectKey<Content>(
-  key: string,
-  valueDecoder: JsonDecoder<Content>,
-): JsonDecoder<Content> {
-  return jsonDecoderWrapped(
-    jsonDecoderObject({ [key]: valueDecoder }),
-    (encoded) => encoded[key]!,
-  );
-}
-export function jsonEncoderObjectKey<Content>(
-  key: string,
-  valueEncoder: JsonEncoder<Content>,
-): JsonEncoder<Content> {
-  return jsonEncoderWrapped(
-    jsonEncoderObject({ [key]: valueEncoder }),
-    (decoded) => ({ [key]: decoded }),
-  );
-}
-export function jsonCodecObjectKey<Content>(
-  key: string,
-  valueCodec: JsonCodec<Content>,
-): JsonCodec<Content> {
-  return {
-    decoder: jsonDecoderObjectKey(key, valueCodec.decoder),
-    encoder: jsonEncoderObjectKey(key, valueCodec.encoder),
-  };
-}
-
 export function jsonDecoderNullable<Content>(
-  contentDecoder: (encoded: NonNullable<JsonValue>) => Content,
+  contentDecoder: (encoded: Exclude<JsonValue, null>) => Content,
 ): JsonDecoder<Content | null> {
   return (encoded) => {
-    if (encoded === undefined || encoded === null) {
+    if (encoded === null) {
       return null;
     }
     return contentDecoder(encoded);
   };
 }
 export function jsonEncoderNullable<Content>(
-  contentEncoder: (decoded: NonNullable<Content>) => JsonValue,
+  contentEncoder: (decoded: Exclude<Content, null>) => JsonValue,
 ): JsonEncoder<Content | null> {
   return (decoded: Content | null) => {
-    if (decoded === undefined || decoded === null) {
+    if (decoded === null) {
       return null;
     }
-    return contentEncoder(decoded);
+    return contentEncoder(decoded as Exclude<Content, null>);
   };
 }
-export function jsonCodecNullable<
-  Content extends {} | undefined,
->(contentCodec: {
-  decoder: (encoded: NonNullable<JsonValue>) => Content;
-  encoder: (decoded: NonNullable<Content>) => JsonValue;
+export function jsonCodecNullable<Content>(contentCodec: {
+  decoder: (encoded: Exclude<JsonValue, null>) => Content;
+  encoder: (decoded: Exclude<Content, null>) => JsonValue;
 }): JsonCodec<Content | null> {
   return {
     decoder: jsonDecoderNullable(contentCodec.decoder),
@@ -871,7 +837,7 @@ export function jsonCodecWrapped<Decoded, Encoded, JsonInput>(
 }
 
 export function jsonDecoderOneOfKeys<
-  Shape extends { [key: string]: (encoded: JsonValue) => Content },
+  Shape extends { [key: string]: JsonDecoder<any> },
   Content,
 >(shape: Shape): JsonDecoder<Content> {
   return (encoded) => {
@@ -910,7 +876,6 @@ export function jsonDecoderOneOfKeys<
 }
 
 export function jsonDecoderByType<Content>(decoders: {
-  undefined?: () => Content;
   null?: () => Content;
   boolean?: (boolean: boolean) => Content;
   number?: (number: number) => Content;
@@ -919,9 +884,6 @@ export function jsonDecoderByType<Content>(decoders: {
   object?: (object: JsonObject) => Content;
 }): JsonDecoder<Content> {
   return (encoded) => {
-    if (encoded === undefined && decoders.undefined) {
-      return decoders.undefined();
-    }
     if (encoded === null && decoders.null) {
       return decoders.null();
     }
@@ -965,7 +927,7 @@ export function jsonDecoderInParallel<
   };
 }
 
-export function jsonDecoderTryAnyOf<Content>(
+export function jsonDecoderTrySequentially<Content>(
   decoders: Array<JsonDecoder<Content>>,
 ): JsonDecoder<Content> {
   return (encoded) => {

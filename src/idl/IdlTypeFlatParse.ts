@@ -66,7 +66,7 @@ export function idlTypeFlatFieldsParse(value: JsonValue): IdlTypeFlatFields {
 
 const arrayJsonDecoder = jsonDecoderWrapped(
   jsonDecoderArrayToObject({
-    items: jsonDecoderWrapped(jsonCodecValue.decoder, idlTypeFlatParse),
+    items: idlTypeFlatParse,
     length: jsonDecoderNullable(idlTypeFlatParse),
   }),
   (array) => {
@@ -93,10 +93,9 @@ const fieldsItemJsonDecoder = jsonDecoderInParallel({
       docs: idlDocsParse,
     }),
   }),
-  type: jsonDecoderWrapped(jsonCodecValue.decoder, idlTypeFlatParse),
+  type: idlTypeFlatParse,
 });
 const fieldsJsonDecoder = jsonDecoderByType({
-  undefined: () => IdlTypeFlatFields.nothing(),
   null: () => IdlTypeFlatFields.nothing(),
   array: jsonDecoderWrapped(
     jsonDecoderArray(fieldsItemJsonDecoder),
@@ -259,7 +258,7 @@ function objectVecJsonDecoder(prefix: IdlTypePrefix) {
 
 const objectLoopJsonDecoder = jsonDecoderWrapped(
   jsonDecoderObject({
-    items: jsonDecoderWrapped(jsonCodecValue.decoder, idlTypeFlatParse),
+    items: idlTypeFlatParse,
     stop: jsonDecoderByType<"end" | { value: JsonValue }>({
       string: jsonDecoderConst("end"),
       object: jsonDecoderObject({ value: jsonCodecValue.decoder }),

@@ -107,7 +107,7 @@ const visitor = {
       entries.push({ key: variant.name, value: variantFields });
     }
     return stringFunctionCall(context, "jsonCodecObjectToEnum", [
-      stringObjectEntries(entries),
+      stringObject(entries),
     ]);
   },
   pad: (self: IdlTypeFullPad, context: CodecContext) => {
@@ -138,15 +138,13 @@ const visitorFields = {
       entries.push({ key: field.name, value: fieldContent });
     }
     return stringFunctionCall(context, "jsonCodecObject", [
-      stringObjectEntries(entries),
+      stringObject(entries),
     ]);
   },
   unnamed: (self: Array<IdlTypeFullFieldUnnamed>, context: CodecContext) => {
-    return stringFunctionCall(
-      context,
-      "jsonCodecArrayToTuple",
-      self.map((field) => codec(context, field.content)),
-    );
+    return stringFunctionCall(context, "jsonCodecArrayToTuple", [
+      stringArray(self.map((field) => codec(context, field.content))),
+    ]);
   },
 };
 
@@ -181,8 +179,10 @@ function stringFunctionCall(
   return `${functionName}(${functionParams.join(",")})`;
 }
 
-function stringObjectEntries(
-  objectEntries: Array<{ key: string; value: string }>,
-): string {
-  return `{${objectEntries.map(({ key, value }) => `${key}:${value}`).join(",")}}`;
+function stringObject(entries: Array<{ key: string; value: string }>): string {
+  return `{${entries.map(({ key, value }) => `${key}:${value}`).join(",")}}`;
+}
+
+function stringArray(items: Array<string>): string {
+  return `[${items.join(",")}]`;
 }

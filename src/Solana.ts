@@ -176,7 +176,7 @@ export class Solana {
     );
     const { instructionData } = idlInstructionArgsEncode(
       instructionIdl,
-      options?.instructionPayload ?? null,
+      options.instructionPayload ?? null,
     );
     return {
       instructionRequest: {

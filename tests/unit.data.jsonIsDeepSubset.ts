@@ -1,8 +1,12 @@
 import { expect, it } from "@jest/globals";
-import { jsonIsDeepSubset } from "../src";
+import { jsonIsDeepSubset, JsonValue } from "../src";
 
 it("run", async () => {
-  const tests = [
+  const tests: Array<{
+    subset: JsonValue;
+    superset: JsonValue;
+    isDeepSubset: boolean;
+  }> = [
     {
       subset: {
         key: "Hello World",
@@ -11,7 +15,7 @@ it("run", async () => {
         key: "Hello World",
         another: 42,
       },
-      result: true,
+      isDeepSubset: true,
     },
     {
       subset: {
@@ -21,7 +25,7 @@ it("run", async () => {
       superset: {
         key: "Hello World",
       },
-      result: false,
+      isDeepSubset: false,
     },
     {
       subset: {
@@ -36,86 +40,86 @@ it("run", async () => {
           anotherSub: true,
         },
       },
-      result: true,
+      isDeepSubset: true,
     },
     {
       subset: { key: undefined },
       superset: {},
-      result: true,
+      isDeepSubset: true,
     },
     {
       subset: {},
       superset: { key: undefined },
-      result: true,
+      isDeepSubset: true,
     },
     {
       subset: [],
       superset: [1, 2, 3],
-      result: true,
+      isDeepSubset: true,
     },
     {
       subset: [1, 2],
       superset: [1, 2, 3],
-      result: true,
+      isDeepSubset: true,
     },
     {
       subset: [1, 2, 3, 4],
       superset: [1, 2, 3],
-      result: false,
+      isDeepSubset: false,
     },
     {
       subset: [1, 2, 3],
       superset: [],
-      result: false,
+      isDeepSubset: false,
     },
     {
       subset: [],
       superset: [],
-      result: true,
+      isDeepSubset: true,
     },
     {
       subset: 42,
       superset: 42,
-      result: true,
+      isDeepSubset: true,
     },
     {
       subset: 42,
       superset: 43,
-      result: false,
+      isDeepSubset: false,
     },
     {
       subset: null,
       superset: null,
-      result: true,
+      isDeepSubset: true,
     },
     {
       subset: null,
       superset: "not null",
-      result: false,
+      isDeepSubset: false,
     },
     {
       subset: "not null",
       superset: null,
-      result: false,
+      isDeepSubset: false,
     },
     {
-      subset: undefined,
+      subset: {},
       superset: { anything: "value" },
-      result: true,
+      isDeepSubset: true,
     },
     {
       subset: { anything: [] },
       superset: { anything: [1, 2, 3] },
-      result: true,
+      isDeepSubset: true,
     },
     {
       subset: { anything: [] },
       superset: {},
-      result: false,
+      isDeepSubset: false,
     },
   ];
   for (const test of tests) {
-    expect(test.result).toStrictEqual(
+    expect(test.isDeepSubset).toStrictEqual(
       jsonIsDeepSubset(test.subset, test.superset),
     );
   }

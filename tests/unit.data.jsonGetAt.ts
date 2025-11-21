@@ -39,6 +39,11 @@ it("run", async () => {
       needle: undefined,
     },
     {
+      haystack: { inner: { missing: undefined } },
+      path: "inner.missing",
+      needle: undefined,
+    },
+    {
       haystack: {},
       path: "very[2].deep.missing",
       needle: undefined,
@@ -60,8 +65,14 @@ it("run", async () => {
     { haystack: { v: [1, 2, 3, 4, 5] }, path: "v[2]", needle: 3 },
     { haystack: { v: [1, 2, 3, 4, 5] }, path: "v[-1]", needle: 5 },
     { haystack: { v: [1, 2, 3, 4, 5] }, path: "v[5]", needle: undefined },
+    { haystack: { v: [1, 2, 3, 4, 5] }, path: "v[-5]", needle: 1 },
+    { haystack: { v: [1, 2, 3, 4, 5] }, path: "v[-6]", needle: undefined },
   ];
   for (const test of tests) {
-    expect(test.needle).toStrictEqual(jsonGetAt(test.haystack, test.path));
+    let needle = undefined;
+    try {
+      needle = jsonGetAt(test.haystack, test.path);
+    } catch {}
+    expect(test.needle).toStrictEqual(needle);
   }
 });

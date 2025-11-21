@@ -3,7 +3,6 @@ import {
   jsonCodecBytesBase16,
   jsonCodecInteger,
   jsonCodecNumber,
-  jsonCodecString,
   JsonDecoder,
   jsonDecoderArrayToObject,
   jsonDecoderArrayToTuple,
@@ -12,7 +11,6 @@ import {
   jsonDecoderInParallel,
   jsonDecoderNullable,
   jsonDecoderObject,
-  jsonDecoderObjectKey,
   jsonDecoderObjectToEnum,
   jsonDecoderObjectToMap,
   JsonValue,
@@ -109,14 +107,6 @@ it("run", async () => {
       decoded: { constructor: 77, toString: null },
     },
     {
-      encoded: {},
-      decoder: jsonDecoderObjectKey(
-        "toString",
-        jsonDecoderNullable(jsonCodecString.decoder),
-      ),
-      decoded: null,
-    },
-    {
       encoded: { lowerBase16: "f2f2", upperBase16: "F2F2" },
       decoder: jsonDecoderObject({
         lowerBase16: jsonCodecBytesBase16.decoder,
@@ -153,10 +143,10 @@ it("run", async () => {
     },
     {
       encoded: [999],
-      decoder: jsonDecoderArrayToTuple(
+      decoder: jsonDecoderArrayToTuple([
         jsonCodecNumber.decoder,
         jsonDecoderNullable(jsonCodecNumber.decoder),
-      ),
+      ]),
       decoded: [999, null],
     },
   ];

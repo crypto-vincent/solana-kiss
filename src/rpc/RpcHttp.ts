@@ -179,8 +179,8 @@ const responseJsonDecoder = jsonDecoderObject({
     jsonDecoderObject({
       code: jsonCodecNumber.decoder,
       message: jsonCodecString.decoder,
-      data: jsonDecoderNullable(jsonCodecValue.decoder),
+      data: jsonCodecValue.decoder,
     }),
   ),
-  result: jsonDecoderNullable(jsonCodecValue.decoder),
+  result: jsonCodecValue.decoder,
 });

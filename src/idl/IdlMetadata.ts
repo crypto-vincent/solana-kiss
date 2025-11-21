@@ -5,7 +5,6 @@ import {
   jsonDecoderInParallel,
   jsonDecoderNullable,
   jsonDecoderObject,
-  jsonDecoderObjectKey,
 } from "../data/Json";
 import { Pubkey } from "../data/Pubkey";
 import { IdlDocs, idlDocsParse } from "./IdlDocs";
@@ -25,15 +24,15 @@ export type IdlMetadata = {
 export function idlMetadataParse(value: JsonValue): IdlMetadata {
   const { keyed, root } = outerJsonDecoder(value);
   return {
-    name: keyed?.name ?? root?.name ?? undefined,
-    description: keyed?.description ?? root?.description ?? undefined,
-    repository: keyed?.repository ?? root?.repository ?? undefined,
-    contact: keyed?.contact ?? root?.contact ?? undefined,
-    address: keyed?.address ?? root?.address ?? undefined,
-    version: keyed?.version ?? root?.version ?? undefined,
-    source: keyed?.source ?? root?.source ?? undefined,
-    spec: keyed?.spec ?? root?.spec ?? undefined,
-    docs: keyed?.docs ?? root?.docs ?? undefined,
+    name: keyed?.metadata?.name ?? root?.name ?? undefined,
+    description: keyed?.metadata?.description ?? root?.description ?? undefined,
+    repository: keyed?.metadata?.repository ?? root?.repository ?? undefined,
+    contact: keyed?.metadata?.contact ?? root?.contact ?? undefined,
+    address: keyed?.metadata?.address ?? root?.address ?? undefined,
+    version: keyed?.metadata?.version ?? root?.version ?? undefined,
+    source: keyed?.metadata?.source ?? root?.source ?? undefined,
+    spec: keyed?.metadata?.spec ?? root?.spec ?? undefined,
+    docs: keyed?.metadata?.docs ?? root?.docs ?? undefined,
   };
 }
 
@@ -52,8 +51,6 @@ const innerJsonDecoder = jsonDecoderNullable(
 );
 
 const outerJsonDecoder = jsonDecoderInParallel({
-  keyed: jsonDecoderNullable(
-    jsonDecoderObjectKey("metadata", innerJsonDecoder),
-  ),
+  keyed: jsonDecoderNullable(jsonDecoderObject({ metadata: innerJsonDecoder })),
   root: innerJsonDecoder,
 });
