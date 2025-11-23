@@ -1,9 +1,9 @@
 import {
-  jsonCodecArray,
+  jsonCodecArrayToArray,
+  jsonCodecBigInt,
   jsonCodecBoolean,
-  jsonCodecInteger,
   jsonCodecNumber,
-  jsonCodecObject,
+  jsonCodecObjectToObject,
   jsonCodecPubkey,
   jsonGetAt,
   Pubkey,
@@ -48,12 +48,12 @@ it("run", async () => {
   );
 });
 
-const jsonCodec = jsonCodecObject({
-  deactivationSlot: jsonCodecInteger,
-  lastExtendedSlot: jsonCodecInteger,
+const jsonCodec = jsonCodecObjectToObject({
+  deactivationSlot: jsonCodecBigInt,
+  lastExtendedSlot: jsonCodecBigInt,
   lastExtendedIndex: jsonCodecNumber,
   editable: jsonCodecBoolean,
   authority: jsonCodecPubkey,
   padding: jsonCodecNumber,
-  addresses: jsonCodecArray(jsonCodecPubkey),
+  addresses: jsonCodecArrayToArray(jsonCodecPubkey),
 });

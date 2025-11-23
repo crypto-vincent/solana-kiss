@@ -13,7 +13,7 @@ export type Result<Value, Error = any> = OneKeyOf<{
 }>;
 
 export type Branded<T, Name> =
-  | (T & { readonly __brand: Name })
+  | (T & { readonly __unique: symbol })
   | { readonly __brand: Name };
 
 export function expectDefined<T>(value: T | undefined, name?: string): T {

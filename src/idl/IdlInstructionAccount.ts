@@ -1,14 +1,14 @@
 import { casingLosslessConvertToSnake } from "../data/Casing";
 import { withErrorContext } from "../data/Error";
 import {
-  jsonCodecArrayValues,
+  jsonCodecArray,
   jsonCodecBoolean,
   jsonCodecPubkey,
   jsonCodecString,
   jsonCodecValue,
-  jsonDecoderArray,
+  jsonDecoderArrayToArray,
   jsonDecoderNullable,
-  jsonDecoderObject,
+  jsonDecoderObjectToObject,
   JsonValue,
 } from "../data/Json";
 import { Pubkey, pubkeyFindPdaAddress, pubkeyFromBytes } from "../data/Pubkey";
@@ -158,10 +158,10 @@ export function idlInstructionAccountParse(
   ];
 }
 
-const jsonDecoder = jsonDecoderObject({
+const jsonDecoder = jsonDecoderObjectToObject({
   name: jsonCodecString.decoder,
   docs: idlDocsParse,
-  accounts: jsonDecoderNullable(jsonCodecArrayValues.decoder),
+  accounts: jsonDecoderNullable(jsonCodecArray.decoder),
   signer: jsonDecoderNullable(jsonCodecBoolean.decoder),
   writable: jsonDecoderNullable(jsonCodecBoolean.decoder),
   isSigner: jsonDecoderNullable(jsonCodecBoolean.decoder),
@@ -170,8 +170,8 @@ const jsonDecoder = jsonDecoderObject({
   isOptional: jsonDecoderNullable(jsonCodecBoolean.decoder),
   address: jsonDecoderNullable(jsonCodecPubkey.decoder),
   pda: jsonDecoderNullable(
-    jsonDecoderObject({
-      seeds: jsonDecoderArray(jsonCodecValue.decoder),
+    jsonDecoderObjectToObject({
+      seeds: jsonDecoderArrayToArray(jsonCodecValue.decoder),
       program: jsonCodecValue.decoder,
     }),
   ),

@@ -59,7 +59,9 @@ function codecArray(items: IdlTypeFull, context: CodecContext): string {
   if (items.isPrimitive(IdlTypePrimitive.u8)) {
     return stringFunctionCall(context, "jsonCodecBytesArray");
   }
-  return stringFunctionCall(context, "jsonCodecArray", [codec(context, items)]);
+  return stringFunctionCall(context, "jsonCodecArrayToArray", [
+    codec(context, items),
+  ]);
 }
 
 const visitor = {
@@ -137,7 +139,7 @@ const visitorFields = {
       }
       entries.push({ key: field.name, value: fieldContent });
     }
-    return stringFunctionCall(context, "jsonCodecObject", [
+    return stringFunctionCall(context, "jsonCodecObjectToObject", [
       stringObject(entries),
     ]);
   },
@@ -152,13 +154,13 @@ const visitorPrimitive = {
   u8: () => `jsonCodecNumber`,
   u16: () => `jsonCodecNumber`,
   u32: () => `jsonCodecNumber`,
-  u64: () => `jsonCodecInteger`,
-  u128: () => `jsonCodecInteger`,
+  u64: () => `jsonCodecBigInt`,
+  u128: () => `jsonCodecBigInt`,
   i8: () => `jsonCodecNumber`,
   i16: () => `jsonCodecNumber`,
   i32: () => `jsonCodecNumber`,
-  i64: () => `jsonCodecInteger`,
-  i128: () => `jsonCodecInteger`,
+  i64: () => `jsonCodecBigInt`,
+  i128: () => `jsonCodecBigInt`,
   f32: () => `jsonCodecNumber`,
   f64: () => `jsonCodecNumber`,
   bool: () => `jsonCodecBoolean`,

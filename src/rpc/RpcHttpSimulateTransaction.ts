@@ -6,12 +6,12 @@ import {
   jsonCodecNumber,
   jsonCodecPubkey,
   jsonCodecString,
-  jsonDecoderArray,
+  jsonDecoderArrayToArray,
   jsonDecoderArrayToObject,
   jsonDecoderByType,
   jsonDecoderConst,
   jsonDecoderNullable,
-  jsonDecoderObject,
+  jsonDecoderObjectToObject,
   JsonObject,
 } from "../data/Json";
 import { Pubkey, pubkeyDefault } from "../data/Pubkey";
@@ -100,9 +100,9 @@ export async function rpcHttpSimulateTransaction(
   };
 }
 
-const resultJsonDecoder = jsonDecoderObject({
-  context: jsonDecoderObject({ slot: jsonCodecBlockSlot.decoder }),
-  value: jsonDecoderObject({
+const resultJsonDecoder = jsonDecoderObjectToObject({
+  context: jsonDecoderObjectToObject({ slot: jsonCodecBlockSlot.decoder }),
+  value: jsonDecoderObjectToObject({
     unitsConsumed: jsonCodecNumber.decoder,
     fee: jsonDecoderNullable(jsonCodecNumber.decoder),
     err: jsonDecoderByType<null | string | JsonObject>({
@@ -110,12 +110,12 @@ const resultJsonDecoder = jsonDecoderObject({
       string: (string) => string,
       object: (object) => object,
     }),
-    logs: jsonDecoderNullable(jsonDecoderArray(jsonCodecString.decoder)),
+    logs: jsonDecoderNullable(jsonDecoderArrayToArray(jsonCodecString.decoder)),
     accounts: jsonDecoderNullable(
-      jsonDecoderArray(
+      jsonDecoderArrayToArray(
         jsonDecoderByType({
           null: () => null,
-          object: jsonDecoderObject({
+          object: jsonDecoderObjectToObject({
             executable: jsonCodecBoolean.decoder,
             lamports: jsonCodecNumber.decoder,
             owner: jsonCodecPubkey.decoder,

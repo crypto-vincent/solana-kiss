@@ -6,7 +6,7 @@ import {
   jsonCodecString,
   jsonCodecValue,
   jsonDecoderNullable,
-  jsonDecoderObject,
+  jsonDecoderObjectToObject,
 } from "../data/Json";
 
 // TODO - RPC WS ?
@@ -45,7 +45,9 @@ export function rpcHttpFromUrl(
   const fetcher =
     options?.customFetcher ??
     (async (url, request) => {
-      return (await fetch(url, request)).json();
+      const response = await fetch(url, request);
+      const jsonValue = await response.json();
+      return jsonValue as JsonValue;
     });
   return async function (method, params, config) {
     const contextCommitment = options?.commitment;
@@ -172,11 +174,11 @@ export function rpcHttpWithRetryOnError(
 
 let uniqueRequestId = 1;
 
-const responseJsonDecoder = jsonDecoderObject({
+const responseJsonDecoder = jsonDecoderObjectToObject({
   jsonrpc: jsonCodecString.decoder,
   id: jsonCodecNumber.decoder,
   error: jsonDecoderNullable(
-    jsonDecoderObject({
+    jsonDecoderObjectToObject({
       code: jsonCodecNumber.decoder,
       message: jsonCodecString.decoder,
       data: jsonCodecValue.decoder,

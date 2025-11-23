@@ -10,7 +10,7 @@ import {
   jsonCodecValue,
   jsonDecoderByType,
   jsonDecoderNullable,
-  jsonDecoderObject,
+  jsonDecoderObjectToObject,
   jsonGetAt,
   jsonPointerParse,
   jsonPointerPreview,
@@ -182,7 +182,7 @@ const jsonDecoder = jsonDecoderByType<{
   kind: string | null;
   path: string | null;
 }>({
-  object: jsonDecoderObject({
+  object: jsonDecoderObjectToObject({
     value: jsonCodecValue.decoder,
     type: jsonDecoderNullable(idlTypeFlatParse),
     kind: jsonDecoderNullable(jsonCodecString.decoder),

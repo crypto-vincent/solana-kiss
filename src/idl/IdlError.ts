@@ -4,7 +4,7 @@ import {
   jsonCodecString,
   jsonDecoderByType,
   jsonDecoderNullable,
-  jsonDecoderObject,
+  jsonDecoderObjectToObject,
 } from "../data/Json";
 import { IdlDocs, idlDocsParse } from "./IdlDocs";
 
@@ -34,7 +34,7 @@ export const jsonDecoder = jsonDecoderByType({
     code: number,
     msg: null,
   }),
-  object: jsonDecoderObject({
+  object: jsonDecoderObjectToObject({
     docs: idlDocsParse,
     code: jsonCodecNumber.decoder,
     msg: jsonDecoderNullable(jsonCodecString.decoder),

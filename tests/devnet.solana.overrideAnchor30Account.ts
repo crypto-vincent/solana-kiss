@@ -1,7 +1,7 @@
 import { expect, it } from "@jest/globals";
 import {
   idlProgramParse,
-  jsonCodecObjectValues,
+  jsonCodecObject,
   JsonValue,
   Pubkey,
   pubkeyFindPdaAddress,
@@ -59,7 +59,7 @@ async function assertAccountNameAndState(
   const { accountIdl, accountState } =
     await solana.getAndInferAndDecodeAccount(accountAddress);
   expect(accountIdl.name).toStrictEqual(accountName);
-  expect(
-    jsonCodecObjectValues.decoder(accountState)[accountStateKey],
-  ).toStrictEqual(accountStateValue);
+  expect(jsonCodecObject.decoder(accountState)[accountStateKey]).toStrictEqual(
+    accountStateValue,
+  );
 }

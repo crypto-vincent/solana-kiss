@@ -1,7 +1,7 @@
 import { expect, it } from "@jest/globals";
 import {
+  jsonCodecBigInt,
   jsonCodecBytesBase16,
-  jsonCodecInteger,
   jsonCodecNumber,
   JsonDecoder,
   jsonDecoderArrayToObject,
@@ -10,9 +10,9 @@ import {
   jsonDecoderConst,
   jsonDecoderInParallel,
   jsonDecoderNullable,
-  jsonDecoderObject,
   jsonDecoderObjectToEnum,
   jsonDecoderObjectToMap,
+  jsonDecoderObjectToObject,
   JsonValue,
 } from "../src";
 
@@ -46,15 +46,15 @@ it("run", async () => {
       decoder: jsonCodecNumber.decoder,
       decoded: -Infinity,
     },
-    { encoded: 42, decoder: jsonCodecInteger.decoder, decoded: 42n },
-    { encoded: "-42", decoder: jsonCodecInteger.decoder, decoded: -42n },
-    { encoded: "0xff", decoder: jsonCodecInteger.decoder, decoded: 255n },
-    { encoded: "0xf_f", decoder: jsonCodecInteger.decoder, decoded: 255n },
-    { encoded: "0b1_1", decoder: jsonCodecInteger.decoder, decoded: 3n },
+    { encoded: 42, decoder: jsonCodecBigInt.decoder, decoded: 42n },
+    { encoded: "-42", decoder: jsonCodecBigInt.decoder, decoded: -42n },
+    { encoded: "0xff", decoder: jsonCodecBigInt.decoder, decoded: 255n },
+    { encoded: "0xf_f", decoder: jsonCodecBigInt.decoder, decoded: 255n },
+    { encoded: "0b1_1", decoder: jsonCodecBigInt.decoder, decoded: 3n },
     {
       encoded: { outer: { inner: 42 } },
-      decoder: jsonDecoderObject({
-        outer: jsonDecoderObject({ inner: jsonCodecInteger.decoder }),
+      decoder: jsonDecoderObjectToObject({
+        outer: jsonDecoderObjectToObject({ inner: jsonCodecBigInt.decoder }),
       }),
       decoded: { outer: { inner: 42n } },
     },
@@ -62,7 +62,7 @@ it("run", async () => {
       encoded: 42,
       decoder: jsonDecoderInParallel({
         number: jsonCodecNumber.decoder,
-        bigint: jsonCodecInteger.decoder,
+        bigint: jsonCodecBigInt.decoder,
       }),
       decoded: { number: 42, bigint: 42n },
     },
@@ -92,7 +92,7 @@ it("run", async () => {
     },
     {
       encoded: { constructor: 12 },
-      decoder: jsonDecoderObject({
+      decoder: jsonDecoderObjectToObject({
         constructor: jsonDecoderNullable(jsonCodecNumber.decoder),
         toString: jsonDecoderNullable(jsonCodecNumber.decoder),
       }),
@@ -100,7 +100,7 @@ it("run", async () => {
     },
     {
       encoded: { constructor: 77, toString: undefined },
-      decoder: jsonDecoderObject({
+      decoder: jsonDecoderObjectToObject({
         constructor: jsonDecoderNullable(jsonCodecNumber.decoder),
         toString: jsonDecoderNullable(jsonCodecNumber.decoder),
       }),
@@ -108,7 +108,7 @@ it("run", async () => {
     },
     {
       encoded: { lowerBase16: "f2f2", upperBase16: "F2F2" },
-      decoder: jsonDecoderObject({
+      decoder: jsonDecoderObjectToObject({
         lowerBase16: jsonCodecBytesBase16.decoder,
         upperBase16: jsonCodecBytesBase16.decoder,
       }),
@@ -119,7 +119,7 @@ it("run", async () => {
     },
     {
       encoded: { snake_case: 142, camelCase: 143 },
-      decoder: jsonDecoderObject({
+      decoder: jsonDecoderObjectToObject({
         snakeCase: jsonDecoderNullable(jsonCodecNumber.decoder),
         camelCase: jsonDecoderNullable(jsonCodecNumber.decoder),
       }),
@@ -129,7 +129,7 @@ it("run", async () => {
       encoded: "Case1",
       decoder: jsonDecoderObjectToEnum({
         Case1: jsonDecoderConst(null),
-        Case2: jsonDecoderObject({ hello: jsonCodecNumber.decoder }),
+        Case2: jsonDecoderObjectToObject({ hello: jsonCodecNumber.decoder }),
       }),
       decoded: { Case1: null },
     },

@@ -4,14 +4,14 @@ import { InstructionRequest } from "../data/Instruction";
 import {
   JsonObject,
   JsonValue,
-  jsonCodecObjectValues,
+  jsonCodecObject,
   jsonCodecString,
   jsonCodecValue,
-  jsonDecoderArray,
+  jsonDecoderArrayToArray,
   jsonDecoderByType,
   jsonDecoderInParallel,
-  jsonDecoderObject,
   jsonDecoderObjectToMap,
+  jsonDecoderObjectToObject,
   jsonDecoderWrapped,
 } from "../data/Json";
 import { IdlAccount, idlAccountCheck, idlAccountParse } from "./IdlAccount";
@@ -107,7 +107,7 @@ export function idlProgramGuessError(
 }
 
 export function idlProgramParse(programValue: JsonValue): IdlProgram {
-  const programObject = jsonCodecObjectValues.decoder(programValue);
+  const programObject = jsonCodecObject.decoder(programValue);
   const metadata = idlMetadataParse(programObject);
   const typedefs = parseScopedNamedValues(
     programObject,
@@ -195,9 +195,9 @@ const collectionJsonDecoder = jsonDecoderByType({
     valueDecoder: (value) => value,
   }),
   array: jsonDecoderWrapped(
-    jsonDecoderArray(
+    jsonDecoderArrayToArray(
       jsonDecoderInParallel({
-        key: jsonDecoderObject({ name: jsonCodecString.decoder }),
+        key: jsonDecoderObjectToObject({ name: jsonCodecString.decoder }),
         value: jsonCodecValue.decoder,
       }),
     ),

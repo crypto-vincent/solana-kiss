@@ -54,26 +54,26 @@ it("run", async () => {
   );
   expect(dependencies).toStrictEqual(
     new Set<string>([
-      "jsonCodecObject",
-      "jsonCodecArray",
-      "jsonCodecNumber",
-      "jsonCodecNullable",
       "jsonCodecConst",
-      "jsonCodecObjectToEnum",
-      "jsonCodecArrayToTuple",
-      "jsonCodecInteger",
       "jsonCodecString",
-      "jsonCodecBytesArray",
-      "jsonCodecPubkey",
+      "jsonCodecNumber",
       "jsonCodecBoolean",
+      "jsonCodecBigInt",
+      "jsonCodecPubkey",
+      "jsonCodecNullable",
+      "jsonCodecBytesArray",
+      "jsonCodecArrayToArray",
+      "jsonCodecArrayToTuple",
+      "jsonCodecObjectToEnum",
+      "jsonCodecObjectToObject",
     ]),
   );
   expect(codec.replace(/\s/g, "")).toStrictEqual(
     stringCall(
-      "jsonCodecObject",
+      "jsonCodecObjectToObject",
       stringObject({
         field1: "jsonCodecNumber",
-        field2: stringCall("jsonCodecArray", "jsonCodecNumber"),
+        field2: stringCall("jsonCodecArrayToArray", "jsonCodecNumber"),
         field3: stringCall("jsonCodecNullable", "jsonCodecNumber"),
         field4: stringCall(
           "jsonCodecConst",
@@ -89,10 +89,10 @@ it("run", async () => {
             ),
             1: stringCall(
               "jsonCodecArrayToTuple",
-              stringArray(["jsonCodecNumber", "jsonCodecInteger"]),
+              stringArray(["jsonCodecNumber", "jsonCodecBigInt"]),
             ),
             Misc: stringCall(
-              "jsonCodecObject",
+              "jsonCodecObjectToObject",
               stringObject({
                 key: "jsonCodecPubkey",
                 bool: "jsonCodecBoolean",

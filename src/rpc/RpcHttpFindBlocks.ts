@@ -3,7 +3,7 @@ import {
   blockSlotFromNumber,
   blockSlotToNumber,
 } from "../data/Block";
-import { jsonCodecNumber, jsonDecoderArray } from "../data/Json";
+import { jsonCodecNumber, jsonDecoderArrayToArray } from "../data/Json";
 import { RpcHttp } from "./RpcHttp";
 
 export async function rpcHttpFindBlocks(
@@ -89,4 +89,4 @@ export async function rpcHttpFindBlocks(
   }
 }
 
-const resultJsonDecoder = jsonDecoderArray(jsonCodecNumber.decoder);
+const resultJsonDecoder = jsonDecoderArrayToArray(jsonCodecNumber.decoder);

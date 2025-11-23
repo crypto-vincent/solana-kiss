@@ -5,20 +5,20 @@ import {
   casingLosslessConvertToCamel,
   casingLosslessConvertToSnake,
   JsonCodec,
-  jsonCodecArray,
+  jsonCodecArrayToArray,
   jsonCodecArrayToObject,
   jsonCodecArrayToTuple,
+  jsonCodecBigInt,
   jsonCodecBlockHash,
   jsonCodecBlockSlot,
   jsonCodecBoolean,
   jsonCodecConst,
   jsonCodecDateTime,
-  jsonCodecInteger,
   jsonCodecNullable,
   jsonCodecNumber,
-  jsonCodecObject,
   jsonCodecObjectToEnum,
   jsonCodecObjectToMap,
+  jsonCodecObjectToObject,
   jsonCodecPubkey,
   jsonCodecSignature,
   jsonCodecString,
@@ -37,17 +37,17 @@ it("run", async () => {
   }> = [
     {
       encoded: { helloWorld: 1 },
-      codec: jsonCodecObject({ helloWorld: jsonCodecNumber }),
+      codec: jsonCodecObjectToObject({ helloWorld: jsonCodecNumber }),
       decoded: { helloWorld: 1 },
     },
     {
       encoded: { helloWorld: 2 },
-      codec: jsonCodecObject({ helloWorld: jsonCodecNumber }, {}),
+      codec: jsonCodecObjectToObject({ helloWorld: jsonCodecNumber }, {}),
       decoded: { helloWorld: 2 },
     },
     {
       encoded: { hello_world: 3 },
-      codec: jsonCodecObject(
+      codec: jsonCodecObjectToObject(
         { helloWorld: jsonCodecNumber },
         { keysEncoding: casingLosslessConvertToSnake },
       ),
@@ -55,7 +55,7 @@ it("run", async () => {
     },
     {
       encoded: { helloWorld: 4 },
-      codec: jsonCodecObject(
+      codec: jsonCodecObjectToObject(
         { hello_world: jsonCodecNumber },
         { keysEncoding: casingLosslessConvertToCamel },
       ),
@@ -63,7 +63,7 @@ it("run", async () => {
     },
     {
       encoded: { encoded_key: 5 },
-      codec: jsonCodecObject(
+      codec: jsonCodecObjectToObject(
         { decodedKey: jsonCodecNumber },
         { keysEncoding: { decodedKey: "encoded_key" } },
       ),
@@ -71,19 +71,19 @@ it("run", async () => {
     },
     {
       encoded: [6, 7],
-      codec: jsonCodecArray(jsonCodecNumber),
+      codec: jsonCodecArrayToArray(jsonCodecNumber),
       decoded: [6, 7],
     },
     {
       encoded: [null, "Hello", null],
-      codec: jsonCodecArray(jsonCodecNullable(jsonCodecString)),
+      codec: jsonCodecArrayToArray(jsonCodecNullable(jsonCodecString)),
       decoded: [null, "Hello", null],
     },
     {
       encoded: { const: 8, nullables: [null, true, false, null] },
-      codec: jsonCodecObject({
+      codec: jsonCodecObjectToObject({
         const: jsonCodecConst(8),
-        nullables: jsonCodecArray(jsonCodecNullable(jsonCodecBoolean)),
+        nullables: jsonCodecArrayToArray(jsonCodecNullable(jsonCodecBoolean)),
       }),
       decoded: { const: 8, nullables: [null, true, false, null] },
     },
@@ -95,7 +95,7 @@ it("run", async () => {
         blockHash: blockHash.toString(),
         blockSlot: 9,
       },
-      codec: jsonCodecObject({
+      codec: jsonCodecObjectToObject({
         datetime: jsonCodecDateTime,
         pubkey: jsonCodecPubkey,
         signature: jsonCodecSignature,
@@ -112,17 +112,17 @@ it("run", async () => {
     },
     {
       encoded: { integer1: "-42", integer2: "4242424242424242424242424242" },
-      codec: jsonCodecObject({
-        integer1: jsonCodecInteger,
-        integer2: jsonCodecInteger,
+      codec: jsonCodecObjectToObject({
+        integer1: jsonCodecBigInt,
+        integer2: jsonCodecBigInt,
       }),
       decoded: { integer1: -42n, integer2: 4242424242424242424242424242n },
     },
     {
       encoded: { outer: { inner: { value: 10 } } },
-      codec: jsonCodecObject({
-        outer: jsonCodecObject({
-          inner: jsonCodecObject({ value: jsonCodecNumber }),
+      codec: jsonCodecObjectToObject({
+        outer: jsonCodecObjectToObject({
+          inner: jsonCodecObjectToObject({ value: jsonCodecNumber }),
         }),
       }),
       decoded: { outer: { inner: { value: 10 } } },
@@ -140,7 +140,7 @@ it("run", async () => {
     },
     {
       encoded: { toString: 12, constructor: null },
-      codec: jsonCodecObject({
+      codec: jsonCodecObjectToObject({
         constructor: jsonCodecNullable(jsonCodecNumber),
         toString: jsonCodecNullable(jsonCodecNumber),
       }),
@@ -173,7 +173,7 @@ it("run", async () => {
       codec: jsonCodecArrayToObject({
         0: jsonCodecNumber,
         1: jsonCodecString,
-        2: jsonCodecObject({ nested: jsonCodecString }),
+        2: jsonCodecObjectToObject({ nested: jsonCodecString }),
       }),
       decoded: { 0: 1, 1: "hello", 2: { nested: "world" } },
     },
@@ -182,14 +182,14 @@ it("run", async () => {
       codec: jsonCodecArrayToTuple([
         jsonCodecNumber,
         jsonCodecString,
-        jsonCodecObject({ nested: jsonCodecString }),
+        jsonCodecObjectToObject({ nested: jsonCodecString }),
       ]),
       decoded: [42, "hello", { nested: "world" }],
     },
     {
       encoded: { case1: "100" },
       codec: jsonCodecObjectToEnum({
-        case1: jsonCodecInteger,
+        case1: jsonCodecBigInt,
         case2: jsonCodecString,
       }),
       decoded: { case1: 100n },
@@ -197,8 +197,8 @@ it("run", async () => {
     {
       encoded: { case2: { hello: "world" } },
       codec: jsonCodecObjectToEnum({
-        constructor: jsonCodecInteger,
-        case2: jsonCodecObject({
+        constructor: jsonCodecBigInt,
+        case2: jsonCodecObjectToObject({
           hello: jsonCodecString,
         }),
         toString: jsonCodecBoolean,
@@ -207,7 +207,7 @@ it("run", async () => {
     },
     {
       encoded: ["dudu", 42],
-      codec: jsonCodecArray(jsonCodecConst("dudu", 42, true)),
+      codec: jsonCodecArrayToArray(jsonCodecConst("dudu", 42, true)),
       decoded: ["dudu", 42],
     },
   ];

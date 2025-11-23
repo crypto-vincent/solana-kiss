@@ -7,7 +7,7 @@ import {
   jsonDecoderArrayToObject,
   jsonDecoderConst,
   jsonDecoderNullable,
-  jsonDecoderObject,
+  jsonDecoderObjectToObject,
 } from "../data/Json";
 import { Pubkey, pubkeyDefault, pubkeyToBase58 } from "../data/Pubkey";
 import { RpcHttp } from "./RpcHttp";
@@ -52,9 +52,9 @@ export async function rpcHttpGetAccountWithData(
   };
 }
 
-const resultJsonDecoder = jsonDecoderObject({
+const resultJsonDecoder = jsonDecoderObjectToObject({
   value: jsonDecoderNullable(
-    jsonDecoderObject({
+    jsonDecoderObjectToObject({
       executable: jsonCodecBoolean.decoder,
       lamports: jsonCodecNumber.decoder,
       owner: jsonCodecPubkey.decoder,

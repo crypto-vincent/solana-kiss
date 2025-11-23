@@ -5,7 +5,7 @@ import {
   idlAccountEncode,
   idlProgramParse,
   jsonCodecNumber,
-  jsonCodecObject,
+  jsonCodecObjectToObject,
   jsonCodecString,
 } from "../src";
 
@@ -73,10 +73,10 @@ it("run", () => {
   ).toStrictEqual(encodedSnake);
 });
 
-const jsonCodec = jsonCodecObject({
+const jsonCodec = jsonCodecObjectToObject({
   myKey1: jsonCodecString,
   myKey2: jsonCodecString,
-  myStruct: jsonCodecObject({
+  myStruct: jsonCodecObjectToObject({
     innerKey1: jsonCodecNumber,
     innerKey2: jsonCodecString,
   }),

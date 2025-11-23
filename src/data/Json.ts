@@ -378,7 +378,7 @@ export const jsonCodecString: JsonCodec<string> = {
   encoder: (decoded) => decoded,
 };
 
-export const jsonCodecArrayValues: JsonCodec<JsonArray> = {
+export const jsonCodecArray: JsonCodec<JsonArray> = {
   decoder: (encoded) => {
     const decoded = jsonAsArray(encoded);
     if (decoded === undefined) {
@@ -390,7 +390,7 @@ export const jsonCodecArrayValues: JsonCodec<JsonArray> = {
   },
   encoder: (decoded) => decoded,
 };
-export const jsonCodecObjectValues: JsonCodec<JsonObject> = {
+export const jsonCodecObject: JsonCodec<JsonObject> = {
   decoder: (encoded) => {
     const decoded = jsonAsObject(encoded);
     if (decoded === undefined) {
@@ -403,7 +403,7 @@ export const jsonCodecObjectValues: JsonCodec<JsonObject> = {
   encoder: (decoded) => decoded,
 };
 
-export const jsonCodecInteger: JsonCodec<bigint> = {
+export const jsonCodecBigInt: JsonCodec<bigint> = {
   decoder: jsonDecoderByType({
     number: (number) => BigInt(number),
     string: (string) => {
@@ -438,7 +438,7 @@ export const jsonCodecDateTime = jsonCodecWrapped(jsonCodecString, {
 });
 
 export const jsonCodecBytesArray: JsonCodec<Uint8Array> = jsonCodecWrapped(
-  jsonCodecArray(jsonCodecNumber),
+  jsonCodecArrayToArray(jsonCodecNumber),
   {
     decoder: (encoded) => new Uint8Array(encoded) as Uint8Array,
     encoder: (decoded) => Array.from(decoded),
@@ -489,7 +489,7 @@ export function jsonCodecConst<Values extends Array<JsonPrimitive>>(
   };
 }
 
-export function jsonDecoderArray<Item>(
+export function jsonDecoderArrayToArray<Item>(
   itemDecoder: JsonDecoder<Item>,
 ): JsonDecoder<Array<Item>> {
   return (encoded) => {
@@ -506,17 +506,17 @@ export function jsonDecoderArray<Item>(
     );
   };
 }
-export function jsonEncoderArray<Item>(
+export function jsonEncoderArrayToArray<Item>(
   itemEncoder: JsonEncoder<Item>,
 ): JsonEncoder<Array<Item>> {
   return (decoded) => decoded.map((item) => itemEncoder(item));
 }
-export function jsonCodecArray<Item>(
+export function jsonCodecArrayToArray<Item>(
   itemCodec: JsonCodec<Item>,
 ): JsonCodec<Array<Item>> {
   return {
-    decoder: jsonDecoderArray(itemCodec.decoder),
-    encoder: jsonEncoderArray(itemCodec.encoder),
+    decoder: jsonDecoderArrayToArray(itemCodec.decoder),
+    encoder: jsonEncoderArrayToArray(itemCodec.encoder),
   };
 }
 
@@ -527,7 +527,7 @@ export function jsonDecoderArrayToObject<
 ): JsonDecoder<{ [K in keyof Shape]: JsonDecoderContent<Shape[K]> }> {
   return (encoded) => {
     const decoded = {} as { [K in keyof Shape]: JsonDecoderContent<Shape[K]> };
-    const array = jsonCodecArrayValues.decoder(encoded);
+    const array = jsonCodecArray.decoder(encoded);
     let index = 0;
     for (const key in shape) {
       const valueEncoded = array[index++] ?? null;
@@ -575,7 +575,7 @@ export function jsonDecoderArrayToTuple<Items extends Array<JsonDecoder<any>>>(
 ): JsonDecoder<{ [K in keyof Items]: JsonDecoderContent<Items[K]> }> {
   return (encoded) => {
     const decoded = [] as { [K in keyof Items]: JsonDecoderContent<Items[K]> };
-    const array = jsonCodecArrayValues.decoder(encoded);
+    const array = jsonCodecArray.decoder(encoded);
     for (let index = 0; index < items.length; index++) {
       const itemEncoded = array[index] ?? null;
       const itemDecoded = withErrorContext(
@@ -609,7 +609,7 @@ export function jsonCodecArrayToTuple<Items extends Array<JsonCodec<any>>>(
   } as JsonCodec<{ [K in keyof Items]: JsonCodecContent<Items[K]> }>;
 }
 
-export function jsonDecoderObject<
+export function jsonDecoderObjectToObject<
   Shape extends { [key: string]: JsonDecoder<any> },
 >(
   shape: Shape,
@@ -621,7 +621,7 @@ export function jsonDecoderObject<
 ): JsonDecoder<{ [K in keyof Shape]: JsonDecoderContent<Shape[K]> }> {
   return (encoded) => {
     const decoded = {} as { [K in keyof Shape]: JsonDecoderContent<Shape[K]> };
-    const object = jsonCodecObjectValues.decoder(encoded);
+    const object = jsonCodecObject.decoder(encoded);
     for (const keyDecoded in shape) {
       const keyEncoded = objectGuessIntendedKey(
         object,
@@ -637,7 +637,7 @@ export function jsonDecoderObject<
     return decoded;
   };
 }
-export function jsonEncoderObject<
+export function jsonEncoderObjectToObject<
   Shape extends { [key: string]: JsonEncoder<any> },
 >(
   shape: Shape,
@@ -658,7 +658,7 @@ export function jsonEncoderObject<
     return encoded;
   };
 }
-export function jsonCodecObject<
+export function jsonCodecObjectToObject<
   Shape extends { [key: string]: JsonCodec<any> },
 >(
   shape: Shape,
@@ -675,8 +675,8 @@ export function jsonCodecObject<
     Object.entries(shape).map(([key, type]) => [key, type.encoder]),
   );
   return {
-    decoder: jsonDecoderObject(decodeShape as any, options as any),
-    encoder: jsonEncoderObject(encodeShape as any, options as any),
+    decoder: jsonDecoderObjectToObject(decodeShape as any, options as any),
+    encoder: jsonEncoderObjectToObject(encodeShape as any, options as any),
   } as JsonCodec<{ [K in keyof Shape]: JsonCodecContent<Shape[K]> }>;
 }
 
@@ -686,7 +686,7 @@ export function jsonDecoderObjectToMap<Key, Value>(params: {
 }): JsonDecoder<Map<Key, Value>> {
   return (encoded) => {
     const decoded = new Map<Key, Value>();
-    const object = jsonCodecObjectValues.decoder(encoded);
+    const object = jsonCodecObject.decoder(encoded);
     for (const keyEncoded of Object.keys(object)) {
       const valueEncoded = objectGetOwnProperty(object, keyEncoded);
       if (valueEncoded === undefined) {
@@ -846,7 +846,7 @@ export function jsonDecoderOneOfKeys<
     if (string !== undefined) {
       object = { [string]: null } as JsonObject;
     } else {
-      object = jsonCodecObjectValues.decoder(encoded);
+      object = jsonCodecObject.decoder(encoded);
     }
     let found: { key: string; valueEncoded: JsonValue } | undefined = undefined;
     for (const key in shape) {

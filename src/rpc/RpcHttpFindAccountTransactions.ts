@@ -1,7 +1,7 @@
 import {
   jsonCodecSignature,
-  jsonDecoderArray,
-  jsonDecoderObject,
+  jsonDecoderArrayToArray,
+  jsonDecoderObjectToObject,
 } from "../data/Json";
 import { Pubkey, pubkeyToBase58 } from "../data/Pubkey";
 import { TransactionHandle } from "../data/Transaction";
@@ -49,6 +49,6 @@ export async function rpcHttpFindAccountTransactions(
   }
 }
 
-const resultJsonDecoder = jsonDecoderArray(
-  jsonDecoderObject({ signature: jsonCodecSignature.decoder }),
+const resultJsonDecoder = jsonDecoderArrayToArray(
+  jsonDecoderObjectToObject({ signature: jsonCodecSignature.decoder }),
 );

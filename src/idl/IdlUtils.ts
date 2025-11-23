@@ -11,7 +11,7 @@ import {
   jsonCodecValue,
   jsonDecoderByType,
   jsonDecoderNullable,
-  jsonDecoderObject,
+  jsonDecoderObjectToObject,
   jsonDecoderOneOfKeys,
   jsonDecoderWrapped,
   jsonPreview,
@@ -36,7 +36,7 @@ export const idlUtilsBytesJsonDecoder = jsonDecoderByType({
       (n) => new Uint8Array(n),
     ),
     encode: jsonDecoderWrapped(
-      jsonDecoderObject({
+      jsonDecoderObjectToObject({
         value: jsonCodecValue.decoder,
         type: jsonDecoderNullable(idlTypeFlatParse),
         prefixed: jsonDecoderNullable(jsonCodecBoolean.decoder),

@@ -1,6 +1,6 @@
 import {
   jsonCodecString,
-  jsonDecoderArray,
+  jsonDecoderArrayToArray,
   jsonDecoderByType,
   jsonDecoderNullable,
   JsonValue,
@@ -15,6 +15,6 @@ export function idlDocsParse(docsValue: JsonValue): IdlDocs {
 const jsonDecoder = jsonDecoderNullable(
   jsonDecoderByType({
     string: (string: string) => [string],
-    array: jsonDecoderArray(jsonCodecString.decoder),
+    array: jsonDecoderArrayToArray(jsonCodecString.decoder),
   }),
 );

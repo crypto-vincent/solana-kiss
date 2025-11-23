@@ -1,8 +1,8 @@
 import { base58Encode } from "../data/Base58";
 import {
   jsonCodecPubkey,
-  jsonDecoderArray,
-  jsonDecoderObject,
+  jsonDecoderArrayToArray,
+  jsonDecoderObjectToObject,
 } from "../data/Json";
 import { Pubkey, pubkeyToBase58 } from "../data/Pubkey";
 import { RpcHttp } from "./RpcHttp";
@@ -52,6 +52,6 @@ export async function rpcHttpFindProgramOwnedAccounts(
   return { accountsAddresses };
 }
 
-const resultJsonDecoder = jsonDecoderArray(
-  jsonDecoderObject({ pubkey: jsonCodecPubkey.decoder }),
+const resultJsonDecoder = jsonDecoderArrayToArray(
+  jsonDecoderObjectToObject({ pubkey: jsonCodecPubkey.decoder }),
 );

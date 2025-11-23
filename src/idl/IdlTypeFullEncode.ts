@@ -3,8 +3,8 @@ import {
   jsonAsNumber,
   jsonAsObject,
   jsonAsString,
-  jsonCodecArrayValues,
-  jsonCodecObjectValues,
+  jsonCodecArray,
+  jsonCodecObject,
   jsonCodecString,
   jsonPreview,
   JsonValue,
@@ -116,7 +116,7 @@ const visitorEncode = {
       blobs.push(bytes);
       return;
     }
-    const array = jsonCodecArrayValues.decoder(value);
+    const array = jsonCodecArray.decoder(value);
     if (prefixed) {
       idlTypePrefixEncode(self.prefix, BigInt(array.length), blobs);
     }
@@ -130,7 +130,7 @@ const visitorEncode = {
     blobs: Array<Uint8Array>,
     prefixed: boolean,
   ) => {
-    const array = jsonCodecArrayValues.decoder(value);
+    const array = jsonCodecArray.decoder(value);
     for (const item of array) {
       typeFullEncode(self.items, item, prefixed, blobs);
     }
@@ -154,7 +154,7 @@ const visitorEncode = {
       blobs.push(bytes);
       return;
     }
-    const array = jsonCodecArrayValues.decoder(value);
+    const array = jsonCodecArray.decoder(value);
     if (array.length != self.length) {
       throw new Error(
         `Expected an array of size: ${self.length}, found: ${array.length}`,
@@ -303,7 +303,7 @@ const visitorFieldsEncode = {
     blobs: Array<Uint8Array>,
     prefixed: boolean,
   ) => {
-    const object = jsonCodecObjectValues.decoder(value);
+    const object = jsonCodecObject.decoder(value);
     for (const field of self) {
       const fieldName = objectGuessIntendedKey(object, field.name);
       const fieldValue = objectGetOwnProperty(object, fieldName);
@@ -318,7 +318,7 @@ const visitorFieldsEncode = {
     blobs: Array<Uint8Array>,
     prefixed: boolean,
   ) => {
-    const array = jsonCodecArrayValues.decoder(value);
+    const array = jsonCodecArray.decoder(value);
     for (let index = 0; index < self.length; index++) {
       const field = self[index]!;
       withErrorContext(`Encode: Field: Unamed: ${index}`, () => {

@@ -1,4 +1,4 @@
-import { jsonCodecNumber, jsonDecoderObject } from "../data/Json";
+import { jsonCodecNumber, jsonDecoderObjectToObject } from "../data/Json";
 import { Pubkey, pubkeyToBase58 } from "../data/Pubkey";
 import { RpcHttp } from "./RpcHttp";
 
@@ -14,6 +14,6 @@ export async function rpcHttpGetAccountLamports(
   return { accountLamports: BigInt(result.value) };
 }
 
-const resultJsonDecoder = jsonDecoderObject({
+const resultJsonDecoder = jsonDecoderObjectToObject({
   value: jsonCodecNumber.decoder,
 });

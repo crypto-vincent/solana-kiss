@@ -6,18 +6,18 @@ import {
   jsonAsNumber,
   jsonAsObject,
   jsonAsString,
-  jsonCodecInteger,
+  jsonCodecBigInt,
   jsonCodecNumber,
   jsonCodecString,
   jsonCodecValue,
-  jsonDecoderArray,
+  jsonDecoderArrayToArray,
   jsonDecoderArrayToObject,
   jsonDecoderByType,
   jsonDecoderConst,
   jsonDecoderInParallel,
   jsonDecoderNullable,
-  jsonDecoderObject,
   jsonDecoderObjectToMap,
+  jsonDecoderObjectToObject,
   jsonDecoderOneOfKeys,
   jsonDecoderWrapped,
 } from "../data/Json";
@@ -88,7 +88,7 @@ const fieldsItemJsonDecoder = jsonDecoderInParallel({
     null: () => ({ name: null, docs: undefined }),
     string: () => ({ name: null, docs: undefined }),
     array: () => ({ name: null, docs: undefined }),
-    object: jsonDecoderObject({
+    object: jsonDecoderObjectToObject({
       name: jsonDecoderNullable(jsonCodecString.decoder),
       docs: idlDocsParse,
     }),
@@ -98,7 +98,7 @@ const fieldsItemJsonDecoder = jsonDecoderInParallel({
 const fieldsJsonDecoder = jsonDecoderByType({
   null: () => IdlTypeFlatFields.nothing(),
   array: jsonDecoderWrapped(
-    jsonDecoderArray(fieldsItemJsonDecoder),
+    jsonDecoderArrayToArray(fieldsItemJsonDecoder),
     (fieldsItems) => {
       if (fieldsItems.length === 0) {
         return IdlTypeFlatFields.nothing();
@@ -153,9 +153,9 @@ const variantsArrayItemJsonDecoder = jsonDecoderByType<{
     docs: undefined,
     fields: fieldsJsonDecoder(array),
   }),
-  object: jsonDecoderObject({
+  object: jsonDecoderObjectToObject({
     name: jsonDecoderNullable(jsonCodecString.decoder),
-    code: jsonDecoderNullable(jsonCodecInteger.decoder),
+    code: jsonDecoderNullable(jsonCodecBigInt.decoder),
     docs: idlDocsParse,
     fields: fieldsJsonDecoder,
   }),
@@ -175,15 +175,15 @@ const variantsObjectValueJsonDecoder = jsonDecoderByType<{
     docs: undefined,
     fields: IdlTypeFlatFields.nothing(),
   }),
-  object: jsonDecoderObject({
-    code: jsonCodecInteger.decoder,
+  object: jsonDecoderObjectToObject({
+    code: jsonCodecBigInt.decoder,
     docs: idlDocsParse,
     fields: fieldsJsonDecoder,
   }),
 });
 const variantsJsonDecoder = jsonDecoderByType({
   array: jsonDecoderWrapped(
-    jsonDecoderArray(variantsArrayItemJsonDecoder),
+    jsonDecoderArrayToArray(variantsArrayItemJsonDecoder),
     (variantsArray) =>
       variantsArray.map((variant) => ({
         name: variant.name ?? undefined,
@@ -218,9 +218,9 @@ const objectDefinedJsonDecoder = jsonDecoderWrapped(
       name: string,
       generics: null,
     }),
-    object: jsonDecoderObject({
+    object: jsonDecoderObjectToObject({
       name: jsonCodecString.decoder,
-      generics: jsonDecoderNullable(jsonDecoderArray(idlTypeFlatParse)),
+      generics: jsonDecoderNullable(jsonDecoderArrayToArray(idlTypeFlatParse)),
     }),
   }),
   (defined) =>
@@ -257,11 +257,11 @@ function objectVecJsonDecoder(prefix: IdlTypePrefix) {
 }
 
 const objectLoopJsonDecoder = jsonDecoderWrapped(
-  jsonDecoderObject({
+  jsonDecoderObjectToObject({
     items: idlTypeFlatParse,
     stop: jsonDecoderByType<"end" | { value: JsonValue }>({
       string: jsonDecoderConst("end"),
-      object: jsonDecoderObject({ value: jsonCodecValue.decoder }),
+      object: jsonDecoderObjectToObject({ value: jsonCodecValue.decoder }),
     }),
   }),
   (content) => IdlTypeFlat.loop(content),
@@ -278,7 +278,7 @@ function objectEnumJsonDecoder(prefix: IdlTypePrefix) {
   });
 }
 
-const objectPadInfoJsonDecoder = jsonDecoderObject({
+const objectPadInfoJsonDecoder = jsonDecoderObjectToObject({
   before: jsonDecoderNullable(jsonCodecNumber.decoder),
   end: jsonDecoderNullable(jsonCodecNumber.decoder),
 });

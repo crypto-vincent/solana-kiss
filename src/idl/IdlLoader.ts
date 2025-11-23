@@ -2,7 +2,7 @@ import { inflate } from "uzip";
 import { ErrorStack } from "../data/Error";
 import {
   jsonCodecBytesArray,
-  jsonCodecObject,
+  jsonCodecObjectToObject,
   jsonCodecPubkey,
   JsonValue,
 } from "../data/Json";
@@ -133,7 +133,7 @@ const anchorIdlAccount = idlAccountParse("anchor:idl", {
   ],
 });
 
-const anchorIdlJsonCodec = jsonCodecObject({
+const anchorIdlJsonCodec = jsonCodecObjectToObject({
   authority: jsonCodecPubkey,
   deflatedJson: jsonCodecBytesArray,
 });

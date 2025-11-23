@@ -2,9 +2,9 @@ import { casingLosslessConvertToSnake } from "../data/Casing";
 import { ErrorStack, withErrorContext } from "../data/Error";
 import { InstructionInput } from "../data/Instruction";
 import {
-  jsonCodecArrayValues,
+  jsonCodecArray,
   jsonDecoderNullable,
-  jsonDecoderObject,
+  jsonDecoderObjectToObject,
   JsonValue,
 } from "../data/Json";
 import { Pubkey } from "../data/Pubkey";
@@ -304,10 +304,10 @@ export function idlInstructionParse(
   };
 }
 
-const jsonDecoder = jsonDecoderObject({
+const jsonDecoder = jsonDecoderObjectToObject({
   docs: idlDocsParse,
   discriminator: jsonDecoderNullable(idlUtilsBytesJsonDecoder),
   args: jsonDecoderNullable(idlTypeFlatFieldsParse),
   returns: jsonDecoderNullable(idlTypeFlatParse),
-  accounts: jsonDecoderNullable(jsonCodecArrayValues.decoder),
+  accounts: jsonDecoderNullable(jsonCodecArray.decoder),
 });

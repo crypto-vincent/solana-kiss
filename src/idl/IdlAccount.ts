@@ -1,9 +1,9 @@
 import {
   JsonValue,
   jsonCodecNumber,
-  jsonDecoderArray,
+  jsonDecoderArrayToArray,
   jsonDecoderNullable,
-  jsonDecoderObject,
+  jsonDecoderObjectToObject,
 } from "../data/Json";
 import { IdlDocs, idlDocsParse } from "./IdlDocs";
 import { IdlTypedef } from "./IdlTypedef";
@@ -106,12 +106,12 @@ export function idlAccountParse(
   };
 }
 
-const jsonDecoder = jsonDecoderObject({
+const jsonDecoder = jsonDecoderObjectToObject({
   docs: idlDocsParse,
   space: jsonDecoderNullable(jsonCodecNumber.decoder),
   blobs: jsonDecoderNullable(
-    jsonDecoderArray(
-      jsonDecoderObject({
+    jsonDecoderArrayToArray(
+      jsonDecoderObjectToObject({
         offset: jsonCodecNumber.decoder,
         bytes: idlUtilsBytesJsonDecoder,
       }),

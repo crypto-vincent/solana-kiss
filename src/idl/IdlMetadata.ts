@@ -4,7 +4,7 @@ import {
   jsonCodecString,
   jsonDecoderInParallel,
   jsonDecoderNullable,
-  jsonDecoderObject,
+  jsonDecoderObjectToObject,
 } from "../data/Json";
 import { Pubkey } from "../data/Pubkey";
 import { IdlDocs, idlDocsParse } from "./IdlDocs";
@@ -23,21 +23,22 @@ export type IdlMetadata = {
 
 export function idlMetadataParse(value: JsonValue): IdlMetadata {
   const { keyed, root } = outerJsonDecoder(value);
+  const metadata = keyed?.metadata;
   return {
-    name: keyed?.metadata?.name ?? root?.name ?? undefined,
-    description: keyed?.metadata?.description ?? root?.description ?? undefined,
-    repository: keyed?.metadata?.repository ?? root?.repository ?? undefined,
-    contact: keyed?.metadata?.contact ?? root?.contact ?? undefined,
-    address: keyed?.metadata?.address ?? root?.address ?? undefined,
-    version: keyed?.metadata?.version ?? root?.version ?? undefined,
-    source: keyed?.metadata?.source ?? root?.source ?? undefined,
-    spec: keyed?.metadata?.spec ?? root?.spec ?? undefined,
-    docs: keyed?.metadata?.docs ?? root?.docs ?? undefined,
+    name: metadata?.name ?? root?.name ?? undefined,
+    description: metadata?.description ?? root?.description ?? undefined,
+    repository: metadata?.repository ?? root?.repository ?? undefined,
+    contact: metadata?.contact ?? root?.contact ?? undefined,
+    address: metadata?.address ?? root?.address ?? undefined,
+    version: metadata?.version ?? root?.version ?? undefined,
+    source: metadata?.source ?? root?.source ?? undefined,
+    spec: metadata?.spec ?? root?.spec ?? undefined,
+    docs: metadata?.docs ?? root?.docs ?? undefined,
   };
 }
 
 const innerJsonDecoder = jsonDecoderNullable(
-  jsonDecoderObject({
+  jsonDecoderObjectToObject({
     name: jsonDecoderNullable(jsonCodecString.decoder),
     description: jsonDecoderNullable(jsonCodecString.decoder),
     repository: jsonDecoderNullable(jsonCodecString.decoder),
@@ -51,6 +52,8 @@ const innerJsonDecoder = jsonDecoderNullable(
 );
 
 const outerJsonDecoder = jsonDecoderInParallel({
-  keyed: jsonDecoderNullable(jsonDecoderObject({ metadata: innerJsonDecoder })),
+  keyed: jsonDecoderNullable(
+    jsonDecoderObjectToObject({ metadata: innerJsonDecoder }),
+  ),
   root: innerJsonDecoder,
 });

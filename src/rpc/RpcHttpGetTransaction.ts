@@ -8,10 +8,10 @@ import {
   jsonCodecPubkey,
   jsonCodecSignature,
   jsonCodecString,
-  jsonDecoderArray,
+  jsonDecoderArrayToArray,
   jsonDecoderByType,
   jsonDecoderNullable,
-  jsonDecoderObject,
+  jsonDecoderObjectToObject,
   JsonObject,
 } from "../data/Json";
 import { Pubkey, pubkeyFromBase58 } from "../data/Pubkey";
@@ -376,12 +376,12 @@ function parseTransactionInvocations(
   return { logIndex };
 }
 
-const compiledInstructionsJsonDecoder = jsonDecoderArray(
-  jsonDecoderObject(
+const compiledInstructionsJsonDecoder = jsonDecoderArrayToArray(
+  jsonDecoderObjectToObject(
     {
       stackHeight: jsonCodecNumber.decoder,
       programIndex: jsonCodecNumber.decoder,
-      accountsIndexes: jsonDecoderArray(jsonCodecNumber.decoder),
+      accountsIndexes: jsonDecoderArrayToArray(jsonCodecNumber.decoder),
       dataBase58: jsonCodecString.decoder,
     },
     {
@@ -396,9 +396,9 @@ const compiledInstructionsJsonDecoder = jsonDecoderArray(
 );
 
 const resultJsonDecoder = jsonDecoderNullable(
-  jsonDecoderObject({
+  jsonDecoderObjectToObject({
     blockTime: jsonDecoderNullable(jsonCodecNumber.decoder),
-    meta: jsonDecoderObject({
+    meta: jsonDecoderObjectToObject({
       computeUnitsConsumed: jsonCodecNumber.decoder,
       err: jsonDecoderByType<null | string | JsonObject>({
         null: () => null,
@@ -407,37 +407,37 @@ const resultJsonDecoder = jsonDecoderNullable(
       }),
       fee: jsonDecoderNullable(jsonCodecNumber.decoder),
       innerInstructions: jsonDecoderNullable(
-        jsonDecoderArray(
-          jsonDecoderObject({
+        jsonDecoderArrayToArray(
+          jsonDecoderObjectToObject({
             index: jsonCodecNumber.decoder,
             instructions: compiledInstructionsJsonDecoder,
           }),
         ),
       ),
       loadedAddresses: jsonDecoderNullable(
-        jsonDecoderObject({
-          writable: jsonDecoderArray(jsonCodecPubkey.decoder),
-          readonly: jsonDecoderArray(jsonCodecPubkey.decoder),
+        jsonDecoderObjectToObject({
+          writable: jsonDecoderArrayToArray(jsonCodecPubkey.decoder),
+          readonly: jsonDecoderArrayToArray(jsonCodecPubkey.decoder),
         }),
       ),
       logMessages: jsonDecoderNullable(
-        jsonDecoderArray(jsonCodecString.decoder),
+        jsonDecoderArrayToArray(jsonCodecString.decoder),
       ),
     }),
     slot: jsonCodecBlockSlot.decoder,
-    transaction: jsonDecoderObject({
-      message: jsonDecoderObject({
-        accountKeys: jsonDecoderArray(jsonCodecPubkey.decoder),
+    transaction: jsonDecoderObjectToObject({
+      message: jsonDecoderObjectToObject({
+        accountKeys: jsonDecoderArrayToArray(jsonCodecPubkey.decoder),
         addressTableLookups: jsonDecoderNullable(
-          jsonDecoderArray(
-            jsonDecoderObject({
+          jsonDecoderArrayToArray(
+            jsonDecoderObjectToObject({
               accountKey: jsonCodecPubkey.decoder,
-              readonlyIndexes: jsonDecoderArray(jsonCodecNumber.decoder),
-              writableIndexes: jsonDecoderArray(jsonCodecNumber.decoder),
+              readonlyIndexes: jsonDecoderArrayToArray(jsonCodecNumber.decoder),
+              writableIndexes: jsonDecoderArrayToArray(jsonCodecNumber.decoder),
             }),
           ),
         ),
-        header: jsonDecoderObject({
+        header: jsonDecoderObjectToObject({
           numReadonlySignedAccounts: jsonCodecNumber.decoder,
           numReadonlyUnsignedAccounts: jsonCodecNumber.decoder,
           numRequiredSignatures: jsonCodecNumber.decoder,
@@ -445,7 +445,7 @@ const resultJsonDecoder = jsonDecoderNullable(
         instructions: compiledInstructionsJsonDecoder,
         recentBlockhash: jsonCodecBlockHash.decoder,
       }),
-      signatures: jsonDecoderArray(jsonCodecSignature.decoder),
+      signatures: jsonDecoderArrayToArray(jsonCodecSignature.decoder),
     }),
   }),
 );

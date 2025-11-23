@@ -4,7 +4,7 @@ import {
   jsonCodecBlockSlot,
   jsonCodecNumber,
   jsonDecoderNullable,
-  jsonDecoderObject,
+  jsonDecoderObjectToObject,
 } from "../data/Json";
 import { RpcHttp } from "./RpcHttp";
 
@@ -33,7 +33,7 @@ export async function rpcHttpGetBlockMetadata(
   };
 }
 
-const resultJsonDecoder = jsonDecoderObject({
+const resultJsonDecoder = jsonDecoderObjectToObject({
   parentSlot: jsonCodecBlockSlot.decoder,
   blockHeight: jsonDecoderNullable(jsonCodecNumber.decoder),
   blockTime: jsonDecoderNullable(jsonCodecNumber.decoder),
