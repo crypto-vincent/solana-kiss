@@ -1,8 +1,8 @@
 import { base64Encode } from "../data/Base64";
 import {
+  jsonCodecBase64ToBytes,
   jsonCodecBlockSlot,
   jsonCodecBoolean,
-  jsonCodecBytesBase64,
   jsonCodecNumber,
   jsonCodecPubkey,
   jsonCodecString,
@@ -120,7 +120,7 @@ const resultJsonDecoder = jsonDecoderObjectToObject({
             lamports: jsonCodecNumber.decoder,
             owner: jsonCodecPubkey.decoder,
             data: jsonDecoderArrayToObject({
-              bytes: jsonCodecBytesBase64.decoder,
+              bytes: jsonCodecBase64ToBytes.decoder,
               encoding: jsonDecoderConst("base64"),
             }),
           }),

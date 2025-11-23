@@ -41,7 +41,7 @@ export type IdlInstructionAccountPda = {
 };
 
 export type IdlInstructionAccountFindContext = {
-  instructionAddresses?: IdlInstructionAddresses;
+  instructionAddresses: IdlInstructionAddresses;
   instructionPayload?: JsonValue | undefined;
   accountsContext?: IdlInstructionBlobAccountsContext;
   accountFetcher?: IdlInstructionBlobAccountFetcher;

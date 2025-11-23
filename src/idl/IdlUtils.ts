@@ -1,13 +1,13 @@
 import {
   jsonAsArray,
   jsonAsString,
+  jsonCodecArrayToBytes,
+  jsonCodecBase16ToBytes,
+  jsonCodecBase58ToBytes,
+  jsonCodecBase64ToBytes,
   jsonCodecBoolean,
-  jsonCodecBytesArray,
-  jsonCodecBytesBase16,
-  jsonCodecBytesBase58,
-  jsonCodecBytesBase64,
-  jsonCodecBytesUtf8,
   jsonCodecNumber,
+  jsonCodecUtf8ToBytes,
   jsonCodecValue,
   jsonDecoderByType,
   jsonDecoderNullable,
@@ -25,12 +25,12 @@ import { idlTypeFlatParse } from "./IdlTypeFlatParse";
 import { idlTypeFullEncode } from "./IdlTypeFullEncode";
 
 export const idlUtilsBytesJsonDecoder = jsonDecoderByType({
-  array: jsonCodecBytesArray.decoder,
+  array: jsonCodecArrayToBytes.decoder,
   object: jsonDecoderOneOfKeys({
-    utf8: jsonCodecBytesUtf8.decoder,
-    base16: jsonCodecBytesBase16.decoder,
-    base58: jsonCodecBytesBase58.decoder,
-    base64: jsonCodecBytesBase64.decoder,
+    utf8: jsonCodecUtf8ToBytes.decoder,
+    base16: jsonCodecBase16ToBytes.decoder,
+    base58: jsonCodecBase58ToBytes.decoder,
+    base64: jsonCodecBase64ToBytes.decoder,
     zeroes: jsonDecoderWrapped(
       jsonCodecNumber.decoder,
       (n) => new Uint8Array(n),

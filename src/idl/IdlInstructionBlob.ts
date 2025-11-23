@@ -228,14 +228,12 @@ const computeVisitor = {
       self.typeFull === undefined ||
       self.typeFull.isPrimitive(IdlTypePrimitive.pubkey)
     ) {
-      if (findContext.instructionAddresses !== undefined) {
-        for (const [accountField, instructionAddress] of Object.entries(
-          findContext.instructionAddresses,
-        )) {
-          for (const path of self.paths) {
-            if (path === accountField) {
-              return pubkeyToBytes(instructionAddress);
-            }
+      for (const [accountField, instructionAddress] of Object.entries(
+        findContext.instructionAddresses,
+      )) {
+        for (const path of self.paths) {
+          if (path === accountField) {
+            return pubkeyToBytes(instructionAddress);
           }
         }
       }
@@ -256,7 +254,7 @@ const computeVisitor = {
         }
       }
     }
-    if (findContext.accountFetcher && findContext.instructionAddresses) {
+    if (findContext.accountFetcher) {
       for (const [accountField, instructionAddress] of Object.entries(
         findContext.instructionAddresses,
       )) {

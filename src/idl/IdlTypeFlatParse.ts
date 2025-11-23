@@ -48,7 +48,11 @@ export function idlTypeFlatParseIsPossible(value: JsonValue): boolean {
   if (object === undefined) {
     return false;
   }
-  for (const objectKey of Object.keys(object)) {
+  for (const objectKey in object) {
+    const objectValue = object[objectKey];
+    if (objectValue === undefined) {
+      continue;
+    }
     if (objectJsonDecoderKeys.has(objectKey)) {
       return true;
     }

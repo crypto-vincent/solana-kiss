@@ -30,13 +30,7 @@ export function timeoutMs(durationMs: number): Promise<void> {
 export function objectGetOwnProperty<
   Object extends object,
   Key extends keyof Object,
->(
-  object: Object | undefined,
-  key: Key,
-): Object[Key & keyof Object] | undefined {
-  if (object === undefined) {
-    return undefined;
-  }
+>(object: Object, key: Key): Object[Key & keyof Object] | undefined {
   if (Object.prototype.hasOwnProperty.call(object, key)) {
     return object[key];
   }

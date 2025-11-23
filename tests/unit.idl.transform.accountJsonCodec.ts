@@ -61,9 +61,9 @@ it("run", async () => {
       "jsonCodecBigInt",
       "jsonCodecPubkey",
       "jsonCodecNullable",
-      "jsonCodecBytesArray",
       "jsonCodecArrayToArray",
       "jsonCodecArrayToTuple",
+      "jsonCodecArrayToBytes",
       "jsonCodecObjectToEnum",
       "jsonCodecObjectToObject",
     ]),
@@ -85,7 +85,7 @@ it("run", async () => {
           stringObject({
             0: stringCall(
               "jsonCodecArrayToTuple",
-              stringArray(["jsonCodecString", "jsonCodecBytesArray"]),
+              stringArray(["jsonCodecString", "jsonCodecArrayToBytes"]),
             ),
             1: stringCall(
               "jsonCodecArrayToTuple",

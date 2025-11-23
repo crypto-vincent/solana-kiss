@@ -57,7 +57,7 @@ function codecFields(
 
 function codecArray(items: IdlTypeFull, context: CodecContext): string {
   if (items.isPrimitive(IdlTypePrimitive.u8)) {
-    return stringFunctionCall(context, "jsonCodecBytesArray");
+    return stringFunctionCall(context, "jsonCodecArrayToBytes");
   }
   return stringFunctionCall(context, "jsonCodecArrayToArray", [
     codec(context, items),

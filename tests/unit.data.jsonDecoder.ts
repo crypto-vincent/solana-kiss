@@ -1,7 +1,7 @@
 import { expect, it } from "@jest/globals";
 import {
+  jsonCodecBase16ToBytes,
   jsonCodecBigInt,
-  jsonCodecBytesBase16,
   jsonCodecNumber,
   JsonDecoder,
   jsonDecoderArrayToObject,
@@ -109,8 +109,8 @@ it("run", async () => {
     {
       encoded: { lowerBase16: "f2f2", upperBase16: "F2F2" },
       decoder: jsonDecoderObjectToObject({
-        lowerBase16: jsonCodecBytesBase16.decoder,
-        upperBase16: jsonCodecBytesBase16.decoder,
+        lowerBase16: jsonCodecBase16ToBytes.decoder,
+        upperBase16: jsonCodecBase16ToBytes.decoder,
       }),
       decoded: {
         lowerBase16: new Uint8Array([0xf2, 0xf2]),

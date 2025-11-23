@@ -16,6 +16,10 @@ import {
   IdlInstructionAccountFindContext,
   idlInstructionAccountParse,
 } from "./IdlInstructionAccount";
+import {
+  IdlInstructionBlobAccountFetcher,
+  IdlInstructionBlobAccountsContext,
+} from "./IdlInstructionBlob";
 import { IdlTypedef } from "./IdlTypedef";
 import { IdlTypeFlat, IdlTypeFlatFields } from "./IdlTypeFlat";
 import {
@@ -136,14 +140,22 @@ export function idlInstructionAccountsDecode(
 export async function idlInstructionAccountsFind(
   self: IdlInstruction,
   programAddress: Pubkey,
-  options?: { throwOnMissing?: boolean } & IdlInstructionAccountFindContext,
+  options?: {
+    throwOnMissing?: boolean;
+    instructionAddresses?: IdlInstructionAddresses;
+    instructionPayload?: JsonValue | undefined;
+    accountsContext?: IdlInstructionBlobAccountsContext;
+    accountFetcher?: IdlInstructionBlobAccountFetcher;
+  },
 ) {
   const instructionAddresses: IdlInstructionAddresses = {};
-  for (const [accountField, instructionAddress] of Object.entries(
-    options?.instructionAddresses ?? {},
-  )) {
-    instructionAddresses[casingLosslessConvertToSnake(accountField)] =
-      instructionAddress;
+  if (options?.instructionAddresses !== undefined) {
+    for (const [accountField, instructionAddress] of Object.entries(
+      options?.instructionAddresses,
+    )) {
+      instructionAddresses[casingLosslessConvertToSnake(accountField)] =
+        instructionAddress;
+    }
   }
   const findContext: IdlInstructionAccountFindContext = {
     ...options,
