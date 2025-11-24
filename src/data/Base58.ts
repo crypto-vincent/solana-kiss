@@ -4,11 +4,11 @@ const alphabet = "123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz";
 
 const digitToCode = new Uint8Array(alphabet.length);
 for (let digit = 0; digit < alphabet.length; digit++) {
-  digitToCode[digit] = alphabet.charCodeAt(digit)!;
+  digitToCode[digit] = alphabet.charCodeAt(digit);
 }
 const codeToDigit = new Int8Array(127).fill(-1);
 for (let digit = 0; digit < alphabet.length; digit++) {
-  codeToDigit[alphabet.charCodeAt(digit)!] = digit;
+  codeToDigit[alphabet.charCodeAt(digit)] = digit;
 }
 
 const codePadding = "1".charCodeAt(0);
@@ -52,7 +52,7 @@ export function base58Decode(encoded: string): Uint8Array {
   }
   const digits = new Array<number>();
   for (let codeIndex = 0; codeIndex < encodedLength; codeIndex++) {
-    const code = encoded.charCodeAt(codeIndex)!;
+    const code = encoded.charCodeAt(codeIndex);
     const digit = codeToDigit[code] ?? -1;
     if (digit < 0) {
       throw new Error(

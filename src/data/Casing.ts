@@ -1,7 +1,7 @@
 export function casingLosslessConvertToSnake(string: string): string {
   const codes = new Array<number>();
   for (let index = 0; index < string.length; index++) {
-    const code = string.charCodeAt(index)!;
+    const code = string.charCodeAt(index);
     if (codeIsUppercase(code)) {
       codes.push(codeUnderscore);
       codes.push(code + codeUpperToLower);
@@ -28,11 +28,11 @@ export function casingLosslessConvertToCamel(string: string): string {
   return String.fromCharCode(...codes);
 }
 
-const codeLowerA = "a".charCodeAt(0)!;
-const codeLowerZ = "z".charCodeAt(0)!;
-const codeUpperA = "A".charCodeAt(0)!;
-const codeUpperZ = "Z".charCodeAt(0)!;
-const codeUnderscore = "_".charCodeAt(0)!;
+const codeLowerA = "a".charCodeAt(0);
+const codeLowerZ = "z".charCodeAt(0);
+const codeUpperA = "A".charCodeAt(0);
+const codeUpperZ = "Z".charCodeAt(0);
+const codeUnderscore = "_".charCodeAt(0);
 const codeUpperToLower = codeLowerA - codeUpperA;
 
 function codeIsLowercase(code: number): boolean {

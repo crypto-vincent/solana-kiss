@@ -5,14 +5,14 @@ const alphabetUpper = "0123456789ABCDEF";
 
 const digitToCode = new Uint8Array(16);
 for (let digit = 0; digit < alphabetUpper.length; digit++) {
-  digitToCode[digit] = alphabetUpper.charCodeAt(digit)!;
+  digitToCode[digit] = alphabetUpper.charCodeAt(digit);
 }
 const codeToDigit = new Int8Array(256).fill(-1);
 for (let digit = 0; digit < alphabetLower.length; digit++) {
-  codeToDigit[alphabetLower.charCodeAt(digit)!] = digit;
+  codeToDigit[alphabetLower.charCodeAt(digit)] = digit;
 }
 for (let digit = 0; digit < alphabetUpper.length; digit++) {
-  codeToDigit[alphabetUpper.charCodeAt(digit)!] = digit;
+  codeToDigit[alphabetUpper.charCodeAt(digit)] = digit;
 }
 
 export function base16Encode(decoded: Uint8Array): string {

@@ -15,16 +15,12 @@ export class ErrorStack extends Error {
     const lines = new Array<string>();
     if (Array.isArray(inner)) {
       for (let index = 0; index < inner.length; index++) {
-        errorStackLines(
-          lines,
-          inner[index],
-          index < inner.length - 1 ? false : true,
-        );
+        errorStackLines(lines, inner[index], index === inner.length - 1);
       }
     } else {
       errorStackLines(lines, inner, true);
     }
-    super(`${message}\n` + lines.join("\n"));
+    super(`${message}\n${lines.join("\n")}`);
   }
 }
 

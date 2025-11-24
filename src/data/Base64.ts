@@ -5,11 +5,11 @@ const alphabet =
 
 const digitToCode = new Uint8Array(alphabet.length);
 for (let digit = 0; digit < alphabet.length; digit++) {
-  digitToCode[digit] = alphabet.charCodeAt(digit)!;
+  digitToCode[digit] = alphabet.charCodeAt(digit);
 }
 const codeToDigit = new Int8Array(127).fill(-1);
 for (let digit = 0; digit < alphabet.length; digit++) {
-  codeToDigit[alphabet.charCodeAt(digit)!] = digit;
+  codeToDigit[alphabet.charCodeAt(digit)] = digit;
 }
 
 const codePadding = "=".charCodeAt(0);

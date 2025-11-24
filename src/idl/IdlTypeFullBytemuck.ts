@@ -18,13 +18,13 @@ import {
 import { IdlTypePrefix } from "./IdlTypePrefix";
 import { IdlTypePrimitive } from "./IdlTypePrimitive";
 
-type IdlTypeFullPod = {
+export type IdlTypeFullBytemuck = {
   alignment: number;
   size: number;
   value: IdlTypeFull;
 };
 
-type IdlTypeFullPodFields = {
+type IdlTypeFullFieldsBytemuck = {
   alignment: number;
   size: number;
   value: IdlTypeFullFields;
@@ -35,7 +35,7 @@ type IdlTypeFullPodFields = {
 // TODO (repr) - support for transparent/custom
 export function idlTypeFullTypedefBytemuck(
   self: IdlTypeFullTypedef,
-): IdlTypeFullPod {
+): IdlTypeFullBytemuck {
   return withErrorContext(`Bytemuck: Typedef: ${self.name}`, () => {
     let contentPod;
     if (self.repr === undefined) {
@@ -61,11 +61,11 @@ export function idlTypeFullTypedefBytemuck(
   });
 }
 
-function bytemuckC(self: IdlTypeFull): IdlTypeFullPod {
+function bytemuckC(self: IdlTypeFull): IdlTypeFullBytemuck {
   return self.traverse(visitorBytemuckC, undefined, undefined, undefined);
 }
 
-function bytemuckRust(self: IdlTypeFull): IdlTypeFullPod {
+function bytemuckRust(self: IdlTypeFull): IdlTypeFullBytemuck {
   return self.traverse(visitorBytemuckRust, undefined, undefined, undefined);
 }
 
@@ -73,7 +73,7 @@ function bytemuckFields(
   self: IdlTypeFullFields,
   prefixSize: number,
   rustReorder: boolean,
-): IdlTypeFullPodFields {
+): IdlTypeFullFieldsBytemuck {
   return self.traverse(
     visitorBytemuckFields,
     prefixSize,
@@ -83,10 +83,10 @@ function bytemuckFields(
 }
 
 const visitorBytemuckC = {
-  typedef: (self: IdlTypeFullTypedef): IdlTypeFullPod => {
+  typedef: (self: IdlTypeFullTypedef): IdlTypeFullBytemuck => {
     return idlTypeFullTypedefBytemuck(self);
   },
-  option: (self: IdlTypeFullOption): IdlTypeFullPod => {
+  option: (self: IdlTypeFullOption): IdlTypeFullBytemuck => {
     const contentPod = bytemuckC(self.content);
     const alignment = Math.max(self.prefix.size, contentPod.alignment);
     const size = alignment + contentPod.size;
@@ -103,13 +103,13 @@ const visitorBytemuckC = {
       }),
     };
   },
-  vec: (_self: IdlTypeFullVec): IdlTypeFullPod => {
+  vec: (_self: IdlTypeFullVec): IdlTypeFullBytemuck => {
     throw new Error("Bytemuck: Repr(C): Vec is not supported");
   },
-  loop: (_self: IdlTypeFullLoop): IdlTypeFullPod => {
+  loop: (_self: IdlTypeFullLoop): IdlTypeFullBytemuck => {
     throw new Error("Bytemuck: Repr(C): Loop is not supported");
   },
-  array: (self: IdlTypeFullArray): IdlTypeFullPod => {
+  array: (self: IdlTypeFullArray): IdlTypeFullBytemuck => {
     const itemsPod = bytemuckC(self.items);
     const alignment = itemsPod.alignment;
     const size = itemsPod.size * self.length;
@@ -122,10 +122,10 @@ const visitorBytemuckC = {
       }),
     };
   },
-  string: (_self: IdlTypeFullString): IdlTypeFullPod => {
+  string: (_self: IdlTypeFullString): IdlTypeFullBytemuck => {
     throw new Error("Bytemuck: Repr(C): String is not supported");
   },
-  struct: (self: IdlTypeFullStruct): IdlTypeFullPod => {
+  struct: (self: IdlTypeFullStruct): IdlTypeFullBytemuck => {
     const fieldsPod = bytemuckFields(self.fields, 0, false);
     return {
       alignment: fieldsPod.alignment,
@@ -135,7 +135,7 @@ const visitorBytemuckC = {
       }),
     };
   },
-  enum: (self: IdlTypeFullEnum): IdlTypeFullPod => {
+  enum: (self: IdlTypeFullEnum): IdlTypeFullBytemuck => {
     if (self.variants.length === 0) {
       return {
         alignment: 1,
@@ -177,7 +177,7 @@ const visitorBytemuckC = {
       }),
     };
   },
-  pad: (self: IdlTypeFullPad): IdlTypeFullPod => {
+  pad: (self: IdlTypeFullPad): IdlTypeFullBytemuck => {
     const contentPod = bytemuckC(self.content);
     return {
       alignment: 1,
@@ -189,14 +189,14 @@ const visitorBytemuckC = {
       }),
     };
   },
-  blob: (self: IdlTypeFullBlob): IdlTypeFullPod => {
+  blob: (self: IdlTypeFullBlob): IdlTypeFullBytemuck => {
     return {
       alignment: 1,
       size: self.bytes.length,
       value: IdlTypeFull.blob({ bytes: self.bytes }),
     };
   },
-  primitive: (self: IdlTypePrimitive): IdlTypeFullPod => {
+  primitive: (self: IdlTypePrimitive): IdlTypeFullBytemuck => {
     return {
       alignment: self.alignment,
       size: self.size,
@@ -206,10 +206,10 @@ const visitorBytemuckC = {
 };
 
 const visitorBytemuckRust = {
-  typedef: (self: IdlTypeFullTypedef): IdlTypeFullPod => {
+  typedef: (self: IdlTypeFullTypedef): IdlTypeFullBytemuck => {
     return idlTypeFullTypedefBytemuck(self);
   },
-  option: (self: IdlTypeFullOption): IdlTypeFullPod => {
+  option: (self: IdlTypeFullOption): IdlTypeFullBytemuck => {
     const contentPod = bytemuckRust(self.content);
     const alignment = Math.max(self.prefix.size, contentPod.alignment);
     const size = alignment + contentPod.size;
@@ -226,13 +226,13 @@ const visitorBytemuckRust = {
       }),
     };
   },
-  vec: (_self: IdlTypeFullVec): IdlTypeFullPod => {
+  vec: (_self: IdlTypeFullVec): IdlTypeFullBytemuck => {
     throw new Error("Bytemuck: Repr(Rust): Vec is not supported");
   },
-  loop: (_self: IdlTypeFullLoop): IdlTypeFullPod => {
+  loop: (_self: IdlTypeFullLoop): IdlTypeFullBytemuck => {
     throw new Error("Bytemuck: Repr(Rust): Loop is not supported");
   },
-  array: (self: IdlTypeFullArray): IdlTypeFullPod => {
+  array: (self: IdlTypeFullArray): IdlTypeFullBytemuck => {
     const itemsPod = bytemuckRust(self.items);
     const alignment = itemsPod.alignment;
     const size = itemsPod.size * self.length;
@@ -245,10 +245,10 @@ const visitorBytemuckRust = {
       }),
     };
   },
-  string: (_self: IdlTypeFullString): IdlTypeFullPod => {
+  string: (_self: IdlTypeFullString): IdlTypeFullBytemuck => {
     throw new Error("Bytemuck: Repr(Rust): String is not supported");
   },
-  struct: (self: IdlTypeFullStruct): IdlTypeFullPod => {
+  struct: (self: IdlTypeFullStruct): IdlTypeFullBytemuck => {
     const fieldsPod = bytemuckFields(self.fields, 0, true);
     return {
       alignment: fieldsPod.alignment,
@@ -258,7 +258,7 @@ const visitorBytemuckRust = {
       }),
     };
   },
-  enum: (self: IdlTypeFullEnum): IdlTypeFullPod => {
+  enum: (self: IdlTypeFullEnum): IdlTypeFullBytemuck => {
     if (self.variants.length === 0) {
       return {
         alignment: 1,
@@ -300,7 +300,7 @@ const visitorBytemuckRust = {
       }),
     };
   },
-  pad: (self: IdlTypeFullPad): IdlTypeFullPod => {
+  pad: (self: IdlTypeFullPad): IdlTypeFullBytemuck => {
     const contentPod = bytemuckRust(self.content);
     return {
       alignment: 1,
@@ -312,14 +312,14 @@ const visitorBytemuckRust = {
       }),
     };
   },
-  blob: (self: IdlTypeFullBlob): IdlTypeFullPod => {
+  blob: (self: IdlTypeFullBlob): IdlTypeFullBytemuck => {
     return {
       alignment: 1,
       size: self.bytes.length,
       value: IdlTypeFull.blob({ bytes: self.bytes }),
     };
   },
-  primitive: (self: IdlTypePrimitive): IdlTypeFullPod => {
+  primitive: (self: IdlTypePrimitive): IdlTypeFullBytemuck => {
     return {
       alignment: self.alignment,
       size: self.size,
@@ -333,7 +333,7 @@ const visitorBytemuckFields = {
     _self: null,
     _prefixSize: number,
     _rustReorder: boolean,
-  ): IdlTypeFullPodFields => {
+  ): IdlTypeFullFieldsBytemuck => {
     return {
       alignment: 1,
       size: 0,
@@ -344,7 +344,7 @@ const visitorBytemuckFields = {
     self: Array<IdlTypeFullFieldNamed>,
     prefixSize: number,
     rustReorder: boolean,
-  ): IdlTypeFullPodFields => {
+  ): IdlTypeFullFieldsBytemuck => {
     const fieldsInfosPods = self.map((field, index) => {
       const contentPod = withErrorContext(
         `Bytemuck: Field: ${field.name}`,
@@ -380,7 +380,7 @@ const visitorBytemuckFields = {
     self: Array<IdlTypeFullFieldUnnamed>,
     prefixSize: number,
     rustReorder: boolean,
-  ): IdlTypeFullPodFields => {
+  ): IdlTypeFullFieldsBytemuck => {
     const fieldsInfosPods = self.map((field, index) => {
       const contentPod = withErrorContext(
         `Bytemuck: Field: Unamed: ${index}`,

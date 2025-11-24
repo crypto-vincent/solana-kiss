@@ -64,8 +64,8 @@ export function idlAccountCheck(
       );
     }
   }
-  for (const blob of self.dataBlobs) {
-    idlUtilsExpectBlobAt(blob.offset, blob.bytes, accountData);
+  for (const dataBlob of self.dataBlobs) {
+    idlUtilsExpectBlobAt(dataBlob.offset, dataBlob.bytes, accountData);
   }
 }
 

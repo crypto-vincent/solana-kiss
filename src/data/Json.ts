@@ -579,7 +579,9 @@ export function jsonCodecArrayToObject<
   } as JsonCodec<{ [K in keyof Shape]: JsonCodecContent<Shape[K]> }>;
 }
 
-export function jsonDecoderArrayToTuple<Items extends Array<JsonDecoder<any>>>(
+export function jsonDecoderArrayToTuple<
+  const Items extends Array<JsonDecoder<any>>,
+>(
   items: Items,
 ): JsonDecoder<{ [K in keyof Items]: JsonDecoderContent<Items[K]> }> {
   return (encoded) => {
@@ -596,7 +598,9 @@ export function jsonDecoderArrayToTuple<Items extends Array<JsonDecoder<any>>>(
     return decoded;
   };
 }
-export function jsonEncoderArrayToTuple<Items extends Array<JsonEncoder<any>>>(
+export function jsonEncoderArrayToTuple<
+  const Items extends Array<JsonEncoder<any>>,
+>(
   items: Items,
 ): JsonEncoder<{ [K in keyof Items]: JsonEncoderContent<Items[K]> }> {
   return (decoded) => {
@@ -609,9 +613,9 @@ export function jsonEncoderArrayToTuple<Items extends Array<JsonEncoder<any>>>(
     return encoded;
   };
 }
-export function jsonCodecArrayToTuple<Items extends Array<JsonCodec<any>>>(
-  items: Items,
-): JsonCodec<{ [K in keyof Items]: JsonCodecContent<Items[K]> }> {
+export function jsonCodecArrayToTuple<
+  const Items extends Array<JsonCodec<any>>,
+>(items: Items): JsonCodec<{ [K in keyof Items]: JsonCodecContent<Items[K]> }> {
   return {
     decoder: jsonDecoderArrayToTuple(items.map((item) => item.decoder)),
     encoder: jsonEncoderArrayToTuple(items.map((item) => item.encoder)),
@@ -750,11 +754,11 @@ export function jsonDecoderObjectToEnum<
 >(
   shape: Shape,
 ): JsonDecoder<OneKeyOf<{ [K in keyof Shape]: JsonDecoderContent<Shape[K]> }>> {
-  const shapeEntries = Object.entries(shape).map(([key, decoder]) => [
+  const newShapeEntries = Object.entries(shape).map(([key, decoder]) => [
     key,
     (value: any) => ({ [key]: decoder(value) }),
   ]);
-  return jsonDecoderOneOfKeys(Object.fromEntries(shapeEntries) as any) as any;
+  return jsonDecoderOneOfKeys(Object.fromEntries(newShapeEntries)) as any;
 }
 export function jsonEncoderObjectToEnum<
   Shape extends { [key: string]: JsonEncoder<any> },
