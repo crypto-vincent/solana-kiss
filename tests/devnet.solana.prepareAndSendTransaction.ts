@@ -46,9 +46,7 @@ it("run", async () => {
   ];
   const owned1FakePhantomWalletWithAutoSend: WalletAccount = {
     address: owned1Signer.address,
-    signMessage: async (message: Uint8Array) => {
-      return await owned1Signer.sign(message);
-    },
+    signMessage: owned1Signer.sign,
     signTransaction: async (transactionPacket: TransactionPacket) => {
       const signed = await transactionSign(transactionPacket, [owned1Signer]);
       await rpcHttpSendTransaction(solana.getRpcHttp(), signed);

@@ -70,7 +70,7 @@ export async function transactionCompileAndSign(
     transactionRequest,
     transactionAddressLookupTables,
   );
-  return await transactionSign(transactionPacket, signers);
+  return transactionSign(transactionPacket, signers);
 }
 
 export function transactionCompileUnsigned(

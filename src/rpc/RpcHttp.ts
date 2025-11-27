@@ -101,7 +101,7 @@ export function rpcHttpFromUrl(
 
 export function rpcHttpWithTimeout(self: RpcHttp, timeoutMs: number): RpcHttp {
   return async function (method, params, config) {
-    return await Promise.race<JsonValue>([
+    return Promise.race<JsonValue>([
       self(method, params, config),
       new Promise((_, reject) =>
         setTimeout(

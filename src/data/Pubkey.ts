@@ -141,7 +141,7 @@ export async function pubkeyToVerifier(self: Pubkey) {
     signature: Signature,
     message: TransactionMessage | Uint8Array,
   ) => {
-    return await crypto.subtle.verify(
+    return crypto.subtle.verify(
       "Ed25519",
       cryptoKey,
       signatureToBytes(signature) as BufferSource,

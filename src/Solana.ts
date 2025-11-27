@@ -202,7 +202,7 @@ export class Solana {
       instructionName,
     );
     const accountsCache = new Map<Pubkey, IdlInstructionBlobAccountContent>();
-    return await idlInstructionAccountsFind(instructionIdl, programAddress, {
+    return idlInstructionAccountsFind(instructionIdl, programAddress, {
       ...options,
       accountFetcher: async (accountAddress: Pubkey) => {
         const accountCached = accountsCache.get(accountAddress);
@@ -291,7 +291,7 @@ export class Solana {
       { payerAddress, recentBlockHash, instructionsRequests },
       options?.transactionLookupTables,
     );
-    return await rpcHttpSimulateTransaction(
+    return rpcHttpSimulateTransaction(
       this.#rpcHttp,
       transactionPacket,
       options,
@@ -309,14 +309,10 @@ export class Solana {
         `IDL Account ${accountName} not found for program ${programAddress}`,
       );
     }
-    return await rpcHttpFindProgramOwnedAccounts(
-      this.#rpcHttp,
-      programAddress,
-      {
-        dataBlobs: accountIdl.dataBlobs,
-        dataSpace: accountIdl.dataSpace,
-      },
-    );
+    return rpcHttpFindProgramOwnedAccounts(this.#rpcHttp, programAddress, {
+      dataBlobs: accountIdl.dataBlobs,
+      dataSpace: accountIdl.dataSpace,
+    });
   }
 }
 
