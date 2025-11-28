@@ -2,14 +2,16 @@ import { base16Decode, base16Encode } from "./Base16";
 import { base58Decode, base58Encode } from "./Base58";
 import { base64Decode, base64Encode } from "./Base64";
 import {
+  BlockHash,
   blockHashFromBase58,
   blockHashToBase58,
+  BlockSlot,
   blockSlotFromNumber,
   blockSlotToNumber,
 } from "./Block";
 import { ErrorStack, withErrorContext } from "./Error";
-import { pubkeyFromBase58, pubkeyToBase58 } from "./Pubkey";
-import { signatureFromBase58, signatureToBase58 } from "./Signature";
+import { Pubkey, pubkeyFromBase58, pubkeyToBase58 } from "./Pubkey";
+import { Signature, signatureFromBase58, signatureToBase58 } from "./Signature";
 import { utf8Decode, utf8Encode } from "./Utf8";
 import {
   objectGetOwnProperty,
@@ -416,26 +418,41 @@ export const jsonCodecBigInt: JsonCodec<bigint> = {
   encoder: (decoded) => String(decoded),
 };
 
-export const jsonCodecPubkey = jsonCodecWrapped(jsonCodecString, {
-  decoder: pubkeyFromBase58,
-  encoder: pubkeyToBase58,
-});
-export const jsonCodecSignature = jsonCodecWrapped(jsonCodecString, {
-  decoder: signatureFromBase58,
-  encoder: signatureToBase58,
-});
-export const jsonCodecBlockHash = jsonCodecWrapped(jsonCodecString, {
-  decoder: blockHashFromBase58,
-  encoder: blockHashToBase58,
-});
-export const jsonCodecBlockSlot = jsonCodecWrapped(jsonCodecNumber, {
-  decoder: blockSlotFromNumber,
-  encoder: blockSlotToNumber,
-});
-export const jsonCodecDateTime = jsonCodecWrapped(jsonCodecString, {
-  decoder: (encoded) => new Date(encoded),
-  encoder: (decoded) => decoded.toISOString(),
-});
+export const jsonCodecPubkey: JsonCodec<Pubkey> = jsonCodecWrapped(
+  jsonCodecString,
+  {
+    decoder: pubkeyFromBase58,
+    encoder: pubkeyToBase58,
+  },
+);
+export const jsonCodecSignature: JsonCodec<Signature> = jsonCodecWrapped(
+  jsonCodecString,
+  {
+    decoder: signatureFromBase58,
+    encoder: signatureToBase58,
+  },
+);
+export const jsonCodecBlockHash: JsonCodec<BlockHash> = jsonCodecWrapped(
+  jsonCodecString,
+  {
+    decoder: blockHashFromBase58,
+    encoder: blockHashToBase58,
+  },
+);
+export const jsonCodecBlockSlot: JsonCodec<BlockSlot> = jsonCodecWrapped(
+  jsonCodecNumber,
+  {
+    decoder: blockSlotFromNumber,
+    encoder: blockSlotToNumber,
+  },
+);
+export const jsonCodecDateTime: JsonCodec<Date> = jsonCodecWrapped(
+  jsonCodecString,
+  {
+    decoder: (encoded) => new Date(encoded),
+    encoder: (decoded) => decoded.toISOString(),
+  },
+);
 
 export const jsonCodecArrayToBytes: JsonCodec<Uint8Array> = jsonCodecWrapped(
   jsonCodecArrayToArray(jsonCodecNumber),
@@ -819,28 +836,28 @@ export function jsonCodecNullable<Content>(contentCodec: {
   };
 }
 
-export function jsonDecoderWrapped<Decoded, Encoded, JsonInput>(
-  decoderInner: (encoded: JsonInput) => Encoded,
+export function jsonDecoderWrapped<Decoded, Encoded>(
+  decoderInner: (encoded: JsonValue) => Encoded,
   decoderOuter: (encoded: Encoded) => Decoded,
-) {
-  return (encoded: JsonInput) => decoderOuter(decoderInner(encoded));
+): JsonDecoder<Decoded> {
+  return (encoded: JsonValue) => decoderOuter(decoderInner(encoded));
 }
 export function jsonEncoderWrapped<Decoded, Encoded>(
   encoderInner: (decoded: Encoded) => JsonValue,
   encoderOuter: (decoded: Decoded) => Encoded,
-) {
+): JsonEncoder<Decoded> {
   return (decoded: Decoded) => encoderInner(encoderOuter(decoded));
 }
-export function jsonCodecWrapped<Decoded, Encoded, JsonInput>(
+export function jsonCodecWrapped<Decoded, Encoded>(
   innerCodec: {
-    decoder: (encoded: JsonInput) => Encoded;
+    decoder: (encoded: JsonValue) => Encoded;
     encoder: (decoded: Encoded) => JsonValue;
   },
   outerCodec: {
     decoder: (encoded: Encoded) => Decoded;
     encoder: (decoded: Decoded) => Encoded;
   },
-) {
+): JsonCodec<Decoded> {
   return {
     decoder: jsonDecoderWrapped(innerCodec.decoder, outerCodec.decoder),
     encoder: jsonEncoderWrapped(innerCodec.encoder, outerCodec.encoder),
