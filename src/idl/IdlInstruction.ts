@@ -143,7 +143,7 @@ export async function idlInstructionAccountsFind(
   options?: {
     throwOnMissing?: boolean;
     instructionAddresses?: IdlInstructionAddresses;
-    instructionPayload?: JsonValue | undefined;
+    instructionPayload?: JsonValue;
     accountsContext?: IdlInstructionBlobAccountsContext;
     accountFetcher?: IdlInstructionBlobAccountFetcher;
   },

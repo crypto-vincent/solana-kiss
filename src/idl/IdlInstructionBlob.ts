@@ -177,7 +177,7 @@ export function idlInstructionBlobParseAccount(
 }
 
 const jsonDecoder = jsonDecoderByType<{
-  value: JsonValue | null;
+  value: JsonValue;
   type: IdlTypeFlat | null;
   kind: string | null;
   path: string | null;

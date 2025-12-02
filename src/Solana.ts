@@ -157,7 +157,7 @@ export class Solana {
     instructionName: string,
     options: {
       instructionAddresses: IdlInstructionAddresses;
-      instructionPayload: JsonValue | undefined;
+      instructionPayload: JsonValue;
       accountsContext?: IdlInstructionBlobAccountsContext;
     },
   ): Promise<{ instructionRequest: InstructionRequest }> {
@@ -176,7 +176,7 @@ export class Solana {
     );
     const { instructionData } = idlInstructionArgsEncode(
       instructionIdl,
-      options.instructionPayload ?? null,
+      options.instructionPayload,
     );
     return {
       instructionRequest: {
@@ -193,7 +193,7 @@ export class Solana {
     options?: {
       throwOnMissing?: boolean;
       instructionAddresses?: IdlInstructionAddresses;
-      instructionPayload?: JsonValue | undefined;
+      instructionPayload?: JsonValue;
       accountsContext?: IdlInstructionBlobAccountsContext;
     },
   ) {

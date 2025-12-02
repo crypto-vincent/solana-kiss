@@ -87,15 +87,15 @@ function walletProviderFactory(walletPlugin: any): WalletProvider | undefined {
     "standard:connect",
     "connect",
   );
-  const walletDisconnectFunction = walletPluginFeatureFunction(
-    walletPlugin,
-    "standard:disconnect",
-    "disconnect",
-  );
   const walletEventOnFunction = walletPluginFeatureFunction(
     walletPlugin,
     "standard:events",
     "on",
+  );
+  const walletDisconnectFunction = walletPluginFeatureFunction(
+    walletPlugin,
+    "standard:disconnect",
+    "disconnect",
   );
   const walletSignMessageFunction = walletPluginFeatureFunction(
     walletPlugin,
@@ -109,7 +109,6 @@ function walletProviderFactory(walletPlugin: any): WalletProvider | undefined {
   );
   if (
     !walletConnectFunction ||
-    !walletDisconnectFunction ||
     !walletEventOnFunction ||
     !walletSignMessageFunction ||
     !walletSignTransactionFunction
@@ -140,8 +139,10 @@ function walletProviderFactory(walletPlugin: any): WalletProvider | undefined {
       walletSignMessageFunction,
       walletSignTransactionFunction,
     ),
-    disconnect: walletDisconnectFunction as () => Promise<void>,
-    adapter: walletPlugin,
+    disconnect: walletDisconnectFunction
+      ? (walletDisconnectFunction as () => Promise<void>)
+      : async () => {},
+    __adapter: walletPlugin,
   } as WalletProvider;
 }
 
