@@ -1,288 +1,7 @@
-// @ts-nocheck
 // TODO - clean this up
+// @ts-nocheck
 
-var B = {
-  readUshort: function (buff, p) {
-    return buff[p] | (buff[p + 1] << 8);
-  },
-  writeUshort: function (buff, p, n) {
-    buff[p] = n & 255;
-    buff[p + 1] = (n >> 8) & 255;
-  },
-  readUint: function (buff, p) {
-    return (
-      buff[p + 3] * (256 * 256 * 256) +
-      ((buff[p + 2] << 16) | (buff[p + 1] << 8) | buff[p])
-    );
-  },
-  readASCII: function (buff, p, l) {
-    var s = "";
-    for (var i = 0; i < l; i++) s += String.fromCharCode(buff[p + i]);
-    return s;
-  },
-  pad: function (n) {
-    return n.length < 2 ? "0" + n : n;
-  },
-  readIBM: function (buff, p, l) {
-    var codes = [
-      0xc7, 0xfc, 0xe9, 0xe2, 0xe4, 0xe0, 0xe5, 0xe7, 0xea, 0xeb, 0xe8, 0xef,
-      0xee, 0xec, 0xc4, 0xc5, 0xc9, 0xe6, 0xc6, 0xf4, 0xf6, 0xf2, 0xfb, 0xf9,
-      0xff, 0xd6, 0xdc, 0xa2, 0xa3, 0xa5, 0xa7, 0x192, 0xe1, 0xed, 0xf3, 0xfa,
-      0xf1, 0xd1, 0xaa, 0xba, 0xbf, 0x2310, 0xac, 0xbd, 0xbc, 0xa1, 0xab, 0xbb,
-    ];
-    var out = "";
-    for (var i = 0; i < l; i++) {
-      var cc = buff[p + i];
-      if (cc < 0x80) cc = cc;
-      else if (cc < 0xb0) cc = codes[cc - 0x80];
-      else return null;
-      out += String.fromCharCode(cc);
-    }
-    return out;
-  },
-  readUTF8: function (buff, p, l) {
-    var s = "",
-      ns;
-    for (var i = 0; i < l; i++) s += "%" + B.pad(buff[p + i].toString(16));
-    try {
-      ns = decodeURIComponent(s);
-    } catch (e) {
-      return B.readASCII(buff, p, l);
-    }
-    return ns;
-  },
-};
-
-var crc = {
-  table: (function () {
-    var tab = new Uint32Array(256);
-    for (var n = 0; n < 256; n++) {
-      var c = n;
-      for (var k = 0; k < 8; k++) {
-        if (c & 1) c = 0xedb88320 ^ (c >>> 1);
-        else c = c >>> 1;
-      }
-      tab[n] = c;
-    }
-    return tab;
-  })(),
-  update: function (c, buf, off, len) {
-    for (var i = 0; i < len; i++)
-      c = crc.table[(c ^ buf[off + i]) & 0xff] ^ (c >>> 8);
-    return c;
-  },
-};
-
-function parseTar(data) {
-  var off = 0,
-    out = {};
-  while (off + 1024 < data.length) {
-    var no = off;
-    while (data[no] != 0) no++;
-    var nam = B.readASCII(data, off, no - off);
-    off += 100;
-    off += 24;
-    var sz = parseInt(B.readASCII(data, off, 12), 8);
-    off += 12;
-    var tm = parseInt(B.readASCII(data, off, 12), 8);
-    off += 12;
-    // console.log(nam, sz, tm);
-    off += 8 + 1 + 100;
-    off += 6 + 2 + 32 + 32 + 8 + 8 + 155 + 12;
-
-    out[nam] = data.slice(off, off + sz);
-    off += sz;
-
-    var ex = off & 0x1ff;
-    if (ex != 0) off += 512 - ex;
-  }
-  return out;
-}
-
-function parse(buf, onlyNames) {
-  // ArrayBuffer
-  var rUs = B.readUshort,
-    rUi = B.readUint,
-    o = 0,
-    out = {};
-  var data = new Uint8Array(buf);
-  if (data.length > 257 + 6 && B.readASCII(data, 257, 6) == "ustar ")
-    return parseTar(data);
-  //if(B.readASCII(data,0,2)=="7z") return parse7z(data);
-
-  var eocd = data.length - 4;
-
-  while (rUi(data, eocd) != 0x06054b50) eocd--;
-
-  var o = eocd;
-  o += 4; // sign  = 0x06054b50
-  o += 4; // disks = 0;
-  var cnu = rUs(data, o);
-  o += 2;
-  var cnt = rUs(data, o);
-  o += 2;
-
-  var csize = rUi(data, o);
-  o += 4;
-  var coffs = rUi(data, o);
-  o += 4;
-
-  o = coffs;
-  for (var i = 0; i < cnu; i++) {
-    var sign = rUi(data, o);
-    o += 4;
-    o += 4; // versions;
-    o += 4; // flag + compr
-    var time = _readTime(data, o);
-    o += 4; // time
-
-    var crc32 = rUi(data, o);
-    o += 4;
-    var csize = rUi(data, o);
-    o += 4;
-    var usize = rUi(data, o);
-    o += 4;
-
-    var nl = rUs(data, o),
-      el = rUs(data, o + 2),
-      cl = rUs(data, o + 4);
-    o += 6; // name, extra, comment
-    o += 8; // disk, attribs
-    var roff = rUi(data, o);
-    o += 4;
-
-    o += nl;
-
-    var lo = 0;
-    while (lo < el) {
-      var id = rUs(data, o + lo);
-      lo += 2;
-      var sz = rUs(data, o + lo);
-      lo += 2;
-      if (id == 1) {
-        // Zip64
-        if (usize == 0xffffffff) {
-          usize = rUi(data, o + lo);
-          lo += 8;
-        }
-        if (csize == 0xffffffff) {
-          csize = rUi(data, o + lo);
-          lo += 8;
-        }
-        if (roff == 0xffffffff) {
-          roff = rUi(data, o + lo);
-          lo += 8;
-        }
-      } else lo += sz;
-    }
-
-    o += el + cl;
-
-    _readLocal(data, roff, out, csize, usize, onlyNames);
-  }
-  //console.log(out);
-  return out;
-}
-
-function _readTime(data, o) {
-  var time = B.readUshort(data, o),
-    date = B.readUshort(data, o + 2);
-  var year = 1980 + (date >>> 9);
-  var mont = (date >>> 5) & 15;
-  var day = date & 31;
-  //console.log(year,mont,day);
-
-  var hour = time >>> 11;
-  var minu = (time >>> 5) & 63;
-  var seco = 2 * (time & 31);
-
-  var stamp = new Date(year, mont, day, hour, minu, seco).getTime();
-
-  //console.log(date,time);
-  return stamp;
-}
-
-function _readLocal(data, o, out, csize, usize, onlyNames) {
-  var rUs = B.readUshort,
-    rUi = B.readUint;
-  var sign = rUi(data, o);
-  o += 4;
-  var ver = rUs(data, o);
-  o += 2;
-  var gpflg = rUs(data, o);
-  o += 2;
-  //if((gpflg&8)!=0) throw "unknown sizes";
-  var cmpr = rUs(data, o);
-  o += 2;
-
-  var time = _readTime(data, o);
-  o += 4;
-
-  var crc32 = rUi(data, o);
-  o += 4;
-  //var csize = rUi(data, o);  o+=4;
-  //var usize = rUi(data, o);  o+=4;
-  o += 8;
-
-  var nlen = rUs(data, o);
-  o += 2;
-  var elen = rUs(data, o);
-  o += 2;
-
-  var name =
-    (gpflg & 2048) == 0 ? B.readIBM(data, o, nlen) : B.readUTF8(data, o, nlen);
-  if (name == null) name = B.readUTF8(data, o, nlen);
-  o += nlen; //console.log(name);
-  o += elen;
-
-  //console.log(sign.toString(16), ver, gpflg, cmpr, crc32.toString(16), "csize, usize", csize, usize, nlen, elen, name, o);
-  if (onlyNames) {
-    out[name] = { size: usize, csize: csize };
-    return;
-  }
-  var file = new Uint8Array(data.buffer, o);
-  if (gpflg & 1) {
-    out[name] = new Uint8Array(0);
-    alert("ZIPs with a password are not supported.", 3000);
-  } else if (cmpr == 0)
-    out[name] = new Uint8Array(file.buffer.slice(o, o + csize));
-  else if (cmpr == 8) {
-    var buf = new Uint8Array(usize);
-    inflateRaw(file, buf);
-    /*var nbuf = pako["inflateRaw"](file);
-			if(usize>8514000) {
-				//console.log(PUtils.readASCII(buf , 8514500, 500));
-				//console.log(PUtils.readASCII(nbuf, 8514500, 500));
-			}
-			for(var i=0; i<buf.length; i++) if(buf[i]!=nbuf[i]) {  console.log(buf.length, nbuf.length, usize, i);  throw "e";  }
-			*/
-    out[name] = buf;
-  } else if (cmpr == 14 && window["LZMA"]) {
-    var vsn = rUs(file, 0);
-    var siz = rUs(file, 2);
-    if (siz != 5) throw "unknown LZMA header";
-
-    var prp = file[4];
-    var dictSize = rUi(file, 5);
-    var lc = prp % 9;
-    prp = ~~(prp / 9);
-    var lp = prp % 5;
-    var pb = ~~(prp / 5);
-    //console.log(vsn,siz,dictSize,lc,lp,pb);
-
-    //console.log(file);
-    var time = Date.now();
-    var buf = (out[name] = new Uint8Array(usize));
-
-    var dec = new window["LZMA"]["Decoder"]();
-    dec["setProperties"]({ dsz: dictSize, lc: lc, lp: lp, pb: pb });
-    dec["decodeBody"](new Uint8Array(data.buffer, o + 9), buf, usize);
-
-    //console.log(Date.now()-time);
-  } else throw "unknown compression method: " + cmpr;
-}
-
-export function inflate(file, buf) {
+export function inflate(file: Uint8Array, buf: Uint8Array | null): Uint8Array {
   var CMF = file[0],
     FLG = file[1];
   if (CMF == 31 && FLG == 139) {
@@ -316,8 +35,8 @@ export function inflate(file, buf) {
 }
 
 var U = (function () {
-  var u16 = Uint16Array,
-    u32 = Uint32Array;
+  const u16 = Uint16Array;
+  const u32 = Uint32Array;
   return {
     next_code: new u16(16),
     bl_count: new u16(16),
@@ -352,7 +71,6 @@ var U = (function () {
     dtree: [],
     imap: new u16(512),
     itree: [],
-    //rev9 : new u16(  512)
     rev15: new u16(1 << 15),
     lhst: new u32(286),
     dhst: new u32(30),
@@ -363,7 +81,7 @@ var U = (function () {
   };
 })();
 
-function makeCodes(tree, MAX_BITS) {
+function makeCodes(tree: string | any[], MAX_BITS: number) {
   // code, length
   var max_code = tree.length;
   var code, bits, n, i, len;
@@ -389,7 +107,11 @@ function makeCodes(tree, MAX_BITS) {
     }
   }
 }
-function codes2map(tree, MAX_BITS, map) {
+function codes2map(
+  tree: string | any[],
+  MAX_BITS: number,
+  map: Uint16Array<ArrayBuffer> | number[],
+) {
   var max_code = tree.length;
   var r15 = U.rev15;
   for (var i = 0; i < max_code; i += 2)
@@ -408,7 +130,7 @@ function codes2map(tree, MAX_BITS, map) {
       }
     }
 }
-function revCodes(tree, MAX_BITS) {
+function revCodes(tree: string | any[], MAX_BITS: number) {
   var r15 = U.rev15,
     imb = 15 - MAX_BITS;
   for (var i = 0; i < tree.length; i += 2) {
@@ -417,13 +139,13 @@ function revCodes(tree, MAX_BITS) {
   }
 }
 
-function _bitsE(dt, pos, length) {
+function _bitsE(dt: number[], pos: number, length: number) {
   return (
     ((dt[pos >>> 3] | (dt[(pos >>> 3) + 1] << 8)) >>> (pos & 7)) &
     ((1 << length) - 1)
   );
 }
-function _bitsF(dt, pos, length) {
+function _bitsF(dt: number[], pos: number, length: number) {
   return (
     ((dt[pos >>> 3] |
       (dt[(pos >>> 3) + 1] << 8) |
@@ -433,7 +155,7 @@ function _bitsF(dt, pos, length) {
   );
 }
 
-function _get17(dt, pos) {
+function _get17(dt: number[], pos: number) {
   // return at least 17 meaningful bytes
   return (
     (dt[pos >>> 3] |
@@ -444,9 +166,9 @@ function _get17(dt, pos) {
 }
 
 (function () {
-  var len = 1 << 15;
-  for (var i = 0; i < len; i++) {
-    var x = i;
+  const len = 1 << 15;
+  for (let i = 0; i < len; i++) {
+    let x = i;
     x = ((x & 0xaaaaaaaa) >>> 1) | ((x & 0x55555555) << 1);
     x = ((x & 0xcccccccc) >>> 2) | ((x & 0x33333333) << 2);
     x = ((x & 0xf0f0f0f0) >>> 4) | ((x & 0x0f0f0f0f) << 4);
@@ -454,7 +176,7 @@ function _get17(dt, pos) {
     U.rev15[i] = ((x >>> 16) | (x << 16)) >>> 17;
   }
 
-  function pushV(tgt, n, sv) {
+  function pushV(tgt: number[], n: number, sv: number) {
     while (n-- != 0) tgt.push(0, sv);
   }
 
@@ -467,13 +189,7 @@ function _get17(dt, pos) {
   pushV(U.fltree, 255 - 143, 9);
   pushV(U.fltree, 279 - 255, 7);
   pushV(U.fltree, 287 - 279, 8);
-  /*
-		var i = 0;
-		for(; i<=143; i++) U.fltree.push(0,8);
-		for(; i<=255; i++) U.fltree.push(0,9);
-		for(; i<=279; i++) U.fltree.push(0,7);
-		for(; i<=287; i++) U.fltree.push(0,8);
-		*/
+
   makeCodes(U.fltree, 9);
   codes2map(U.fltree, 9, U.flmap);
   revCodes(U.fltree, 9);
@@ -488,18 +204,14 @@ function _get17(dt, pos) {
   pushV(U.ltree, 286, 0);
   pushV(U.dtree, 30, 0);
   pushV(U.ttree, 320, 0);
-  /*
-		for(var i=0; i< 19; i++) U.itree.push(0,0);
-		for(var i=0; i<286; i++) U.ltree.push(0,0);
-		for(var i=0; i< 30; i++) U.dtree.push(0,0);
-		for(var i=0; i<320; i++) U.ttree.push(0,0);
-		*/
 })();
 
-export function inflateRaw(data, buf) {
+export function inflateRaw(
+  data: Uint8Array,
+  buf: Uint8Array | null,
+): Uint8Array {
   var u8 = Uint8Array;
   if (data[0] == 3 && data[1] == 0) return buf ? buf : new u8(0);
-  //var F=UZIP.F, bitsF = F._bitsF, bitsE = F._bitsE, decodeTiny = F._decodeTiny, makeCodes = F.makeCodes, codes2map=F.codes2map, get17 = F._get17;
 
   var noBuf = buf == null;
   if (noBuf) buf = new u8((data.length >>> 2) << 3);
@@ -519,7 +231,6 @@ export function inflateRaw(data, buf) {
     BFINAL = _bitsF(data, pos, 1);
     BTYPE = _bitsF(data, pos + 1, 2);
     pos += 3;
-    //console.log(BFINAL, BTYPE);
 
     if (BTYPE == 0) {
       if ((pos & 7) != 0) pos += 8 - (pos & 7);
@@ -527,8 +238,7 @@ export function inflateRaw(data, buf) {
         len = data[p8 - 4] | (data[p8 - 3] << 8); //console.log(len);//bitsF(data, pos, 16),
       if (noBuf) buf = _check(buf, off + len);
       buf.set(new u8(data.buffer, data.byteOffset + p8, len), off);
-      //for(var i=0; i<len; i++) buf[off+i] = data[p8+i];
-      //for(var i=0; i<len; i++) if(buf[off+i] != data[p8+i]) throw "e";
+
       pos = (p8 + len) << 3;
       off += len;
       continue;
@@ -610,10 +320,6 @@ export function inflateRaw(data, buf) {
           dst = (dbs >>> 4) + _bitsF(data, pos, dbs & 15);
         pos += dbs & 15;
 
-        //var o0 = off-dst, stp = Math.min(end-off, dst);
-        //if(stp>20) while(off<end) {  buf.copyWithin(off, o0, o0+stp);  off+=stp;  }  else
-        //if(end-dst<=off) buf.copyWithin(off, off-dst, end-dst);  else
-        //if(dst==1) buf.fill(buf[off-1], off, end);  else
         if (noBuf) buf = _check(buf, off + (1 << 17));
         while (off < end) {
           buf[off] = buf[off++ - dst];
@@ -622,29 +328,32 @@ export function inflateRaw(data, buf) {
           buf[off] = buf[off++ - dst];
         }
         off = end;
-        //while(off!=end) {  buf[off]=buf[off++-dst];  }
       }
     }
-    //console.log(off-ooff, (pos-opos)>>>3);
   }
-  //console.log(UZIP.F.dst);
-  //console.log(tlen, dlen, off-tlen+tcnt);
+
   return buf.length == off ? buf : buf.slice(0, off);
 }
-function _check(buf, len) {
+
+function _check(buf: string | any[] | ArrayLike<number>, len: number) {
   var bl = buf.length;
   if (len <= bl) return buf;
   var nbuf = new Uint8Array(Math.max(bl << 1, len));
   nbuf.set(buf, 0);
-  //for(var i=0; i<bl; i+=4) {  nbuf[i]=buf[i];  nbuf[i+1]=buf[i+1];  nbuf[i+2]=buf[i+2];  nbuf[i+3]=buf[i+3];  }
   return nbuf;
 }
 
-function _decodeTiny(lmap, LL, len, data, pos, tree) {
-  //var bitsE = UZIP.F._bitsE, get17 = UZIP.F._get17;
-  var i = 0;
+function _decodeTiny(
+  lmap: any[] | Uint16Array<ArrayBuffer>,
+  LL: number,
+  len: number,
+  data: any,
+  pos: number,
+  tree: number[],
+) {
+  let i = 0;
   while (i < len) {
-    var code = lmap[_get17(data, pos) & LL];
+    const code = lmap[_get17(data, pos) & LL];
     pos += code & 15;
     var lit = code >>> 4;
     if (lit <= 15) {
@@ -673,7 +382,13 @@ function _decodeTiny(lmap, LL, len, data, pos, tree) {
   }
   return pos;
 }
-function _copyOut(src, off, len, tree) {
+
+function _copyOut(
+  src: never[],
+  off: number,
+  len: number,
+  tree: string | any[],
+) {
   var mx = 0,
     i = 0,
     tl = tree.length >>> 1;
