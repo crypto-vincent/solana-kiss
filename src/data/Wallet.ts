@@ -36,31 +36,32 @@ function walletProvidersDiscovery() {
   if (globalThis.window === undefined) {
     return;
   }
-  function walletPluginRegister(walletPlugin: any) {
-    const walletProvider = walletProviderFactory(walletPlugin);
-    if (walletProvider === undefined) {
-      return;
-    }
-    walletProvidersSubject.notify([
-      ...walletProvidersSubject.get(),
-      walletProvider,
-    ]);
-  }
   class AppReadyEvent extends Event {
     constructor() {
       super("wallet-standard:app-ready");
     }
     get detail() {
-      return { register: walletPluginRegister };
+      return { register: walletProviderRegister };
     }
   }
   globalThis.window.addEventListener(
     "wallet-standard:register-wallet",
     (event: any) => {
-      event.detail({ register: walletPluginRegister });
+      event.detail({ register: walletProviderRegister });
     },
   );
   globalThis.window.dispatchEvent(new AppReadyEvent());
+}
+
+function walletProviderRegister(walletPlugin: any) {
+  const walletProvider = walletProviderFactory(walletPlugin);
+  if (walletProvider === undefined) {
+    return;
+  }
+  walletProvidersSubject.notify([
+    ...walletProvidersSubject.get(),
+    walletProvider,
+  ]);
 }
 
 function walletProviderFactory(walletPlugin: any): WalletProvider | undefined {

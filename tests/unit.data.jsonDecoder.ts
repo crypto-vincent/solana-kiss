@@ -22,7 +22,6 @@ it("run", async () => {
     decoder: JsonDecoder<any>;
     decoded: any;
   }> = [
-    { encoded: null, decoder: jsonCodecNumber.decoder, decoded: NaN },
     {
       encoded: null,
       decoder: jsonDecoderNullable(jsonCodecNumber.decoder),

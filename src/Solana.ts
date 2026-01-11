@@ -26,7 +26,7 @@ import {
 import {
   IdlLoader,
   idlLoaderFallbackToUnknown,
-  idlLoaderFromLoaderChain,
+  idlLoaderFromLoaderSequence,
   idlLoaderFromOnchain,
   idlLoaderFromUrl,
   idlLoaderMemoized,
@@ -47,13 +47,19 @@ export class Solana {
   readonly #rpcHttp: RpcHttp;
   readonly #idlPreload: Map<Pubkey, IdlProgram>;
   readonly #idlLoader: IdlLoader;
-  #cacheBlockHash: { blockHash: BlockHash; fetchTimeMs: number } | null;
+
+  #recentBlockhashCacheDurationMs = 15_000;
+  #recentBlockHashCacheValue: {
+    blockHash: BlockHash;
+    fetchTimeMs: number;
+  } | null;
 
   constructor(
     rpcHttp: RpcHttp | string,
     options?: {
       customIdlPreload?: Map<Pubkey, IdlProgram>;
       customIdlLoaders?: Array<IdlLoader>;
+      recentBlockhashCacheDurationMs?: number;
     },
   ) {
     if (typeof rpcHttp === "string") {
@@ -64,10 +70,12 @@ export class Solana {
       this.#rpcHttp = rpcHttp;
     }
     this.#idlPreload = options?.customIdlPreload ?? new Map();
-    this.#idlLoader = idlLoaderFromLoaderChain(
+    this.#idlLoader = idlLoaderFromLoaderSequence(
       options?.customIdlLoaders ?? [recommendedIdlLoader(this.#rpcHttp)],
     );
-    this.#cacheBlockHash = null;
+    this.#recentBlockhashCacheDurationMs =
+      options?.recentBlockhashCacheDurationMs ?? 15_000;
+    this.#recentBlockHashCacheValue = null;
   }
 
   public getRpcHttp() {
@@ -223,13 +231,15 @@ export class Solana {
 
   public async getRecentBlockHash() {
     const nowTimeMs = Date.now();
-    if (this.#cacheBlockHash) {
-      if (nowTimeMs - this.#cacheBlockHash.fetchTimeMs < 15_000) {
-        return this.#cacheBlockHash.blockHash;
+    if (this.#recentBlockHashCacheValue) {
+      const cachedDurationMs =
+        nowTimeMs - this.#recentBlockHashCacheValue.fetchTimeMs;
+      if (cachedDurationMs < this.#recentBlockhashCacheDurationMs) {
+        return this.#recentBlockHashCacheValue.blockHash;
       }
     }
     const { blockHash } = await rpcHttpGetLatestBlockHash(this.#rpcHttp);
-    this.#cacheBlockHash = { blockHash, fetchTimeMs: nowTimeMs };
+    this.#recentBlockHashCacheValue = { blockHash, fetchTimeMs: nowTimeMs };
     return blockHash;
   }
 
@@ -318,7 +328,7 @@ export class Solana {
 
 function recommendedIdlLoader(rpcHttp: RpcHttp) {
   return idlLoaderMemoized(
-    idlLoaderFromLoaderChain([
+    idlLoaderFromLoaderSequence([
       idlLoaderFromOnchain(async (programAddress) => {
         const { accountData } = await rpcHttpGetAccountWithData(
           rpcHttp,

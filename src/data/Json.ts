@@ -337,7 +337,6 @@ export const jsonCodecBoolean: JsonCodec<boolean> = {
 };
 export const jsonCodecNumber: JsonCodec<number> = {
   decoder: jsonDecoderByType({
-    null: () => NaN,
     number: (number) => number,
     string: (string) => {
       if (string === "NaN") {
@@ -350,7 +349,7 @@ export const jsonCodecNumber: JsonCodec<number> = {
         return -Infinity;
       }
       throw new Error(
-        `JSON: Expected a number or NaN/Infinity (found: ${jsonPreview(string)})`,
+        `JSON: Expected a number or "NaN"/"Infinity" (found: ${jsonPreview(string)})`,
       );
     },
   }),

@@ -7,8 +7,7 @@ export function approximateLamportsForSols(sols: number): bigint {
 }
 
 export function lamportsRentExemptionMinimumForSpace(space: number): bigint {
-  const storageBytesNeeded = 128n + BigInt(space);
-  return storageBytesNeeded * lamportsFeePerBytePerYear * 2n;
+  return (128n + BigInt(space)) * lamportsFeePerBytePerYear * 2n;
 }
 
 export const lamportsFeePerBytePerYear = 3480n;

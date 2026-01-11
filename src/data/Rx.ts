@@ -27,8 +27,8 @@ export function rxBehaviourSubject<T>(
       }
     },
     subscribe(listener: RxListener<T>): RxUnsubscriber {
-      listener(lastValue);
       listeners.push(listener);
+      listener(lastValue);
       return () => {
         const index = listeners.indexOf(listener);
         if (index >= 0) {

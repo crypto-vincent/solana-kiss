@@ -1,5 +1,5 @@
-import { inflate } from "uzip";
 import { ErrorStack } from "../data/Error";
+import { inflate } from "../data/Inflate";
 import {
   jsonCodecArrayToBytes,
   jsonCodecObjectToObject,
@@ -60,7 +60,9 @@ export function idlLoaderFallbackToUnknown(): IdlLoader {
   };
 }
 
-export function idlLoaderFromLoaderChain(loaders: Array<IdlLoader>): IdlLoader {
+export function idlLoaderFromLoaderSequence(
+  loaders: Array<IdlLoader>,
+): IdlLoader {
   return async (programAddress: Pubkey) => {
     const errors = [];
     for (const loader of loaders) {
@@ -114,7 +116,7 @@ export function idlLoaderFromOnchain(
       anchorIdlData,
     );
     const anchorIdlContent = anchorIdlJsonCodec.decoder(anchorIdlState);
-    const anchorIdlBytes = inflate(anchorIdlContent.deflatedJson);
+    const anchorIdlBytes = inflate(anchorIdlContent.deflatedJson, null);
     const anchorIdlString = utf8Decode(anchorIdlBytes);
     const anchorIdlJson = JSON.parse(anchorIdlString) as JsonValue;
     const anchorIdl = idlProgramParse(anchorIdlJson);
