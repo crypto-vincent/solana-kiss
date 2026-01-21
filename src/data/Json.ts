@@ -722,7 +722,10 @@ export function jsonDecoderObjectToMap<Key, Value>(params: {
       if (valueEncoded === undefined) {
         continue;
       }
-      const keyDecoded = params.keyDecoder(keyEncoded);
+      const keyDecoded = withErrorContext(
+        `JSON: Decode Object Key "${keyEncoded}" =>`,
+        () => params.keyDecoder(keyEncoded),
+      );
       const valueDecoded = withErrorContext(
         `JSON: Decode Object["${keyEncoded}"] (${keyDecoded}) =>`,
         () => params.valueDecoder(valueEncoded),
@@ -762,6 +765,48 @@ export function jsonCodecObjectToMap<Key, Value>(params: {
       keyEncoder: params.keyCodec.encoder,
       valueEncoder: params.valueCodec.encoder,
     }),
+  };
+}
+
+export function jsonDecoderObjectToRecord<Value>(
+  valueDecoder: JsonDecoder<Value>,
+): JsonDecoder<Record<string, Value>> {
+  return (encoded) => {
+    const decoded = {} as Record<string, Value>;
+    const object = jsonCodecObject.decoder(encoded);
+    for (const key in object) {
+      const valueEncoded = objectGetOwnProperty(object, key);
+      if (valueEncoded === undefined) {
+        continue;
+      }
+      const valueDecoded = withErrorContext(
+        `JSON: Decode Object["${key}"] (${key}) =>`,
+        () => valueDecoder(valueEncoded),
+      );
+      decoded[key] = valueDecoded;
+    }
+    return decoded;
+  };
+}
+export function jsonEncoderObjectToRecord<Value>(
+  valueEncoder: JsonEncoder<Value>,
+): JsonEncoder<Record<string, Value>> {
+  return (decoded) => {
+    const encoded = {} as JsonObject;
+    for (const key in decoded) {
+      const valueDecoded = decoded[key]!;
+      const valueEncoded = valueEncoder(valueDecoded);
+      encoded[key] = valueEncoded;
+    }
+    return encoded;
+  };
+}
+export function jsonCodecObjectToRecord<Value>(
+  valueCodec: JsonCodec<Value>,
+): JsonCodec<Record<string, Value>> {
+  return {
+    decoder: jsonDecoderObjectToRecord(valueCodec.decoder),
+    encoder: jsonEncoderObjectToRecord(valueCodec.encoder),
   };
 }
 

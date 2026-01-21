@@ -19,6 +19,7 @@ import {
   jsonCodecObjectToEnum,
   jsonCodecObjectToMap,
   jsonCodecObjectToObject,
+  jsonCodecObjectToRecord,
   jsonCodecPubkey,
   jsonCodecSignature,
   jsonCodecString,
@@ -209,6 +210,11 @@ it("run", async () => {
       encoded: ["dudu", 42],
       codec: jsonCodecArrayToArray(jsonCodecConst("dudu", 42, true)),
       decoded: ["dudu", 42],
+    },
+    {
+      encoded: { hello: 888, world: null },
+      codec: jsonCodecObjectToRecord(jsonCodecNullable(jsonCodecNumber)),
+      decoded: { hello: 888, world: null },
     },
   ];
   for (const test of tests) {

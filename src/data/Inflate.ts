@@ -1,35 +1,48 @@
 // TODO - clean this up
 // @ts-nocheck
 
-export function inflate(file: Uint8Array, buf: Uint8Array | null): Uint8Array {
-  var CMF = file[0],
-    FLG = file[1];
-  if (CMF == 31 && FLG == 139) {
+export function inflate(bytes: Uint8Array, buf: Uint8Array | null): Uint8Array {
+  const CMF = bytes[0];
+  const FLG = bytes[1];
+  if (CMF === 31 && FLG === 139) {
     // GZIP
-    var CM = file[2],
-      FLG = file[3];
-    if (CM != 8) throw CM; /* 8 is DEFLATE */
-    var off = 4;
+    const CM = bytes[2];
+    const FLG = bytes[3];
+    if (CM !== 8) {
+      throw CM; /* 8 is DEFLATE */
+    }
+    let off = 4;
     off += 4; // MTIME
     off += 2; // XFL, OS
-    if ((FLG & 4) != 0) throw "e"; // FEXTRA
-    if ((FLG & 8) != 0) {
+    if ((FLG & 4) !== 0) {
+      throw "FEXTRA";
+    }
+    if ((FLG & 8) !== 0) {
       // FNAME
-      while (file[off] != 0) off++;
+      while (bytes[off] !== 0) {
+        off++;
+      }
       off++;
     }
-    if ((FLG & 16) != 0) throw "e"; // FCOMMENT
-    if ((FLG & 2) != 0) throw "e"; // FHCR
+    if ((FLG & 16) !== 0) {
+      throw "FCOMMENT";
+    }
+    if ((FLG & 2) !== 0) {
+      throw "FHCR";
+    }
     return inflateRaw(
-      new Uint8Array(file.buffer, file.byteOffset + off, file.length - off - 8),
+      new Uint8Array(
+        bytes.buffer,
+        bytes.byteOffset + off,
+        bytes.length - off - 8,
+      ),
       buf,
     );
   }
-  var CM = CMF & 15,
-    CINFO = CMF >>> 4;
-  //console.log(CM, CINFO,CMF,FLG);
+  const CM = CMF & 15;
+  const CINFO = CMF >>> 4;
   return inflateRaw(
-    new Uint8Array(file.buffer, file.byteOffset + 2, file.length - 6),
+    new Uint8Array(bytes.buffer, bytes.byteOffset + 2, bytes.length - 6),
     buf,
   );
 }
@@ -83,7 +96,7 @@ var U = (function () {
 
 function makeCodes(tree: string | any[], MAX_BITS: number) {
   // code, length
-  var max_code = tree.length;
+  const max_code = tree.length;
   var code, bits, n, i, len;
 
   var bl_count = U.bl_count;
@@ -107,6 +120,7 @@ function makeCodes(tree: string | any[], MAX_BITS: number) {
     }
   }
 }
+
 function codes2map(
   tree: string | any[],
   MAX_BITS: number,
@@ -130,6 +144,7 @@ function codes2map(
       }
     }
 }
+
 function revCodes(tree: string | any[], MAX_BITS: number) {
   var r15 = U.rev15,
     imb = 15 - MAX_BITS;
@@ -145,6 +160,7 @@ function _bitsE(dt: number[], pos: number, length: number) {
     ((1 << length) - 1)
   );
 }
+
 function _bitsF(dt: number[], pos: number, length: number) {
   return (
     ((dt[pos >>> 3] |
@@ -155,7 +171,7 @@ function _bitsF(dt: number[], pos: number, length: number) {
   );
 }
 
-function _get17(dt: number[], pos: number) {
+function _get17(dt: Uint8Array, pos: number) {
   // return at least 17 meaningful bytes
   return (
     (dt[pos >>> 3] |
@@ -235,7 +251,7 @@ export function inflateRaw(
     if (BTYPE == 0) {
       if ((pos & 7) != 0) pos += 8 - (pos & 7);
       var p8 = (pos >>> 3) + 4,
-        len = data[p8 - 4] | (data[p8 - 3] << 8); //console.log(len);//bitsF(data, pos, 16),
+        len = data[p8 - 4] | (data[p8 - 3] << 8);
       if (noBuf) buf = _check(buf, off + len);
       buf.set(new u8(data.buffer, data.byteOffset + p8, len), off);
 
@@ -287,11 +303,9 @@ export function inflateRaw(
       var mx1 = _copyOut(U.ttree, HLIT, HDIST, U.dtree);
       MD = (1 << mx1) - 1;
 
-      //var ml = _decodeTiny(U.imap, (1<<tl)-1, HLIT , data, pos, U.ltree); ML = (1<<(ml>>>24))-1;  pos+=(ml&0xffffff);
       makeCodes(U.ltree, mx0);
       codes2map(U.ltree, mx0, lmap);
 
-      //var md = _decodeTiny(U.imap, (1<<tl)-1, HDIST, data, pos, U.dtree); MD = (1<<(md>>>24))-1;  pos+=(md&0xffffff);
       makeCodes(U.dtree, mx1);
       codes2map(U.dtree, mx1, dmap);
     }
@@ -335,10 +349,12 @@ export function inflateRaw(
   return buf.length == off ? buf : buf.slice(0, off);
 }
 
-function _check(buf: string | any[] | ArrayLike<number>, len: number) {
-  var bl = buf.length;
-  if (len <= bl) return buf;
-  var nbuf = new Uint8Array(Math.max(bl << 1, len));
+function _check(buf: Uint8Array, len: number) {
+  const bl = buf.length;
+  if (len <= bl) {
+    return buf;
+  }
+  const nbuf = new Uint8Array(Math.max(bl << 1, len));
   nbuf.set(buf, 0);
   return nbuf;
 }

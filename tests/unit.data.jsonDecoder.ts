@@ -13,6 +13,7 @@ import {
   jsonDecoderObjectToEnum,
   jsonDecoderObjectToMap,
   jsonDecoderObjectToObject,
+  jsonDecoderObjectToRecord,
   JsonValue,
 } from "../src";
 
@@ -147,6 +148,13 @@ it("run", async () => {
         jsonDecoderNullable(jsonCodecNumber.decoder),
       ]),
       decoded: [999, null],
+    },
+    {
+      encoded: { hello: 888, world: null, toString: undefined, a: undefined },
+      decoder: jsonDecoderObjectToRecord(
+        jsonDecoderNullable(jsonCodecNumber.decoder),
+      ),
+      decoded: { hello: 888, world: null },
     },
   ];
   for (const test of tests) {

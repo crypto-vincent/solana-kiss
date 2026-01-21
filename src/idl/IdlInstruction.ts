@@ -117,14 +117,6 @@ export function idlInstructionAccountsDecode(
     }
     const instructionInput = instructionInputs[inputsIndex++]!;
     if (
-      instructionInput.signer === false &&
-      instructionAccountIdl.signer === true
-    ) {
-      throw new Error(
-        `Idl: Instruction account ${instructionAccountIdl.name} expected to be a signer`,
-      );
-    }
-    if (
       instructionInput.writable === false &&
       instructionAccountIdl.writable === true
     ) {

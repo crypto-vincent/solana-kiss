@@ -11,6 +11,7 @@ export async function rpcHttpWaitForTransaction(
   self: RpcHttp,
   transactionHandle: TransactionHandle,
   retryApprover: (context: {
+    transactionHandle: TransactionHandle;
     retriedCounter: number;
     totalDurationMs: number;
   }) => Promise<boolean>,
@@ -28,6 +29,7 @@ export async function rpcHttpWaitForTransaction(
     }
     const totalDurationMs = Date.now() - startTime;
     const retryApproved = await retryApprover({
+      transactionHandle,
       retriedCounter,
       totalDurationMs,
     });
