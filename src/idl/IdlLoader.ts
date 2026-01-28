@@ -1,19 +1,8 @@
 import { ErrorStack } from "../data/Error";
-import { inflate } from "../data/Inflate";
-import {
-  jsonCodecArrayToBytes,
-  jsonCodecObjectToObject,
-  jsonCodecPubkey,
-  JsonValue,
-} from "../data/Json";
+import { JsonValue } from "../data/Json";
 import { memoize } from "../data/Memoize";
-import {
-  Pubkey,
-  pubkeyCreateFromSeed,
-  pubkeyFindPdaAddress,
-} from "../data/Pubkey";
-import { utf8Decode } from "../data/Utf8";
-import { idlAccountDecode, idlAccountParse } from "./IdlAccount";
+import { Pubkey } from "../data/Pubkey";
+import { idlAccountParse } from "./IdlAccount";
 import { idlInstructionParse } from "./IdlInstruction";
 import { IdlProgram, idlProgramParse } from "./IdlProgram";
 
@@ -100,42 +89,3 @@ export function idlLoaderFromUrl(
     return httpProgramIdl;
   };
 }
-
-export function idlLoaderFromOnchain(
-  accountDataFetcher: (accountAddress: Pubkey) => Promise<Uint8Array>,
-): IdlLoader {
-  return async (programAddress: Pubkey) => {
-    const anchorIdlAddress = pubkeyCreateFromSeed(
-      pubkeyFindPdaAddress(programAddress, []),
-      "anchor:idl",
-      programAddress,
-    );
-    const anchorIdlData = await accountDataFetcher(anchorIdlAddress);
-    const { accountState: anchorIdlState } = idlAccountDecode(
-      anchorIdlAccount,
-      anchorIdlData,
-    );
-    const anchorIdlContent = anchorIdlJsonCodec.decoder(anchorIdlState);
-    const anchorIdlBytes = inflate(anchorIdlContent.deflatedJson, null);
-    const anchorIdlString = utf8Decode(anchorIdlBytes);
-    const anchorIdlJson = JSON.parse(anchorIdlString) as JsonValue;
-    const anchorIdl = idlProgramParse(anchorIdlJson);
-    anchorIdl.metadata.address = programAddress;
-    anchorIdl.metadata.source = `onchain://${anchorIdlAddress}/anchor`;
-    anchorIdl.accounts.set(anchorIdlAccount.name, anchorIdlAccount);
-    return anchorIdl;
-  };
-}
-
-const anchorIdlAccount = idlAccountParse("anchor:idl", {
-  discriminator: [24, 70, 98, 191, 58, 144, 123, 158],
-  fields: [
-    { name: "authority", type: "pubkey" },
-    { name: "deflated_json", type: { vec32: "u8" } },
-  ],
-});
-
-const anchorIdlJsonCodec = jsonCodecObjectToObject({
-  authority: jsonCodecPubkey,
-  deflatedJson: jsonCodecArrayToBytes,
-});

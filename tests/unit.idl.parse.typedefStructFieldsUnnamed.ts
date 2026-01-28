@@ -7,7 +7,7 @@ import {
   IdlTypePrimitive,
 } from "../src";
 
-it("run", () => {
+it("run", async () => {
   // Create IDLs using different shortened formats
   const programIdl1 = idlProgramParse({
     types: {
@@ -29,6 +29,7 @@ it("run", () => {
           { type: { option: "u8" } },
           { type: { option32: "u8" } },
           { type: { fields: [] }, docs: ["Hello"] },
+          { type: { tuple: ["u16", { docs: "a", type: "f32" }] }, docs: "b" },
         ],
       },
     },
@@ -53,12 +54,21 @@ it("run", () => {
           { option: "u8" },
           { option32: "u8" },
           { docs: ["Hello"], fields: [] },
+          { tuple: ["u16", { docs: "a", type: "f32" }], docs: "b" },
         ],
       },
     },
   });
   // Asser that the two notations are equivalent
   expect(programIdl1).toStrictEqual(programIdl2);
+  // Check that we can detect missmatches
+  expect(programIdl1).not.toStrictEqual(
+    idlProgramParse({
+      types: {
+        MyStruct: { fields: ["u8", "u64", "string", ["u8"]] },
+      },
+    }),
+  );
   // Assert that the content is correct
   expect(programIdl1.typedefs.get("MyStruct")).toStrictEqual({
     name: "MyStruct",
@@ -165,6 +175,21 @@ it("run", () => {
         {
           docs: ["Hello"],
           content: IdlTypeFlat.structNothing(),
+        },
+        {
+          docs: ["b"],
+          content: IdlTypeFlat.struct({
+            fields: IdlTypeFlatFields.unnamed([
+              {
+                docs: undefined,
+                content: IdlTypeFlat.primitive(IdlTypePrimitive.u16),
+              },
+              {
+                docs: ["a"],
+                content: IdlTypeFlat.primitive(IdlTypePrimitive.f32),
+              },
+            ]),
+          }),
         },
       ]),
     }),

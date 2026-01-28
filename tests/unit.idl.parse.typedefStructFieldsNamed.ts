@@ -36,6 +36,7 @@ it("run", () => {
           { name: "generic2", type: { generic: "G" } },
           { name: "docs", type: "u8", docs: ["Hello"] },
           { name: "alias", alias: "string" },
+          { name: "tuple", tuple: ["string", ["u8"]] },
         ],
       },
     },
@@ -217,6 +218,25 @@ it("run", () => {
           name: "alias",
           docs: undefined,
           content: IdlTypeFlat.string({ prefix: IdlTypePrefix.u32 }),
+        },
+        {
+          name: "tuple",
+          docs: undefined,
+          content: IdlTypeFlat.struct({
+            fields: IdlTypeFlatFields.unnamed([
+              {
+                docs: undefined,
+                content: IdlTypeFlat.string({ prefix: IdlTypePrefix.u32 }),
+              },
+              {
+                docs: undefined,
+                content: IdlTypeFlat.vec({
+                  prefix: IdlTypePrefix.u32,
+                  items: IdlTypeFlat.primitive(IdlTypePrimitive.u8),
+                }),
+              },
+            ]),
+          }),
         },
       ]),
     }),

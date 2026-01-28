@@ -106,6 +106,7 @@ export function idlProgramGuessError(
   throw new ErrorStack("Idl: Failed to guess error", codes);
 }
 
+// TODO - support CODAMA IDLs
 export function idlProgramParse(programValue: JsonValue): IdlProgram {
   const programObject = jsonCodecObject.decoder(programValue);
   const metadata = idlMetadataParse(programObject);

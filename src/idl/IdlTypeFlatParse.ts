@@ -329,6 +329,7 @@ const objectJsonDecoderCases = {
   loop: objectLoopJsonDecoder,
   array: arrayJsonDecoder,
   fields: objectStructJsonDecoder, // TODO (experiment) - support for partial structs ?
+  tuple: objectStructJsonDecoder,
   variants: objectEnumJsonDecoder(IdlTypePrefix.u8),
   variants8: objectEnumJsonDecoder(IdlTypePrefix.u8),
   variants16: objectEnumJsonDecoder(IdlTypePrefix.u16),

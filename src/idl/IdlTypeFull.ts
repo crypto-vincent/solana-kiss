@@ -72,15 +72,15 @@ type IdlTypeFullContent =
   | IdlTypePrimitive;
 
 export class IdlTypeFull {
-  readonly #discriminant: IdlTypeFullDiscriminant;
-  readonly #content: IdlTypeFullContent;
+  private readonly discriminant: IdlTypeFullDiscriminant;
+  private readonly content: IdlTypeFullContent;
 
   private constructor(
     discriminant: IdlTypeFullDiscriminant,
     content: IdlTypeFullContent,
   ) {
-    this.#discriminant = discriminant;
-    this.#content = content;
+    this.discriminant = discriminant;
+    this.content = content;
   }
 
   public static typedef(value: IdlTypeFullTypedef): IdlTypeFull {
@@ -124,7 +124,7 @@ export class IdlTypeFull {
   }
 
   public isPrimitive(primitive: IdlTypePrimitive): boolean {
-    return this.#discriminant === "primitive" && this.#content === primitive;
+    return this.discriminant === "primitive" && this.content === primitive;
   }
 
   public traverse<P1, P2, P3, T>(
@@ -145,7 +145,7 @@ export class IdlTypeFull {
     p2: P2,
     p3: P3,
   ): T {
-    return visitor[this.#discriminant](this.#content as any, p1, p2, p3);
+    return visitor[this.discriminant](this.content as any, p1, p2, p3);
   }
 }
 
@@ -164,15 +164,15 @@ type IdlTypeFullFieldsContent =
   | Array<IdlTypeFullFieldUnnamed>;
 
 export class IdlTypeFullFields {
-  readonly #discriminant: IdlTypeFullFieldsDiscriminant;
-  readonly #content: IdlTypeFullFieldsContent;
+  private readonly discriminant: IdlTypeFullFieldsDiscriminant;
+  private readonly content: IdlTypeFullFieldsContent;
 
   private constructor(
     discriminant: IdlTypeFullFieldsDiscriminant,
     content: IdlTypeFullFieldsContent,
   ) {
-    this.#discriminant = discriminant;
-    this.#content = content;
+    this.discriminant = discriminant;
+    this.content = content;
   }
 
   public static nothing(): IdlTypeFullFields {
@@ -188,7 +188,7 @@ export class IdlTypeFullFields {
   }
 
   public isNothing(): boolean {
-    return this.#discriminant === "nothing";
+    return this.discriminant === "nothing";
   }
 
   public traverse<P1, P2, P3, T>(
@@ -206,19 +206,19 @@ export class IdlTypeFullFields {
     p2: P2,
     p3: P3,
   ) {
-    switch (this.#discriminant) {
+    switch (this.discriminant) {
       case "nothing":
-        return visitor.nothing(this.#content as null, p1, p2, p3);
+        return visitor.nothing(this.content as null, p1, p2, p3);
       case "named":
         return visitor.named(
-          this.#content as Array<IdlTypeFullFieldNamed>,
+          this.content as Array<IdlTypeFullFieldNamed>,
           p1,
           p2,
           p3,
         );
       case "unnamed":
         return visitor.unnamed(
-          this.#content as Array<IdlTypeFullFieldUnnamed>,
+          this.content as Array<IdlTypeFullFieldUnnamed>,
           p1,
           p2,
           p3,

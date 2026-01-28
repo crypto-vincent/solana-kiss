@@ -27,10 +27,11 @@ import {
   IdlLoader,
   idlLoaderFallbackToUnknown,
   idlLoaderFromLoaderSequence,
-  idlLoaderFromOnchain,
   idlLoaderFromUrl,
   idlLoaderMemoized,
 } from "./idl/IdlLoader";
+import { idlLoaderFromOnchainAnchor } from "./idl/IdlLoaderOnchainAnchor";
+import { idlLoaderFromOnchainNative } from "./idl/IdlLoaderOnchainNative";
 import {
   IdlProgram,
   idlProgramGuessAccount,
@@ -327,15 +328,17 @@ export class Solana {
 }
 
 function recommendedIdlLoader(rpcHttp: RpcHttp) {
+  const accountDataFetcher = async (programAddress: Pubkey) => {
+    const { accountData } = await rpcHttpGetAccountWithData(
+      rpcHttp,
+      programAddress,
+    );
+    return accountData;
+  };
   return idlLoaderMemoized(
     idlLoaderFromLoaderSequence([
-      idlLoaderFromOnchain(async (programAddress) => {
-        const { accountData } = await rpcHttpGetAccountWithData(
-          rpcHttp,
-          programAddress,
-        );
-        return accountData;
-      }),
+      idlLoaderFromOnchainNative(accountDataFetcher),
+      idlLoaderFromOnchainAnchor(accountDataFetcher),
       idlLoaderFromUrl((programAddress) => {
         const githubRawBase = "https://raw.githubusercontent.com";
         const githubRepository = "crypto-vincent/solana-idls";

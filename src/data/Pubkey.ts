@@ -71,31 +71,6 @@ export function pubkeyFindPdaAddressAndBump(
   );
 }
 
-export function pubkeyCreatePdaAddress(
-  programAddress: Pubkey,
-  seedsBytes: Array<Uint8Array>,
-): Pubkey | undefined {
-  const programBytes = pubkeyToBytes(programAddress);
-  if (seedsBytes.length > 16) {
-    throw new Error("Pubkey: Create PDA: Too many seeds, max is 16");
-  }
-  for (let seedIndex = 0; seedIndex < seedsBytes.length; seedIndex++) {
-    let seedBytes = seedsBytes[seedIndex]!;
-    if (seedBytes.length > 32) {
-      throw new Error(
-        `Pubkey: Create PDA: Seed at index ${seedIndex} is too big, max is 32 bytes`,
-      );
-    }
-  }
-  const pdaAddress = pubkeyFromBytes(
-    sha256Hash([...seedsBytes, programBytes, pdaMarker]),
-  );
-  if (pubkeyIsOnCurve(pdaAddress)) {
-    return undefined;
-  }
-  return pdaAddress;
-}
-
 export function pubkeyCreateFromSeed(
   baseAddress: Pubkey,
   seedUtf8: string,
@@ -209,8 +184,6 @@ function inv(value: bigint) {
   return pow(value, fieldModulusP - 2n);
 }
 
-const pdaMarker = utf8Encode("ProgramDerivedAddress");
-
 function pubkeyBytesCheck(bytes: Uint8Array) {
   if (bytes.length !== 32) {
     throw new Error(
@@ -218,3 +191,30 @@ function pubkeyBytesCheck(bytes: Uint8Array) {
     );
   }
 }
+
+function pubkeyCreatePdaAddress(
+  programAddress: Pubkey,
+  seedsBytes: Array<Uint8Array>,
+): Pubkey | undefined {
+  const programBytes = pubkeyToBytes(programAddress);
+  if (seedsBytes.length > 16) {
+    throw new Error("Pubkey: Create PDA: Too many seeds, max is 16");
+  }
+  for (let seedIndex = 0; seedIndex < seedsBytes.length; seedIndex++) {
+    let seedBytes = seedsBytes[seedIndex]!;
+    if (seedBytes.length > 32) {
+      throw new Error(
+        `Pubkey: Create PDA: Seed at index ${seedIndex} is too big, max is 32 bytes`,
+      );
+    }
+  }
+  const pdaAddress = pubkeyFromBytes(
+    sha256Hash([...seedsBytes, programBytes, pdaMarker]),
+  );
+  if (pubkeyIsOnCurve(pdaAddress)) {
+    return undefined;
+  }
+  return pdaAddress;
+}
+
+const pdaMarker = utf8Encode("ProgramDerivedAddress");

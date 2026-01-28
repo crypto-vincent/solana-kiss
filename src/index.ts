@@ -28,6 +28,8 @@ export * from "./idl/IdlInstruction";
 export * from "./idl/IdlInstructionAccount";
 export * from "./idl/IdlInstructionBlob";
 export * from "./idl/IdlLoader";
+export * from "./idl/IdlLoaderOnchainAnchor";
+export * from "./idl/IdlLoaderOnchainNative";
 export * from "./idl/IdlMetadata";
 export * from "./idl/IdlProgram";
 export * from "./idl/IdlTypedef";

@@ -4,7 +4,6 @@ import {
   expectDefined,
   idlInstructionAccountsEncode,
   idlInstructionArgsEncode,
-  idlLoaderFromOnchain,
   InstructionRequest,
   lamportsFeePerSignature,
   pubkeyDefault,
@@ -12,11 +11,11 @@ import {
   pubkeyFromBase58,
   pubkeyToBytes,
   rpcHttpFromUrl,
-  rpcHttpGetAccountWithData,
   rpcHttpGetLatestBlockHash,
   rpcHttpSimulateTransaction,
   signerFromSecret,
   signerGenerate,
+  Solana,
   transactionCompileAndSign,
   transactionCompileUnsigned,
   urlRpcPublicDevnet,
@@ -43,14 +42,9 @@ it("run", async () => {
     pubkeyToBytes(userSigner.address),
   ]);
   // Find and load the IDL
-  const loaderIdl = idlLoaderFromOnchain(async (programAddress) => {
-    const { accountData } = await rpcHttpGetAccountWithData(
-      rpcHttp,
-      programAddress,
-    );
-    return accountData;
-  });
-  const programIdl = await loaderIdl(programAddress);
+  const { programIdl } = await new Solana(rpcHttp).getOrLoadProgramIdl(
+    programAddress,
+  );
   const instructionIdl = expectDefined(
     programIdl.instructions.get("pledge_create"),
   );

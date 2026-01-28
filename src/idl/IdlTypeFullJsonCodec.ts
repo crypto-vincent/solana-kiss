@@ -24,15 +24,15 @@ export function idlTypeFullJsonCodecModule(
   dependencies.add("JsonCodecContent");
   const codecExpression = idlTypeFullJsonCodecExpression(self, dependencies);
   const importNames = [...dependencies].join(",");
-  const lines = [];
-  lines.push("");
-  lines.push(`import {${importNames}} from "${importPath ?? "solana-kiss"}";`);
-  lines.push("");
-  lines.push(`export type JsonContent = JsonCodecContent<typeof jsonCodec>;`);
-  lines.push("");
-  lines.push(`export const jsonCodec = ${codecExpression};`);
-  lines.push("");
-  return lines.join("\n");
+  return [
+    ``,
+    `import {${importNames}} from "${importPath ?? "solana-kiss"}";`,
+    ``,
+    `export type JsonContent = JsonCodecContent<typeof jsonCodec>;`,
+    ``,
+    `export const jsonCodec = ${codecExpression};`,
+    ``,
+  ].join("\n");
 }
 
 export function idlTypeFullJsonCodecExpression(
