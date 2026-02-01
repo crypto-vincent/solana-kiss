@@ -21,8 +21,6 @@ import { idlAccountDecode, idlAccountParse } from "./IdlAccount";
 import { IdlLoader } from "./IdlLoader";
 import { idlProgramParse } from "./IdlProgram";
 
-// TODO (loader) - support native metadata program reading
-
 export function idlLoaderFromOnchainNative(
   accountDataFetcher: (accountAddress: Pubkey) => Promise<Uint8Array>,
 ): IdlLoader {
@@ -37,6 +35,9 @@ export function idlLoaderFromOnchainNative(
       idlData,
     );
     const idlContent = metadataProgramJsonCodec.decoder(idlState);
+    if (idlContent.seed != metadataProgramIdlSeed) {
+      throw new ErrorStack(`IDL: Invalid seed value`);
+    }
     if (idlContent.encoding !== "Utf8") {
       throw new ErrorStack(`IDL: Unsupported encoding ${idlContent.encoding}`);
     }
