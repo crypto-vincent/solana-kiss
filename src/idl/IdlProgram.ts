@@ -25,6 +25,7 @@ import {
   idlInstructionParse,
 } from "./IdlInstruction";
 import { IdlMetadata, idlMetadataParse } from "./IdlMetadata";
+import { IdlPda, idlPdaParse } from "./IdlPda";
 import { IdlTypedef, idlTypedefParse } from "./IdlTypedef";
 
 export type IdlProgram = {
@@ -34,6 +35,7 @@ export type IdlProgram = {
   instructions: Map<string, IdlInstruction>;
   events: Map<string, IdlEvent>;
   errors: Map<string, IdlError>;
+  pdas: Map<string, IdlPda>;
   constants: Map<string, IdlConstant>;
 };
 
@@ -145,11 +147,18 @@ export function idlProgramParse(programValue: JsonValue): IdlProgram {
     undefined,
     idlErrorParse,
   );
+  const pdas = parseScopedNamedValues(
+    programObject,
+    "pdas",
+    false,
+    typedefs,
+    idlPdaParse,
+  );
   const constants = parseScopedNamedValues(
     programObject,
     "constants",
     false,
-    undefined,
+    typedefs,
     idlConstantParse,
   );
   return {
@@ -159,6 +168,7 @@ export function idlProgramParse(programValue: JsonValue): IdlProgram {
     instructions,
     events,
     errors,
+    pdas,
     constants,
   };
 }

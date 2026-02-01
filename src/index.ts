@@ -31,6 +31,8 @@ export * from "./idl/IdlLoader";
 export * from "./idl/IdlLoaderOnchainAnchor";
 export * from "./idl/IdlLoaderOnchainNative";
 export * from "./idl/IdlMetadata";
+export * from "./idl/IdlPda";
+export * from "./idl/IdlPdaBlob";
 export * from "./idl/IdlProgram";
 export * from "./idl/IdlTypedef";
 export * from "./idl/IdlTypeFlat";

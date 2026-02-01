@@ -22,7 +22,7 @@ export async function rpcHttpSimulateTransaction(
   self: RpcHttp,
   transactionPacket: TransactionPacket,
   options?: {
-    verifySignaturesAndBlockHash?: boolean;
+    verifySignaturesAndBlockHash?: boolean; // TODO - this could be split into 2 flags ?
     simulatedAccountsAddresses?: Set<Pubkey>;
   },
 ): Promise<{
@@ -43,7 +43,8 @@ export async function rpcHttpSimulateTransaction(
   const simulatedAccountsAddresses = options?.simulatedAccountsAddresses
     ? [...options.simulatedAccountsAddresses]
     : [];
-  const strictVerification = options?.verifySignaturesAndBlockHash ?? true;
+  const verifySignaturesAndBlockHash =
+    options?.verifySignaturesAndBlockHash ?? true;
   const result = resultJsonDecoder(
     await self(
       "simulateTransaction",
@@ -55,8 +56,8 @@ export async function rpcHttpSimulateTransaction(
           encoding: "base64",
         },
         innerInstructions: false,
-        replaceRecentBlockhash: !strictVerification,
-        sigVerify: strictVerification,
+        replaceRecentBlockhash: !verifySignaturesAndBlockHash,
+        sigVerify: verifySignaturesAndBlockHash,
       },
     ),
   );

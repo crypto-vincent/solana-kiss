@@ -85,28 +85,32 @@ const metadataProgramIdlSeed = (() => {
   return seed;
 })();
 
-const metadataProgramAccount = idlAccountParse("program:metadata", {
-  discriminator: [2],
-  fields: [
-    { name: "program", type: "pubkey" },
-    { name: "authority", type: "pubkey" },
-    { name: "mutable", type: "bool" },
-    { name: "canonical", type: "bool" },
-    { name: "seed", type: ["u8", 16] },
-    { name: "encoding", variants8: ["None", "Utf8", "Base58", "Base64"] },
-    { name: "compression", variants8: ["None", "GZip", "ZLib"] },
-    { name: "format", variants8: ["None", "Json", "Yaml", "Toml"] },
-    { name: "data_source", variants8: ["Direct", "Url", "External"] },
-    { name: "data_length", type: "u32" },
-    {
-      name: "data_raw",
-      padded: {
-        before: 5,
-        loop: { items: "u8", stop: "end" },
+const metadataProgramAccount = idlAccountParse(
+  "program:metadata",
+  {
+    discriminator: [2],
+    fields: [
+      { name: "program", type: "pubkey" },
+      { name: "authority", type: "pubkey" },
+      { name: "mutable", type: "bool" },
+      { name: "canonical", type: "bool" },
+      { name: "seed", type: ["u8", 16] },
+      { name: "encoding", variants8: ["None", "Utf8", "Base58", "Base64"] },
+      { name: "compression", variants8: ["None", "GZip", "ZLib"] },
+      { name: "format", variants8: ["None", "Json", "Yaml", "Toml"] },
+      { name: "data_source", variants8: ["Direct", "Url", "External"] },
+      { name: "data_length", type: "u32" },
+      {
+        name: "data_raw",
+        padded: {
+          before: 5,
+          loop: { items: "u8", stop: "end" },
+        },
       },
-    },
-  ],
-});
+    ],
+  },
+  new Map(),
+);
 
 const metadataProgramJsonCodec = jsonCodecObjectToObject({
   program: jsonCodecPubkey,

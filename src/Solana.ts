@@ -49,7 +49,7 @@ export class Solana {
   readonly #idlPreload: Map<Pubkey, IdlProgram>;
   readonly #idlLoader: IdlLoader;
 
-  #recentBlockhashCacheDurationMs = 15_000;
+  #recentBlockHashCacheDurationMs = 15_000;
   #recentBlockHashCacheValue: {
     blockHash: BlockHash;
     fetchTimeMs: number;
@@ -60,7 +60,7 @@ export class Solana {
     options?: {
       customIdlPreload?: Map<Pubkey, IdlProgram>;
       customIdlLoaders?: Array<IdlLoader>;
-      recentBlockhashCacheDurationMs?: number;
+      recentBlockHashCacheDurationMs?: number;
     },
   ) {
     if (typeof rpcHttp === "string") {
@@ -74,8 +74,8 @@ export class Solana {
     this.#idlLoader = idlLoaderFromLoaderSequence(
       options?.customIdlLoaders ?? [recommendedIdlLoader(this.#rpcHttp)],
     );
-    this.#recentBlockhashCacheDurationMs =
-      options?.recentBlockhashCacheDurationMs ?? 15_000;
+    this.#recentBlockHashCacheDurationMs =
+      options?.recentBlockHashCacheDurationMs ?? 15_000;
     this.#recentBlockHashCacheValue = null;
   }
 
@@ -235,7 +235,7 @@ export class Solana {
     if (this.#recentBlockHashCacheValue) {
       const cachedDurationMs =
         nowTimeMs - this.#recentBlockHashCacheValue.fetchTimeMs;
-      if (cachedDurationMs < this.#recentBlockhashCacheDurationMs) {
+      if (cachedDurationMs < this.#recentBlockHashCacheDurationMs) {
         return this.#recentBlockHashCacheValue.blockHash;
       }
     }

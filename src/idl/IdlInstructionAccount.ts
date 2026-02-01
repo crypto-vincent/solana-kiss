@@ -87,7 +87,7 @@ export function idlInstructionAccountParse(
   instructionAccountGroups: Array<string>,
   instructionAccountValue: JsonValue,
   instructionArgsTypeFullFields: IdlTypeFullFields,
-  typedefsIdls?: Map<string, IdlTypedef>,
+  typedefsIdls: Map<string, IdlTypedef>,
 ): Array<IdlInstructionAccount> {
   const decoded = jsonDecoder(instructionAccountValue);
   if (decoded.accounts !== null) {

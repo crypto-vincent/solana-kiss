@@ -262,7 +262,7 @@ export function idlInstructionReturnDecode(
 export function idlInstructionParse(
   instructionName: string,
   instructionValue: JsonValue,
-  typedefsIdls?: Map<string, IdlTypedef>,
+  typedefsIdls: Map<string, IdlTypedef>,
 ): IdlInstruction {
   const decoded = jsonDecoder(instructionValue);
   const argsTypeFlatFields = decoded.args ?? IdlTypeFlatFields.nothing();

@@ -28,7 +28,7 @@ export function idlErrorParse(
   };
 }
 
-export const jsonDecoder = jsonDecoderByType({
+const jsonDecoder = jsonDecoderByType({
   number: (number: number) => ({
     docs: undefined,
     code: number,

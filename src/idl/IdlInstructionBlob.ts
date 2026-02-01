@@ -103,21 +103,17 @@ export async function idlInstructionBlobCompute(
 export function idlInstructionBlobParse(
   instructionBlobValue: JsonValue,
   instructionArgsTypeFullFields: IdlTypeFullFields,
-  typedefsIdls?: Map<string, IdlTypedef>,
+  typedefsIdls: Map<string, IdlTypedef>,
 ): IdlInstructionBlob {
   const decoded = jsonDecoder(instructionBlobValue);
   if (decoded.value !== null) {
-    return idlInstructionBlobParseConst(
-      decoded.value,
-      decoded.type,
-      typedefsIdls,
-    );
+    return parseConst(decoded.value, decoded.type, typedefsIdls);
   }
   if (decoded.path === null) {
     throw new Error(`Idl: Expected path/value for instruction blob`);
   }
   if (decoded.kind === "arg") {
-    return idlInstructionBlobParseArg(
+    return parseArg(
       decoded.path,
       decoded.type,
       instructionArgsTypeFullFields,
@@ -125,19 +121,15 @@ export function idlInstructionBlobParse(
     );
   }
   if (decoded.kind === null || decoded.kind === "account") {
-    return idlInstructionBlobParseAccount(
-      decoded.path,
-      decoded.type,
-      typedefsIdls,
-    );
+    return parseAccount(decoded.path, decoded.type, typedefsIdls);
   }
   throw new Error(`Idl: Invalid instruction blob kind: ${decoded.kind}`);
 }
 
-export function idlInstructionBlobParseConst(
+function parseConst(
   instructionBlobValue: JsonValue,
   instructionBlobType: IdlTypeFlat | null,
-  typedefsIdls?: Map<string, IdlTypedef>,
+  typedefsIdls: Map<string, IdlTypedef>,
 ): IdlInstructionBlob {
   const typeFull = idlTypeFlatHydrate(
     instructionBlobType ?? idlUtilsInferValueTypeFlat(instructionBlobValue),
@@ -148,11 +140,11 @@ export function idlInstructionBlobParseConst(
   return IdlInstructionBlob.const({ bytes });
 }
 
-export function idlInstructionBlobParseArg(
+function parseArg(
   instructionBlobPath: string,
   instructionBlobType: IdlTypeFlat | null,
   instructionArgsTypeFullFields: IdlTypeFullFields,
-  typedefsIdls?: Map<string, IdlTypedef>,
+  typedefsIdls: Map<string, IdlTypedef>,
 ): IdlInstructionBlob {
   const pointer = jsonPointerParse(instructionBlobPath);
   const typeFull = instructionBlobType
@@ -161,10 +153,10 @@ export function idlInstructionBlobParseArg(
   return IdlInstructionBlob.arg({ pointer, typeFull });
 }
 
-export function idlInstructionBlobParseAccount(
+function parseAccount(
   instructionBlobPath: string,
   instructionBlobType: IdlTypeFlat | null,
-  typedefsIdls?: Map<string, IdlTypedef>,
+  typedefsIdls: Map<string, IdlTypedef>,
 ): IdlInstructionBlob {
   const pathCamel = casingLosslessConvertToCamel(instructionBlobPath);
   const pathSnake = casingLosslessConvertToSnake(instructionBlobPath);
