@@ -18,9 +18,7 @@
           {
             "kind": "variablePdaSeedNode",
             "name": "program",
-            "docs": [
-              "The program to which the metadata belongs."
-            ],
+            "docs": ["The program to which the metadata belongs."],
             "type": {
               "kind": "publicKeyTypeNode"
             }
@@ -28,9 +26,7 @@
           {
             "kind": "variablePdaSeedNode",
             "name": "seed",
-            "docs": [
-              "The seed deriving the metadata account."
-            ],
+            "docs": ["The seed deriving the metadata account."],
             "type": {
               "kind": "definedTypeLinkNode",
               "name": "seed"
@@ -48,9 +44,7 @@
           {
             "kind": "variablePdaSeedNode",
             "name": "program",
-            "docs": [
-              "The program to which the metadata belongs."
-            ],
+            "docs": ["The program to which the metadata belongs."],
             "type": {
               "kind": "publicKeyTypeNode"
             }
@@ -68,9 +62,7 @@
           {
             "kind": "variablePdaSeedNode",
             "name": "seed",
-            "docs": [
-              "The seed deriving the metadata account."
-            ],
+            "docs": ["The seed deriving the metadata account."],
             "type": {
               "kind": "definedTypeLinkNode",
               "name": "seed"
@@ -88,9 +80,7 @@
           {
             "kind": "variablePdaSeedNode",
             "name": "program",
-            "docs": [
-              "The program to which the metadata belongs."
-            ],
+            "docs": ["The program to which the metadata belongs."],
             "type": {
               "kind": "publicKeyTypeNode"
             }
@@ -111,9 +101,7 @@
           {
             "kind": "variablePdaSeedNode",
             "name": "seed",
-            "docs": [
-              "The seed deriving the metadata account."
-            ],
+            "docs": ["The seed deriving the metadata account."],
             "type": {
               "kind": "definedTypeLinkNode",
               "name": "seed"
@@ -368,18 +356,14 @@
           {
             "kind": "instructionAccountNode",
             "name": "buffer",
-            "docs": [
-              "The buffer to write to."
-            ],
+            "docs": ["The buffer to write to."],
             "isSigner": false,
             "isWritable": true
           },
           {
             "kind": "instructionAccountNode",
             "name": "authority",
-            "docs": [
-              "The authority of the buffer."
-            ],
+            "docs": ["The authority of the buffer."],
             "isSigner": true,
             "isWritable": false
           },
@@ -414,9 +398,7 @@
           {
             "kind": "instructionArgumentNode",
             "name": "offset",
-            "docs": [
-              "The offset to write to."
-            ],
+            "docs": ["The offset to write to."],
             "type": {
               "kind": "numberTypeNode",
               "format": "u32",
@@ -458,9 +440,7 @@
           {
             "kind": "instructionAccountNode",
             "name": "metadata",
-            "docs": [
-              "Metadata account the initialize."
-            ],
+            "docs": ["Metadata account the initialize."],
             "isSigner": false,
             "isWritable": true,
             "defaultValue": {
@@ -541,18 +521,14 @@
           {
             "kind": "instructionAccountNode",
             "name": "program",
-            "docs": [
-              "Program account."
-            ],
+            "docs": ["Program account."],
             "isSigner": false,
             "isWritable": false
           },
           {
             "kind": "instructionAccountNode",
             "name": "programData",
-            "docs": [
-              "Program data account."
-            ],
+            "docs": ["Program data account."],
             "isSigner": false,
             "isWritable": false,
             "isOptional": true
@@ -560,9 +536,7 @@
           {
             "kind": "instructionAccountNode",
             "name": "system",
-            "docs": [
-              "System program."
-            ],
+            "docs": ["System program."],
             "isSigner": false,
             "isWritable": false,
             "isOptional": true,
@@ -665,27 +639,21 @@
           {
             "kind": "instructionAccountNode",
             "name": "account",
-            "docs": [
-              "Metadata or buffer account."
-            ],
+            "docs": ["Metadata or buffer account."],
             "isSigner": false,
             "isWritable": true
           },
           {
             "kind": "instructionAccountNode",
             "name": "authority",
-            "docs": [
-              "Current authority account."
-            ],
+            "docs": ["Current authority account."],
             "isSigner": true,
             "isWritable": false
           },
           {
             "kind": "instructionAccountNode",
             "name": "program",
-            "docs": [
-              "Program account."
-            ],
+            "docs": ["Program account."],
             "isSigner": false,
             "isWritable": false,
             "isOptional": true
@@ -693,9 +661,7 @@
           {
             "kind": "instructionAccountNode",
             "name": "programData",
-            "docs": [
-              "Program data account."
-            ],
+            "docs": ["Program data account."],
             "isSigner": false,
             "isWritable": false,
             "isOptional": true
@@ -751,27 +717,21 @@
           {
             "kind": "instructionAccountNode",
             "name": "metadata",
-            "docs": [
-              "Metadata account."
-            ],
+            "docs": ["Metadata account."],
             "isSigner": false,
             "isWritable": true
           },
           {
             "kind": "instructionAccountNode",
             "name": "authority",
-            "docs": [
-              "Authority account."
-            ],
+            "docs": ["Authority account."],
             "isSigner": true,
             "isWritable": false
           },
           {
             "kind": "instructionAccountNode",
             "name": "buffer",
-            "docs": [
-              "Buffer account to copy data from."
-            ],
+            "docs": ["Buffer account to copy data from."],
             "isSigner": false,
             "isWritable": true,
             "isOptional": true
@@ -779,9 +739,7 @@
           {
             "kind": "instructionAccountNode",
             "name": "program",
-            "docs": [
-              "Program account."
-            ],
+            "docs": ["Program account."],
             "isSigner": false,
             "isWritable": false,
             "isOptional": true
@@ -789,9 +747,7 @@
           {
             "kind": "instructionAccountNode",
             "name": "programData",
-            "docs": [
-              "Program data account."
-            ],
+            "docs": ["Program data account."],
             "isSigner": false,
             "isWritable": false,
             "isOptional": true
@@ -881,27 +837,21 @@
           {
             "kind": "instructionAccountNode",
             "name": "metadata",
-            "docs": [
-              "Metadata account."
-            ],
+            "docs": ["Metadata account."],
             "isSigner": false,
             "isWritable": true
           },
           {
             "kind": "instructionAccountNode",
             "name": "authority",
-            "docs": [
-              "Authority account."
-            ],
+            "docs": ["Authority account."],
             "isSigner": true,
             "isWritable": false
           },
           {
             "kind": "instructionAccountNode",
             "name": "program",
-            "docs": [
-              "Program account."
-            ],
+            "docs": ["Program account."],
             "isSigner": false,
             "isWritable": false,
             "isOptional": true
@@ -909,9 +859,7 @@
           {
             "kind": "instructionAccountNode",
             "name": "programData",
-            "docs": [
-              "Program data account."
-            ],
+            "docs": ["Program data account."],
             "isSigner": false,
             "isWritable": false,
             "isOptional": true
@@ -951,27 +899,21 @@
           {
             "kind": "instructionAccountNode",
             "name": "account",
-            "docs": [
-              "Buffer or metadata account."
-            ],
+            "docs": ["Buffer or metadata account."],
             "isSigner": false,
             "isWritable": true
           },
           {
             "kind": "instructionAccountNode",
             "name": "authority",
-            "docs": [
-              "Authority account."
-            ],
+            "docs": ["Authority account."],
             "isSigner": true,
             "isWritable": false
           },
           {
             "kind": "instructionAccountNode",
             "name": "program",
-            "docs": [
-              "Program account."
-            ],
+            "docs": ["Program account."],
             "isSigner": false,
             "isWritable": false,
             "isOptional": true
@@ -979,9 +921,7 @@
           {
             "kind": "instructionAccountNode",
             "name": "programData",
-            "docs": [
-              "Program data account."
-            ],
+            "docs": ["Program data account."],
             "isSigner": false,
             "isWritable": false,
             "isOptional": true
@@ -989,18 +929,14 @@
           {
             "kind": "instructionAccountNode",
             "name": "destination",
-            "docs": [
-              "Destination account."
-            ],
+            "docs": ["Destination account."],
             "isSigner": false,
             "isWritable": true
           },
           {
             "kind": "instructionAccountNode",
             "name": "rent",
-            "docs": [
-              "Rent sysvar account."
-            ],
+            "docs": ["Rent sysvar account."],
             "isSigner": false,
             "isWritable": false,
             "defaultValue": {
@@ -1043,27 +979,21 @@
           {
             "kind": "instructionAccountNode",
             "name": "account",
-            "docs": [
-              "Account to close."
-            ],
+            "docs": ["Account to close."],
             "isSigner": false,
             "isWritable": true
           },
           {
             "kind": "instructionAccountNode",
             "name": "authority",
-            "docs": [
-              "Authority account."
-            ],
+            "docs": ["Authority account."],
             "isSigner": true,
             "isWritable": false
           },
           {
             "kind": "instructionAccountNode",
             "name": "program",
-            "docs": [
-              "Program account."
-            ],
+            "docs": ["Program account."],
             "isSigner": false,
             "isWritable": false,
             "isOptional": true
@@ -1071,9 +1001,7 @@
           {
             "kind": "instructionAccountNode",
             "name": "programData",
-            "docs": [
-              "Program data account."
-            ],
+            "docs": ["Program data account."],
             "isSigner": false,
             "isWritable": false,
             "isOptional": true
@@ -1081,9 +1009,7 @@
           {
             "kind": "instructionAccountNode",
             "name": "destination",
-            "docs": [
-              "Destination account."
-            ],
+            "docs": ["Destination account."],
             "isSigner": false,
             "isWritable": true
           }
@@ -1122,27 +1048,21 @@
           {
             "kind": "instructionAccountNode",
             "name": "buffer",
-            "docs": [
-              "Buffer account to allocate."
-            ],
+            "docs": ["Buffer account to allocate."],
             "isSigner": false,
             "isWritable": true
           },
           {
             "kind": "instructionAccountNode",
             "name": "authority",
-            "docs": [
-              "Authority account."
-            ],
+            "docs": ["Authority account."],
             "isSigner": true,
             "isWritable": false
           },
           {
             "kind": "instructionAccountNode",
             "name": "program",
-            "docs": [
-              "Program account."
-            ],
+            "docs": ["Program account."],
             "isSigner": false,
             "isWritable": false,
             "isOptional": true
@@ -1150,9 +1070,7 @@
           {
             "kind": "instructionAccountNode",
             "name": "programData",
-            "docs": [
-              "Program data account."
-            ],
+            "docs": ["Program data account."],
             "isSigner": false,
             "isWritable": false,
             "isOptional": true
@@ -1160,9 +1078,7 @@
           {
             "kind": "instructionAccountNode",
             "name": "system",
-            "docs": [
-              "System program."
-            ],
+            "docs": ["System program."],
             "isSigner": false,
             "isWritable": false,
             "isOptional": true,
@@ -1191,9 +1107,7 @@
           {
             "kind": "instructionArgumentNode",
             "name": "seed",
-            "docs": [
-              "The seed of the metadata for PDA buffers."
-            ],
+            "docs": ["The seed of the metadata for PDA buffers."],
             "defaultValue": {
               "kind": "noneValueNode"
             },
@@ -1223,27 +1137,21 @@
           {
             "kind": "instructionAccountNode",
             "name": "account",
-            "docs": [
-              "Buffer or metadata account."
-            ],
+            "docs": ["Buffer or metadata account."],
             "isSigner": false,
             "isWritable": true
           },
           {
             "kind": "instructionAccountNode",
             "name": "authority",
-            "docs": [
-              "Authority account."
-            ],
+            "docs": ["Authority account."],
             "isSigner": true,
             "isWritable": false
           },
           {
             "kind": "instructionAccountNode",
             "name": "program",
-            "docs": [
-              "Program account."
-            ],
+            "docs": ["Program account."],
             "isSigner": false,
             "isWritable": false,
             "isOptional": true
@@ -1251,9 +1159,7 @@
           {
             "kind": "instructionAccountNode",
             "name": "programData",
-            "docs": [
-              "Program data account."
-            ],
+            "docs": ["Program data account."],
             "isSigner": false,
             "isWritable": false,
             "isOptional": true
@@ -1278,9 +1184,7 @@
           {
             "kind": "instructionArgumentNode",
             "name": "length",
-            "docs": [
-              "Length (in bytes) to add to the account size."
-            ],
+            "docs": ["Length (in bytes) to add to the account size."],
             "type": {
               "kind": "numberTypeNode",
               "format": "u16",

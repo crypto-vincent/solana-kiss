@@ -8,38 +8,18 @@ it("run", async () => {
     isDeepSubset: boolean;
   }> = [
     {
-      subset: {
-        key: "Hello World",
-      },
-      superset: {
-        key: "Hello World",
-        another: 42,
-      },
+      subset: { key: "Hello World" },
+      superset: { key: "Hello World", another: 42 },
       isDeepSubset: true,
     },
     {
-      subset: {
-        key: "Hello World",
-        another: 42,
-      },
-      superset: {
-        key: "Hello World",
-      },
+      subset: { key: "Hello World", another: 42 },
+      superset: { key: "Hello World" },
       isDeepSubset: false,
     },
     {
-      subset: {
-        inner: {
-          subkey: "Sub Hello",
-        },
-      },
-      superset: {
-        another: 42,
-        inner: {
-          subkey: "Sub Hello",
-          anotherSub: true,
-        },
-      },
+      subset: { inner: { subkey: "Sub Hello" } },
+      superset: { a: 42, inner: { subkey: "Sub Hello", b: true } },
       isDeepSubset: true,
     },
     {
