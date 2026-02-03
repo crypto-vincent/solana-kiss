@@ -23,7 +23,7 @@ export type IdlConstant = {
 export function idlConstantParse(
   constantName: string,
   constantValue: JsonValue,
-  typedefsIdls?: Map<string, IdlTypedef>,
+  typedefsIdls: Map<string, IdlTypedef>,
 ): IdlConstant {
   const decoded = jsonDecoder(constantValue);
   const value = idlUtilsJsonRustedParse(decoded.value);

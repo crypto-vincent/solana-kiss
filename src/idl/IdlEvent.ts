@@ -56,7 +56,7 @@ export function idlEventCheck(self: IdlEvent, eventData: Uint8Array): void {
 export function idlEventParse(
   eventName: string,
   eventValue: JsonValue,
-  typedefsIdls?: Map<string, IdlTypedef>,
+  typedefsIdls: Map<string, IdlTypedef>,
 ): IdlEvent {
   const decoded = jsonDecoder(eventValue);
   const discriminator =

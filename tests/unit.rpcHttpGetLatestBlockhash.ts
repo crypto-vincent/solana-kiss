@@ -2,7 +2,7 @@ import { expect, it } from "@jest/globals";
 import { rpcHttpGetLatestBlockHash } from "../src";
 
 function rpcHttp() {
-  return require("./fixtures/RpcHttpGetLatestBlockHash.json");
+  return require("./fixtures/RpcHttpGetLatestBlockhash.json");
 }
 
 it("run", async () => {

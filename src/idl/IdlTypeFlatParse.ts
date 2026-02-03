@@ -3,6 +3,7 @@ import {
   JsonDecoder,
   JsonValue,
   jsonAsArray,
+  jsonAsBoolean,
   jsonAsNumber,
   jsonAsObject,
   jsonAsString,
@@ -34,6 +35,9 @@ import { idlUtilsBytesJsonDecoder, idlUtilsJsonRustedParse } from "./IdlUtils";
 export function idlTypeFlatParseIsPossible(value: JsonValue): boolean {
   if (value === null) {
     return true;
+  }
+  if (jsonAsBoolean(value) !== undefined) {
+    return false;
   }
   if (jsonAsNumber(value) !== undefined) {
     return true;

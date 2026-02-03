@@ -128,18 +128,22 @@ function makeCreateInstructionRequest(
   };
 }
 
-const instructionIdl = idlInstructionParse("create", {
-  discriminator: { encode: { value: 0, type: "u32" } },
-  accounts: [
-    { name: "payer", signer: true, writable: true },
-    { name: "owned", signer: true, writable: true },
-  ],
-  args: [
-    { name: "lamports", type: "u64" },
-    { name: "space", type: "u64" },
-    { name: "owner", type: "pubkey" },
-  ],
-});
+const instructionIdl = idlInstructionParse(
+  "create",
+  {
+    discriminator: { encode: { value: 0, type: "u32" } },
+    accounts: [
+      { name: "payer", signer: true, writable: true },
+      { name: "owned", signer: true, writable: true },
+    ],
+    args: [
+      { name: "lamports", type: "u64" },
+      { name: "space", type: "u64" },
+      { name: "owner", type: "pubkey" },
+    ],
+  },
+  new Map(),
+);
 
 const secret = new Uint8Array([
   96, 11, 209, 132, 49, 92, 144, 135, 105, 211, 34, 171, 125, 156, 217, 148, 65,

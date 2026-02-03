@@ -72,7 +72,7 @@ export function idlAccountCheck(
 export function idlAccountParse(
   accountName: string,
   accountValue: JsonValue,
-  typedefsIdls?: Map<string, IdlTypedef>,
+  typedefsIdls: Map<string, IdlTypedef>,
 ): IdlAccount {
   const decoded = jsonDecoder(accountValue);
   const discriminator =

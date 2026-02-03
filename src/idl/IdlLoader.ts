@@ -5,6 +5,7 @@ import { Pubkey } from "../data/Pubkey";
 import { idlAccountParse } from "./IdlAccount";
 import { idlInstructionParse } from "./IdlInstruction";
 import { IdlProgram, idlProgramParse } from "./IdlProgram";
+import { IdlTypedef } from "./IdlTypedef";
 
 export type IdlLoader = (programAddress: Pubkey) => Promise<IdlProgram>;
 
@@ -13,19 +14,32 @@ export function idlLoaderMemoized(loader: IdlLoader): IdlLoader {
 }
 
 export function idlLoaderFallbackToUnknown(): IdlLoader {
-  const instructionIdl = idlInstructionParse("unknown_instruction", {
-    discriminator: [],
-    accounts: [],
-    args: [],
-  });
-  const accountIdl = idlAccountParse("UnknownAccount", {
-    discriminator: [],
-    fields: [],
-  });
-  const eventIdl = idlAccountParse("UnknownEvent", {
-    discriminator: [],
-    fields: [],
-  });
+  const typedefs = new Map<string, IdlTypedef>();
+  const instructionIdl = idlInstructionParse(
+    "unknown_instruction",
+    {
+      discriminator: [],
+      accounts: [],
+      args: [],
+    },
+    typedefs,
+  );
+  const accountIdl = idlAccountParse(
+    "UnknownAccount",
+    {
+      discriminator: [],
+      fields: [],
+    },
+    typedefs,
+  );
+  const eventIdl = idlAccountParse(
+    "UnknownEvent",
+    {
+      discriminator: [],
+      fields: [],
+    },
+    typedefs,
+  );
   return async (programAddress: Pubkey) => {
     return {
       metadata: {
@@ -39,11 +53,12 @@ export function idlLoaderFallbackToUnknown(): IdlLoader {
         spec: undefined,
         docs: undefined,
       },
-      typedefs: new Map(),
+      typedefs,
       accounts: new Map([[accountIdl.name, accountIdl]]),
       instructions: new Map([[instructionIdl.name, instructionIdl]]),
       events: new Map([[eventIdl.name, eventIdl]]),
       errors: new Map(),
+      pdas: new Map(),
       constants: new Map(),
     };
   };

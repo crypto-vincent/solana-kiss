@@ -16,10 +16,11 @@ it("run", async () => {
   expect(programIdl.metadata.address).toStrictEqual(
     "UCNcQRtrbGmvuLKA3Jv719Cc6DS4r661ZRpyZduxu2j",
   );
+  expect(programIdl.typedefs.size).toStrictEqual(9);
   expect(programIdl.instructions.size).toStrictEqual(6);
   expect(programIdl.accounts.size).toStrictEqual(2);
   expect(programIdl.errors.size).toStrictEqual(5);
   expect(programIdl.events.size).toStrictEqual(0);
+  expect(programIdl.pdas.size).toStrictEqual(0);
   expect(programIdl.constants.size).toStrictEqual(0);
-  expect(programIdl.typedefs.size).toStrictEqual(9);
 });

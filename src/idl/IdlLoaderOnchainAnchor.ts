@@ -40,13 +40,17 @@ export function idlLoaderFromOnchainAnchor(
   };
 }
 
-const anchorIdlAccount = idlAccountParse("anchor:idl", {
-  discriminator: [24, 70, 98, 191, 58, 144, 123, 158],
-  fields: [
-    { name: "authority", type: "pubkey" },
-    { name: "deflated_json", type: { vec32: "u8" } },
-  ],
-});
+const anchorIdlAccount = idlAccountParse(
+  "anchor:idl",
+  {
+    discriminator: [24, 70, 98, 191, 58, 144, 123, 158],
+    fields: [
+      { name: "authority", type: "pubkey" },
+      { name: "deflated_json", type: { vec32: "u8" } },
+    ],
+  },
+  new Map(),
+);
 
 const anchorIdlJsonCodec = jsonCodecObjectToObject({
   authority: jsonCodecPubkey,

@@ -12,7 +12,6 @@ import {
 } from "../data/Json";
 import { OneKeyOf } from "../data/Utils";
 
-// TODO - RPC WS ?
 export type RpcHttp = (
   method: string,
   params: JsonArray,
