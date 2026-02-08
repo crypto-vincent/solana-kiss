@@ -12,13 +12,13 @@ it("run", async () => {
   const dummyAddress = pubkeyNewDummy();
   // Create an IDL on the fly
   const programIdl1 = idlProgramParse({
-    pdas: { MyPda: { seeds: [{ value: "my_seed" }] } },
+    pdas: { MyPda: { seeds: [{ value: { utf8: "my_seed" } }] } },
   });
   const programIdl2 = idlProgramParse({
-    pdas: [{ name: "MyPda", seeds: [{ value: "my_seed" }] }],
+    pdas: [{ name: "MyPda", seeds: [{ utf8: "my_seed" }] }],
   });
   const programIdl3 = idlProgramParse({
-    pdas: [{ name: "MyPda", seeds: ["my_seed"] }],
+    pdas: [{ name: "MyPda", seeds: [{ value: { utf8: "my_seed" } }] }],
   });
   const programIdl4 = idlProgramParse({
     pdas: { MyPda: { seeds: [[...Buffer.from("my_seed")]] } },

@@ -5,6 +5,7 @@ import {
   idlProgramParse,
   pubkeyFindPdaAddress,
   pubkeyNewDummy,
+  pubkeyToBase58,
   pubkeyToBytes,
   utf8Encode,
 } from "../src";
@@ -46,7 +47,7 @@ it("run", async () => {
             pda: {
               seeds: [
                 { kind: "const", type: "string", value: "hello" },
-                { kind: "const", value: "world" },
+                { kind: "const", value: { utf8: "world" } },
               ],
             },
           },
@@ -55,7 +56,7 @@ it("run", async () => {
             pda: {
               seeds: [
                 { kind: "const", type: "string", value: "hello" },
-                { kind: "const", value: "world" },
+                { kind: "const", value: { utf8: "world" } },
               ],
               program: {
                 kind: "const",
@@ -94,14 +95,14 @@ it("run", async () => {
           {
             name: "const_string_without_program",
             pda: {
-              seeds: ["hello", "world"],
+              seeds: [{ utf8: "hello" }, { utf8: "world" }],
             },
           },
           {
             name: "const_string_with_program",
             pda: {
-              seeds: ["hello", "world"],
-              program: { value: [...pubkeyToBytes(programAddress2)] },
+              seeds: [{ utf8: "hello" }, { utf8: "world" }],
+              program: pubkeyToBase58(programAddress2),
             },
           },
         ],

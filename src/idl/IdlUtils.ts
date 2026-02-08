@@ -1,5 +1,6 @@
 import {
   jsonAsArray,
+  jsonAsObject,
   jsonAsString,
   jsonCodecArrayToBytes,
   jsonCodecBase16ToBytes,
@@ -52,8 +53,10 @@ export const idlUtilsBytesJsonDecoder = jsonDecoderByType({
 
 export function idlUtilsInferValueTypeFlat(value: JsonValue): IdlTypeFlat {
   if (jsonAsString(value) !== undefined) {
-    return idlTypeFlatParse("string");
+    return idlTypeFlatParse("pubkey");
   } else if (jsonAsArray(value) !== undefined) {
+    return idlTypeFlatParse("bytes");
+  } else if (jsonAsObject(value) !== undefined) {
     return idlTypeFlatParse("bytes");
   } else {
     throw new Error(

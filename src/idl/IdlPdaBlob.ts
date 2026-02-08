@@ -71,22 +71,62 @@ export function idlPdaBlobParse(
   typedefsIdls: Map<string, IdlTypedef>,
 ): IdlPdaBlob {
   const decoded = jsonDecoder(pdaBlobValue);
+  if (decoded.input === null) {
+    if (decoded.value !== null) {
+      return parseConst(
+        decoded.value,
+        decoded.type,
+        decoded.prefixed,
+        typedefsIdls,
+      );
+    }
+    return parseConst(pdaBlobValue, null, null, typedefsIdls);
+  }
+  return parseInput(
+    decoded.input,
+    decoded.value,
+    decoded.type,
+    decoded.prefixed,
+    typedefsIdls,
+  );
+}
+
+function parseConst(
+  pdaBlobValue: JsonValue,
+  pdaBlobType: IdlTypeFlat | null,
+  pdaBlobPrefixed: boolean | null,
+  typedefsIdls: Map<string, IdlTypedef>,
+): IdlPdaBlob {
   const typeFull = idlTypeFlatHydrate(
-    decoded.type ?? idlUtilsInferValueTypeFlat(decoded.value),
+    pdaBlobType ?? idlUtilsInferValueTypeFlat(pdaBlobValue),
     new Map(),
     typedefsIdls,
   );
-  const prefixed = decoded.prefixed ?? false;
-  if (decoded.input === null) {
-    return IdlPdaBlob.const({
-      bytes: idlTypeFullEncode(typeFull, decoded.value, prefixed),
-    });
-  }
-  return IdlPdaBlob.input({
-    name: decoded.input,
-    value: decoded.value,
+  const bytes = idlTypeFullEncode(
     typeFull,
-    prefixed,
+    pdaBlobValue,
+    pdaBlobPrefixed === true,
+  );
+  return IdlPdaBlob.const({ bytes });
+}
+
+function parseInput(
+  pdaBlobInput: string,
+  pdaBlobValue: JsonValue,
+  pdaBlobType: IdlTypeFlat | null,
+  pdaBlobPrefixed: boolean | null,
+  typedefsIdls: Map<string, IdlTypedef>,
+): IdlPdaBlob {
+  const typeFull = idlTypeFlatHydrate(
+    pdaBlobType ?? idlUtilsInferValueTypeFlat(pdaBlobValue),
+    new Map(),
+    typedefsIdls,
+  );
+  return IdlPdaBlob.input({
+    name: pdaBlobInput,
+    value: pdaBlobValue,
+    typeFull,
+    prefixed: pdaBlobPrefixed === true,
   });
 }
 

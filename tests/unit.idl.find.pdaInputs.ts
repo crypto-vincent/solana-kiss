@@ -23,7 +23,7 @@ it("run", async () => {
       },
       MyPdaProgramAddress: {
         seeds: [{ input: "my_input", type: ["u8"] }],
-        program: { value: pubkeyToBase58(dummyAddress), type: "pubkey" },
+        program: pubkeyToBase58(dummyAddress),
       },
     },
   });

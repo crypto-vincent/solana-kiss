@@ -35,7 +35,7 @@ it("run", () => {
       encode: { value: "CoordinatorJoinRun", type: "string8", prefixed: false },
     },
     vec_u8: { encode: { value: "CoordinatorJoinRun", type: "string16" } },
-    arr_u8: { encode: { value: "CoordinatorJoinRun" } },
+    arr_u8: { encode: { value: { utf8: "CoordinatorJoinRun" } } },
   });
   const case4 = idlAccountEncode(accountIdl, {
     bytes: { base16: "436F6F7264696E61746F724A6F696E52756E" },

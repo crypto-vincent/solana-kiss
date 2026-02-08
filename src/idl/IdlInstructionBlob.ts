@@ -6,6 +6,7 @@ import {
   JsonArray,
   JsonPointer,
   JsonValue,
+  jsonCodecBoolean,
   jsonCodecString,
   jsonCodecValue,
   jsonDecoderByType,
@@ -45,10 +46,12 @@ export type IdlInstructionBlobConst = {
 export type IdlInstructionBlobArg = {
   pointer: JsonPointer;
   typeFull: IdlTypeFull;
+  prefixed: boolean; // TODO - this prefixed stuff would benefit from being baked in the types directly ??
 };
 export type IdlInstructionBlobAccount = {
   paths: Array<string>;
   typeFull: IdlTypeFull | undefined;
+  prefixed: boolean;
 };
 
 type IdlInstructionBlobDiscriminant = "const" | "arg" | "account";
@@ -106,22 +109,33 @@ export function idlInstructionBlobParse(
   typedefsIdls: Map<string, IdlTypedef>,
 ): IdlInstructionBlob {
   const decoded = jsonDecoder(instructionBlobValue);
-  if (decoded.value !== null) {
-    return parseConst(decoded.value, decoded.type, typedefsIdls);
-  }
   if (decoded.path === null) {
-    throw new Error(`Idl: Expected path/value for instruction blob`);
+    if (decoded.value !== null) {
+      return parseConst(
+        decoded.value,
+        decoded.type,
+        decoded.prefixed,
+        typedefsIdls,
+      );
+    }
+    return parseConst(instructionBlobValue, null, null, typedefsIdls);
   }
   if (decoded.kind === "arg") {
     return parseArg(
       decoded.path,
       decoded.type,
+      decoded.prefixed,
       instructionArgsTypeFullFields,
       typedefsIdls,
     );
   }
   if (decoded.kind === null || decoded.kind === "account") {
-    return parseAccount(decoded.path, decoded.type, typedefsIdls);
+    return parseAccount(
+      decoded.path,
+      decoded.type,
+      decoded.prefixed,
+      typedefsIdls,
+    );
   }
   throw new Error(`Idl: Invalid instruction blob kind: ${decoded.kind}`);
 }
@@ -129,6 +143,7 @@ export function idlInstructionBlobParse(
 function parseConst(
   instructionBlobValue: JsonValue,
   instructionBlobType: IdlTypeFlat | null,
+  instructionBlobPrefixed: boolean | null,
   typedefsIdls: Map<string, IdlTypedef>,
 ): IdlInstructionBlob {
   const typeFull = idlTypeFlatHydrate(
@@ -136,13 +151,18 @@ function parseConst(
     new Map(),
     typedefsIdls,
   );
-  const bytes = idlTypeFullEncode(typeFull, instructionBlobValue, false);
+  const bytes = idlTypeFullEncode(
+    typeFull,
+    instructionBlobValue,
+    instructionBlobPrefixed === true,
+  );
   return IdlInstructionBlob.const({ bytes });
 }
 
 function parseArg(
   instructionBlobPath: string,
   instructionBlobType: IdlTypeFlat | null,
+  instructionBlobPrefixed: boolean | null,
   instructionArgsTypeFullFields: IdlTypeFullFields,
   typedefsIdls: Map<string, IdlTypedef>,
 ): IdlInstructionBlob {
@@ -150,22 +170,33 @@ function parseArg(
   const typeFull = instructionBlobType
     ? idlTypeFlatHydrate(instructionBlobType, new Map(), typedefsIdls)
     : idlTypeFullFieldsGetAt(instructionArgsTypeFullFields, pointer);
-  return IdlInstructionBlob.arg({ pointer, typeFull });
+  return IdlInstructionBlob.arg({
+    pointer,
+    typeFull,
+    prefixed: instructionBlobPrefixed === true,
+  });
 }
 
 function parseAccount(
   instructionBlobPath: string,
   instructionBlobType: IdlTypeFlat | null,
+  instructionBlobPrefixed: boolean | null,
   typedefsIdls: Map<string, IdlTypedef>,
 ): IdlInstructionBlob {
-  const pathCamel = casingLosslessConvertToCamel(instructionBlobPath);
-  const pathSnake = casingLosslessConvertToSnake(instructionBlobPath);
-  const paths = [instructionBlobPath, pathCamel, pathSnake];
+  const paths = [
+    instructionBlobPath,
+    casingLosslessConvertToCamel(instructionBlobPath),
+    casingLosslessConvertToSnake(instructionBlobPath),
+  ];
   let typeFull = undefined;
   if (instructionBlobType !== null) {
     typeFull = idlTypeFlatHydrate(instructionBlobType, new Map(), typedefsIdls);
   }
-  return IdlInstructionBlob.account({ paths, typeFull });
+  return IdlInstructionBlob.account({
+    paths,
+    typeFull,
+    prefixed: instructionBlobPrefixed === true,
+  });
 }
 
 const jsonDecoder = jsonDecoderByType<{
@@ -173,24 +204,28 @@ const jsonDecoder = jsonDecoderByType<{
   type: IdlTypeFlat | null;
   kind: string | null;
   path: string | null;
+  prefixed: boolean | null;
 }>({
   object: jsonDecoderObjectToObject({
     value: jsonCodecValue.decoder,
     type: jsonDecoderNullable(idlTypeFlatParse),
     kind: jsonDecoderNullable(jsonCodecString.decoder),
     path: jsonDecoderNullable(jsonCodecString.decoder),
+    prefixed: jsonDecoderNullable(jsonCodecBoolean.decoder),
   }),
   string: (string: string) => ({
     value: string,
     type: null,
     kind: null,
     path: null,
+    prefixed: null,
   }),
   array: (array: JsonArray) => ({
     value: array,
     type: null,
     kind: null,
     path: null,
+    prefixed: null,
   }),
 });
 
@@ -210,7 +245,7 @@ const computeVisitor = {
       );
     }
     const value = jsonGetAt(instructionPayload, self.pointer);
-    return idlTypeFullEncode(self.typeFull, value, false);
+    return idlTypeFullEncode(self.typeFull, value, self.prefixed);
   },
   account: async (
     self: IdlInstructionBlobAccount,
@@ -239,6 +274,7 @@ const computeVisitor = {
             return encodeExtractedAccountState(
               path,
               self.typeFull,
+              self.prefixed,
               accountField,
               accountContent,
             );
@@ -255,6 +291,7 @@ const computeVisitor = {
             return encodeExtractedAccountState(
               path,
               self.typeFull,
+              self.prefixed,
               accountField,
               await findContext.accountFetcher(instructionAddress),
             );
@@ -271,6 +308,7 @@ const computeVisitor = {
 function encodeExtractedAccountState(
   path: string,
   typeFull: IdlTypeFull | undefined,
+  prefixed: boolean,
   accountField: string,
   accountContent: IdlInstructionBlobAccountContent,
 ) {
@@ -278,7 +316,7 @@ function encodeExtractedAccountState(
   const statePointer = jsonPointerParse(statePath);
   const stateValue = jsonGetAt(accountContent.accountState, statePointer);
   if (typeFull !== undefined) {
-    return idlTypeFullEncode(typeFull, stateValue, false);
+    return idlTypeFullEncode(typeFull, stateValue, prefixed);
   }
   if (accountContent.accountTypeFull === undefined) {
     throw new Error(
@@ -288,6 +326,6 @@ function encodeExtractedAccountState(
   return idlTypeFullEncode(
     idlTypeFullGetAt(accountContent.accountTypeFull, statePointer),
     stateValue,
-    false,
+    prefixed,
   );
 }
