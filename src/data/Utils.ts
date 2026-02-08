@@ -57,3 +57,24 @@ export function objectGuessIntendedKey<
   }
   return key;
 }
+
+export function mapGuessIntendedKey<Key, Value>(
+  map: Map<Key, Value>,
+  key: Key,
+): Key {
+  if (typeof key !== "string") {
+    return key;
+  }
+  if (map.has(key)) {
+    return key;
+  }
+  const keyCamel = casingLosslessConvertToCamel(key) as Key;
+  if (map.has(keyCamel)) {
+    return keyCamel;
+  }
+  const keySnake = casingLosslessConvertToSnake(key) as Key;
+  if (map.has(keySnake)) {
+    return keySnake;
+  }
+  return key;
+}

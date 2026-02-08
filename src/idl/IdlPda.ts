@@ -43,16 +43,16 @@ export function idlPdaFind(
   programAddress?: Pubkey,
 ) {
   const seedsBytes = self.seeds.map((seed) => idlPdaBlobCompute(seed, inputs));
-  if (programAddress !== undefined) {
-    return pubkeyFindPdaAddress(programAddress, seedsBytes);
+  if (self.program !== undefined) {
+    return pubkeyFindPdaAddress(
+      pubkeyFromBytes(idlPdaBlobCompute(self.program, inputs)),
+      seedsBytes,
+    );
   }
-  if (self.program === undefined) {
+  if (programAddress === undefined) {
     throw new Error("Idl: Program address must be provided");
   }
-  return pubkeyFindPdaAddress(
-    pubkeyFromBytes(idlPdaBlobCompute(self.program, inputs)),
-    seedsBytes,
-  );
+  return pubkeyFindPdaAddress(programAddress, seedsBytes);
 }
 
 const jsonDecoder = jsonDecoderObjectToObject({

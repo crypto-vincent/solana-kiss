@@ -1,5 +1,4 @@
 import { BlockHash, blockHashDefault } from "./data/Block";
-import { casingLosslessConvertToSnake } from "./data/Casing";
 import { InstructionRequest } from "./data/Instruction";
 import { JsonValue } from "./data/Json";
 import { Pubkey } from "./data/Pubkey";
@@ -9,6 +8,7 @@ import {
   transactionCompileAndSign,
 } from "./data/Transaction";
 import { urlRpcFromUrlOrMoniker } from "./data/Url";
+import { mapGuessIntendedKey } from "./data/Utils";
 import { WalletAccount } from "./data/Wallet";
 import { idlAccountDecode } from "./idl/IdlAccount";
 import {
@@ -32,6 +32,7 @@ import {
 } from "./idl/IdlLoader";
 import { idlLoaderFromOnchainAnchor } from "./idl/IdlLoaderOnchainAnchor";
 import { idlLoaderFromOnchainNative } from "./idl/IdlLoaderOnchainNative";
+import { idlPdaFind } from "./idl/IdlPda";
 import {
   IdlProgram,
   idlProgramGuessAccount,
@@ -102,19 +103,27 @@ export class Solana {
     return { programIdl: await this.#idlLoader(programAddress) };
   }
 
+  public async findPdaAddress(
+    programAddress: Pubkey,
+    pdaName: string,
+    pdaInputs?: Record<string, JsonValue>,
+  ) {
+    const { programIdl } = await this.getOrLoadProgramIdl(programAddress);
+    const pdaIdl = getFromMap("PDA", programIdl.pdas, pdaName, programAddress);
+    return idlPdaFind(pdaIdl, pdaInputs ?? {}, programAddress);
+  }
+
   public async getOrLoadInstructionIdl(
     programAddress: Pubkey,
     instructionName: string,
   ) {
     const { programIdl } = await this.getOrLoadProgramIdl(programAddress);
-    const instructionIdl = programIdl.instructions.get(
-      casingLosslessConvertToSnake(instructionName),
+    const instructionIdl = getFromMap(
+      "Instruction",
+      programIdl.instructions,
+      instructionName,
+      programAddress,
     );
-    if (!instructionIdl) {
-      throw new Error(
-        `IDL Instruction ${instructionName} not found for program ${programAddress}`,
-      );
-    }
     return { instructionIdl };
   }
 
@@ -314,12 +323,12 @@ export class Solana {
     accountName: string,
   ) {
     const { programIdl } = await this.getOrLoadProgramIdl(programAddress);
-    const accountIdl = programIdl.accounts.get(accountName);
-    if (!accountIdl) {
-      throw new Error(
-        `IDL Account ${accountName} not found for program ${programAddress}`,
-      );
-    }
+    const accountIdl = getFromMap(
+      "Account",
+      programIdl.accounts,
+      accountName,
+      programAddress,
+    );
     return rpcHttpFindProgramOwnedAccounts(this.#rpcHttp, programAddress, {
       dataBlobs: accountIdl.dataBlobs,
       dataSpace: accountIdl.dataSpace,
@@ -348,4 +357,21 @@ function recommendedIdlLoader(rpcHttp: RpcHttp) {
       idlLoaderFallbackToUnknown(),
     ]),
   );
+}
+
+function getFromMap<T>(
+  kind: string,
+  map: Map<string, T>,
+  key: string,
+  programAddress: Pubkey,
+): T {
+  const value = map.get(mapGuessIntendedKey(map, key));
+  if (value === undefined) {
+    throw new Error(
+      `IDL ${kind} ${key} not found for program ${programAddress} (available: [${[
+        ...map.keys(),
+      ].join(", ")}])`,
+    );
+  }
+  return value;
 }

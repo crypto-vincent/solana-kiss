@@ -5,6 +5,7 @@ import {
   idlProgramParse,
   pubkeyFindPdaAddress,
   pubkeyNewDummy,
+  pubkeyToBase58,
 } from "../src";
 
 it("run", async () => {
@@ -14,10 +15,15 @@ it("run", async () => {
   const programIdl1 = idlProgramParse({
     pdas: {
       MyPdaNoDefault: {
+        docs: ["This is my PDA with docs."],
         seeds: [{ input: "my_input", type: ["u8"] }],
       },
       MyPdaDefaulted: {
         seeds: [{ input: "my_input", value: [1, 2, 3] }],
+      },
+      MyPdaProgramAddress: {
+        seeds: [{ input: "my_input", type: ["u8"] }],
+        program: { value: pubkeyToBase58(dummyAddress), type: "pubkey" },
       },
     },
   });
@@ -25,11 +31,17 @@ it("run", async () => {
     pdas: [
       {
         name: "MyPdaNoDefault",
+        docs: ["This is my PDA with docs."],
         seeds: [{ input: "my_input", type: ["u8"] }],
       },
       {
         name: "MyPdaDefaulted",
         seeds: [{ input: "my_input", value: [1, 2, 3] }],
+      },
+      {
+        name: "MyPdaProgramAddress",
+        seeds: [{ input: "my_input", type: ["u8"] }],
+        program: { value: pubkeyToBase58(dummyAddress), type: "pubkey" },
       },
     ],
   });
@@ -52,5 +64,10 @@ it("run", async () => {
       {},
       dummyAddress,
     ),
+  );
+  expect(pdaAddress).toStrictEqual(
+    idlPdaFind(expectDefined(programIdl1.pdas.get("MyPdaProgramAddress")), {
+      my_input: [1, 2, 3],
+    }),
   );
 });
