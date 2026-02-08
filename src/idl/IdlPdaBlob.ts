@@ -77,13 +77,13 @@ export function idlPdaBlobParse(
     typedefsIdls,
   );
   const prefixed = decoded.prefixed ?? false;
-  if (decoded.name === null) {
+  if (decoded.input === null) {
     return IdlPdaBlob.const({
       bytes: idlTypeFullEncode(typeFull, decoded.value, prefixed),
     });
   }
   return IdlPdaBlob.input({
-    name: decoded.name,
+    name: decoded.input,
     value: decoded.value,
     typeFull,
     prefixed,
@@ -92,25 +92,25 @@ export function idlPdaBlobParse(
 
 const jsonDecoder = jsonDecoderByType<{
   value: JsonValue;
-  name: string | null;
+  input: string | null;
   type: IdlTypeFlat | null;
   prefixed: boolean | null;
 }>({
   object: jsonDecoderObjectToObject({
     value: jsonCodecValue.decoder,
-    name: jsonDecoderNullable(jsonCodecString.decoder),
+    input: jsonDecoderNullable(jsonCodecString.decoder),
     type: jsonDecoderNullable(idlTypeFlatParse),
     prefixed: jsonDecoderNullable(jsonCodecBoolean.decoder),
   }),
   string: (string: string) => ({
     value: string,
-    name: null,
+    input: null,
     type: null,
     prefixed: null,
   }),
   array: (array: JsonArray) => ({
     value: array,
-    name: null,
+    input: null,
     type: null,
     prefixed: null,
   }),

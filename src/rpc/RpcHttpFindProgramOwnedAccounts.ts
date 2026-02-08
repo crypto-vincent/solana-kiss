@@ -7,6 +7,7 @@ import {
 import { Pubkey, pubkeyToBase58 } from "../data/Pubkey";
 import { RpcHttp } from "./RpcHttp";
 
+// TODO - expose lamport and space info per account
 export async function rpcHttpFindProgramOwnedAccounts(
   self: RpcHttp,
   programAddress: Pubkey,
