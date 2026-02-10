@@ -96,10 +96,14 @@ const visitorEncode = {
     prefixed: boolean,
   ) => {
     if (value === null) {
-      idlTypePrefixEncode(self.prefix, 0n, blobs);
+      if (prefixed) {
+        idlTypePrefixEncode(self.prefix, 0n, blobs);
+      }
       return;
     }
-    idlTypePrefixEncode(self.prefix, 1n, blobs);
+    if (prefixed) {
+      idlTypePrefixEncode(self.prefix, 1n, blobs);
+    }
     typeFullEncode(self.content, value, prefixed, blobs);
   },
   vec: (
