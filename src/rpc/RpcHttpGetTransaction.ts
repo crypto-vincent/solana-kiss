@@ -96,7 +96,7 @@ export async function rpcHttpGetTransaction(
   );
   const rootTransactionInvocation: TransactionInvocation = {
     instructionRequest: {} as InstructionRequest,
-    flow: [],
+    innerFlow: [],
     instructionError: undefined,
     instructionReturned: undefined,
     consumedComputeUnits: undefined,
@@ -130,7 +130,7 @@ export async function rpcHttpGetTransaction(
   return {
     transactionRequest,
     transactionExecution,
-    transactionFlow: rootTransactionInvocation.flow,
+    transactionFlow: rootTransactionInvocation.innerFlow,
   };
 }
 
@@ -286,21 +286,18 @@ function parseTransactionInvocations(
   logs: Array<string>,
   logIndex: number,
 ): { logIndex: number } {
-  function stripPrefix(s: string, prefix: string): string | undefined {
-    return s.startsWith(prefix) ? s.slice(prefix.length) : undefined;
-  }
   let invocationIndex = 0;
   while (logIndex + 1 < logs.length) {
     logIndex++;
     const logLine = logs[logIndex]!;
     const logRegular = stripPrefix(logLine, "Program log: ");
     if (logRegular !== undefined) {
-      invocation.flow.push({ log: logRegular });
+      invocation.innerFlow.push({ log: logRegular });
       continue;
     }
     const logData = stripPrefix(logLine, "Program data: ");
     if (logData !== undefined) {
-      invocation.flow.push({ data: base64Decode(logData) });
+      invocation.innerFlow.push({ data: base64Decode(logData) });
       continue;
     }
     const logReturn = stripPrefix(logLine, "Program return: ");
@@ -324,25 +321,24 @@ function parseTransactionInvocations(
     if (logProgram !== undefined) {
       const logsProgramParts = logProgram.split(" ");
       if (logsProgramParts.length >= 2) {
-        const logProgramAddress = pubkeyFromBase58(logsProgramParts[0]!);
-        const logProgramKind = logsProgramParts[1]!;
-        if (logProgramKind === "invoke") {
+        const logProgramAction = logsProgramParts[1]!;
+        if (logProgramAction === "invoke") {
           const instructionCallStack = instructionsCallStacks[invocationIndex];
-          invocationIndex++;
           if (instructionCallStack === undefined) {
-            throw new Error(`RpcHttp: Unexpected invoke log: ${logLine}`);
+            throw new Error(`RpcHttp: Unexpected program log: ${logIndex}`);
           }
           if (
             instructionCallStack.instructionRequest.programAddress !==
-            logProgramAddress
+            pubkeyFromBase58(logsProgramParts[0]!)
           ) {
             throw new Error(
-              `RpcHttp: Unexpected invoke log program address (expected ${instructionCallStack.instructionRequest.programAddress}, found ${logProgramAddress}): ${logLine}`,
+              `RpcHttp: Unexpected invoke log program address (expected ${instructionCallStack.instructionRequest.programAddress}, found ${logsProgramParts}): ${logLine}`,
             );
           }
+          invocationIndex++;
           const innerInvocation: TransactionInvocation = {
             instructionRequest: instructionCallStack.instructionRequest,
-            flow: [],
+            innerFlow: [],
             instructionError: undefined,
             instructionReturned: undefined,
             consumedComputeUnits: undefined,
@@ -354,24 +350,24 @@ function parseTransactionInvocations(
             logIndex,
           );
           logIndex = afterParsing.logIndex;
-          invocation.flow.push({ invocation: innerInvocation });
+          invocation.innerFlow.push({ invocation: innerInvocation });
           continue;
         }
-        if (logProgramKind === "consumed") {
+        if (logProgramAction === "consumed") {
           invocation.consumedComputeUnits = Number(logsProgramParts[2]);
           continue;
         }
-        if (logProgramKind === "success") {
+        if (logProgramAction === "success") {
           invocation.instructionError = undefined;
           return { logIndex };
         }
-        if (logProgramKind === "failed:") {
+        if (logProgramAction === "failed:") {
           invocation.instructionError = logsProgramParts.slice(2).join(" ");
           return { logIndex };
         }
       }
     }
-    invocation.flow.push({ unknown: logLine });
+    invocation.innerFlow.push({ unknown: logLine });
   }
   return { logIndex };
 }
@@ -457,4 +453,8 @@ function expectItemInArray<T>(array: Array<T>, index: number): T {
     );
   }
   return array[index]!;
+}
+
+function stripPrefix(s: string, prefix: string): string | undefined {
+  return s.startsWith(prefix) ? s.slice(prefix.length) : undefined;
 }

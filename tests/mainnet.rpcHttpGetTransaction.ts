@@ -76,7 +76,7 @@ it("run", async () => {
         ],
         data: [194, 8, 161, 87, 153, 164, 25, 171],
       }),
-      flow: [
+      innerFlow: [
         { log: "Instruction: VaultTransactionExecute" },
         inv({
           instructionRequest: ix({
@@ -96,7 +96,7 @@ it("run", async () => {
               Array.from(createParams),
             ].flat(),
           }),
-          flow: [
+          innerFlow: [
             { log: "Instruction: PoolCreate" },
             inv({
               instructionRequest: ix({
@@ -126,7 +126,7 @@ it("run", async () => {
                 ],
                 data: [0],
               }),
-              flow: [
+              innerFlow: [
                 { log: "Create" },
                 inv({
                   instructionRequest: ix({
@@ -137,7 +137,7 @@ it("run", async () => {
                     ],
                     data: [21, 7, 0],
                   }),
-                  flow: [{ log: "Instruction: GetAccountDataSize" }],
+                  innerFlow: [{ log: "Instruction: GetAccountDataSize" }],
                   result: {
                     returned: [165, 0, 0, 0, 0, 0, 0, 0],
                     consumedComputeUnits: 1622,
@@ -168,7 +168,7 @@ it("run", async () => {
                     ],
                     data: [22],
                   }),
-                  flow: [
+                  innerFlow: [
                     {
                       log: "Instruction: InitializeImmutableOwner",
                     },
@@ -192,7 +192,7 @@ it("run", async () => {
                       194, 157, 194, 135, 102, 47, 149, 8, 226,
                     ],
                   }),
-                  flow: [{ log: "Instruction: InitializeAccount3" }],
+                  innerFlow: [{ log: "Instruction: InitializeAccount3" }],
                   result: { consumedComputeUnits: 4241 },
                 }),
               ],
@@ -209,7 +209,7 @@ it("run", async () => {
 
 function inv(value: {
   instructionRequest: InstructionRequest;
-  flow?: TransactionFlow;
+  innerFlow?: TransactionFlow;
   result?: {
     error?: string;
     returned?: Array<number>;
@@ -219,7 +219,7 @@ function inv(value: {
   return {
     invocation: {
       instructionRequest: value.instructionRequest,
-      flow: value.flow ?? [],
+      innerFlow: value.innerFlow ?? [],
       instructionError: value.result?.error,
       instructionReturned: value.result?.returned
         ? new Uint8Array(value.result.returned)

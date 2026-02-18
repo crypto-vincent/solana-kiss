@@ -10,6 +10,7 @@ import { IdlDocs, idlDocsParse } from "./IdlDocs";
 import { IdlPdaBlob, idlPdaBlobCompute, idlPdaBlobParse } from "./IdlPdaBlob";
 import { IdlTypedef } from "./IdlTypedef";
 
+// TODO - support nested inputs ?
 export type IdlPda = {
   name: string;
   docs: IdlDocs;

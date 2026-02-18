@@ -129,6 +129,7 @@ it("run", () => {
       new Uint8Array([2, 2, 2, 2, 9, 2, 9, 9]),
     ),
   ).toStrictEqual(programIdl1.accounts.get("MyAccount2_x6"));
+  // Check that we'll fail when no account matches
   expectFail(() =>
     idlProgramGuessAccount(programIdl1, new Uint8Array([1, 2, 9])),
   );

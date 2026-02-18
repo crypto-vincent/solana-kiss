@@ -44,13 +44,13 @@ export function idlLoaderFromOnchainNative(
     if (idlContent.format !== "None" && idlContent.format !== "Json") {
       throw new ErrorStack(`IDL: Unsupported format ${idlContent.format}`);
     }
+    // TODO - improve support for other formats and compression and encoding
     const idlBytes = await extractMetadataIdlBytes(idlContent);
     const idlString = utf8Decode(idlBytes);
     const idlJson = JSON.parse(idlString) as JsonValue;
     const programIdl = idlProgramParse(idlJson);
     programIdl.metadata.address = programAddress;
     programIdl.metadata.source = `onchain://solana-program-metadata/canonical`;
-    console.log("Loaded native IDL for", programIdl.metadata);
     return programIdl;
   };
 }

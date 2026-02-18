@@ -77,4 +77,29 @@ it("run", async () => {
   );
   expect(transactionExecution3.transactionError).toStrictEqual(null);
   expect(transactionFlow3?.length).toStrictEqual(50);
+  // This transaction should have failed but still be parsable
+  const {
+    transactionRequest: transactionRequest4,
+    transactionExecution: transactionExecution4,
+    transactionFlow: transactionFlow4,
+  } = expectDefined(
+    await rpcHttpGetTransaction(
+      rpcHttp,
+      signatureFromBase58(
+        "2ruAW8qcrTPquhCntAjW71EjVjvaCaqXkS31urMjUUQ3TG2eYP6nSGwF4PNbkWFFTyCHtcUojx16Gx1PHXCWA2B4",
+      ),
+    ),
+  );
+  expect(transactionRequest4.payerAddress).toStrictEqual(
+    "Fosi72YsJYbfvpuhygcEtXjCBEajdNJon6n7Ztzb1VAY",
+  );
+  expect(transactionRequest4.recentBlockHash).toStrictEqual(
+    "DSdtibZUiVuXff5fGVWVmTCAM6NHEhkRo6LENA3kvNYc",
+  );
+  expect(transactionExecution4.transactionError?.toString()).toStrictEqual(
+    {
+      InstructionError: [0, "UnsupportedProgramId"],
+    }.toString(),
+  );
+  expect(transactionFlow4?.length).toStrictEqual(1);
 });

@@ -12,7 +12,7 @@ it("run", async () => {
     "ProgM6JCCvbYkfKqJYHePx4xxSUSqJp7rh8Lyv7nk7S",
   );
   const { programIdl } = await solana.getOrLoadProgramIdl(programAddress);
-  expect(programIdl.metadata.name).toStrictEqual("whirlpool");
+  expect(programIdl.metadata.name).toStrictEqual("whirlpool"); // TODO - make this work
   expect(programIdl.metadata.address).toStrictEqual(programAddress);
   expect(programIdl.typedefs.size).toStrictEqual(12);
   expect(programIdl.accounts.size).toStrictEqual(8);

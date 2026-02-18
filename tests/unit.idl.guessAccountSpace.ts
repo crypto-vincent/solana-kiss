@@ -85,6 +85,7 @@ it("run", () => {
   expect(
     idlProgramGuessAccount(programIdl, new Uint8Array([2, 9, 9, 9, 9, 9])),
   ).toStrictEqual(programIdl.accounts.get("MyAccount2_x6"));
+  // Check that we'll fail when no account matches
   expectFail(() => idlProgramGuessAccount(programIdl, new Uint8Array([1, 2])));
   expectFail(() =>
     idlProgramGuessAccount(programIdl, new Uint8Array([1, 2, 3, 4])),

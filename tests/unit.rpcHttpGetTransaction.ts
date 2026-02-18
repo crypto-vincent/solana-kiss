@@ -87,7 +87,7 @@ it("run", async () => {
         ],
         data: [194, 8, 161, 87, 153, 164, 25, 171],
       }),
-      flow: [
+      innerFlow: [
         { log: "Instruction: VaultTransactionExecute" },
         invocation({
           instructionRequest: instruction({
@@ -101,7 +101,7 @@ it("run", async () => {
             ],
             data: [11, 36, 247, 105, 0, 212, 165, 190, 42, 0, 0, 0, 0, 0, 0, 0],
           }),
-          flow: [
+          innerFlow: [
             { log: "Instruction: PoolExtract" },
             invocation({
               instructionRequest: instruction({
@@ -113,7 +113,7 @@ it("run", async () => {
                 ],
                 data: [3, 42, 0, 0, 0, 0, 0, 0, 0],
               }),
-              flow: [
+              innerFlow: [
                 { log: "Instruction: Transfer" },
                 invocation({
                   instructionRequest: instruction({
@@ -139,7 +139,7 @@ it("run", async () => {
 
 function invocation(value: {
   instructionRequest: InstructionRequest;
-  flow?: TransactionFlow;
+  innerFlow?: TransactionFlow;
   result?: {
     error?: string;
     returned?: Uint8Array;
@@ -149,7 +149,7 @@ function invocation(value: {
   return {
     invocation: {
       instructionRequest: value.instructionRequest,
-      flow: value.flow ?? [],
+      innerFlow: value.innerFlow ?? [],
       instructionError: value.result?.error,
       instructionReturned: value.result?.returned,
       consumedComputeUnits: value.result?.consumedComputeUnits,

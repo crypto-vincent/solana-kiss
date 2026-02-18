@@ -15,6 +15,7 @@ export async function rpcHttpWaitForTransaction(
     retriedCounter: number;
     totalDurationMs: number;
   }) => Promise<boolean>,
+  options?: { skipTransactionFlow?: boolean },
 ): Promise<{
   transactionRequest: TransactionRequest;
   transactionExecution: TransactionExecution;
@@ -23,7 +24,11 @@ export async function rpcHttpWaitForTransaction(
   const startTime = Date.now();
   let retriedCounter = 0;
   while (true) {
-    const response = await rpcHttpGetTransaction(self, transactionHandle);
+    const response = await rpcHttpGetTransaction(
+      self,
+      transactionHandle,
+      options,
+    );
     if (response !== undefined) {
       return response;
     }

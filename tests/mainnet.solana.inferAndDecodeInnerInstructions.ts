@@ -17,7 +17,7 @@ it("run", async () => {
     async () => true,
   );
 
-  const instructionRequest = (transactionFlow as any)[3].invocation.flow[1]
+  const instructionRequest = (transactionFlow as any)[3].invocation.innerFlow[1]
     .invocation.instructionRequest;
 
   const { instructionIdl, instructionAddresses } =

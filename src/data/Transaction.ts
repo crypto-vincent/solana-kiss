@@ -55,7 +55,7 @@ export type TransactionFlow = Array<
 >;
 export type TransactionInvocation = {
   instructionRequest: InstructionRequest;
-  flow: TransactionFlow; // TODO - naming is weird
+  innerFlow: TransactionFlow; // TODO - naming is weird
   instructionError: string | undefined;
   instructionReturned: Uint8Array | undefined;
   consumedComputeUnits: number | undefined;

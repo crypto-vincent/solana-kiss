@@ -134,11 +134,12 @@ export class Solana {
     const accountIdl = idlProgramGuessAccount(programIdl, accountData);
     const { accountState } = idlAccountDecode(accountIdl, accountData);
     return {
-      programIdl,
-      accountIdl,
       programAddress,
-      accountExecutable,
+      programIdl,
+      accountAddress,
+      accountIdl,
       accountLamports,
+      accountExecutable,
       accountData,
       accountState,
     };
