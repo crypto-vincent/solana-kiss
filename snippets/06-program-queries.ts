@@ -128,7 +128,7 @@ async function getAccountStatistics(
   console.log(`Analyzing ${accountsAddresses.size} accounts...`);
   
   let totalLamports = 0n;
-  let minLamports = BigInt(Number.MAX_SAFE_INTEGER);
+  let minLamports: bigint | null = null;
   let maxLamports = 0n;
   let totalSize = 0;
   let fetchedCount = 0;
@@ -138,8 +138,15 @@ async function getAccountStatistics(
       const account = await solana.getAndInferAndDecodeAccount(accountAddress);
       
       totalLamports += account.accountLamports;
-      minLamports = account.accountLamports < minLamports ? account.accountLamports : minLamports;
-      maxLamports = account.accountLamports > maxLamports ? account.accountLamports : maxLamports;
+      
+      // Initialize or update min/max
+      if (minLamports === null || account.accountLamports < minLamports) {
+        minLamports = account.accountLamports;
+      }
+      if (account.accountLamports > maxLamports) {
+        maxLamports = account.accountLamports;
+      }
+      
       totalSize += account.accountData.length;
       fetchedCount++;
     } catch (error) {
@@ -155,7 +162,7 @@ async function getAccountStatistics(
   console.log(`  Fetched accounts: ${fetchedCount}`);
   console.log(`  Total lamports: ${totalLamports}`);
   console.log(`  Average lamports: ${avgLamports}`);
-  console.log(`  Min lamports: ${minLamports}`);
+  console.log(`  Min lamports: ${minLamports ?? 0n}`);
   console.log(`  Max lamports: ${maxLamports}`);
   console.log(`  Average size: ${avgSize} bytes`);
   console.log(`  Total size: ${totalSize} bytes`);

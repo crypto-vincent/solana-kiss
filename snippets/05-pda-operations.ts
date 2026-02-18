@@ -42,16 +42,11 @@ function findPdaManually(programAddress: Pubkey) {
   // Manually construct seeds
   const seeds = [
     utf8Encode("metadata"), // String seed
-    pubkeyToBase58(programAddress).slice(0, 32), // Another seed
+    pubkeyToBytes(programAddress).slice(0, 32), // First 32 bytes of pubkey
   ];
   
-  // Convert to byte arrays
-  const seedsBytes = seeds.map((seed) =>
-    typeof seed === "string" ? utf8Encode(seed) : seed
-  );
-  
   // Find PDA
-  const pdaAddress = pubkeyFindPdaAddress(programAddress, seedsBytes);
+  const pdaAddress = pubkeyFindPdaAddress(programAddress, seeds);
   
   console.log("PDA found manually:");
   console.log("  Address:", pubkeyToBase58(pdaAddress));
