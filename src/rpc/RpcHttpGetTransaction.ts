@@ -302,19 +302,19 @@ function parseTransactionInvocations(
     }
     const logReturn = stripPrefix(logLine, "Program return: ");
     if (logReturn !== undefined) {
-      const parts = logReturn.split(" ");
-      if (parts.length !== 2) {
+      const logReturnParts = logReturn.split(" ");
+      if (logReturnParts.length !== 2) {
         throw new Error(`RpcHttp: Unexpected return log: ${logLine}`);
       }
-      const returnProgramAddress = pubkeyFromBase58(parts[0]!);
       if (
-        invocation.instructionRequest.programAddress !== returnProgramAddress
+        invocation.instructionRequest.programAddress !==
+        pubkeyFromBase58(logReturnParts[0]!)
       ) {
         throw new Error(
-          `RpcHttp: Unexpected return log program address (expected ${invocation.instructionRequest.programAddress}, found ${returnProgramAddress}): ${logLine}`,
+          `RpcHttp: Unexpected return log program address (expected ${invocation.instructionRequest.programAddress}, found ${logReturnParts}): ${logLine}`,
         );
       }
-      invocation.instructionReturned = base64Decode(parts[1]!);
+      invocation.instructionReturned = base64Decode(logReturnParts[1]!);
       continue;
     }
     const logProgram = stripPrefix(logLine, "Program ");
