@@ -37,42 +37,39 @@ export function objectGetOwnProperty<
   return undefined;
 }
 
-export function objectGuessIntendedKey<
-  Object extends object,
-  Key extends keyof Object,
->(object: Object, key: Key): Key {
-  if (typeof key !== "string") {
-    return key;
+export function objectGuessIntendedKey(
+  object: object,
+  key: string | number,
+): string {
+  if (typeof key === "number") {
+    return String(key);
   }
   if (Object.prototype.hasOwnProperty.call(object, key)) {
     return key;
   }
   const keyCamel = casingLosslessConvertToCamel(key);
   if (Object.prototype.hasOwnProperty.call(object, keyCamel)) {
-    return keyCamel as Key;
+    return keyCamel;
   }
   const keySnake = casingLosslessConvertToSnake(key);
   if (Object.prototype.hasOwnProperty.call(object, keySnake)) {
-    return keySnake as Key;
+    return keySnake;
   }
   return key;
 }
 
-export function mapGuessIntendedKey<Key, Value>(
-  map: Map<Key, Value>,
-  key: Key,
-): Key {
-  if (typeof key !== "string") {
-    return key;
-  }
+export function mapGuessIntendedKey<Value>(
+  map: Map<string, Value>,
+  key: string,
+): string {
   if (map.has(key)) {
     return key;
   }
-  const keyCamel = casingLosslessConvertToCamel(key) as Key;
+  const keyCamel = casingLosslessConvertToCamel(key);
   if (map.has(keyCamel)) {
     return keyCamel;
   }
-  const keySnake = casingLosslessConvertToSnake(key) as Key;
+  const keySnake = casingLosslessConvertToSnake(key);
   if (map.has(keySnake)) {
     return keySnake;
   }
