@@ -17,9 +17,11 @@ import { IdlTypeFull } from "./IdlTypeFull";
 import { idlTypeFullEncode } from "./IdlTypeFullEncode";
 import { idlUtilsInferValueTypeFlat } from "./IdlUtils";
 
+/** A PDA seed variant that holds a pre-encoded constant byte array. */
 export type IdlPdaBlobConst = {
   bytes: Uint8Array;
 };
+/** A PDA seed variant that references a named runtime input value with its type and optional default. */
 export type IdlPdaBlobInput = {
   name: string;
   value: JsonValue;
@@ -30,6 +32,10 @@ export type IdlPdaBlobInput = {
 type IdlPdaBlobDiscriminant = "const" | "input";
 type IdlPdaBlobContent = IdlPdaBlobConst | IdlPdaBlobInput;
 
+/**
+ * A discriminated union representing a single PDA seed that is either a pre-encoded
+ * constant byte array or a named runtime input value.
+ */
 export class IdlPdaBlob {
   private readonly discriminant: IdlPdaBlobDiscriminant;
   private readonly content: IdlPdaBlobContent;
@@ -42,13 +48,19 @@ export class IdlPdaBlob {
     this.content = content;
   }
 
+  /** Creates a constant bytes PDA seed. */
   public static const(value: IdlPdaBlobConst): IdlPdaBlob {
     return new IdlPdaBlob("const", value);
   }
+  /** Creates a named-input PDA seed. */
   public static input(value: IdlPdaBlobInput): IdlPdaBlob {
     return new IdlPdaBlob("input", value);
   }
 
+  /**
+   * Dispatches to the appropriate visitor branch based on the seed's variant,
+   * forwarding up to three extra parameters and returning the visitor's result.
+   */
   public traverse<P1, P2, P3, T>(
     visitor: {
       const: (value: IdlPdaBlobConst, p1: P1, p2: P2, p3: P3) => T;
@@ -62,10 +74,12 @@ export class IdlPdaBlob {
   }
 }
 
+/** Computes the raw byte representation of a PDA seed by resolving it against the given named inputs. */
 export function idlPdaBlobCompute(self: IdlPdaBlob, inputs: IdlPdaInputs) {
   return self.traverse(computeVisitor, inputs, undefined, undefined);
 }
 
+/** Parses a raw IDL PDA blob JSON value into an {@link IdlPdaBlob}, resolving constant or named-input variants. */
 export function idlPdaBlobParse(
   pdaBlobValue: JsonValue,
   typedefsIdls: Map<string, IdlTypedef>,

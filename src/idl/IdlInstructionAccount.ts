@@ -25,6 +25,7 @@ import {
 import { IdlTypedef } from "./IdlTypedef";
 import { IdlTypeFullFields } from "./IdlTypeFull";
 
+/** A single account entry in a Solana instruction's account list, including its constraints and optional PDA derivation. */
 export type IdlInstructionAccount = {
   name: string;
   docs: IdlDocs;
@@ -35,11 +36,13 @@ export type IdlInstructionAccount = {
   pda: IdlInstructionAccountPda | undefined;
 };
 
+/** The PDA seeds and optional program override used to derive an instruction account's address. */
 export type IdlInstructionAccountPda = {
   seeds: Array<IdlInstructionBlob>;
   program: IdlInstructionBlob | undefined;
 };
 
+/** The context available when searching for instruction account addresses, including already-resolved addresses and optional payload/account data. */
 export type IdlInstructionAccountFindContext = {
   instructionAddresses: IdlInstructionAddresses;
   instructionPayload?: JsonValue;
@@ -47,6 +50,7 @@ export type IdlInstructionAccountFindContext = {
   accountFetcher?: IdlInstructionBlobAccountFetcher;
 };
 
+/** Resolves the public key address for a single instruction account, using a fixed address, PDA derivation, or the find context. */
 export async function idlInstructionAccountFind(
   self: IdlInstructionAccount,
   programAddress: Pubkey,
@@ -83,6 +87,7 @@ export async function idlInstructionAccountFind(
   );
 }
 
+/** Parses a raw IDL account JSON value into one or more {@link IdlInstructionAccount} entries, expanding nested account groups. */
 export function idlInstructionAccountParse(
   instructionAccountGroups: Array<string>,
   instructionAccountValue: JsonValue,
