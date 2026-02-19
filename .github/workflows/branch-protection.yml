@@ -18,7 +18,13 @@ jobs:
               owner: context.repo.owner,
               repo: context.repo.repo,
               branch: 'main',
-              required_status_checks: null,
+              required_status_checks: {
+                strict: true,
+                checks: [
+                  { context: 'ci (build)' },
+                  { context: 'ci (test)' },
+                ],
+              },
               enforce_admins: true,
               required_pull_request_reviews: {
                 required_approving_review_count: 1,
