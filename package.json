@@ -16,14 +16,19 @@
     "ts-node": "^10.9.2",
     "tsup": "^8.5.0",
     "typedoc": "^0.28.17",
-    "typedoc-material-theme": "^1.4.1",
+    "typedoc-plugin-markdown": "^4.10.0",
     "typescript": "^5.8.3",
-    "uzip": "^0.20201231.0"
+    "uzip": "^0.20201231.0",
+    "vitepress": "^1.6.4"
   },
   "scripts": {
     "format": "prettier --write src && prettier --write tests",
     "build": "tsup src/index.ts --dts --clean --minify --sourcemap --out-dir dist",
-    "docs": "typedoc",
+    "docs:generate": "typedoc",
+    "docs:dev": "npm run docs:generate && vitepress dev docs",
+    "docs:watch": "vitepress dev docs",
+    "docs:build": "npm run docs:generate && vitepress build docs",
+    "docs": "npm run docs:build",
     "test": "jest"
   }
 }
