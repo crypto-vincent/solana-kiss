@@ -3,6 +3,15 @@ import { jsonCodecSignature } from "../data/Json";
 import { TransactionHandle, TransactionPacket } from "../data/Transaction";
 import { RpcHttp } from "./RpcHttp";
 
+/**
+ * Sends a signed and serialized transaction to the Solana network.
+ *
+ * @param self - The {@link RpcHttp} client to use.
+ * @param transactionPacket - The compiled and signed transaction bytes to broadcast.
+ * @param options - Optional send options.
+ * @param options.skipPreflight - When `true`, skips the preflight simulation check before submission.
+ * @returns An object containing `transactionHandle`, the signature of the submitted transaction.
+ */
 export async function rpcHttpSendTransaction(
   self: RpcHttp,
   transactionPacket: TransactionPacket,
