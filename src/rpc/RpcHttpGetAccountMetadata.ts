@@ -8,7 +8,7 @@ import {
 import { Pubkey, pubkeyDefault, pubkeyToBase58 } from "../data/Pubkey";
 import { RpcHttp } from "./RpcHttp";
 
-/** Fetches metadata for an account including its owner program, lamport balance, data space, and executable flag. */
+/** Fetches owner, lamports, space, and executable flag of an account. */
 export async function rpcHttpGetAccountMetadata(
   self: RpcHttp,
   accountAddress: Pubkey,

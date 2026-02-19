@@ -15,7 +15,7 @@ import { idlAccountDecode, idlAccountParse } from "./IdlAccount";
 import { IdlLoader } from "./IdlLoader";
 import { idlProgramParse } from "./IdlProgram";
 
-/** Creates an IDL loader that reads and parses Anchor-format IDLs stored on-chain in a program's associated metadata account. */
+/** Creates an IDL loader for Anchor on-chain metadata accounts. */
 export function idlLoaderFromOnchainAnchor(
   accountDataFetcher: (accountAddress: Pubkey) => Promise<Uint8Array>,
 ): IdlLoader {

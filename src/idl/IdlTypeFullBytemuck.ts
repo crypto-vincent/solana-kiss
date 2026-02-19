@@ -30,7 +30,8 @@ type IdlTypeFullFieldsBytemuck = {
   value: IdlTypeFullFields;
 };
 
-/** Computes the bytemuck-compatible (fixed-size, memory-layout-aware) representation of a typedef including alignment and size. */
+/** Computes the bytemuck layout (alignment and size) of
+ * a typedef for fixed-size memory representation. */
 export function idlTypeFullTypedefBytemuck(
   self: IdlTypeFullTypedef,
 ): IdlTypeFullBytemuck {

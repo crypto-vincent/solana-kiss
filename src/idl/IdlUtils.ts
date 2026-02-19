@@ -51,7 +51,7 @@ export const idlUtilsBytesJsonDecoder = jsonDecoderByType({
   }),
 });
 
-/** Infers the flat IDL type appropriate for encoding a bytes value from its JSON representation. */
+/** Infers the flat IDL type for a bytes value from its JSON form. */
 export function idlUtilsInferValueTypeFlat(value: JsonValue): IdlTypeFlat {
   if (jsonAsString(value) !== undefined) {
     return idlTypeFlatParse("pubkey");
@@ -66,7 +66,7 @@ export function idlUtilsInferValueTypeFlat(value: JsonValue): IdlTypeFlat {
   }
 }
 
-/** Asserts that specific bytes appear at a given offset within a data array, throwing if they do not match. */
+/** Asserts expected bytes appear at an offset within a data array. */
 export function idlUtilsExpectBlobAt(
   blobOffset: number,
   blobBytes: Uint8Array,
@@ -90,7 +90,7 @@ export function idlUtilsExpectBlobAt(
   }
 }
 
-/** Parses a Rust-style JSON string (which may contain underscores in numeric literals) into a standard JSON value. */
+/** Parses a Rust-style JSON string with underscore-separated numbers. */
 export function idlUtilsJsonRustedParse(jsonRusted: string): JsonValue {
   return JSON.parse(
     jsonRusted.replace(
@@ -105,7 +105,7 @@ export function idlUtilsJsonRustedParse(jsonRusted: string): JsonValue {
   );
 }
 
-/** Computes the 8-byte Anchor discriminator for a name by taking the first 8 bytes of its SHA-256 hash. */
+/** Computes the 8-byte Anchor discriminator (SHA-256 prefix). */
 export function idlUtilsAnchorDiscriminator(name: string): Uint8Array {
   return sha256Hash([utf8Encode(name)]).slice(0, 8);
 }

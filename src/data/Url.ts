@@ -13,7 +13,7 @@ export const urlRpcPublicMainnet = "https://api.mainnet-beta.solana.com";
 export const urlRpcPublicDevnet = "https://api.devnet.solana.com";
 export const urlRpcPublicTestnet = "https://api.testnet.solana.com";
 
-/** Resolves a Solana RPC URL from a full URL or a short network moniker such as "mainnet", "devnet", or "testnet". */
+/** Resolves an RPC URL from a full URL or short moniker. */
 export function urlRpcFromUrlOrMoniker(rpcUrlOrMoniker: string) {
   switch (rpcUrlOrMoniker) {
     case "m":
@@ -31,17 +31,17 @@ export function urlRpcFromUrlOrMoniker(rpcUrlOrMoniker: string) {
   }
 }
 
-/** Builds a Solana Explorer URL for a given account address and RPC endpoint. */
+/** Builds a Solana Explorer URL for an account address. */
 export function urlExplorerAccount(rpc: string, accountAddress: Pubkey) {
   return urlExplorer(rpc, "address", pubkeyToBase58(accountAddress), {});
 }
 
-/** Builds a Solana Explorer URL for a given block slot and RPC endpoint. */
+/** Builds a Solana Explorer URL for a block slot. */
 export function urlExplorerBlock(rpc: string, blockSlot: BlockSlot) {
   return urlExplorer(rpc, "block", blockSlot.toString(), {});
 }
 
-/** Builds a Solana Explorer URL for a given transaction handle and RPC endpoint. */
+/** Builds a Solana Explorer URL for a transaction. */
 export function urlExplorerTransaction(
   rpc: string,
   transactionHandle: TransactionHandle,
@@ -49,7 +49,7 @@ export function urlExplorerTransaction(
   return urlExplorer(rpc, "tx", signatureToBase58(transactionHandle), {});
 }
 
-/** Builds a Solana Explorer transaction inspector URL for previewing or debugging a transaction packet. */
+/** Builds a Solana Explorer URL for transaction inspection. */
 export function urlExplorerSimulation(
   rpc: string,
   transactionPacket: TransactionPacket,

@@ -39,7 +39,7 @@ export type IdlProgram = {
   constants: Map<string, IdlConstant>;
 };
 
-/** Identifies which account IDL in the program matches the given raw account data by checking discriminators. */
+/** Guesses which account IDL matches the given raw data. */
 export function idlProgramGuessAccount(
   self: IdlProgram,
   accountData: Uint8Array,
@@ -56,7 +56,7 @@ export function idlProgramGuessAccount(
   throw new ErrorStack("Idl: Failed to guess account", errors);
 }
 
-/** Identifies which instruction IDL in the program matches the given instruction request by checking discriminators and accounts. */
+/** Guesses which instruction IDL matches a given request. */
 export function idlProgramGuessInstruction(
   self: IdlProgram,
   instructionRequest: InstructionRequest,
@@ -80,7 +80,7 @@ export function idlProgramGuessInstruction(
   throw new ErrorStack("Idl: Failed to guess instruction", errors);
 }
 
-/** Identifies which event IDL in the program matches the given raw event data by checking discriminators. */
+/** Guesses which event IDL matches the given raw data. */
 export function idlProgramGuessEvent(
   self: IdlProgram,
   eventData: Uint8Array,
@@ -97,7 +97,7 @@ export function idlProgramGuessEvent(
   throw new ErrorStack("Idl: Failed to guess event", errors);
 }
 
-/** Identifies which error IDL in the program matches the given numeric error code. */
+/** Finds which error IDL matches the given error code. */
 export function idlProgramGuessError(
   self: IdlProgram,
   errorCode: number,
@@ -113,7 +113,7 @@ export function idlProgramGuessError(
 }
 
 // TODO - support CODAMA IDLs
-/** Parses a full program IDL from a JSON value, extracting instructions, accounts, events, errors, PDAs, and constants. */
+/** Parses a full program IDL from a JSON value. */
 export function idlProgramParse(programValue: JsonValue): IdlProgram {
   const programObject = jsonCodecObject.decoder(programValue);
   const metadata = idlMetadataParse(programObject);

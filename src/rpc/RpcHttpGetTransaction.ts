@@ -24,7 +24,7 @@ import {
 } from "../data/Transaction";
 import { RpcHttp } from "./RpcHttp";
 
-/** Fetches a confirmed transaction by its handle, returning its request, execution result, and optional call flow. */
+/** Fetches a confirmed transaction with request, execution, and flow. */
 export async function rpcHttpGetTransaction(
   self: RpcHttp,
   transactionHandle: TransactionHandle,

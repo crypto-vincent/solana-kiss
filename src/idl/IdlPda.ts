@@ -20,7 +20,7 @@ export type IdlPda = {
 
 export type IdlPdaInputs = Record<string, JsonValue>;
 
-/** Parses an IDL PDA definition from a JSON value and a map of typedefs. */
+/** Parses an IDL PDA definition from JSON and typedefs. */
 export function idlPdaParse(
   pdaName: string,
   pdaValue: JsonValue,
@@ -39,7 +39,7 @@ export function idlPdaParse(
   };
 }
 
-/** Derives the PDA address for the given IDL PDA definition, inputs, and optional program address. */
+/** Derives the PDA address for the given IDL PDA definition. */
 export function idlPdaFind(
   self: IdlPda,
   inputs: IdlPdaInputs,

@@ -8,7 +8,7 @@ import { Pubkey, pubkeyToBase58 } from "../data/Pubkey";
 import { RpcHttp } from "./RpcHttp";
 
 // TODO - expose lamport and space info per account
-/** Fetches all account addresses owned by a program, optionally filtered by data size or specific byte patterns. */
+/** Fetches all addresses owned by a program, with filters. */
 export async function rpcHttpFindProgramOwnedAccounts(
   self: RpcHttp,
   programAddress: Pubkey,

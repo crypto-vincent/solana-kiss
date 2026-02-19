@@ -18,7 +18,7 @@ import { Pubkey, pubkeyDefault } from "../data/Pubkey";
 import { TransactionExecution, TransactionPacket } from "../data/Transaction";
 import { RpcHttp } from "./RpcHttp";
 
-/** Simulates the execution of a transaction and returns logs, error information, and optional post-simulation account states. */
+/** Simulates a transaction and returns logs and error info. */
 export async function rpcHttpSimulateTransaction(
   self: RpcHttp,
   transactionPacket: TransactionPacket,

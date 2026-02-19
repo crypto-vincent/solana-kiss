@@ -7,7 +7,7 @@ import { Pubkey, pubkeyToBase58 } from "../data/Pubkey";
 import { TransactionHandle } from "../data/Transaction";
 import { RpcHttp } from "./RpcHttp";
 
-/** Fetches a paginated list of transaction signatures for an account address, ordered from newest to oldest. */
+/** Fetches transaction signatures for an account, newest first. */
 export async function rpcHttpFindAccountTransactions(
   self: RpcHttp,
   accountAddress: Pubkey,

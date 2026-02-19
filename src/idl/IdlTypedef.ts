@@ -20,7 +20,7 @@ export type IdlTypedef = {
   typeFlat: IdlTypeFlat;
 };
 
-/** Parses a type definition from a JSON value, extracting its name, generics, repr, serialization, and flat type. */
+/** Parses a type definition from JSON (name, generics, type). */
 export function idlTypedefParse(
   typedefName: string,
   typedefValue: JsonValue,

@@ -32,7 +32,7 @@ import { IdlTypePrefix } from "./IdlTypePrefix";
 import { IdlTypePrimitive, idlTypePrimitiveByName } from "./IdlTypePrimitive";
 import { idlUtilsBytesJsonDecoder, idlUtilsJsonRustedParse } from "./IdlUtils";
 
-/** Returns true if the given JSON value can be interpreted as a flat IDL type definition. */
+/** Returns true if a JSON value can be a flat IDL type. */
 export function idlTypeFlatParseIsPossible(value: JsonValue): boolean {
   if (value === null) {
     return true;
@@ -65,12 +65,12 @@ export function idlTypeFlatParseIsPossible(value: JsonValue): boolean {
   return false;
 }
 
-/** Parses a flat IDL type from a JSON value such as a type name string, array descriptor, or struct/enum object. */
+/** Parses a flat IDL type from JSON (string, array, or object). */
 export function idlTypeFlatParse(value: JsonValue): IdlTypeFlat {
   return valueJsonDecoder(value);
 }
 
-/** Parses flat IDL type fields from a JSON value representing either named or unnamed field definitions. */
+/** Parses flat IDL type fields from a JSON value. */
 export function idlTypeFlatFieldsParse(value: JsonValue): IdlTypeFlatFields {
   return fieldsJsonDecoder(value);
 }

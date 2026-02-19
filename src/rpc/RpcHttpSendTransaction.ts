@@ -3,7 +3,7 @@ import { jsonCodecSignature } from "../data/Json";
 import { TransactionHandle, TransactionPacket } from "../data/Transaction";
 import { RpcHttp } from "./RpcHttp";
 
-/** Broadcasts a signed transaction packet to the network and returns its transaction handle. */
+/** Broadcasts a signed transaction and returns its handle. */
 export async function rpcHttpSendTransaction(
   self: RpcHttp,
   transactionPacket: TransactionPacket,

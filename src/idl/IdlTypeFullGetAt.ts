@@ -23,7 +23,7 @@ import {
 } from "./IdlTypeFull";
 import { IdlTypePrimitive } from "./IdlTypePrimitive";
 
-/** Navigates a full IDL type tree using a JSON pointer path to retrieve a nested type. */
+/** Navigates an IDL type tree via a JSON pointer path. */
 export function idlTypeFullGetAt(
   self: IdlTypeFull,
   pathOrPointer: string | JsonPointer,
@@ -34,7 +34,7 @@ export function idlTypeFullGetAt(
   return visitTypeFull(self, pointer, 0);
 }
 
-/** Navigates full IDL type fields using a JSON pointer path to retrieve a nested type. */
+/** Navigates IDL type fields via a JSON pointer path. */
 export function idlTypeFullFieldsGetAt(
   self: IdlTypeFullFields,
   pathOrPointer: string | JsonPointer,

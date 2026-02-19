@@ -83,7 +83,7 @@ export const idlTypePrimitiveByName: ReadonlyMap<string, IdlTypePrimitive> =
     return primitivesByName;
   })();
 
-/** Encodes a JSON value to binary bytes as the given primitive IDL type and appends it to the provided array. */
+/** Encodes a JSON value as a primitive IDL type into byte blobs. */
 export function idlTypePrimitiveEncode(
   self: IdlTypePrimitive,
   value: JsonValue,
@@ -96,7 +96,7 @@ export function idlTypePrimitiveEncode(
   });
 }
 
-/** Decodes bytes from a DataView at the given offset as the given primitive IDL type into a JSON value. */
+/** Decodes bytes as a primitive IDL type into a JSON value. */
 export function idlTypePrimitiveDecode(
   self: IdlTypePrimitive,
   data: DataView,

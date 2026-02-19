@@ -1,4 +1,4 @@
-/** Converts a camelCase or PascalCase string to snake_case by inserting underscores before uppercase letters. */
+/** Converts camelCase/PascalCase to snake_case losslessly. */
 export function casingLosslessConvertToSnake(string: string): string {
   const codes = new Array<number>();
   for (let index = 0; index < string.length; index++) {
@@ -13,7 +13,7 @@ export function casingLosslessConvertToSnake(string: string): string {
   return String.fromCharCode(...codes);
 }
 
-/** Converts a snake_case string to camelCase by removing underscores and capitalizing the following letter. */
+/** Converts snake_case to camelCase losslessly. */
 export function casingLosslessConvertToCamel(string: string): string {
   const codes = new Array<number>();
   for (let index = 0; index < string.length; index++) {

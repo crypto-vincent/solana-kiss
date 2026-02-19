@@ -80,12 +80,12 @@ export class Solana {
     this.#recentBlockHashCacheValue = null;
   }
 
-  /** Returns the underlying RPC HTTP client used by this instance. */
+  /** Returns the underlying RPC HTTP client. */
   public getRpcHttp() {
     return this.#rpcHttp;
   }
 
-  /** Sets or removes a preloaded IDL for a specific program address. */
+  /** Sets or removes a preloaded IDL for a program. */
   public setProgramIdl(
     programAddress: Pubkey,
     programIdl: IdlProgram | undefined,
@@ -97,7 +97,7 @@ export class Solana {
     }
   }
 
-  /** Retrieves the IDL for a program, loading it on demand if not already preloaded. */
+  /** Gets the IDL for a program, loading it on demand. */
   public async getOrLoadProgramIdl(programAddress: Pubkey) {
     const preloadIdl = this.#idlPreload.get(programAddress);
     if (preloadIdl) {
@@ -106,7 +106,7 @@ export class Solana {
     return { programIdl: await this.#idlLoader(programAddress) };
   }
 
-  /** Derives a PDA address for a given program using the named PDA definition from the program's IDL. */
+  /** Finds a PDA using the named definition from the program IDL. */
   public async findPdaAddress(
     programAddress: Pubkey,
     pdaName: string,
@@ -117,7 +117,7 @@ export class Solana {
     return idlPdaFind(pdaIdl, pdaInputs ?? {}, programAddress);
   }
 
-  /** Retrieves the IDL definition for a specific instruction within a program. */
+  /** Gets the IDL for a specific instruction in a program. */
   public async getOrLoadInstructionIdl(
     programAddress: Pubkey,
     instructionName: string,
@@ -132,7 +132,7 @@ export class Solana {
     return { instructionIdl };
   }
 
-  /** Fetches an account, automatically infers its type from the IDL, and decodes its state. */
+  /** Fetches, infers account type, and decodes an account. */
   public async getAndInferAndDecodeAccount(accountAddress: Pubkey) {
     const { programAddress, accountExecutable, accountLamports, accountData } =
       await rpcHttpGetAccountWithData(this.#rpcHttp, accountAddress);
@@ -151,7 +151,7 @@ export class Solana {
     };
   }
 
-  /** Infers the instruction type from a raw instruction request and decodes its accounts and arguments. */
+  /** Infers the instruction type and decodes its accounts and args. */
   public async inferAndDecodeInstruction(
     instructionRequest: InstructionRequest,
   ) {
@@ -178,7 +178,7 @@ export class Solana {
     };
   }
 
-  /** Resolves missing accounts and encodes an instruction into an on-chain instruction request. */
+  /** Resolves missing accounts and encodes an instruction. */
   public async hydrateAndEncodeInstruction(
     programAddress: Pubkey,
     instructionName: string,
@@ -214,7 +214,7 @@ export class Solana {
     };
   }
 
-  /** Resolves instruction account addresses using IDL-defined PDA rules, static addresses, and provided context. */
+  /** Resolves instruction accounts via IDL rules and context. */
   public async hydrateInstructionAddresses(
     programAddress: Pubkey,
     instructionName: string,
@@ -249,7 +249,7 @@ export class Solana {
     });
   }
 
-  /** Returns a recent block hash, using a short-lived cache to avoid excessive RPC calls. */
+  /** Returns a recent block hash with short-lived caching. */
   public async getRecentBlockHash() {
     const nowTimeMs = Date.now();
     if (this.#recentBlockHashCacheValue) {
@@ -264,7 +264,7 @@ export class Solana {
     return blockHash;
   }
 
-  /** Compiles, signs, and broadcasts a transaction to the network. */
+  /** Compiles, signs, and broadcasts a transaction. */
   public async prepareAndSendTransaction(
     payerSigner: Signer | WalletAccount,
     instructionsRequests: Array<InstructionRequest>,
@@ -293,7 +293,7 @@ export class Solana {
     return { transactionHandle };
   }
 
-  /** Compiles and simulates a transaction without broadcasting it to the network. */
+  /** Compiles and simulates a transaction without sending it. */
   public async prepareAndSimulateTransaction(
     payer: Pubkey | Signer | WalletAccount,
     instructionsRequests: Array<InstructionRequest>,
@@ -331,7 +331,7 @@ export class Solana {
     );
   }
 
-  /** Finds all on-chain accounts owned by a program that match the given account type's layout. */
+  /** Finds program-owned accounts matching the given account type. */
   public async findProgramOwnedAccounts(
     programAddress: Pubkey,
     accountName: string,

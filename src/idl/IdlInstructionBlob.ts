@@ -96,7 +96,7 @@ export class IdlInstructionBlob {
   }
 }
 
-/** Computes the byte array for an instruction seed blob by resolving its source from the provided find context. */
+/** Computes instruction seed blob bytes from find context. */
 export async function idlInstructionBlobCompute(
   self: IdlInstructionBlob,
   findContext: IdlInstructionAccountFindContext,
@@ -104,7 +104,7 @@ export async function idlInstructionBlobCompute(
   return self.traverse(computeVisitor, findContext, undefined, undefined);
 }
 
-/** Parses an instruction blob definition from a JSON value, instruction args, and a map of typedefs. */
+/** Parses an instruction blob from JSON, args, and typedefs. */
 export function idlInstructionBlobParse(
   instructionBlobValue: JsonValue,
   instructionArgsTypeFullFields: IdlTypeFullFields,

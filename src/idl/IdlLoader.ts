@@ -9,12 +9,12 @@ import { IdlTypedef } from "./IdlTypedef";
 
 export type IdlLoader = (programAddress: Pubkey) => Promise<IdlProgram>;
 
-/** Wraps an IDL loader with memoization so that the same program address is never loaded more than once. */
+/** Wraps an IDL loader with memoization per program address. */
 export function idlLoaderMemoized(loader: IdlLoader): IdlLoader {
   return memoize(async (programAddress) => programAddress, loader);
 }
 
-/** Creates an IDL loader that always succeeds by returning a generic unknown placeholder IDL. */
+/** Creates an IDL loader that returns an unknown fallback IDL. */
 export function idlLoaderFallbackToUnknown(): IdlLoader {
   const typedefs = new Map<string, IdlTypedef>();
   const instructionIdl = idlInstructionParse(
@@ -66,7 +66,7 @@ export function idlLoaderFallbackToUnknown(): IdlLoader {
   };
 }
 
-/** Creates an IDL loader that tries each loader in sequence and returns the result of the first successful one. */
+/** Creates an IDL loader that tries loaders in sequence. */
 export function idlLoaderFromLoaderSequence(
   loaders: Array<IdlLoader>,
 ): IdlLoader {
@@ -86,7 +86,7 @@ export function idlLoaderFromLoaderSequence(
   };
 }
 
-/** Creates an IDL loader that fetches and parses IDL JSON from a URL constructed by the given URL builder function. */
+/** Creates an IDL loader that fetches IDL JSON from a URL. */
 export function idlLoaderFromUrl(
   urlBuilder: (programAddress: Pubkey) => string,
   options?: { customFetcher?: (url: string) => Promise<JsonValue> },

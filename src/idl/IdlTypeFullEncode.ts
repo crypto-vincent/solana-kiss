@@ -32,7 +32,7 @@ import { idlTypePrefixEncode } from "./IdlTypePrefix";
 import { IdlTypePrimitive, idlTypePrimitiveEncode } from "./IdlTypePrimitive";
 import { idlUtilsBytesJsonDecoder } from "./IdlUtils";
 
-/** Encodes a JSON value to binary bytes using the given full IDL type, optionally prefixed with a discriminator. */
+/** Encodes a JSON value to binary using a full IDL type. */
 export function idlTypeFullEncode(
   self: IdlTypeFull,
   value: JsonValue,
@@ -47,7 +47,7 @@ export function idlTypeFullEncode(
   return blobsFlatten(blobs);
 }
 
-/** Encodes a JSON value to binary bytes using the given full IDL fields definition, optionally prefixed with a discriminator. */
+/** Encodes a JSON value to binary using full IDL type fields. */
 export function idlTypeFullFieldsEncode(
   self: IdlTypeFullFields,
   value: JsonValue,

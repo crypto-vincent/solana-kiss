@@ -16,7 +16,7 @@ import {
 } from "./IdlTypeFull";
 import { IdlTypePrimitive } from "./IdlTypePrimitive";
 
-/** Generates a complete TypeScript module string containing a JSON codec export for a full IDL type. */
+/** Generates a TS module string with a JSON codec for an IDL type. */
 export function idlTypeFullJsonCodecModule(
   self: IdlTypeFull,
   importPath?: string,
@@ -36,7 +36,7 @@ export function idlTypeFullJsonCodecModule(
   ].join("\n");
 }
 
-/** Generates a TypeScript expression string representing a JSON codec for a full IDL type. */
+/** Generates a TS codec expression string for an IDL type. */
 export function idlTypeFullJsonCodecExpression(
   self: IdlTypeFull,
   dependencies?: Set<string>,

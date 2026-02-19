@@ -11,7 +11,7 @@ export type RxBehaviour<T> = {
 export type RxListener<T> = (value: T) => void;
 export type RxUnsubscriber = () => void;
 
-/** Creates a reactive subject that holds the latest value and notifies all subscribers whenever it changes. */
+/** Creates a behaviour subject that holds and broadcasts values. */
 export function rxBehaviourSubject<T>(
   firstValue: T,
 ): RxBehaviour<T> & RxObservable<T> & RxObserver<T> {
