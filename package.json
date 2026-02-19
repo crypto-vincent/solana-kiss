@@ -14,17 +14,16 @@
     "prettier": "^3.5.3",
     "prettier-plugin-organize-imports": "^4.3.0",
     "ts-jest": "^29.4.4",
+    "ts-morph": "^27.0.2",
     "ts-node": "^10.9.2",
     "tsup": "^8.5.0",
-    "typedoc": "^0.28.17",
-    "typedoc-plugin-markdown": "^4.10.0",
     "typescript": "^5.8.3",
     "uzip": "^0.20201231.0"
   },
   "scripts": {
     "build": "tsup src/index.ts --dts --clean --minify --sourcemap --out-dir dist",
-    "docs": "typedoc && node docs/generate-sidebar.mjs",
-    "docs:dev": "typedoc && node docs/generate-sidebar.mjs && docsify serve docs",
+    "docs": "node docs/generate-api.mjs && node docs/generate-sidebar.mjs",
+    "docs:dev": "node docs/generate-api.mjs && node docs/generate-sidebar.mjs && docsify serve docs",
     "fmt": "prettier --write src && prettier --write tests",
     "test": "jest"
   }

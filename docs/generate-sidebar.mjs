@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-// Generates docs/_sidebar.md from the TypeDoc markdown output.
+// Generates docs/_sidebar.md from the custom API generator output.
 import { readdirSync, writeFileSync, existsSync } from "fs";
 import { join } from "path";
 
@@ -7,7 +7,7 @@ const apiRoot = "docs/api";
 
 if (!existsSync(apiRoot)) {
   console.error(
-    `Error: ${apiRoot} not found. Run 'typedoc' first to generate API docs.`,
+    `Error: ${apiRoot} not found. Run 'npm run docs' to generate API docs.`,
   );
   process.exit(1);
 }
@@ -20,7 +20,7 @@ lines.push("- **API Reference**");
 const sections = [
   ["Classes", "classes"],
   ["Functions", "functions"],
-  ["Type Aliases", "type-aliases"],
+  ["Type Aliases", "types"],
   ["Interfaces", "interfaces"],
   ["Variables", "variables"],
 ];
