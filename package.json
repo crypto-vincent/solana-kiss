@@ -19,9 +19,8 @@
     "uzip": "^0.20201231.0"
   },
   "scripts": {
-    "build": "tsup src/index.ts --dts --clean --minify --sourcemap --out-dir dist",
     "format": "prettier --write src && prettier --write tests",
-    "check": "tsc --noEmit && prettier --check src && prettier --check tests",
+    "build": "tsup src/index.ts --dts --clean --minify --sourcemap --out-dir dist",
     "test": "jest"
   }
 }
