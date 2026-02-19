@@ -11,6 +11,10 @@ import { IdlDocs, idlDocsParse } from "./IdlDocs";
 import { IdlTypeFlat } from "./IdlTypeFlat";
 import { idlTypeFlatParse } from "./IdlTypeFlatParse";
 
+/**
+ * Represents a parsed IDL type definition, including its name, type layout,
+ * optional repr and serialization overrides, and generic parameters.
+ */
 export type IdlTypedef = {
   name: string;
   docs: IdlDocs;
@@ -20,6 +24,12 @@ export type IdlTypedef = {
   typeFlat: IdlTypeFlat;
 };
 
+/**
+ * Parses an IDL typedef definition from its raw JSON representation.
+ * @param typedefName - The name of the typedef.
+ * @param typedefValue - The raw JSON value describing the typedef.
+ * @returns The parsed {@link IdlTypedef}.
+ */
 export function idlTypedefParse(
   typedefName: string,
   typedefValue: JsonValue,
@@ -35,6 +45,11 @@ export function idlTypedefParse(
   };
 }
 
+/**
+ * A read-only map of built-in global typedef definitions keyed by name.
+ * Includes synthetic types such as `$Rust` and `$C` used to represent
+ * Rust and C memory layout overrides for bytemuck-serialized structs.
+ */
 export const idlTypedefGlobalsByName: ReadonlyMap<string, IdlTypedef> = (() => {
   const typedefs = [
     {

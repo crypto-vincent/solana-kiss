@@ -9,6 +9,10 @@ import {
 import { Pubkey } from "../data/Pubkey";
 import { IdlDocs, idlDocsParse } from "./IdlDocs";
 
+/**
+ * Represents parsed IDL metadata for a Solana program, aggregating fields
+ * from both top-level IDL properties and a nested `metadata` object.
+ */
 export type IdlMetadata = {
   name: string | undefined;
   description: string | undefined;
@@ -21,6 +25,12 @@ export type IdlMetadata = {
   docs: IdlDocs;
 };
 
+/**
+ * Parses program metadata from a raw IDL JSON value.
+ * Fields are resolved by checking a nested `metadata` key first, then the root object.
+ * @param value - The raw JSON value (typically the top-level IDL object).
+ * @returns The parsed {@link IdlMetadata}.
+ */
 export function idlMetadataParse(value: JsonValue): IdlMetadata {
   const { keyed, root } = outerJsonDecoder(value);
   const metadata = keyed?.metadata;
