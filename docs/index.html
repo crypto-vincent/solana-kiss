@@ -1,0 +1,65 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>solana-kiss</title>
+    <meta
+      name="description"
+      content="A simple, elegant TypeScript library for Solana."
+    />
+    <link
+      rel="stylesheet"
+      href="https://cdn.jsdelivr.net/npm/docsify@4.13.1/lib/themes/vue.css"
+      integrity="sha384-jCK82M2ExfkqAO/MYBKMjP1qC4AvZ4/Duf2gVWOy3RPn26uz+KW5I+9S39za1Fqv"
+      crossorigin="anonymous"
+    />
+    <style>
+      :root {
+        --theme-color: #9945ff;
+        --sidebar-width: 280px;
+      }
+      .sidebar-nav a {
+        font-size: 0.9em;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="app">Loading…</div>
+    <script>
+      window.$docsify = {
+        name: "solana-kiss",
+        repo: "https://github.com/crypto-vincent/solana-kiss",
+        homepage: "README.md",
+        loadSidebar: "_sidebar.md",
+        subMaxLevel: 2,
+        auto2top: true,
+        search: {
+          maxAge: 86400000,
+          paths: "auto",
+          placeholder: "Search…",
+          noData: "No results.",
+          depth: 3,
+        },
+      };
+    </script>
+    <!-- Docsify core -->
+    <script
+      src="https://cdn.jsdelivr.net/npm/docsify@4.13.1/lib/docsify.min.js"
+      integrity="sha384-KaHhgnx/OTLoJ4J33SSJsF4x1pk4I7q3s5ZOfIDHJYl6IG7Oyn2vNDsHiWJe46fD"
+      crossorigin="anonymous"
+    ></script>
+    <!-- Search plugin -->
+    <script
+      src="https://cdn.jsdelivr.net/npm/docsify@4.13.1/lib/plugins/search.min.js"
+      integrity="sha384-LthJPBJ4RGco78kBY+EmKz5rmISZ5vrtAu3+l2ALQ2mrZHOe6Wyf6knyKjeC4cL6"
+      crossorigin="anonymous"
+    ></script>
+    <!-- Syntax highlighting -->
+    <script
+      src="https://cdn.jsdelivr.net/npm/prismjs@1.30.0/components/prism-typescript.min.js"
+      integrity="sha384-PeOqKNW/piETaCg8rqKFy+Pm6KEk7e36/5YZE5XO/OaFdO+/Aw3O8qZ9qDPKVUgx"
+      crossorigin="anonymous"
+    ></script>
+  </body>
+</html>

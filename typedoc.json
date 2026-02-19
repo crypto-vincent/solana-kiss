@@ -4,5 +4,7 @@
   "plugin": ["typedoc-plugin-markdown"],
   "name": "solana-kiss",
   "entryFileName": "index",
-  "readme": "none"
+  "readme": "none",
+  "hidePageHeader": true,
+  "hideBreadcrumbs": true
 }
