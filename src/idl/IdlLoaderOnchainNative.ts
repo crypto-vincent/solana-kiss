@@ -17,6 +17,7 @@ import {
   pubkeyToBytes,
 } from "../data/Pubkey";
 import { utf8Decode, utf8Encode } from "../data/Utf8";
+import { bytesCompare } from "../data/Utils";
 import { idlAccountDecode, idlAccountParse } from "./IdlAccount";
 import { IdlLoader } from "./IdlLoader";
 import { idlProgramParse } from "./IdlProgram";
@@ -35,7 +36,7 @@ export function idlLoaderFromOnchainNative(
       idlData,
     );
     const idlContent = metadataProgramJsonCodec.decoder(idlState);
-    if (idlContent.seed != metadataProgramIdlSeed) {
+    if (bytesCompare(idlContent.seed, metadataProgramIdlSeed) !== 0) {
       throw new ErrorStack(`IDL: Invalid seed value`);
     }
     if (idlContent.encoding !== "Utf8") {
@@ -58,6 +59,7 @@ export function idlLoaderFromOnchainNative(
 async function extractMetadataIdlBytes(
   idlContent: JsonCodecContent<typeof metadataProgramJsonCodec>,
 ): Promise<Uint8Array> {
+  // TODO - support indirect loading
   if (idlContent.dataSource !== "Direct") {
     throw new ErrorStack(
       `IDL: Unsupported data source ${idlContent.dataSource}`,

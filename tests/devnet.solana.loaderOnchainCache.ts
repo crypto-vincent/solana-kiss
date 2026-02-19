@@ -41,16 +41,20 @@ it("run", async () => {
       programAddress,
     );
 
-    solana.setProgramIdl(programAddress, idlProgramParse({}));
+    solana.setProgramIdlOverride(programAddress, idlProgramParse({}));
     await solana.getOrLoadProgramIdl(programAddress);
     await solana.getOrLoadProgramIdl(programAddress);
     expect(
       rpcCounters.get(counterKey("getAccountInfo", [anchorIdlAddress])),
     ).toBe(undefined);
 
-    solana.setProgramIdl(programAddress, undefined);
-    await solana.getOrLoadProgramIdl(programAddress);
-    await solana.getOrLoadProgramIdl(programAddress);
+    solana.setProgramIdlOverride(programAddress, undefined);
+    await solana.getOrLoadProgramIdl(programAddress, {
+      fallbackOnUnknown: true,
+    });
+    await solana.getOrLoadProgramIdl(programAddress, {
+      fallbackOnUnknown: true,
+    });
     expect(
       rpcCounters.get(counterKey("getAccountInfo", [anchorIdlAddress])),
     ).toBe(1);

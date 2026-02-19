@@ -1,6 +1,6 @@
 import { Result } from "./Utils";
 
-export function memoize<In, Out, CacheKey>(
+export function memoize<CacheKey, In, Out>(
   inputToCacheKey: (input: In) => Promise<CacheKey>,
   invocation: (input: In) => Promise<Out>,
   options?: {

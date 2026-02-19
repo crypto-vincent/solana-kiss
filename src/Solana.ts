@@ -25,7 +25,6 @@ import {
 } from "./idl/IdlInstructionBlob";
 import {
   IdlLoader,
-  idlLoaderFallbackToUnknown,
   idlLoaderFromLoaderSequence,
   idlLoaderFromUrl,
   idlLoaderMemoized,
@@ -37,6 +36,7 @@ import {
   IdlProgram,
   idlProgramGuessAccount,
   idlProgramGuessInstruction,
+  idlProgramUnknown,
 } from "./idl/IdlProgram";
 import { RpcHttp, rpcHttpFromUrl } from "./rpc/RpcHttp";
 import { rpcHttpFindProgramOwnedAccounts } from "./rpc/RpcHttpFindProgramOwnedAccounts";
@@ -47,7 +47,7 @@ import { rpcHttpSimulateTransaction } from "./rpc/RpcHttpSimulateTransaction";
 
 export class Solana {
   readonly #rpcHttp: RpcHttp;
-  readonly #idlPreload: Map<Pubkey, IdlProgram>;
+  readonly #idlOverrides: Map<Pubkey, IdlProgram>;
   readonly #idlLoader: IdlLoader;
 
   #recentBlockHashCacheDurationMs = 15_000;
@@ -59,8 +59,8 @@ export class Solana {
   constructor(
     rpcHttp: RpcHttp | string,
     options?: {
-      customIdlPreload?: Map<Pubkey, IdlProgram>;
-      customIdlLoaders?: Array<IdlLoader>;
+      idlLoader?: IdlLoader;
+      idlOverrides?: Map<Pubkey, IdlProgram>;
       recentBlockHashCacheDurationMs?: number;
     },
   ) {
@@ -71,10 +71,8 @@ export class Solana {
     } else {
       this.#rpcHttp = rpcHttp;
     }
-    this.#idlPreload = options?.customIdlPreload ?? new Map();
-    this.#idlLoader = idlLoaderFromLoaderSequence(
-      options?.customIdlLoaders ?? [recommendedIdlLoader(this.#rpcHttp)],
-    );
+    this.#idlOverrides = options?.idlOverrides ?? new Map();
+    this.#idlLoader = options?.idlLoader ?? recommendedIdlLoader(this.#rpcHttp);
     this.#recentBlockHashCacheDurationMs =
       options?.recentBlockHashCacheDurationMs ?? 15_000;
     this.#recentBlockHashCacheValue = null;
@@ -84,23 +82,33 @@ export class Solana {
     return this.#rpcHttp;
   }
 
-  public setProgramIdl(
+  public setProgramIdlOverride(
     programAddress: Pubkey,
     programIdl: IdlProgram | undefined,
   ) {
     if (programIdl === undefined) {
-      this.#idlPreload.delete(programAddress);
+      this.#idlOverrides.delete(programAddress);
     } else {
-      this.#idlPreload.set(programAddress, programIdl);
+      this.#idlOverrides.set(programAddress, programIdl);
     }
   }
 
-  public async getOrLoadProgramIdl(programAddress: Pubkey) {
-    const preloadIdl = this.#idlPreload.get(programAddress);
-    if (preloadIdl) {
-      return { programIdl: preloadIdl };
+  public async getOrLoadProgramIdl(
+    programAddress: Pubkey,
+    options?: { fallbackOnUnknown?: boolean },
+  ) {
+    const programIdl = this.#idlOverrides.get(programAddress);
+    if (programIdl) {
+      return { programIdl: programIdl };
     }
-    return { programIdl: await this.#idlLoader(programAddress) };
+    try {
+      return { programIdl: await this.#idlLoader(programAddress) };
+    } catch (error) {
+      if (options?.fallbackOnUnknown) {
+        return { programIdl: await idlProgramUnknown(programAddress) };
+      }
+      throw error;
+    }
   }
 
   public async findPdaAddress(
@@ -130,7 +138,9 @@ export class Solana {
   public async getAndInferAndDecodeAccount(accountAddress: Pubkey) {
     const { programAddress, accountExecutable, accountLamports, accountData } =
       await rpcHttpGetAccountWithData(this.#rpcHttp, accountAddress);
-    const { programIdl } = await this.getOrLoadProgramIdl(programAddress);
+    const { programIdl } = await this.getOrLoadProgramIdl(programAddress, {
+      fallbackOnUnknown: true,
+    });
     const accountIdl = idlProgramGuessAccount(programIdl, accountData);
     const { accountState } = idlAccountDecode(accountIdl, accountData);
     return {
@@ -150,6 +160,7 @@ export class Solana {
   ) {
     const { programIdl } = await this.getOrLoadProgramIdl(
       instructionRequest.programAddress,
+      { fallbackOnUnknown: true },
     );
     const instructionIdl = idlProgramGuessInstruction(
       programIdl,
@@ -323,7 +334,9 @@ export class Solana {
     programAddress: Pubkey,
     accountName: string,
   ) {
-    const { programIdl } = await this.getOrLoadProgramIdl(programAddress);
+    const { programIdl } = await this.getOrLoadProgramIdl(programAddress, {
+      fallbackOnUnknown: true,
+    });
     const accountIdl = getFromMap(
       "Account",
       programIdl.accounts,
@@ -355,7 +368,6 @@ function recommendedIdlLoader(rpcHttp: RpcHttp) {
         const githubRefMain = "refs/heads/main";
         return `${githubRawBase}/${githubRepository}/${githubRefMain}/data/${programAddress}.json`;
       }),
-      idlLoaderFallbackToUnknown(),
     ]),
   );
 }

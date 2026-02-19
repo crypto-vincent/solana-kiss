@@ -20,7 +20,7 @@ it("run", async () => {
     "UCNcQRtrbGmvuLKA3Jv719Cc6DS4r661ZRpyZduxu2j",
   );
   // Parse IDL from file JSON directly
-  solana.setProgramIdl(
+  solana.setProgramIdlOverride(
     programAddress,
     idlProgramParse(require("./fixtures/idl_anchor_30.json")),
   );

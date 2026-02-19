@@ -78,3 +78,17 @@ export function mapGuessIntendedKey<Key, Value>(
   }
   return key;
 }
+
+export function bytesCompare(a: Uint8Array, b: Uint8Array): number {
+  if (a.length !== b.length) {
+    return a.length - b.length;
+  }
+  for (let i = 0; i < a.length; i++) {
+    const av = a[i]!;
+    const bv = b[i]!;
+    if (av !== bv) {
+      return av - bv;
+    }
+  }
+  return 0;
+}
