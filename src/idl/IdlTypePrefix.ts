@@ -1,8 +1,18 @@
+/**
+ * Represents an unsigned integer prefix type used to encode the length or
+ * discriminant of variable-size fields (e.g. vec, string, option).
+ * The five singleton instances cover u8 through u128.
+ */
 export class IdlTypePrefix {
+  /** 1-byte unsigned prefix (u8). */
   public static readonly u8 = new IdlTypePrefix("u8", 1);
+  /** 2-byte unsigned prefix (u16, little-endian). */
   public static readonly u16 = new IdlTypePrefix("u16", 2);
+  /** 4-byte unsigned prefix (u32, little-endian). */
   public static readonly u32 = new IdlTypePrefix("u32", 4);
+  /** 8-byte unsigned prefix (u64, little-endian). */
   public static readonly u64 = new IdlTypePrefix("u64", 8);
+  /** 16-byte unsigned prefix (u128, little-endian). */
   public static readonly u128 = new IdlTypePrefix("u128", 16);
 
   public readonly name: string;
@@ -13,6 +23,13 @@ export class IdlTypePrefix {
     this.size = size;
   }
 
+  /**
+   * Dispatches to the matching visitor branch based on this prefix's integer width.
+   * @param visitor - An object with one handler per prefix size (u8/u16/u32/u64/u128).
+   * @param p1 - First context parameter forwarded to the visitor.
+   * @param p2 - Second context parameter forwarded to the visitor.
+   * @returns The value returned by the matched visitor branch.
+   */
   public traverse<P1, P2, T>(
     visitor: {
       u8: (p1: P1, p2: P2) => T;
@@ -28,6 +45,10 @@ export class IdlTypePrefix {
   }
 }
 
+/**
+ * Encodes a `bigint` value into the byte representation determined by `self`'s width
+ * and appends the resulting {@link Uint8Array} to `blobs`.
+ */
 export function idlTypePrefixEncode(
   self: IdlTypePrefix,
   value: bigint,
@@ -38,6 +59,10 @@ export function idlTypePrefixEncode(
   blobs.push(blob);
 }
 
+/**
+ * Decodes a `bigint` value from `data` at `dataOffset` using `self`'s byte width.
+ * @returns A tuple of `[bytesConsumed, decodedValue]`.
+ */
 export function idlTypePrefixDecode(
   self: IdlTypePrefix,
   data: DataView,

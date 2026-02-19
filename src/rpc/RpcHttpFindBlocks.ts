@@ -6,6 +6,21 @@ import {
 import { jsonCodecNumber, jsonDecoderArrayToArray } from "../data/Json";
 import { RpcHttp } from "./RpcHttp";
 
+/**
+ * Fetches a list of confirmed block slots within a given range.
+ *
+ * The `context` parameter determines the search direction and bounds:
+ * - `{ lowBlockSlot }` – searches forward from `lowBlockSlot`.
+ * - `{ highBlockSlot }` – searches backward from `highBlockSlot`.
+ * - `{ startBlockSlot, endBlockSlot }` – searches between the two slots; direction is inferred from their relative order.
+ *
+ * Paginates automatically until `maxResultLength` results are collected or the range is exhausted.
+ *
+ * @param self - The {@link RpcHttp} client to use.
+ * @param maxResultLength - Maximum number of block slots to return.
+ * @param context - Defines the search range and direction.
+ * @returns An object containing `blocksSlots`, an array of block slots in the order they were found.
+ */
 export async function rpcHttpFindBlocks(
   self: RpcHttp,
   maxResultLength: number,

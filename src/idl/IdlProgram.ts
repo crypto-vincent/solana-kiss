@@ -30,6 +30,10 @@ import { IdlMetadata, idlMetadataParse } from "./IdlMetadata";
 import { IdlPda, idlPdaParse } from "./IdlPda";
 import { IdlTypedef, idlTypedefParse } from "./IdlTypedef";
 
+/**
+ * Parsed representation of an Anchor IDL program, containing all
+ * metadata, typedefs, accounts, instructions, events, errors, PDAs, and constants.
+ */
 export type IdlProgram = {
   metadata: IdlMetadata;
   typedefs: Map<string, IdlTypedef>;
@@ -41,6 +45,11 @@ export type IdlProgram = {
   constants: Map<string, IdlConstant>;
 };
 
+/**
+ * Attempts to identify which IDL account definition matches the given raw account data.
+ * Iterates over all known accounts and returns the first one that passes its discriminator check.
+ * @throws {@link ErrorStack} if no account definition matches.
+ */
 export function idlProgramGuessAccount(
   self: IdlProgram,
   accountData: Uint8Array,
@@ -57,6 +66,11 @@ export function idlProgramGuessAccount(
   throw new ErrorStack("Idl: Failed to guess account", errors);
 }
 
+/**
+ * Attempts to identify which IDL instruction definition matches the given instruction request.
+ * Iterates over all known instructions and returns the first one whose accounts and args check pass.
+ * @throws {@link ErrorStack} if no instruction definition matches.
+ */
 export function idlProgramGuessInstruction(
   self: IdlProgram,
   instructionRequest: InstructionRequest,
@@ -80,6 +94,11 @@ export function idlProgramGuessInstruction(
   throw new ErrorStack("Idl: Failed to guess instruction", errors);
 }
 
+/**
+ * Attempts to identify which IDL event definition matches the given raw event data.
+ * Iterates over all known events and returns the first one that passes its discriminator check.
+ * @throws {@link ErrorStack} if no event definition matches.
+ */
 export function idlProgramGuessEvent(
   self: IdlProgram,
   eventData: Uint8Array,
@@ -96,6 +115,10 @@ export function idlProgramGuessEvent(
   throw new ErrorStack("Idl: Failed to guess event", errors);
 }
 
+/**
+ * Attempts to identify which IDL error definition matches the given numeric error code.
+ * @throws {@link ErrorStack} listing all known error codes if no match is found.
+ */
 export function idlProgramGuessError(
   self: IdlProgram,
   errorCode: number,
@@ -111,6 +134,10 @@ export function idlProgramGuessError(
 }
 
 // TODO - support CODAMA IDLs
+/**
+ * Parses a raw JSON value into an {@link IdlProgram}.
+ * Supports Anchor IDL format; CODAMA IDL support is not yet implemented.
+ */
 export function idlProgramParse(programValue: JsonValue): IdlProgram {
   const programObject = jsonCodecObject.decoder(programValue);
   const metadata = idlMetadataParse(programObject);
@@ -175,6 +202,10 @@ export function idlProgramParse(programValue: JsonValue): IdlProgram {
   };
 }
 
+/**
+ * Returns a minimal "unknown" {@link IdlProgram} stub memoized by program address.
+ * Useful as a fallback when no IDL is available for a program.
+ */
 export const idlProgramUnknown = memoize(
   async (programAddress: Pubkey) => programAddress,
   async (programAddress: Pubkey) => {

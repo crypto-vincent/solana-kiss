@@ -22,6 +22,16 @@ import { IdlTypeFull, IdlTypeFullFields } from "./IdlTypeFull";
 import { idlTypeFullTypedefBytemuck } from "./IdlTypeFullBytemuck";
 import { IdlTypePrimitive } from "./IdlTypePrimitive";
 
+/**
+ * Hydrates a flat IDL type into a fully-resolved full type by linking all
+ * typedef references. Throws if a const literal is encountered at the top
+ * level (use {@link idlTypeFlatHydrateOrConstLiteral} for those cases).
+ *
+ * @param self - The unresolved flat IDL type to hydrate.
+ * @param genericsBySymbol - Map of generic symbol names to their resolved full types or numeric const literals.
+ * @param typedefs - Available typedef definitions for resolving named references, or `null` if not applicable.
+ * @returns The fully-resolved `IdlTypeFull`.
+ */
 export function idlTypeFlatHydrate(
   self: IdlTypeFlat,
   genericsBySymbol: Map<string, IdlTypeFull | number>,
@@ -38,6 +48,16 @@ export function idlTypeFlatHydrate(
   return typeFullOrConstLiteral;
 }
 
+/**
+ * Hydrates a flat IDL type into a fully-resolved full type or a numeric const
+ * literal. Use this variant when the type node may represent a compile-time
+ * constant (e.g., an array length generic).
+ *
+ * @param self - The unresolved flat IDL type to hydrate.
+ * @param genericsBySymbol - Map of generic symbol names to their resolved full types or numeric const literals.
+ * @param typedefs - Available typedef definitions for resolving named references, or `null` if not applicable.
+ * @returns The fully-resolved `IdlTypeFull`, or a `number` if the node is a const literal.
+ */
 export function idlTypeFlatHydrateOrConstLiteral(
   self: IdlTypeFlat,
   genericsBySymbol: Map<string, IdlTypeFull | number>,
@@ -50,6 +70,15 @@ export function idlTypeFlatHydrateOrConstLiteral(
   );
 }
 
+/**
+ * Hydrates a set of flat IDL fields into fully-resolved full fields by linking
+ * all typedef references within each field's type.
+ *
+ * @param self - The unresolved flat IDL fields to hydrate.
+ * @param genericsBySymbol - Map of generic symbol names to their resolved full types or numeric const literals.
+ * @param typedefs - Available typedef definitions for resolving named references, or `null` if not applicable.
+ * @returns The fully-resolved `IdlTypeFullFields`.
+ */
 export function idlTypeFlatFieldsHydrate(
   self: IdlTypeFlatFields,
   genericsBySymbol: Map<string, IdlTypeFull | number>,

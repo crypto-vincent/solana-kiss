@@ -28,26 +28,32 @@ import { idlTypeFullFieldsGetAt, idlTypeFullGetAt } from "./IdlTypeFullGetAt";
 import { IdlTypePrimitive } from "./IdlTypePrimitive";
 import { idlUtilsInferValueTypeFlat } from "./IdlUtils";
 
+/** A pre-fetched map of account content keyed by instruction account name, used to avoid redundant on-chain fetches. */
 export type IdlInstructionBlobAccountsContext = {
   [instructionAccountName: string]: IdlInstructionBlobAccountContent;
 };
+/** An async function that fetches account state and type information for a given public key address. */
 export type IdlInstructionBlobAccountFetcher = (
   accountAddress: Pubkey,
 ) => Promise<IdlInstructionBlobAccountContent>;
 
+/** The on-chain state and optional full type information for a fetched account. */
 export type IdlInstructionBlobAccountContent = {
   accountState: JsonValue;
   accountTypeFull: IdlTypeFull | undefined;
 };
 
+/** A blob variant that holds a pre-encoded constant byte array. */
 export type IdlInstructionBlobConst = {
   bytes: Uint8Array;
 };
+/** A blob variant that references a field in the instruction arguments via a JSON pointer. */
 export type IdlInstructionBlobArg = {
   pointer: JsonPointer;
   typeFull: IdlTypeFull;
   prefixed: boolean; // TODO - this prefixed stuff would benefit from being baked in the types directly ??
 };
+/** A blob variant that references a path into a resolved account's on-chain state. */
 export type IdlInstructionBlobAccount = {
   paths: Array<string>;
   typeFull: IdlTypeFull | undefined;
@@ -60,6 +66,10 @@ type IdlInstructionBlobContent =
   | IdlInstructionBlobArg
   | IdlInstructionBlobAccount;
 
+/**
+ * A discriminated union representing a blob value that can be a constant byte array,
+ * a reference into the instruction arguments, or a reference into an account's state.
+ */
 export class IdlInstructionBlob {
   private readonly discriminant: IdlInstructionBlobDiscriminant;
   private readonly content: IdlInstructionBlobContent;
@@ -72,16 +82,23 @@ export class IdlInstructionBlob {
     this.content = content;
   }
 
+  /** Creates a constant bytes blob. */
   public static const(value: IdlInstructionBlobConst): IdlInstructionBlob {
     return new IdlInstructionBlob("const", value);
   }
+  /** Creates a blob that references a field in the instruction arguments. */
   public static arg(value: IdlInstructionBlobArg): IdlInstructionBlob {
     return new IdlInstructionBlob("arg", value);
   }
+  /** Creates a blob that references a path within a resolved account's on-chain state. */
   public static account(value: IdlInstructionBlobAccount): IdlInstructionBlob {
     return new IdlInstructionBlob("account", value);
   }
 
+  /**
+   * Dispatches to the appropriate visitor branch based on the blob's variant,
+   * forwarding up to three extra parameters and returning the visitor's result.
+   */
   public traverse<P1, P2, P3, T>(
     visitor: {
       const: (value: IdlInstructionBlobConst, p1: P1, p2: P2, p3: P3) => T;
@@ -96,6 +113,7 @@ export class IdlInstructionBlob {
   }
 }
 
+/** Computes the raw byte representation of a blob by resolving its variant against the given find context. */
 export async function idlInstructionBlobCompute(
   self: IdlInstructionBlob,
   findContext: IdlInstructionAccountFindContext,
@@ -103,6 +121,7 @@ export async function idlInstructionBlobCompute(
   return self.traverse(computeVisitor, findContext, undefined, undefined);
 }
 
+/** Parses a raw IDL blob JSON value into an {@link IdlInstructionBlob}, resolving constant, arg, or account variants. */
 export function idlInstructionBlobParse(
   instructionBlobValue: JsonValue,
   instructionArgsTypeFullFields: IdlTypeFullFields,

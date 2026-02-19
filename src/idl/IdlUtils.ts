@@ -25,6 +25,14 @@ import { idlTypeFlatHydrate } from "./IdlTypeFlatHydrate";
 import { idlTypeFlatParse } from "./IdlTypeFlatParse";
 import { idlTypeFullEncode } from "./IdlTypeFullEncode";
 
+/**
+ * A JSON decoder that converts various byte-array representations into a
+ * `Uint8Array`. Accepted formats:
+ * - **array** – plain JSON array of numbers (`[0, 1, 2, …]`)
+ * - **object keys**: `utf8`, `base16`, `base58`, `base64` – encoded strings
+ * - `zeroes` – allocates an all-zero buffer of the given length
+ * - `encode` – encodes an inline IDL value/type pair into bytes
+ */
 export const idlUtilsBytesJsonDecoder = jsonDecoderByType({
   array: jsonCodecArrayToBytes.decoder,
   object: jsonDecoderOneOfKeys({
@@ -51,6 +59,14 @@ export const idlUtilsBytesJsonDecoder = jsonDecoderByType({
   }),
 });
 
+/**
+ * Infers a flat IDL type for a JSON value that is expected to represent raw
+ * bytes. Strings are treated as public keys (`pubkey`); arrays and objects are
+ * treated as byte arrays (`bytes`). Throws for unsupported value shapes.
+ *
+ * @param value - The JSON value whose flat IDL type should be inferred.
+ * @returns The inferred `IdlTypeFlat`.
+ */
 export function idlUtilsInferValueTypeFlat(value: JsonValue): IdlTypeFlat {
   if (jsonAsString(value) !== undefined) {
     return idlTypeFlatParse("pubkey");
@@ -65,6 +81,15 @@ export function idlUtilsInferValueTypeFlat(value: JsonValue): IdlTypeFlat {
   }
 }
 
+/**
+ * Asserts that a specific byte sequence (`blobBytes`) is present in `data`
+ * starting at `blobOffset`. Throws a descriptive error if the data is too
+ * short or any byte does not match.
+ *
+ * @param blobOffset - The byte offset in `data` at which the expected bytes begin.
+ * @param blobBytes - The expected byte sequence.
+ * @param data - The buffer to verify against.
+ */
 export function idlUtilsExpectBlobAt(
   blobOffset: number,
   blobBytes: Uint8Array,
@@ -88,6 +113,14 @@ export function idlUtilsExpectBlobAt(
   }
 }
 
+/**
+ * Parses a Rust-flavored JSON string into a standard `JsonValue`. Handles
+ * Rust-style numeric literals that contain underscores as digit separators
+ * (e.g. `1_000_000`), which are not valid in standard JSON.
+ *
+ * @param jsonRusted - A JSON string potentially containing Rust numeric literals.
+ * @returns The parsed `JsonValue`.
+ */
 export function idlUtilsJsonRustedParse(jsonRusted: string): JsonValue {
   return JSON.parse(
     jsonRusted.replace(
@@ -102,6 +135,14 @@ export function idlUtilsJsonRustedParse(jsonRusted: string): JsonValue {
   );
 }
 
+/**
+ * Computes the 8-byte Anchor discriminator for an account or instruction
+ * name. The discriminator is the first 8 bytes of the SHA-256 hash of the
+ * UTF-8 encoded name string.
+ *
+ * @param name - The account or instruction name (e.g. `"account:MyAccount"`).
+ * @returns An 8-byte `Uint8Array` discriminator.
+ */
 export function idlUtilsAnchorDiscriminator(name: string): Uint8Array {
   return sha256Hash([utf8Encode(name)]).slice(0, 8);
 }

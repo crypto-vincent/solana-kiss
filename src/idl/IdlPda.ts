@@ -11,6 +11,7 @@ import { IdlPdaBlob, idlPdaBlobCompute, idlPdaBlobParse } from "./IdlPdaBlob";
 import { IdlTypedef } from "./IdlTypedef";
 
 // TODO - support nested inputs ?
+/** A Program Derived Address definition with its seed blobs and an optional program override. */
 export type IdlPda = {
   name: string;
   docs: IdlDocs;
@@ -18,8 +19,10 @@ export type IdlPda = {
   program: IdlPdaBlob | undefined;
 };
 
+/** Named input values supplied at runtime when computing a PDA's seed bytes. */
 export type IdlPdaInputs = Record<string, JsonValue>;
 
+/** Parses a raw IDL PDA JSON value into an {@link IdlPda}, resolving all seed blobs and the optional program override. */
 export function idlPdaParse(
   pdaName: string,
   pdaValue: JsonValue,
@@ -38,6 +41,7 @@ export function idlPdaParse(
   };
 }
 
+/** Derives the PDA public key from the given inputs, using the PDA's seeds and the provided (or embedded) program address. */
 export function idlPdaFind(
   self: IdlPda,
   inputs: IdlPdaInputs,

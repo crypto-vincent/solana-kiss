@@ -11,6 +11,18 @@ import {
 import { TransactionHandle } from "../data/Transaction";
 import { RpcHttp } from "./RpcHttp";
 
+/**
+ * Fetches block metadata along with the ordered list of transaction signatures for the given slot.
+ *
+ * @param self - The {@link RpcHttp} client to use.
+ * @param blockSlot - The slot number of the block to query.
+ * @returns An object containing:
+ *   - `previousBlockSlot` – the slot of the parent block.
+ *   - `blockHeight` – the block height, or `undefined` if not available.
+ *   - `blockTime` – the block production time as a `Date`, or `undefined` if not available.
+ *   - `blockHash` – the block hash.
+ *   - `oldToNewTransactionsHandles` – transaction handles ordered from oldest to newest within the block.
+ */
 export async function rpcHttpGetBlockWithTransactions(
   self: RpcHttp,
   blockSlot: BlockSlot,

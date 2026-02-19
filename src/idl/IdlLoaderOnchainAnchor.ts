@@ -15,6 +15,14 @@ import { idlAccountDecode, idlAccountParse } from "./IdlAccount";
 import { IdlLoader } from "./IdlLoader";
 import { idlProgramParse } from "./IdlProgram";
 
+/**
+ * Creates an {@link IdlLoader} that fetches an Anchor program's IDL from on-chain
+ * storage. It derives the IDL account address using the canonical Anchor PDA
+ * (`anchor:idl` seed), reads and decodes the account, inflates the compressed
+ * JSON payload, then parses the result as an {@link IdlProgram}.
+ * @param accountDataFetcher - A function that fetches raw account data by address.
+ * @returns A new {@link IdlLoader} backed by on-chain Anchor IDL storage.
+ */
 export function idlLoaderFromOnchainAnchor(
   accountDataFetcher: (accountAddress: Pubkey) => Promise<Uint8Array>,
 ): IdlLoader {

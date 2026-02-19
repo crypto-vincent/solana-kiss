@@ -1,5 +1,15 @@
 import { Result } from "./Utils";
 
+/**
+ * Creates a memoized wrapper around an async function, caching results by a derived key.
+ * Supports optional approver callbacks to control cache reads and writes.
+ * @param inputToCacheKey - Async function that maps an input to a cache key.
+ * @param invocation - The async function to memoize.
+ * @param options - Optional approvers to control when cached values are used or stored.
+ * @param options.cacheUseApprover - Called before using a cached value; return `false` to bypass the cache.
+ * @param options.cacheSetApprover - Called before storing a result; return `false` to skip caching.
+ * @returns An async function with the same signature as `invocation` that uses the cache.
+ */
 export function memoize<CacheKey, In, Out>(
   inputToCacheKey: (input: In) => Promise<CacheKey>,
   invocation: (input: In) => Promise<Out>,
