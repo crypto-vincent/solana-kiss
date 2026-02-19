@@ -1,3 +1,9 @@
+/**
+ * Computes a SHA-256 hash over one or more byte blobs.
+ * The blobs are fed into the hasher sequentially and the digest is returned.
+ * @param blobs - An array of byte arrays to hash.
+ * @returns A 32-byte `Uint8Array` containing the SHA-256 digest.
+ */
 export function sha256Hash(blobs: Array<Uint8Array>): Uint8Array {
   for (const blob of blobs) {
     hasher.update(blob);

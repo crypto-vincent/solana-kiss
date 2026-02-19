@@ -1,6 +1,14 @@
 // TODO - clean this up
 // @ts-nocheck
 
+/**
+ * Decompresses a zlib- or gzip-compressed byte array.
+ * Automatically detects the format from the magic bytes.
+ * @param bytes - The compressed input (zlib or gzip format).
+ * @param buf - An optional pre-allocated output buffer, or `null` to allocate automatically.
+ * @returns The decompressed bytes.
+ * @throws If the compression format is unsupported or the data is malformed.
+ */
 export function inflate(bytes: Uint8Array, buf: Uint8Array | null): Uint8Array {
   const CMF = bytes[0];
   const FLG = bytes[1];
@@ -222,6 +230,13 @@ function _get17(dt: Uint8Array, pos: number) {
   pushV(U.ttree, 320, 0);
 })();
 
+/**
+ * Decompresses a raw DEFLATE-compressed byte array (no zlib/gzip header).
+ * @param data - The raw DEFLATE compressed data.
+ * @param buf - An optional pre-allocated output buffer, or `null` to allocate automatically.
+ * @returns The decompressed bytes.
+ * @throws If the DEFLATE stream is malformed.
+ */
 export function inflateRaw(
   data: Uint8Array,
   buf: Uint8Array | null,

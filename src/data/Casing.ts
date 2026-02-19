@@ -1,3 +1,9 @@
+/**
+ * Converts a camelCase string to snake_case without data loss (losslessly reversible).
+ * Each uppercase letter is replaced with an underscore followed by its lowercase equivalent.
+ * @param string - The camelCase string to convert.
+ * @returns The snake_case equivalent string.
+ */
 export function casingLosslessConvertToSnake(string: string): string {
   const codes = new Array<number>();
   for (let index = 0; index < string.length; index++) {
@@ -12,6 +18,12 @@ export function casingLosslessConvertToSnake(string: string): string {
   return String.fromCharCode(...codes);
 }
 
+/**
+ * Converts a snake_case string to camelCase without data loss (losslessly reversible).
+ * Each underscore followed by a lowercase letter is replaced with the uppercase letter.
+ * @param string - The snake_case string to convert.
+ * @returns The camelCase equivalent string.
+ */
 export function casingLosslessConvertToCamel(string: string): string {
   const codes = new Array<number>();
   for (let index = 0; index < string.length; index++) {

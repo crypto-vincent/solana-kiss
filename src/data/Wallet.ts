@@ -3,6 +3,10 @@ import { rxBehaviourSubject, RxObservable } from "./Rx";
 import { Signature, signatureFromBytes } from "./Signature";
 import { TransactionPacket } from "./Transaction";
 
+/**
+ * Represents a Wallet Standard–compatible wallet provider plugin for Solana.
+ * Exposes an observable list of connected accounts along with connect and disconnect methods.
+ */
 export type WalletProvider = {
   name: string;
   icon: string;
@@ -11,6 +15,10 @@ export type WalletProvider = {
   disconnect: () => Promise<void>;
 };
 
+/**
+ * Represents a single wallet account capable of signing messages and transactions
+ * on behalf of its associated Solana address.
+ */
 export type WalletAccount = {
   address: Pubkey;
   signMessage: (message: Uint8Array) => Promise<Signature>;
@@ -19,6 +27,11 @@ export type WalletAccount = {
   ) => Promise<TransactionPacket>;
 };
 
+/**
+ * An observable list of all discovered {@link WalletProvider} instances.
+ * Wallet discovery begins lazily on the first subscription, dispatching the
+ * `wallet-standard:app-ready` event to detect injected browser wallet extensions.
+ */
 export const walletProviders: RxObservable<Array<WalletProvider>> = {
   subscribe: (listener) => {
     if (!walletProvidersDiscovering) {

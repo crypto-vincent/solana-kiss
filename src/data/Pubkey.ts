@@ -5,10 +5,17 @@ import { TransactionMessage } from "./Transaction";
 import { utf8Encode } from "./Utf8";
 import { Branded } from "./Utils";
 
+/** A branded string type representing a Solana public key encoded in base58. */
 export type Pubkey = Branded<string, "Pubkey">;
 
+/** The default public key whose underlying 32 bytes are all zero. */
 export const pubkeyDefault = pubkeyFromBytes(new Uint8Array(32));
 
+/**
+ * Creates a dummy public key with a fixed 5-byte prefix and random remaining bytes.
+ * Useful for testing and placeholder purposes.
+ * @returns A randomly generated dummy {@link Pubkey}.
+ */
 export function pubkeyNewDummy(): Pubkey {
   const bytes = new Uint8Array(32);
   bytes[0] = 0x03;
@@ -22,28 +29,59 @@ export function pubkeyNewDummy(): Pubkey {
   return base58Encode(bytes) as Pubkey;
 }
 
+/**
+ * Creates a {@link Pubkey} from a base58-encoded string, validating the decoded byte length.
+ * @param base58 - The base58-encoded public key string.
+ * @returns The validated {@link Pubkey}.
+ * @throws If the decoded bytes do not span exactly 32 bytes.
+ */
 export function pubkeyFromBase58(base58: string): Pubkey {
   const bytes = base58Decode(base58);
   pubkeyBytesCheck(bytes);
   return base58 as Pubkey;
 }
 
+/**
+ * Creates a {@link Pubkey} from a 32-byte array.
+ * @param bytes - A `Uint8Array` of exactly 32 bytes representing the public key.
+ * @returns The base58-encoded {@link Pubkey}.
+ * @throws If `bytes` does not have a length of exactly 32.
+ */
 export function pubkeyFromBytes(bytes: Uint8Array): Pubkey {
   pubkeyBytesCheck(bytes);
   const pubkey = base58Encode(bytes);
   return pubkey as Pubkey;
 }
 
+/**
+ * Decodes a {@link Pubkey} back into its raw 32-byte representation.
+ * @param self - The public key to decode.
+ * @returns A `Uint8Array` of exactly 32 bytes.
+ * @throws If the decoded bytes do not span exactly 32 bytes.
+ */
 export function pubkeyToBytes(self: Pubkey): Uint8Array {
   const bytes = base58Decode(self as string);
   pubkeyBytesCheck(bytes);
   return bytes;
 }
 
+/**
+ * Returns the base58 string representation of a {@link Pubkey}.
+ * @param self - The public key to convert.
+ * @returns The base58-encoded string of the public key.
+ */
 export function pubkeyToBase58(self: Pubkey): string {
   return self as string;
 }
 
+/**
+ * Finds a Program Derived Address (PDA) for the given program and seeds.
+ * Iterates bump values from 255 down to 0 and returns the first valid off-curve address.
+ * @param programAddress - The program's public key.
+ * @param seedsBlobs - An array of seed byte buffers.
+ * @returns The derived {@link Pubkey} that lies off the Ed25519 curve.
+ * @throws If no valid PDA can be found for the provided seeds.
+ */
 export function pubkeyFindPdaAddress(
   programAddress: Pubkey,
   seedsBlobs: Array<Uint8Array>,
@@ -51,6 +89,14 @@ export function pubkeyFindPdaAddress(
   return pubkeyFindPdaAddressAndBump(programAddress, seedsBlobs).address;
 }
 
+/**
+ * Finds a Program Derived Address (PDA) and its associated bump seed.
+ * Iterates bump values from 255 down to 0 and returns the first valid off-curve address together with its bump.
+ * @param programAddress - The program's public key.
+ * @param seedsBlobs - An array of seed byte buffers.
+ * @returns An object containing the derived {@link Pubkey} (`address`) and the `bump` value used.
+ * @throws If no valid PDA can be found for the provided seeds.
+ */
 export function pubkeyFindPdaAddressAndBump(
   programAddress: Pubkey,
   seedsBlobs: Array<Uint8Array>,
@@ -71,6 +117,15 @@ export function pubkeyFindPdaAddressAndBump(
   );
 }
 
+/**
+ * Derives a public key from a base address, a UTF-8 seed string, and an owner program address
+ * using SHA-256 hashing, following the `createWithSeed` convention.
+ * @param baseAddress - The base public key.
+ * @param seedUtf8 - A UTF-8 seed string of at most 32 bytes.
+ * @param ownerAddress - The owner program's public key.
+ * @returns The derived {@link Pubkey}.
+ * @throws If the UTF-8-encoded seed exceeds 32 bytes.
+ */
 export function pubkeyCreateFromSeed(
   baseAddress: Pubkey,
   seedUtf8: string,
@@ -89,6 +144,12 @@ export function pubkeyCreateFromSeed(
   );
 }
 
+/**
+ * Imports a {@link Pubkey} as a Web Crypto Ed25519 verifier function.
+ * @param self - The public key to import.
+ * @returns A promise that resolves to an async function which verifies a {@link Signature}
+ *   against a message, returning `true` if the signature is valid.
+ */
 export async function pubkeyToVerifier(self: Pubkey) {
   const spkiBytes = new Uint8Array([
     0x30,
@@ -125,6 +186,12 @@ export async function pubkeyToVerifier(self: Pubkey) {
   };
 }
 
+/**
+ * Checks whether a {@link Pubkey} represents a point that lies on the Ed25519 elliptic curve.
+ * Points off the curve are used as Program Derived Addresses (PDAs).
+ * @param self - The public key to check.
+ * @returns `true` if the key is on the Ed25519 curve, `false` otherwise.
+ */
 export function pubkeyIsOnCurve(self: Pubkey): boolean {
   const bytes = pubkeyToBytes(self);
   const sign = (bytes[31]! >> 7) & 1;

@@ -2,11 +2,20 @@ import { Pubkey, pubkeyFromBytes, pubkeyToVerifier } from "./Pubkey";
 import { Signature, signatureFromBytes } from "./Signature";
 import { TransactionMessage } from "./Transaction";
 
+/**
+ * Represents an Ed25519 signing keypair consisting of a public key address
+ * and a function that produces a {@link Signature} for a given message.
+ */
 export type Signer = {
   address: Pubkey;
   sign: (message: TransactionMessage | Uint8Array) => Promise<Signature>;
 };
 
+/**
+ * Generates a new random Ed25519 keypair and returns it as a {@link Signer}.
+ * The private key is non-extractable and is held only in the Web Crypto key store.
+ * @returns A promise that resolves to a freshly generated {@link Signer}.
+ */
 export async function signerGenerate(): Promise<Signer> {
   const keypair = await crypto.subtle.generateKey({ name: "Ed25519" }, false, [
     "sign",
@@ -17,6 +26,17 @@ export async function signerGenerate(): Promise<Signer> {
   return signerFromPrivateKey(keypair.privateKey, address);
 }
 
+/**
+ * Creates a {@link Signer} from a 64-byte secret key (private key bytes concatenated with public key bytes).
+ * By default, verifies the keypair by signing and verifying a test message.
+ * @param secret - A `Uint8Array` of exactly 64 bytes: the first 32 are the private key seed,
+ *   the last 32 are the public key.
+ * @param options - Optional settings.
+ * @param options.skipVerification - When `true`, skips the keypair consistency check.
+ * @returns A promise that resolves to the {@link Signer} for the provided secret.
+ * @throws If `secret` is not exactly 64 bytes.
+ * @throws If the public and private key portions are mismatched and `skipVerification` is not set.
+ */
 export async function signerFromSecret(
   secret: Uint8Array,
   options?: {
