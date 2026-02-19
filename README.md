@@ -6,13 +6,10 @@ No bloat, zero dependencies, full-featured Solana framework — eliminating supp
 npm install solana-kiss
 ```
 
----
-
-## What's inside
-
-- **`Solana` class** — high-level entry point for 95% of use cases: load IDLs, decode accounts, build/send/simulate transactions, derive PDAs, find program-owned accounts.
-- **Lower-level utilities** — all the building blocks (`rpcHttp*`, `idl*`, `transaction*`, …) are exported individually for special cases where you need finer control.
-- **Browser wallet detection** — built-in [Wallet Standard](https://github.com/wallet-standard/wallet-standard) support; discovers injected wallets (Phantom, Backpack, …) automatically with no extra adapter library.
+- **Solana** — high-level class: decode accounts, build & send transactions, load IDLs, derive PDAs, detect browser wallets.
+- **RPC** — thin typed wrappers around every Solana JSON-RPC method.
+- **IDL** — everything related to encoding/decoding instruction data and account layouts (Anchor & native).
+- **data** — primitive building blocks: keys, signers, transactions, base58/64, hashing, and more.
 
 ---
 
@@ -21,6 +18,24 @@ npm install solana-kiss
 ```ts
 const solana = new Solana("mainnet-beta");
 const { accountState } = await solana.getAndInferAndDecodeAccount(address);
+```
+
+**Connect a browser wallet and send a transaction**
+
+```ts
+import { walletProviders, Solana } from "solana-kiss";
+
+// discover injected wallets (Phantom, Backpack, …)
+walletProviders.subscribe(async (providers) => {
+  if (!providers.length) return;
+  const [walletAccount] = await providers[0].connect();
+
+  const solana = new Solana("mainnet-beta");
+  const { transactionHandle } = await solana.prepareAndSendTransaction(
+    walletAccount,
+    [instructionRequest],
+  );
+});
 ```
 
 **Build and send a transaction**
@@ -32,26 +47,4 @@ const { instructionRequest } = await solana.hydrateAndEncodeInstruction(
   { instructionAddresses: { from, to }, instructionPayload: { amount: "1000" } },
 );
 const { transactionHandle } = await solana.prepareAndSendTransaction(signer, [instructionRequest]);
-```
-
-**Detect browser wallets**
-
-```ts
-import { walletProviders } from "solana-kiss";
-
-walletProviders.subscribe((providers) => {
-  // called whenever a new wallet extension is discovered
-  for (const provider of providers) {
-    console.log(provider.name, provider.icon);
-  }
-});
-```
-
-**Lower-level escape hatch**
-
-```ts
-import { rpcHttpGetAccountWithData, rpcHttpFromUrl } from "solana-kiss";
-
-const rpc = rpcHttpFromUrl("https://my-custom-rpc.example.com");
-const { accountData } = await rpcHttpGetAccountWithData(rpc, address);
 ```
