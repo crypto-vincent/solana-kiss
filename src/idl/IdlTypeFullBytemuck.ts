@@ -30,9 +30,7 @@ type IdlTypeFullFieldsBytemuck = {
   value: IdlTypeFullFields;
 };
 
-// TODO (repr) - figure out how to handle discriminator alignment/offset
-// TODO (repr) - support Repr modifiers (packed, align(N))
-// TODO (repr) - support for transparent/custom
+/** Computes the bytemuck-compatible (fixed-size, memory-layout-aware) representation of a typedef including alignment and size. */
 export function idlTypeFullTypedefBytemuck(
   self: IdlTypeFullTypedef,
 ): IdlTypeFullBytemuck {

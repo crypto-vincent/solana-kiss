@@ -15,6 +15,7 @@ for (let digit = 0; digit < alphabetUpper.length; digit++) {
   codeToDigit[alphabetUpper.charCodeAt(digit)] = digit;
 }
 
+/** Encodes a byte array to an uppercase hexadecimal string. */
 export function base16Encode(decoded: Uint8Array): string {
   const codes = new Uint8Array(decoded.length * 2);
   let codeIndex = 0;
@@ -26,6 +27,7 @@ export function base16Encode(decoded: Uint8Array): string {
   return utf8Decode(codes);
 }
 
+/** Decodes a hexadecimal string (upper or lower case) to a byte array. */
 export function base16Decode(encoded: string): Uint8Array {
   const encodedLength = encoded.length;
   if (encodedLength % 2 !== 0) {

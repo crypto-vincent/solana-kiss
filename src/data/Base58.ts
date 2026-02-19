@@ -13,6 +13,7 @@ for (let digit = 0; digit < alphabet.length; digit++) {
 
 const codePadding = "1".charCodeAt(0);
 
+/** Encodes a byte array to a Base58 string. */
 export function base58Encode(decoded: Uint8Array): string {
   if (decoded.length === 0) {
     return "";
@@ -45,6 +46,7 @@ export function base58Encode(decoded: Uint8Array): string {
   return utf8Decode(codes);
 }
 
+/** Decodes a Base58 string to a byte array. */
 export function base58Decode(encoded: string): Uint8Array {
   const encodedLength = encoded.length;
   if (encodedLength === 0) {

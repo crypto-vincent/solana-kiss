@@ -22,6 +22,7 @@ import { IdlTypeFull, IdlTypeFullFields } from "./IdlTypeFull";
 import { idlTypeFullTypedefBytemuck } from "./IdlTypeFullBytemuck";
 import { IdlTypePrimitive } from "./IdlTypePrimitive";
 
+/** Resolves a flat IDL type into its fully-hydrated representation by substituting typedefs and generics. */
 export function idlTypeFlatHydrate(
   self: IdlTypeFlat,
   genericsBySymbol: Map<string, IdlTypeFull | number>,
@@ -38,6 +39,7 @@ export function idlTypeFlatHydrate(
   return typeFullOrConstLiteral;
 }
 
+/** Resolves a flat IDL type into its full representation, allowing the result to also be a const literal number. */
 export function idlTypeFlatHydrateOrConstLiteral(
   self: IdlTypeFlat,
   genericsBySymbol: Map<string, IdlTypeFull | number>,
@@ -50,6 +52,7 @@ export function idlTypeFlatHydrateOrConstLiteral(
   );
 }
 
+/** Resolves flat IDL type fields into their fully-hydrated representations. */
 export function idlTypeFlatFieldsHydrate(
   self: IdlTypeFlatFields,
   genericsBySymbol: Map<string, IdlTypeFull | number>,

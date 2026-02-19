@@ -14,6 +14,7 @@ for (let digit = 0; digit < alphabet.length; digit++) {
 
 const codePadding = "=".charCodeAt(0);
 
+/** Encodes a byte array to a Base64 string. */
 export function base64Encode(decoded: Uint8Array): string {
   const chunks = decoded.length / 3;
   const codes = new Uint8Array(Math.ceil(chunks) * 4);
@@ -54,6 +55,7 @@ export function base64Encode(decoded: Uint8Array): string {
   return utf8Decode(codes);
 }
 
+/** Decodes a Base64 string to a byte array. */
 export function base64Decode(encoded: string): Uint8Array {
   const encodedLength = encoded.length;
   if (encodedLength % 4 != 0) {

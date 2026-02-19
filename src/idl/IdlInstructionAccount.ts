@@ -47,6 +47,7 @@ export type IdlInstructionAccountFindContext = {
   accountFetcher?: IdlInstructionBlobAccountFetcher;
 };
 
+/** Resolves the address for a single instruction account using a static address, PDA derivation, or context lookup. */
 export async function idlInstructionAccountFind(
   self: IdlInstructionAccount,
   programAddress: Pubkey,
@@ -83,6 +84,7 @@ export async function idlInstructionAccountFind(
   );
 }
 
+/** Parses an IDL instruction account definition from a JSON value, flattening nested account groups. */
 export function idlInstructionAccountParse(
   instructionAccountGroups: Array<string>,
   instructionAccountValue: JsonValue,

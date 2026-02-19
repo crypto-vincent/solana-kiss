@@ -6,6 +6,7 @@ import {
 } from "../data/Json";
 import { RpcHttp } from "./RpcHttp";
 
+/** Fetches the most recent block hash from the cluster. */
 export async function rpcHttpGetLatestBlockHash(self: RpcHttp): Promise<{
   blockHash: BlockHash;
 }> {

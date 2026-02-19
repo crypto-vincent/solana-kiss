@@ -61,6 +61,7 @@ export type TransactionInvocation = {
   consumedComputeUnits: number | undefined;
 };
 
+/** Compiles and signs a transaction from a set of signers and a transaction request. */
 export async function transactionCompileAndSign(
   signers: Array<Signer | WalletAccount>,
   transactionRequest: TransactionRequest,
@@ -73,6 +74,7 @@ export async function transactionCompileAndSign(
   return transactionSign(transactionPacket, signers);
 }
 
+/** Compiles a transaction request into a binary packet with empty signature slots, without signing. */
 export function transactionCompileUnsigned(
   transactionRequest: TransactionRequest,
   transactionAddressLookupTables?: Array<TransactionAddressLookupTable>,
@@ -195,6 +197,7 @@ export function transactionCompileUnsigned(
   return new Uint8Array(byteArray) as TransactionPacket;
 }
 
+/** Signs an existing transaction packet by filling in the signature slots for the provided signers. */
 export async function transactionSign(
   transactionPacket: TransactionPacket,
   signers: Array<Signer | WalletAccount>,
@@ -225,6 +228,7 @@ export async function transactionSign(
   return packet;
 }
 
+/** Verifies all signatures in a transaction packet against their corresponding signer public keys. */
 export async function transactionVerify(
   transactionPacket: TransactionPacket,
 ): Promise<void> {
@@ -240,6 +244,7 @@ export async function transactionVerify(
   }
 }
 
+/** Extracts the message bytes from a transaction packet, stripping the leading signature block. */
 export function transactionExtractMessage(
   transactionPacket: TransactionPacket,
 ): TransactionMessage {
@@ -253,6 +258,7 @@ export function transactionExtractMessage(
   ) as TransactionMessage;
 }
 
+/** Extracts each signer's address and its corresponding signature from a transaction packet. */
 export function transactionExtractSigning(
   transactionPacket: TransactionPacket,
 ): Array<{
@@ -291,6 +297,7 @@ export function transactionExtractSigning(
   return signing;
 }
 
+/** Reconstructs a TransactionRequest from a compiled transaction message, optionally resolving address lookup tables. */
 export function transactionDecompileRequest(
   transactionMessage: TransactionMessage,
   transactionAddressLookupTables?: Array<TransactionAddressLookupTable>,

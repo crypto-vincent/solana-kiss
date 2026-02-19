@@ -28,6 +28,7 @@ export class IdlTypePrefix {
   }
 }
 
+/** Encodes a bigint value as a typed integer prefix (u8/u16/u32/u64/u128) appended to the provided byte array. */
 export function idlTypePrefixEncode(
   self: IdlTypePrefix,
   value: bigint,
@@ -38,6 +39,7 @@ export function idlTypePrefixEncode(
   blobs.push(blob);
 }
 
+/** Decodes a typed integer prefix from a DataView at the given offset and returns its size and bigint value. */
 export function idlTypePrefixDecode(
   self: IdlTypePrefix,
   data: DataView,

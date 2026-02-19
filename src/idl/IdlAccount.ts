@@ -32,6 +32,7 @@ export type IdlAccount = {
   typeFull: IdlTypeFull;
 };
 
+/** Encodes an account state JSON value to binary bytes using the account's IDL type definition. */
 export function idlAccountEncode(self: IdlAccount, accountState: JsonValue) {
   return {
     accountData: idlTypeFullEncode(
@@ -43,6 +44,7 @@ export function idlAccountEncode(self: IdlAccount, accountState: JsonValue) {
   };
 }
 
+/** Decodes an account's raw bytes into a JSON state value using its IDL type definition. */
 export function idlAccountDecode(self: IdlAccount, accountData: Uint8Array) {
   idlAccountCheck(self, accountData);
   const [, accountState] = idlTypeFullDecode(
@@ -53,6 +55,7 @@ export function idlAccountDecode(self: IdlAccount, accountData: Uint8Array) {
   return { accountState };
 }
 
+/** Validates that raw account data matches the expected data space and discriminator bytes. */
 export function idlAccountCheck(
   self: IdlAccount,
   accountData: Uint8Array,
@@ -69,6 +72,7 @@ export function idlAccountCheck(
   }
 }
 
+/** Parses an IDL account definition from a JSON value and a map of typedefs. */
 export function idlAccountParse(
   accountName: string,
   accountValue: JsonValue,

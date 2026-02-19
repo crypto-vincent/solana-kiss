@@ -21,6 +21,7 @@ import { idlAccountDecode, idlAccountParse } from "./IdlAccount";
 import { IdlLoader } from "./IdlLoader";
 import { idlProgramParse } from "./IdlProgram";
 
+/** Creates an IDL loader that reads and parses native Solana program metadata stored on-chain via the solana-program-metadata standard. */
 export function idlLoaderFromOnchainNative(
   accountDataFetcher: (accountAddress: Pubkey) => Promise<Uint8Array>,
 ): IdlLoader {

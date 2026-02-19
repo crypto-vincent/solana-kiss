@@ -25,6 +25,7 @@ import {
 import { idlTypePrefixDecode } from "./IdlTypePrefix";
 import { IdlTypePrimitive, idlTypePrimitiveDecode } from "./IdlTypePrimitive";
 
+/** Decodes binary data at a given offset into a JSON value using the given full IDL type. */
 export function idlTypeFullDecode(
   self: IdlTypeFull,
   data: DataView,
@@ -33,6 +34,7 @@ export function idlTypeFullDecode(
   return self.traverse(visitorDecode, data, dataOffset, undefined);
 }
 
+/** Decodes binary data at a given offset into a JSON value using the given full IDL fields definition. */
 export function idlTypeFullFieldsDecode(
   self: IdlTypeFullFields,
   data: DataView,

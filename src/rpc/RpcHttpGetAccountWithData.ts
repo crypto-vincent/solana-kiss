@@ -12,6 +12,7 @@ import {
 import { Pubkey, pubkeyDefault, pubkeyToBase58 } from "../data/Pubkey";
 import { RpcHttp } from "./RpcHttp";
 
+/** Fetches an account's owner program, lamport balance, and full data bytes. */
 export async function rpcHttpGetAccountWithData(
   self: RpcHttp,
   accountAddress: Pubkey,

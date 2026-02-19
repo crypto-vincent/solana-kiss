@@ -1,6 +1,7 @@
 // TODO - clean this up
 // @ts-nocheck
 
+/** Decompresses a zlib or gzip compressed byte array, auto-detecting the format from the header. */
 export function inflate(bytes: Uint8Array, buf: Uint8Array | null): Uint8Array {
   const CMF = bytes[0];
   const FLG = bytes[1];
@@ -222,6 +223,7 @@ function _get17(dt: Uint8Array, pos: number) {
   pushV(U.ttree, 320, 0);
 })();
 
+/** Decompresses a raw deflate-compressed byte array without any zlib or gzip header. */
 export function inflateRaw(
   data: Uint8Array,
   buf: Uint8Array | null,

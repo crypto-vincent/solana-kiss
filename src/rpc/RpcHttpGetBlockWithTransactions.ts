@@ -11,6 +11,7 @@ import {
 import { TransactionHandle } from "../data/Transaction";
 import { RpcHttp } from "./RpcHttp";
 
+/** Fetches block metadata along with the ordered list of transaction signatures it contains. */
 export async function rpcHttpGetBlockWithTransactions(
   self: RpcHttp,
   blockSlot: BlockSlot,

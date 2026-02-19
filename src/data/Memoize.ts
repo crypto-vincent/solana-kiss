@@ -1,5 +1,6 @@
 import { Result } from "./Utils";
 
+/** Creates a memoized async function with configurable cache-use and cache-set approval callbacks. */
 export function memoize<In, Out, CacheKey>(
   inputToCacheKey: (input: In) => Promise<CacheKey>,
   invocation: (input: In) => Promise<Out>,

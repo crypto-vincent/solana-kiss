@@ -7,6 +7,7 @@ export type Signer = {
   sign: (message: TransactionMessage | Uint8Array) => Promise<Signature>;
 };
 
+/** Generates a new random Ed25519 keypair and returns it as a Signer. */
 export async function signerGenerate(): Promise<Signer> {
   const keypair = await crypto.subtle.generateKey({ name: "Ed25519" }, false, [
     "sign",
@@ -17,6 +18,7 @@ export async function signerGenerate(): Promise<Signer> {
   return signerFromPrivateKey(keypair.privateKey, address);
 }
 
+/** Creates a Signer from a 64-byte secret key (the first 32 bytes are the private scalar, the last 32 are the public key). */
 export async function signerFromSecret(
   secret: Uint8Array,
   options?: {

@@ -30,6 +30,7 @@ export class RpcHttpError extends Error {
   }
 }
 
+/** Creates an RPC HTTP client that sends JSON-RPC requests to a given Solana node URL. */
 export function rpcHttpFromUrl(
   url: string,
   options?: {
@@ -93,6 +94,7 @@ export function rpcHttpFromUrl(
   };
 }
 
+/** Wraps an RPC client to abort any request that exceeds the given timeout in milliseconds. */
 export function rpcHttpWithTimeout(self: RpcHttp, timeoutMs: number): RpcHttp {
   return async function (method, params, config) {
     return Promise.race<JsonValue>([
@@ -107,6 +109,7 @@ export function rpcHttpWithTimeout(self: RpcHttp, timeoutMs: number): RpcHttp {
   };
 }
 
+/** Wraps an RPC client to queue requests when the number of concurrent in-flight calls exceeds the given limit. */
 export function rpcHttpWithMaxConcurrentRequests(
   self: RpcHttp,
   maxConcurrentRequests: number,
@@ -130,6 +133,7 @@ export function rpcHttpWithMaxConcurrentRequests(
   };
 }
 
+/** Wraps an RPC client to automatically retry failed requests based on a caller-supplied approval callback. */
 export function rpcHttpWithRetryOnError(
   self: RpcHttp,
   retryApprover: (context: {

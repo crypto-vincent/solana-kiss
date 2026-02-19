@@ -28,6 +28,7 @@ export type IdlEvent = {
   typeFull: IdlTypeFull;
 };
 
+/** Encodes an event payload JSON value to binary bytes using the event's IDL type definition. */
 export function idlEventEncode(self: IdlEvent, eventPayload: JsonValue) {
   return {
     eventData: idlTypeFullEncode(
@@ -39,6 +40,7 @@ export function idlEventEncode(self: IdlEvent, eventPayload: JsonValue) {
   };
 }
 
+/** Decodes raw event bytes into a JSON payload using the event's IDL type definition. */
 export function idlEventDecode(self: IdlEvent, eventData: Uint8Array) {
   idlEventCheck(self, eventData);
   const [_, eventPayload] = idlTypeFullDecode(
@@ -49,10 +51,12 @@ export function idlEventDecode(self: IdlEvent, eventData: Uint8Array) {
   return { eventPayload };
 }
 
+/** Validates that raw event bytes begin with the expected discriminator bytes. */
 export function idlEventCheck(self: IdlEvent, eventData: Uint8Array): void {
   idlUtilsExpectBlobAt(0, self.discriminator, eventData);
 }
 
+/** Parses an IDL event definition from a JSON value and a map of typedefs. */
 export function idlEventParse(
   eventName: string,
   eventValue: JsonValue,

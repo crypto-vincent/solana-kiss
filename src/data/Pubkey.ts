@@ -9,6 +9,7 @@ export type Pubkey = Branded<string, "Pubkey">;
 
 export const pubkeyDefault = pubkeyFromBytes(new Uint8Array(32));
 
+/** Creates a random dummy Pubkey value intended for use in tests or placeholders. */
 export function pubkeyNewDummy(): Pubkey {
   const bytes = new Uint8Array(32);
   bytes[0] = 0x03;
@@ -22,28 +23,33 @@ export function pubkeyNewDummy(): Pubkey {
   return base58Encode(bytes) as Pubkey;
 }
 
+/** Creates a Pubkey from a Base58-encoded string, validating that it is 32 bytes. */
 export function pubkeyFromBase58(base58: string): Pubkey {
   const bytes = base58Decode(base58);
   pubkeyBytesCheck(bytes);
   return base58 as Pubkey;
 }
 
+/** Creates a Pubkey from a 32-byte array. */
 export function pubkeyFromBytes(bytes: Uint8Array): Pubkey {
   pubkeyBytesCheck(bytes);
   const pubkey = base58Encode(bytes);
   return pubkey as Pubkey;
 }
 
+/** Converts a Pubkey to its underlying 32-byte array. */
 export function pubkeyToBytes(self: Pubkey): Uint8Array {
   const bytes = base58Decode(self as string);
   pubkeyBytesCheck(bytes);
   return bytes;
 }
 
+/** Converts a Pubkey to its Base58 string representation. */
 export function pubkeyToBase58(self: Pubkey): string {
   return self as string;
 }
 
+/** Finds a Program Derived Address (PDA) for the given program and seed byte arrays. */
 export function pubkeyFindPdaAddress(
   programAddress: Pubkey,
   seedsBlobs: Array<Uint8Array>,
@@ -51,6 +57,7 @@ export function pubkeyFindPdaAddress(
   return pubkeyFindPdaAddressAndBump(programAddress, seedsBlobs).address;
 }
 
+/** Finds a Program Derived Address along with its bump seed value for the given program and seeds. */
 export function pubkeyFindPdaAddressAndBump(
   programAddress: Pubkey,
   seedsBlobs: Array<Uint8Array>,
@@ -71,6 +78,7 @@ export function pubkeyFindPdaAddressAndBump(
   );
 }
 
+/** Creates a public key by hashing a base address, a UTF-8 seed string, and an owner program address. */
 export function pubkeyCreateFromSeed(
   baseAddress: Pubkey,
   seedUtf8: string,
@@ -89,6 +97,7 @@ export function pubkeyCreateFromSeed(
   );
 }
 
+/** Creates an Ed25519 signature verifier function for the given public key. */
 export async function pubkeyToVerifier(self: Pubkey) {
   const spkiBytes = new Uint8Array([
     0x30,
@@ -125,6 +134,7 @@ export async function pubkeyToVerifier(self: Pubkey) {
   };
 }
 
+/** Checks whether a public key lies on the Ed25519 elliptic curve (i.e., is not a PDA). */
 export function pubkeyIsOnCurve(self: Pubkey): boolean {
   const bytes = pubkeyToBytes(self);
   const sign = (bytes[31]! >> 7) & 1;

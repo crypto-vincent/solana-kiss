@@ -7,6 +7,7 @@ import {
 import { RpcHttp } from "./RpcHttp";
 import { rpcHttpGetTransaction } from "./RpcHttpGetTransaction";
 
+/** Polls for a submitted transaction until it is confirmed, retrying according to a caller-supplied approval callback. */
 export async function rpcHttpWaitForTransaction(
   self: RpcHttp,
   transactionHandle: TransactionHandle,

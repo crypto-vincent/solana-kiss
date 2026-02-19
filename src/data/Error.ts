@@ -1,3 +1,4 @@
+/** Wraps a function call to prepend a context message to any error thrown, aiding in debugging. */
 export function withErrorContext<T>(message: string, fn: () => T): T {
   try {
     return fn();
