@@ -18,26 +18,60 @@ import { Signer } from "./Signer";
 import { Branded } from "./Utils";
 import { WalletAccount } from "./Wallet";
 
+/**
+ * The inputs required to build a Solana transaction.
+ * Contains the fee payer, a recent blockhash for expiry, and the list of
+ * instructions to execute.
+ */
 export type TransactionRequest = {
   payerAddress: Pubkey;
   recentBlockHash: BlockHash;
   instructionsRequests: Array<InstructionRequest>;
 };
+/**
+ * An on-chain address lookup table (ALT) and the subset of its addresses
+ * referenced by a versioned transaction.
+ */
 export type TransactionAddressLookupTable = {
   tableAddress: Pubkey;
   lookupAddresses: Array<Pubkey>;
 };
 
+/**
+ * The wire-format version of a Solana transaction.
+ * `"legacy"` denotes the original format; a numeric value (e.g. `0`) denotes
+ * a versioned-transaction format.
+ */
 export type TransactionVersion = "legacy" | number;
+
+/**
+ * The serialized body of a transaction, containing the header, account keys,
+ * recent blockhash, and compiled instructions.
+ * Represented as a branded `Uint8Array` to prevent accidental misuse.
+ */
 export type TransactionMessage = Branded<Uint8Array, "TransactionMessage"> & {
   length: number;
 };
+
+/**
+ * A fully-assembled, wire-ready transaction that includes both the signature
+ * slots and the transaction message.
+ * Represented as a branded `Uint8Array` to prevent accidental misuse.
+ */
 export type TransactionPacket = Branded<Uint8Array, "TransactionPacket"> & {
   length: number;
 };
 
+/**
+ * An opaque reference to a confirmed transaction on-chain.
+ * Backed by the transaction's first signer signature.
+ */
 export type TransactionHandle = Signature;
 
+/**
+ * On-chain execution metadata returned after a transaction is confirmed.
+ * Includes timing, logs, any error, and resource-consumption figures.
+ */
 export type TransactionExecution = {
   blockTime: Date | undefined;
   blockSlot: BlockSlot;
@@ -47,12 +81,23 @@ export type TransactionExecution = {
   chargedFeesLamports: bigint | undefined;
 };
 
+/**
+ * The structured trace of a transaction's execution as an ordered sequence of
+ * program invocations, raw data payloads, log messages, and unrecognized
+ * entries.
+ */
 export type TransactionFlow = Array<
   | { invocation: TransactionInvocation }
   | { data: Uint8Array }
   | { log: string }
   | { unknown: string }
 >;
+
+/**
+ * A single program invocation captured within a {@link TransactionFlow},
+ * including the original instruction, nested inner calls, any error raised,
+ * the raw return data, and the number of compute units consumed.
+ */
 export type TransactionInvocation = {
   instructionRequest: InstructionRequest;
   innerFlow: TransactionFlow; // TODO - naming is weird
@@ -61,6 +106,18 @@ export type TransactionInvocation = {
   consumedComputeUnits: number | undefined;
 };
 
+/**
+ * Compiles a {@link TransactionRequest} into a wire-ready
+ * {@link TransactionPacket} and signs it with the provided signers.
+ *
+ * @param signers - One or more {@link Signer} or {@link WalletAccount} objects
+ *   that will sign the transaction.
+ * @param transactionRequest - The fee payer, recent blockhash, and
+ *   instructions to compile.
+ * @param transactionAddressLookupTables - Optional address lookup tables used
+ *   to compress account references in versioned transactions.
+ * @returns A promise that resolves to the fully signed {@link TransactionPacket}.
+ */
 export async function transactionCompileAndSign(
   signers: Array<Signer | WalletAccount>,
   transactionRequest: TransactionRequest,
@@ -73,6 +130,17 @@ export async function transactionCompileAndSign(
   return transactionSign(transactionPacket, signers);
 }
 
+/**
+ * Compiles a {@link TransactionRequest} into an unsigned
+ * {@link TransactionPacket} with zeroed-out signature slots.
+ *
+ * @param transactionRequest - The fee payer, recent blockhash, and
+ *   instructions to compile.
+ * @param transactionAddressLookupTables - Optional address lookup tables used
+ *   to compress account references in versioned transactions.
+ * @returns The serialised, unsigned {@link TransactionPacket}.
+ * @throws If the resulting packet exceeds the 1232-byte transaction size limit.
+ */
 export function transactionCompileUnsigned(
   transactionRequest: TransactionRequest,
   transactionAddressLookupTables?: Array<TransactionAddressLookupTable>,
@@ -195,6 +263,16 @@ export function transactionCompileUnsigned(
   return new Uint8Array(byteArray) as TransactionPacket;
 }
 
+/**
+ * Signs an existing {@link TransactionPacket} with the provided signers,
+ * filling in the corresponding signature slots in-place.
+ *
+ * @param transactionPacket - The unsigned (or partially signed) transaction.
+ * @param signers - One or more {@link Signer} or {@link WalletAccount} objects
+ *   whose signatures should be applied.
+ * @returns A promise that resolves to the updated {@link TransactionPacket}
+ *   with all available signatures applied.
+ */
 export async function transactionSign(
   transactionPacket: TransactionPacket,
   signers: Array<Signer | WalletAccount>,
@@ -225,6 +303,14 @@ export async function transactionSign(
   return packet;
 }
 
+/**
+ * Verifies all signatures present in a {@link TransactionPacket} against its
+ * message payload.
+ *
+ * @param transactionPacket - The signed transaction to verify.
+ * @returns A promise that resolves when all signatures are valid.
+ * @throws If any signature fails cryptographic verification.
+ */
 export async function transactionVerify(
   transactionPacket: TransactionPacket,
 ): Promise<void> {
@@ -240,6 +326,13 @@ export async function transactionVerify(
   }
 }
 
+/**
+ * Extracts the raw {@link TransactionMessage} bytes from a
+ * {@link TransactionPacket} by skipping the leading signature slots.
+ *
+ * @param transactionPacket - The transaction whose message should be extracted.
+ * @returns The message portion of the packet as a {@link TransactionMessage}.
+ */
 export function transactionExtractMessage(
   transactionPacket: TransactionPacket,
 ): TransactionMessage {
@@ -253,6 +346,16 @@ export function transactionExtractMessage(
   ) as TransactionMessage;
 }
 
+/**
+ * Extracts each signer's address and its corresponding raw signature from a
+ * {@link TransactionPacket}.
+ *
+ * @param transactionPacket - The (partially or fully signed) transaction.
+ * @returns An array of `{ signerAddress, signature }` pairs, one per required
+ *   signer, in the order they appear in the transaction.
+ * @throws If the signature count in the packet header disagrees with the count
+ *   encoded in the message header.
+ */
 export function transactionExtractSigning(
   transactionPacket: TransactionPacket,
 ): Array<{
@@ -291,6 +394,17 @@ export function transactionExtractSigning(
   return signing;
 }
 
+/**
+ * Decompiles a serialised {@link TransactionMessage} back into a
+ * {@link TransactionRequest} that can be inspected or re-compiled.
+ *
+ * @param transactionMessage - The raw message bytes to decompile.
+ * @param transactionAddressLookupTables - Optional address lookup tables
+ *   required to resolve any loaded accounts referenced by the message.
+ * @returns The reconstructed {@link TransactionRequest}.
+ * @throws If the message references a lookup table that is not supplied in
+ *   `transactionAddressLookupTables`.
+ */
 export function transactionDecompileRequest(
   transactionMessage: TransactionMessage,
   transactionAddressLookupTables?: Array<TransactionAddressLookupTable>,
