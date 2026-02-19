@@ -26,7 +26,7 @@ function buildSidebar(entries: NavEntry[], base: string): DefaultTheme.SidebarIt
   });
 }
 
-const navJsonPath = resolve(__dirname, "typedoc-navigation.json");
+const navJsonPath = resolve(__dirname, "api-navigation.json");
 let navJson: NavEntry[];
 try {
   navJson = JSON.parse(readFileSync(navJsonPath, "utf-8")) as NavEntry[];

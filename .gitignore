@@ -5,3 +5,4 @@ docs/api
 docs/.vitepress/dist
 docs/.vitepress/cache
 docs/.vitepress/typedoc-navigation.json
+docs/.vitepress/api-navigation.json
