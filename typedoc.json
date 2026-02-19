@@ -1,0 +1,9 @@
+{
+  "entryPoints": ["src/index.ts"],
+  "out": "docs",
+  "name": "solana-kiss",
+  "navigationLinks": {
+    "GitHub": "https://github.com/crypto-vincent/solana-kiss"
+  },
+  "readme": "README.md"
+}
