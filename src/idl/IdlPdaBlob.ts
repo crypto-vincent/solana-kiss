@@ -63,11 +63,13 @@ export class IdlPdaBlob {
 }
 
 /** Computes a PDA seed blob's bytes from named inputs. */
+
 export function idlPdaBlobCompute(self: IdlPdaBlob, inputs: IdlPdaInputs) {
   return self.traverse(computeVisitor, inputs, undefined, undefined);
 }
 
 /** Parses a PDA seed blob definition from JSON and typedefs. */
+
 export function idlPdaBlobParse(
   pdaBlobValue: JsonValue,
   typedefsIdls: Map<string, IdlTypedef>,

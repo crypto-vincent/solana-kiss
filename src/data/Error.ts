@@ -1,4 +1,5 @@
 /** Calls a function, prepending a context prefix to any error. */
+
 export function withErrorContext<T>(message: string, fn: () => T): T {
   try {
     return fn();

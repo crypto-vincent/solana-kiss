@@ -4,6 +4,7 @@ import { Branded } from "./Utils";
 export type Signature = Branded<string, "Signature">;
 
 /** Creates a Signature from a Base58 string (validates 64 bytes). */
+
 export function signatureFromBase58(base58: string): Signature {
   const bytes = base58Decode(base58);
   signatureBytesCheck(bytes);
@@ -11,6 +12,7 @@ export function signatureFromBase58(base58: string): Signature {
 }
 
 /** Creates a Signature from a 64-byte array. */
+
 export function signatureFromBytes(bytes: Uint8Array): Signature {
   signatureBytesCheck(bytes);
   const signature = base58Encode(bytes);
@@ -18,6 +20,7 @@ export function signatureFromBytes(bytes: Uint8Array): Signature {
 }
 
 /** Converts a Signature to its 64-byte array. */
+
 export function signatureToBytes(value: Signature): Uint8Array {
   const bytes = base58Decode(value as string);
   signatureBytesCheck(bytes);
@@ -25,6 +28,7 @@ export function signatureToBytes(value: Signature): Uint8Array {
 }
 
 /** Converts a Signature to its Base58 string. */
+
 export function signatureToBase58(value: Signature): string {
   return value as string;
 }

@@ -1,4 +1,5 @@
 /** Converts camelCase/PascalCase to snake_case losslessly. */
+
 export function casingLosslessConvertToSnake(string: string): string {
   const codes = new Array<number>();
   for (let index = 0; index < string.length; index++) {
@@ -14,6 +15,7 @@ export function casingLosslessConvertToSnake(string: string): string {
 }
 
 /** Converts snake_case to camelCase losslessly. */
+
 export function casingLosslessConvertToCamel(string: string): string {
   const codes = new Array<number>();
   for (let index = 0; index < string.length; index++) {

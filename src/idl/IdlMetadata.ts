@@ -22,6 +22,7 @@ export type IdlMetadata = {
 };
 
 /** Parses IDL metadata (name, address, version, etc.) from JSON. */
+
 export function idlMetadataParse(value: JsonValue): IdlMetadata {
   const { keyed, root } = outerJsonDecoder(value);
   const metadata = keyed?.metadata;

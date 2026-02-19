@@ -10,6 +10,7 @@ export type Pubkey = Branded<string, "Pubkey">;
 export const pubkeyDefault = pubkeyFromBytes(new Uint8Array(32));
 
 /** Creates a random dummy Pubkey for tests or placeholders. */
+
 export function pubkeyNewDummy(): Pubkey {
   const bytes = new Uint8Array(32);
   bytes[0] = 0x03;
@@ -24,6 +25,7 @@ export function pubkeyNewDummy(): Pubkey {
 }
 
 /** Creates a Pubkey from a Base58 string (validates 32 bytes). */
+
 export function pubkeyFromBase58(base58: string): Pubkey {
   const bytes = base58Decode(base58);
   pubkeyBytesCheck(bytes);
@@ -31,6 +33,7 @@ export function pubkeyFromBase58(base58: string): Pubkey {
 }
 
 /** Creates a Pubkey from a 32-byte array. */
+
 export function pubkeyFromBytes(bytes: Uint8Array): Pubkey {
   pubkeyBytesCheck(bytes);
   const pubkey = base58Encode(bytes);
@@ -38,6 +41,7 @@ export function pubkeyFromBytes(bytes: Uint8Array): Pubkey {
 }
 
 /** Converts a Pubkey to its 32-byte array. */
+
 export function pubkeyToBytes(self: Pubkey): Uint8Array {
   const bytes = base58Decode(self as string);
   pubkeyBytesCheck(bytes);
@@ -45,11 +49,13 @@ export function pubkeyToBytes(self: Pubkey): Uint8Array {
 }
 
 /** Converts a Pubkey to its Base58 string. */
+
 export function pubkeyToBase58(self: Pubkey): string {
   return self as string;
 }
 
 /** Finds a PDA address for a program and seed byte arrays. */
+
 export function pubkeyFindPdaAddress(
   programAddress: Pubkey,
   seedsBlobs: Array<Uint8Array>,
@@ -58,6 +64,7 @@ export function pubkeyFindPdaAddress(
 }
 
 /** Finds a PDA address and its bump seed for a program. */
+
 export function pubkeyFindPdaAddressAndBump(
   programAddress: Pubkey,
   seedsBlobs: Array<Uint8Array>,
@@ -79,6 +86,7 @@ export function pubkeyFindPdaAddressAndBump(
 }
 
 /** Creates a public key from a base address, seed, and owner. */
+
 export function pubkeyCreateFromSeed(
   baseAddress: Pubkey,
   seedUtf8: string,
@@ -98,6 +106,7 @@ export function pubkeyCreateFromSeed(
 }
 
 /** Creates an Ed25519 verifier function for a public key. */
+
 export async function pubkeyToVerifier(self: Pubkey) {
   const spkiBytes = new Uint8Array([
     0x30,
@@ -135,6 +144,7 @@ export async function pubkeyToVerifier(self: Pubkey) {
 }
 
 /** Returns true if a public key lies on the Ed25519 curve. */
+
 export function pubkeyIsOnCurve(self: Pubkey): boolean {
   const bytes = pubkeyToBytes(self);
   const sign = (bytes[31]! >> 7) & 1;

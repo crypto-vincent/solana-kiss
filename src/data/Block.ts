@@ -5,11 +5,13 @@ export type BlockSlot = Branded<number, "BlockSlot">;
 export type BlockHash = Branded<string, "BlockHash">;
 
 /** Wraps a number as a typed BlockSlot. */
+
 export function blockSlotFromNumber(value: number): BlockSlot {
   return value as BlockSlot;
 }
 
 /** Unwraps a BlockSlot to a plain number. */
+
 export function blockSlotToNumber(self: BlockSlot): number {
   return self as number;
 }
@@ -17,6 +19,7 @@ export function blockSlotToNumber(self: BlockSlot): number {
 export const blockHashDefault = blockHashFromBytes(new Uint8Array(32));
 
 /** Creates a BlockHash from a Base58 string (validates 32 bytes). */
+
 export function blockHashFromBase58(base58: string): BlockHash {
   const bytes = base58Decode(base58);
   blockHashBytesCheck(bytes);
@@ -24,6 +27,7 @@ export function blockHashFromBase58(base58: string): BlockHash {
 }
 
 /** Creates a BlockHash from a 32-byte array. */
+
 export function blockHashFromBytes(bytes: Uint8Array): BlockHash {
   blockHashBytesCheck(bytes);
   const blockHash = base58Encode(bytes);
@@ -31,6 +35,7 @@ export function blockHashFromBytes(bytes: Uint8Array): BlockHash {
 }
 
 /** Converts a BlockHash to its 32-byte array. */
+
 export function blockHashToBytes(self: BlockHash): Uint8Array {
   const bytes = base58Decode(self as string);
   blockHashBytesCheck(bytes);
@@ -38,6 +43,7 @@ export function blockHashToBytes(self: BlockHash): Uint8Array {
 }
 
 /** Converts a BlockHash to its Base58 string. */
+
 export function blockHashToBase58(self: BlockHash): string {
   return self as string;
 }

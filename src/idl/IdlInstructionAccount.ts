@@ -48,6 +48,7 @@ export type IdlInstructionAccountFindContext = {
 };
 
 /** Resolves an instruction account address from IDL rules. */
+
 export async function idlInstructionAccountFind(
   self: IdlInstructionAccount,
   programAddress: Pubkey,
@@ -85,6 +86,7 @@ export async function idlInstructionAccountFind(
 }
 
 /** Parses an IDL instruction account, flattening nested groups. */
+
 export function idlInstructionAccountParse(
   instructionAccountGroups: Array<string>,
   instructionAccountValue: JsonValue,

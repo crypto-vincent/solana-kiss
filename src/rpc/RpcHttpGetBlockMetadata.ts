@@ -9,6 +9,7 @@ import {
 import { RpcHttp } from "./RpcHttp";
 
 /** Fetches metadata for a block: hash, height, slot, timestamp. */
+
 export async function rpcHttpGetBlockMetadata(
   self: RpcHttp,
   blockSlot: BlockSlot,

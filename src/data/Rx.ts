@@ -12,6 +12,7 @@ export type RxListener<T> = (value: T) => void;
 export type RxUnsubscriber = () => void;
 
 /** Creates a behaviour subject that holds and broadcasts values. */
+
 export function rxBehaviourSubject<T>(
   firstValue: T,
 ): RxBehaviour<T> & RxObservable<T> & RxObserver<T> {

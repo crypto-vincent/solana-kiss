@@ -17,6 +17,7 @@ export type Branded<T, Name> =
   | { readonly __brand: Name };
 
 /** Asserts a value is defined, throwing if it is undefined. */
+
 export function expectDefined<T>(value: T | undefined, name?: string): T {
   if (value === undefined) {
     throw new Error(`Expected ${name ?? "value"} to be defined`);
@@ -25,11 +26,13 @@ export function expectDefined<T>(value: T | undefined, name?: string): T {
 }
 
 /** Returns a promise that resolves after the given milliseconds. */
+
 export function timeoutMs(durationMs: number): Promise<void> {
   return new Promise((resolve) => setTimeout(resolve, durationMs));
 }
 
 /** Returns an own property value, or undefined if not owned. */
+
 export function objectGetOwnProperty<
   Object extends object,
   Key extends keyof Object,
@@ -41,6 +44,7 @@ export function objectGetOwnProperty<
 }
 
 /** Finds the intended key in an object, trying camel/snake_case. */
+
 export function objectGuessIntendedKey<
   Object extends object,
   Key extends keyof Object,
@@ -63,6 +67,7 @@ export function objectGuessIntendedKey<
 }
 
 /** Finds the intended key in a Map, trying camel/snake_case. */
+
 export function mapGuessIntendedKey<Key, Value>(
   map: Map<Key, Value>,
   key: Key,

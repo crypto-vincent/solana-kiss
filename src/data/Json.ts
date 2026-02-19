@@ -27,20 +27,25 @@ export interface JsonObject {
 }
 
 /** Extracts a boolean from a JsonValue, or undefined if not one. */
+
 export function jsonAsBoolean(value: JsonValue): boolean | undefined {
   if (typeof value === "boolean" || value instanceof Boolean) {
     return value as boolean;
   }
   return undefined;
 }
+
 /** Extracts a number from a JsonValue, or undefined if not one. */
+
 export function jsonAsNumber(value: JsonValue): number | undefined {
   if (typeof value === "number" || value instanceof Number) {
     return value as number;
   }
   return undefined;
 }
+
 /** Extracts a string from a JsonValue, or undefined if not one. */
+
 export function jsonAsString(value: JsonValue): string | undefined {
   if (typeof value === "string" || value instanceof String) {
     return value as string;
@@ -49,13 +54,16 @@ export function jsonAsString(value: JsonValue): string | undefined {
 }
 
 /** Extracts an array from a JsonValue, or undefined if not one. */
+
 export function jsonAsArray(value: JsonValue): JsonArray | undefined {
   if (Array.isArray(value)) {
     return value as JsonArray;
   }
   return undefined;
 }
+
 /** Extracts an object from a JsonValue, or undefined if not one. */
+
 export function jsonAsObject(value: JsonValue): JsonObject | undefined {
   if (typeof value === "object" && !Array.isArray(value) && value !== null) {
     return value as JsonObject;
@@ -64,6 +72,7 @@ export function jsonAsObject(value: JsonValue): JsonObject | undefined {
 }
 
 /** Returns a short preview of a JSON value for error messages. */
+
 export function jsonPreview(value: JsonValue): string {
   if (value === null) {
     return "null";
@@ -107,7 +116,9 @@ export function jsonPreview(value: JsonValue): string {
   }
   throw new Error(`JSON: Unknown value: ${value?.toString()}`);
 }
+
 /** Returns true if two JSON values are deeply equal. */
+
 export function jsonIsDeepEqual(leftValue: JsonValue, rightValue: JsonValue) {
   if (leftValue === rightValue) {
     return true;
@@ -161,7 +172,9 @@ export function jsonIsDeepEqual(leftValue: JsonValue, rightValue: JsonValue) {
   }
   return false;
 }
+
 /** Returns true if the first JSON value is a subset of the second. */
+
 export function jsonIsDeepSubset(
   subsetValue: JsonValue,
   supersetValue: JsonValue,
@@ -215,6 +228,7 @@ export function jsonIsDeepSubset(
 export type JsonPointer = Array<string | number>;
 
 /** Parses a dot/bracket path string into JsonPointer tokens. */
+
 export function jsonPointerParse(path: string): JsonPointer {
   const tokens = path
     .replace(/\[(.*?)\]/g, ".$1")
@@ -236,7 +250,9 @@ export function jsonPointerParse(path: string): JsonPointer {
   }
   return tokens;
 }
+
 /** Renders a JSON pointer as a human-readable string. */
+
 export function jsonPointerPreview(
   self: JsonPointer,
   tokenIndex?: number,
@@ -256,7 +272,9 @@ export function jsonPointerPreview(
   }
   return parts.join("");
 }
+
 /** Converts a pointer token to an array index, or undefined. */
+
 export function jsonPointerTokenAsArrayIndex(
   pointerToken: string | number,
   arrayLength: number,
@@ -275,6 +293,7 @@ export function jsonPointerTokenAsArrayIndex(
 }
 
 /** Reads the nested value at a JSON pointer path. */
+
 export function jsonGetAt(
   value: JsonValue,
   pathOrPointer: string | JsonPointer,
@@ -499,6 +518,7 @@ export const jsonCodecUtf8ToBytes: JsonCodec<Uint8Array> = jsonCodecWrapped(
 );
 
 /** Creates a decoder that asserts the value is a given constant. */
+
 export function jsonDecoderConst<Values extends Array<JsonPrimitive>>(
   ...values: Values
 ): JsonDecoder<Values[number]> {
@@ -513,13 +533,17 @@ export function jsonDecoderConst<Values extends Array<JsonPrimitive>>(
     );
   };
 }
+
 /** Creates an encoder that passes constant primitives through. */
+
 export function jsonEncoderConst<Values extends Array<JsonPrimitive>>(
   ..._values: Values
 ): JsonEncoder<Values[number]> {
   return (value) => value;
 }
+
 /** Creates a codec for constant primitives: validates on decode. */
+
 export function jsonCodecConst<Values extends Array<JsonPrimitive>>(
   ...values: Values
 ): JsonCodec<Values[number]> {
@@ -530,6 +554,7 @@ export function jsonCodecConst<Values extends Array<JsonPrimitive>>(
 }
 
 /** Creates a decoder that maps each array element with a decoder. */
+
 export function jsonDecoderArrayToArray<Item>(
   itemDecoder: JsonDecoder<Item>,
 ): JsonDecoder<Array<Item>> {
@@ -547,13 +572,17 @@ export function jsonDecoderArrayToArray<Item>(
     );
   };
 }
+
 /** Creates an encoder that maps each array element with an encoder. */
+
 export function jsonEncoderArrayToArray<Item>(
   itemEncoder: JsonEncoder<Item>,
 ): JsonEncoder<Array<Item>> {
   return (decoded) => decoded.map((item) => itemEncoder(item));
 }
+
 /** Creates a codec for arrays with a per-element item codec. */
+
 export function jsonCodecArrayToArray<Item>(
   itemCodec: JsonCodec<Item>,
 ): JsonCodec<Array<Item>> {
@@ -564,6 +593,7 @@ export function jsonCodecArrayToArray<Item>(
 }
 
 /** Creates a decoder for a positional array into a named object. */
+
 export function jsonDecoderArrayToObject<
   Shape extends { [key: string]: JsonDecoder<any> },
 >(
@@ -584,7 +614,9 @@ export function jsonDecoderArrayToObject<
     return decoded;
   };
 }
+
 /** Creates an encoder for a named object into a positional array. */
+
 export function jsonEncoderArrayToObject<
   Shape extends { [key: string]: JsonEncoder<any> },
 >(
@@ -600,7 +632,9 @@ export function jsonEncoderArrayToObject<
     return encoded;
   };
 }
+
 /** Creates a codec between a named object and a positional array. */
+
 export function jsonCodecArrayToObject<
   Shape extends { [key: string]: JsonCodec<any> },
 >(shape: Shape): JsonCodec<{ [K in keyof Shape]: JsonCodecContent<Shape[K]> }> {
@@ -617,6 +651,7 @@ export function jsonCodecArrayToObject<
 }
 
 /** Creates a decoder for a JSON array into a typed tuple. */
+
 export function jsonDecoderArrayToTuple<
   const Items extends Array<JsonDecoder<any>>,
 >(
@@ -636,7 +671,9 @@ export function jsonDecoderArrayToTuple<
     return decoded;
   };
 }
+
 /** Creates an encoder for a typed tuple into a JSON array. */
+
 export function jsonEncoderArrayToTuple<
   const Items extends Array<JsonEncoder<any>>,
 >(
@@ -652,7 +689,9 @@ export function jsonEncoderArrayToTuple<
     return encoded;
   };
 }
+
 /** Creates a codec for typed tuples encoded as JSON arrays. */
+
 export function jsonCodecArrayToTuple<
   const Items extends Array<JsonCodec<any>>,
 >(items: Items): JsonCodec<{ [K in keyof Items]: JsonCodecContent<Items[K]> }> {
@@ -663,6 +702,7 @@ export function jsonCodecArrayToTuple<
 }
 
 /** Creates a decoder from a JSON object to a typed object. */
+
 export function jsonDecoderObjectToObject<
   Shape extends { [keyDecoded: string]: JsonDecoder<any> },
 >(
@@ -692,7 +732,9 @@ export function jsonDecoderObjectToObject<
     return decoded;
   };
 }
+
 /** Creates an encoder from a typed object to a JSON object. */
+
 export function jsonEncoderObjectToObject<
   Shape extends { [keyDecoded: string]: JsonEncoder<any> },
 >(
@@ -714,7 +756,9 @@ export function jsonEncoderObjectToObject<
     return encoded;
   };
 }
+
 /** Creates a codec between a typed object and a JSON object. */
+
 export function jsonCodecObjectToObject<
   Shape extends { [keyDecoded: string]: JsonCodec<any> },
 >(
@@ -738,6 +782,7 @@ export function jsonCodecObjectToObject<
 }
 
 /** Creates a decoder from a JSON object to a typed Map. */
+
 export function jsonDecoderObjectToMap<Key, Value>(params: {
   keyDecoder: (keyEncoded: string) => Key;
   valueDecoder: JsonDecoder<Value>;
@@ -763,7 +808,9 @@ export function jsonDecoderObjectToMap<Key, Value>(params: {
     return decoded;
   };
 }
+
 /** Creates an encoder from a typed Map to a JSON object. */
+
 export function jsonEncoderObjectToMap<Key, Value>(params: {
   keyEncoder: (keyDecoded: Key) => string;
   valueEncoder: JsonEncoder<Value>;
@@ -778,7 +825,9 @@ export function jsonEncoderObjectToMap<Key, Value>(params: {
     return encoded;
   };
 }
+
 /** Creates a codec between a typed Map and a JSON object. */
+
 export function jsonCodecObjectToMap<Key, Value>(params: {
   keyCodec: {
     decoder: (keyEncoded: string) => Key;
@@ -799,6 +848,7 @@ export function jsonCodecObjectToMap<Key, Value>(params: {
 }
 
 /** Creates a decoder from a JSON object to a string Record. */
+
 export function jsonDecoderObjectToRecord<Value>(
   valueDecoder: JsonDecoder<Value>,
 ): JsonDecoder<Record<string, Value>> {
@@ -819,7 +869,9 @@ export function jsonDecoderObjectToRecord<Value>(
     return decoded;
   };
 }
+
 /** Creates an encoder from a string Record to a JSON object. */
+
 export function jsonEncoderObjectToRecord<Value>(
   valueEncoder: JsonEncoder<Value>,
 ): JsonEncoder<Record<string, Value>> {
@@ -833,7 +885,9 @@ export function jsonEncoderObjectToRecord<Value>(
     return encoded;
   };
 }
+
 /** Creates a codec between a string Record and a JSON object. */
+
 export function jsonCodecObjectToRecord<Value>(
   valueCodec: JsonCodec<Value>,
 ): JsonCodec<Record<string, Value>> {
@@ -844,6 +898,7 @@ export function jsonCodecObjectToRecord<Value>(
 }
 
 /** Creates a decoder for a discriminated union from a JSON object. */
+
 export function jsonDecoderObjectToEnum<
   Shape extends { [keyEncoded: string]: JsonDecoder<any> },
 >(
@@ -855,7 +910,9 @@ export function jsonDecoderObjectToEnum<
   ]);
   return jsonDecoderOneOfKeys(Object.fromEntries(newShapeEntries)) as any;
 }
+
 /** Creates an encoder for a discriminated union to a JSON object. */
+
 export function jsonEncoderObjectToEnum<
   Shape extends { [key: string]: JsonEncoder<any> },
 >(
@@ -868,7 +925,9 @@ export function jsonEncoderObjectToEnum<
     return { [key]: valueEncoded } as JsonValue;
   };
 }
+
 /** Creates a codec for discriminated unions as single-key objects. */
+
 export function jsonCodecObjectToEnum<
   Shape extends { [key: string]: JsonCodec<any> },
 >(
@@ -887,6 +946,7 @@ export function jsonCodecObjectToEnum<
 }
 
 /** Creates a decoder that passes null and delegates others. */
+
 export function jsonDecoderNullable<Content>(
   contentDecoder: (encoded: Exclude<JsonValue, null>) => Content,
 ): JsonDecoder<Content | null> {
@@ -897,7 +957,9 @@ export function jsonDecoderNullable<Content>(
     return contentDecoder(encoded);
   };
 }
+
 /** Creates an encoder that passes null and delegates others. */
+
 export function jsonEncoderNullable<Content>(
   contentEncoder: (decoded: Exclude<Content, null>) => JsonValue,
 ): JsonEncoder<Content | null> {
@@ -908,7 +970,9 @@ export function jsonEncoderNullable<Content>(
     return contentEncoder(decoded as Exclude<Content, null>);
   };
 }
+
 /** Creates a nullable codec: null passes through, rest delegates. */
+
 export function jsonCodecNullable<Content>(contentCodec: {
   decoder: (encoded: Exclude<JsonValue, null>) => Content;
   encoder: (decoded: Exclude<Content, null>) => JsonValue;
@@ -920,20 +984,25 @@ export function jsonCodecNullable<Content>(contentCodec: {
 }
 
 /** Creates a decoder: inner decoder then outer transform. */
+
 export function jsonDecoderWrapped<Decoded, Encoded>(
   decoderInner: (encoded: JsonValue) => Encoded,
   decoderOuter: (encoded: Encoded) => Decoded,
 ): JsonDecoder<Decoded> {
   return (encoded: JsonValue) => decoderOuter(decoderInner(encoded));
 }
+
 /** Creates an encoder: outer transform then inner encoder. */
+
 export function jsonEncoderWrapped<Decoded, Encoded>(
   encoderInner: (decoded: Encoded) => JsonValue,
   encoderOuter: (decoded: Decoded) => Encoded,
 ): JsonEncoder<Decoded> {
   return (decoded: Decoded) => encoderInner(encoderOuter(decoded));
 }
+
 /** Creates a codec wrapping another with custom transformations. */
+
 export function jsonCodecWrapped<Decoded, Encoded>(
   innerCodec: {
     decoder: (encoded: JsonValue) => Encoded;
@@ -951,6 +1020,7 @@ export function jsonCodecWrapped<Decoded, Encoded>(
 }
 
 /** Creates a decoder matching the single key in a JSON object. */
+
 export function jsonDecoderOneOfKeys<
   Shape extends { [key: string]: JsonDecoder<any> },
   Content,
@@ -991,6 +1061,7 @@ export function jsonDecoderOneOfKeys<
 }
 
 /** Creates a decoder dispatching on the runtime JSON type. */
+
 export function jsonDecoderByType<Content>(decoders: {
   null?: () => Content;
   boolean?: (boolean: boolean) => Content;
@@ -1030,6 +1101,7 @@ export function jsonDecoderByType<Content>(decoders: {
 }
 
 /** Runs multiple decoders in parallel and collects all results. */
+
 export function jsonDecoderInParallel<
   Shape extends { [key: string]: JsonDecoder<any> },
 >(
@@ -1045,6 +1117,7 @@ export function jsonDecoderInParallel<
 }
 
 /** Tries each decoder in order and returns the first success. */
+
 export function jsonDecoderTrySequentially<Content>(
   decoders: Array<JsonDecoder<Content>>,
 ): JsonDecoder<Content> {

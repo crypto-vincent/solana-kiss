@@ -52,6 +52,7 @@ export const idlUtilsBytesJsonDecoder = jsonDecoderByType({
 });
 
 /** Infers the flat IDL type for a bytes value from its JSON form. */
+
 export function idlUtilsInferValueTypeFlat(value: JsonValue): IdlTypeFlat {
   if (jsonAsString(value) !== undefined) {
     return idlTypeFlatParse("pubkey");
@@ -67,6 +68,7 @@ export function idlUtilsInferValueTypeFlat(value: JsonValue): IdlTypeFlat {
 }
 
 /** Asserts expected bytes appear at an offset within a data array. */
+
 export function idlUtilsExpectBlobAt(
   blobOffset: number,
   blobBytes: Uint8Array,
@@ -91,6 +93,7 @@ export function idlUtilsExpectBlobAt(
 }
 
 /** Parses a Rust-style JSON string with underscore-separated numbers. */
+
 export function idlUtilsJsonRustedParse(jsonRusted: string): JsonValue {
   return JSON.parse(
     jsonRusted.replace(
@@ -106,6 +109,7 @@ export function idlUtilsJsonRustedParse(jsonRusted: string): JsonValue {
 }
 
 /** Computes the 8-byte Anchor discriminator (SHA-256 prefix). */
+
 export function idlUtilsAnchorDiscriminator(name: string): Uint8Array {
   return sha256Hash([utf8Encode(name)]).slice(0, 8);
 }

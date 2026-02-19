@@ -7,6 +7,7 @@ import { jsonCodecNumber, jsonDecoderArrayToArray } from "../data/Json";
 import { RpcHttp } from "./RpcHttp";
 
 /** Fetches confirmed block slots within a given range. */
+
 export async function rpcHttpFindBlocks(
   self: RpcHttp,
   maxResultLength: number,

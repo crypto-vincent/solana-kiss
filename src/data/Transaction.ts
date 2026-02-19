@@ -62,6 +62,7 @@ export type TransactionInvocation = {
 };
 
 /** Compiles and signs a transaction from signers and a request. */
+
 export async function transactionCompileAndSign(
   signers: Array<Signer | WalletAccount>,
   transactionRequest: TransactionRequest,
@@ -75,6 +76,7 @@ export async function transactionCompileAndSign(
 }
 
 /** Compiles a transaction into a binary packet without signing. */
+
 export function transactionCompileUnsigned(
   transactionRequest: TransactionRequest,
   transactionAddressLookupTables?: Array<TransactionAddressLookupTable>,
@@ -198,6 +200,7 @@ export function transactionCompileUnsigned(
 }
 
 /** Signs a transaction packet for the provided signers. */
+
 export async function transactionSign(
   transactionPacket: TransactionPacket,
   signers: Array<Signer | WalletAccount>,
@@ -229,6 +232,7 @@ export async function transactionSign(
 }
 
 /** Verifies all signatures in a transaction packet. */
+
 export async function transactionVerify(
   transactionPacket: TransactionPacket,
 ): Promise<void> {
@@ -245,6 +249,7 @@ export async function transactionVerify(
 }
 
 /** Extracts the message bytes from a transaction packet. */
+
 export function transactionExtractMessage(
   transactionPacket: TransactionPacket,
 ): TransactionMessage {
@@ -259,6 +264,7 @@ export function transactionExtractMessage(
 }
 
 /** Extracts signer addresses and signatures from a packet. */
+
 export function transactionExtractSigning(
   transactionPacket: TransactionPacket,
 ): Array<{

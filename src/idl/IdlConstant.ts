@@ -21,6 +21,7 @@ export type IdlConstant = {
 };
 
 /** Parses an IDL constant definition from JSON and typedefs. */
+
 export function idlConstantParse(
   constantName: string,
   constantValue: JsonValue,

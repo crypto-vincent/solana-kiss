@@ -16,6 +16,7 @@ export type IdlError = {
 };
 
 /** Parses an IDL error definition from a JSON value. */
+
 export function idlErrorParse(
   errorName: string,
   errorValue: JsonValue,

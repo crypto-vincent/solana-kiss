@@ -81,11 +81,13 @@ export class Solana {
   }
 
   /** Returns the underlying RPC HTTP client. */
+
   public getRpcHttp() {
     return this.#rpcHttp;
   }
 
   /** Sets or removes a preloaded IDL for a program. */
+
   public setProgramIdl(
     programAddress: Pubkey,
     programIdl: IdlProgram | undefined,
@@ -98,6 +100,7 @@ export class Solana {
   }
 
   /** Gets the IDL for a program, loading it on demand. */
+
   public async getOrLoadProgramIdl(programAddress: Pubkey) {
     const preloadIdl = this.#idlPreload.get(programAddress);
     if (preloadIdl) {
@@ -107,6 +110,7 @@ export class Solana {
   }
 
   /** Finds a PDA using the named definition from the program IDL. */
+
   public async findPdaAddress(
     programAddress: Pubkey,
     pdaName: string,
@@ -118,6 +122,7 @@ export class Solana {
   }
 
   /** Gets the IDL for a specific instruction in a program. */
+
   public async getOrLoadInstructionIdl(
     programAddress: Pubkey,
     instructionName: string,
@@ -133,6 +138,7 @@ export class Solana {
   }
 
   /** Fetches, infers account type, and decodes an account. */
+
   public async getAndInferAndDecodeAccount(accountAddress: Pubkey) {
     const { programAddress, accountExecutable, accountLamports, accountData } =
       await rpcHttpGetAccountWithData(this.#rpcHttp, accountAddress);
@@ -152,6 +158,7 @@ export class Solana {
   }
 
   /** Infers the instruction type and decodes its accounts and args. */
+
   public async inferAndDecodeInstruction(
     instructionRequest: InstructionRequest,
   ) {
@@ -179,6 +186,7 @@ export class Solana {
   }
 
   /** Resolves missing accounts and encodes an instruction. */
+
   public async hydrateAndEncodeInstruction(
     programAddress: Pubkey,
     instructionName: string,
@@ -215,6 +223,7 @@ export class Solana {
   }
 
   /** Resolves instruction accounts via IDL rules and context. */
+
   public async hydrateInstructionAddresses(
     programAddress: Pubkey,
     instructionName: string,
@@ -250,6 +259,7 @@ export class Solana {
   }
 
   /** Returns a recent block hash with short-lived caching. */
+
   public async getRecentBlockHash() {
     const nowTimeMs = Date.now();
     if (this.#recentBlockHashCacheValue) {
@@ -265,6 +275,7 @@ export class Solana {
   }
 
   /** Compiles, signs, and broadcasts a transaction. */
+
   public async prepareAndSendTransaction(
     payerSigner: Signer | WalletAccount,
     instructionsRequests: Array<InstructionRequest>,
@@ -294,6 +305,7 @@ export class Solana {
   }
 
   /** Compiles and simulates a transaction without sending it. */
+
   public async prepareAndSimulateTransaction(
     payer: Pubkey | Signer | WalletAccount,
     instructionsRequests: Array<InstructionRequest>,
@@ -332,6 +344,7 @@ export class Solana {
   }
 
   /** Finds program-owned accounts matching the given account type. */
+
   public async findProgramOwnedAccounts(
     programAddress: Pubkey,
     accountName: string,

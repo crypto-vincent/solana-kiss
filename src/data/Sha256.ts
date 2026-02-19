@@ -1,4 +1,5 @@
 /** Computes SHA-256 over the concatenation of byte arrays. */
+
 export function sha256Hash(blobs: Array<Uint8Array>): Uint8Array {
   for (const blob of blobs) {
     hasher.update(blob);

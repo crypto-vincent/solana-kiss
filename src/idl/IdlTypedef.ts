@@ -21,6 +21,7 @@ export type IdlTypedef = {
 };
 
 /** Parses a type definition from JSON (name, generics, type). */
+
 export function idlTypedefParse(
   typedefName: string,
   typedefValue: JsonValue,

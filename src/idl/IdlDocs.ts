@@ -9,6 +9,7 @@ import {
 export type IdlDocs = Array<string> | undefined;
 
 /** Parses docs from JSON: accepts a string or string array. */
+
 export function idlDocsParse(docsValue: JsonValue): IdlDocs {
   return jsonDecoder(docsValue) ?? undefined;
 }

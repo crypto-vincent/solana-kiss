@@ -8,6 +8,7 @@ import { TransactionHandle } from "../data/Transaction";
 import { RpcHttp } from "./RpcHttp";
 
 /** Fetches transaction signatures for an account, newest first. */
+
 export async function rpcHttpFindAccountTransactions(
   self: RpcHttp,
   accountAddress: Pubkey,

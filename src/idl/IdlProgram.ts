@@ -40,6 +40,7 @@ export type IdlProgram = {
 };
 
 /** Guesses which account IDL matches the given raw data. */
+
 export function idlProgramGuessAccount(
   self: IdlProgram,
   accountData: Uint8Array,
@@ -57,6 +58,7 @@ export function idlProgramGuessAccount(
 }
 
 /** Guesses which instruction IDL matches a given request. */
+
 export function idlProgramGuessInstruction(
   self: IdlProgram,
   instructionRequest: InstructionRequest,
@@ -81,6 +83,7 @@ export function idlProgramGuessInstruction(
 }
 
 /** Guesses which event IDL matches the given raw data. */
+
 export function idlProgramGuessEvent(
   self: IdlProgram,
   eventData: Uint8Array,
@@ -98,6 +101,7 @@ export function idlProgramGuessEvent(
 }
 
 /** Finds which error IDL matches the given error code. */
+
 export function idlProgramGuessError(
   self: IdlProgram,
   errorCode: number,
@@ -113,7 +117,9 @@ export function idlProgramGuessError(
 }
 
 // TODO - support CODAMA IDLs
+
 /** Parses a full program IDL from a JSON value. */
+
 export function idlProgramParse(programValue: JsonValue): IdlProgram {
   const programObject = jsonCodecObject.decoder(programValue);
   const metadata = idlMetadataParse(programObject);

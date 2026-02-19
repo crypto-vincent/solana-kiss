@@ -62,6 +62,7 @@ export type IdlInstruction = {
 };
 
 /** Encodes named account addresses into instruction inputs. */
+
 export function idlInstructionAccountsEncode(
   self: IdlInstruction,
   instructionAddresses: IdlInstructionAddresses,
@@ -90,6 +91,7 @@ export function idlInstructionAccountsEncode(
 }
 
 /** Decodes instruction inputs into named account addresses. */
+
 export function idlInstructionAccountsDecode(
   self: IdlInstruction,
   instructionInputs: Array<InstructionInput>,
@@ -132,6 +134,7 @@ export function idlInstructionAccountsDecode(
 }
 
 /** Resolves all instruction accounts via IDL rules and context. */
+
 export async function idlInstructionAccountsFind(
   self: IdlInstruction,
   programAddress: Pubkey,
@@ -197,6 +200,7 @@ export async function idlInstructionAccountsFind(
 }
 
 /** Validates that instruction inputs match IDL account rules. */
+
 export function idlInstructionAccountsCheck(
   self: IdlInstruction,
   instructionInputs: Array<InstructionInput>,
@@ -205,6 +209,7 @@ export function idlInstructionAccountsCheck(
 }
 
 /** Encodes an instruction payload prefixed with the discriminator. */
+
 export function idlInstructionArgsEncode(
   self: IdlInstruction,
   instructionPayload: JsonValue,
@@ -220,6 +225,7 @@ export function idlInstructionArgsEncode(
 }
 
 /** Decodes raw instruction data into a JSON payload via IDL. */
+
 export function idlInstructionArgsDecode(
   self: IdlInstruction,
   instructionData: Uint8Array,
@@ -234,6 +240,7 @@ export function idlInstructionArgsDecode(
 }
 
 /** Validates instruction data starts with the discriminator. */
+
 export function idlInstructionArgsCheck(
   self: IdlInstruction,
   instructionData: Uint8Array,
@@ -242,6 +249,7 @@ export function idlInstructionArgsCheck(
 }
 
 /** Encodes an instruction return value to binary via IDL. */
+
 export function idlInstructionReturnEncode(
   self: IdlInstruction,
   instructionResult: JsonValue,
@@ -256,6 +264,7 @@ export function idlInstructionReturnEncode(
 }
 
 /** Decodes instruction return bytes into a JSON value via IDL. */
+
 export function idlInstructionReturnDecode(
   self: IdlInstruction,
   instructionReturned: Uint8Array,
@@ -269,6 +278,7 @@ export function idlInstructionReturnDecode(
 }
 
 /** Parses an IDL instruction definition from JSON and typedefs. */
+
 export function idlInstructionParse(
   instructionName: string,
   instructionValue: JsonValue,

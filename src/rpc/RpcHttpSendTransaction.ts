@@ -4,6 +4,7 @@ import { TransactionHandle, TransactionPacket } from "../data/Transaction";
 import { RpcHttp } from "./RpcHttp";
 
 /** Broadcasts a signed transaction and returns its handle. */
+
 export async function rpcHttpSendTransaction(
   self: RpcHttp,
   transactionPacket: TransactionPacket,

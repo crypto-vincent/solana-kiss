@@ -8,6 +8,7 @@ import { RpcHttp } from "./RpcHttp";
 import { rpcHttpGetTransaction } from "./RpcHttpGetTransaction";
 
 /** Polls until a transaction is confirmed, with retry callback. */
+
 export async function rpcHttpWaitForTransaction(
   self: RpcHttp,
   transactionHandle: TransactionHandle,

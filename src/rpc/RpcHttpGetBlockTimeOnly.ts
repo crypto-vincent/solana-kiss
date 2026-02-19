@@ -3,6 +3,7 @@ import { jsonCodecNumber, jsonDecoderNullable } from "../data/Json";
 import { RpcHttp } from "./RpcHttp";
 
 /** Fetches only the timestamp for a block by slot. */
+
 export async function rpcHttpGetBlockTimeOnly(
   self: RpcHttp,
   blockSlot: BlockSlot,

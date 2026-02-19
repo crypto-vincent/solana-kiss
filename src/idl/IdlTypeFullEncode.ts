@@ -33,6 +33,7 @@ import { IdlTypePrimitive, idlTypePrimitiveEncode } from "./IdlTypePrimitive";
 import { idlUtilsBytesJsonDecoder } from "./IdlUtils";
 
 /** Encodes a JSON value to binary using a full IDL type. */
+
 export function idlTypeFullEncode(
   self: IdlTypeFull,
   value: JsonValue,
@@ -48,6 +49,7 @@ export function idlTypeFullEncode(
 }
 
 /** Encodes a JSON value to binary using full IDL type fields. */
+
 export function idlTypeFullFieldsEncode(
   self: IdlTypeFullFields,
   value: JsonValue,

@@ -8,6 +8,7 @@ export type Signer = {
 };
 
 /** Generates a new Ed25519 keypair and returns it as a Signer. */
+
 export async function signerGenerate(): Promise<Signer> {
   const keypair = await crypto.subtle.generateKey({ name: "Ed25519" }, false, [
     "sign",
