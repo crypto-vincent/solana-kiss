@@ -15,7 +15,9 @@ export class IdlTypePrefix {
   /** 16-byte unsigned prefix (u128, little-endian). */
   public static readonly u128 = new IdlTypePrefix("u128", 16);
 
+  /** The name of this prefix type (e.g. `"u8"`, `"u32"`). */
   public readonly name: string;
+  /** The byte width of this prefix. */
   public readonly size: number;
 
   private constructor(name: string, size: number) {
