@@ -32,6 +32,17 @@ import { idlTypePrefixEncode } from "./IdlTypePrefix";
 import { IdlTypePrimitive, idlTypePrimitiveEncode } from "./IdlTypePrimitive";
 import { idlUtilsBytesJsonDecoder } from "./IdlUtils";
 
+/**
+ * Encodes a JSON-compatible value into a binary `Uint8Array` using the given
+ * fully-resolved IDL type. An optional discriminator prefix (e.g., an Anchor
+ * account discriminator) can be prepended to the output.
+ *
+ * @param self - The full IDL type describing the binary layout.
+ * @param value - The JSON-compatible value to encode.
+ * @param prefixed - Whether length/discriminant prefixes should be written.
+ * @param discriminator - Optional byte sequence to prepend before the encoded data.
+ * @returns The encoded binary representation.
+ */
 export function idlTypeFullEncode(
   self: IdlTypeFull,
   value: JsonValue,
@@ -46,6 +57,17 @@ export function idlTypeFullEncode(
   return blobsFlatten(blobs);
 }
 
+/**
+ * Encodes a JSON-compatible value into a binary `Uint8Array` using the given
+ * fully-resolved IDL fields (named, unnamed, or nothing). An optional
+ * discriminator prefix can be prepended to the output.
+ *
+ * @param self - The full IDL fields describing the binary layout.
+ * @param value - The JSON-compatible value to encode.
+ * @param prefixed - Whether length/discriminant prefixes should be written.
+ * @param discriminator - Optional byte sequence to prepend before the encoded data.
+ * @returns The encoded binary representation.
+ */
 export function idlTypeFullFieldsEncode(
   self: IdlTypeFullFields,
   value: JsonValue,
