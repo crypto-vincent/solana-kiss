@@ -8,20 +8,39 @@ import {
 } from "../data/Json";
 import { pubkeyFromBytes, pubkeyToBytes } from "../data/Pubkey";
 
+/**
+ * Represents a primitive scalar type supported by the Anchor IDL
+ * (unsigned/signed integers, floats, bool, and pubkey).
+ * Pre-built singleton instances are available as static properties.
+ */
 export class IdlTypePrimitive {
+  /** 8-bit unsigned integer (1 byte). */
   public static readonly u8 = new IdlTypePrimitive("u8", 1, 1);
+  /** 16-bit unsigned integer (2 bytes, little-endian). */
   public static readonly u16 = new IdlTypePrimitive("u16", 2, 2);
+  /** 32-bit unsigned integer (4 bytes, little-endian). */
   public static readonly u32 = new IdlTypePrimitive("u32", 4, 4);
+  /** 64-bit unsigned integer (8 bytes, little-endian). */
   public static readonly u64 = new IdlTypePrimitive("u64", 8, 8);
+  /** 128-bit unsigned integer (16 bytes, little-endian). */
   public static readonly u128 = new IdlTypePrimitive("u128", 16, 16);
+  /** 8-bit signed integer (1 byte). */
   public static readonly i8 = new IdlTypePrimitive("i8", 1, 1);
+  /** 16-bit signed integer (2 bytes, little-endian). */
   public static readonly i16 = new IdlTypePrimitive("i16", 2, 2);
+  /** 32-bit signed integer (4 bytes, little-endian). */
   public static readonly i32 = new IdlTypePrimitive("i32", 4, 4);
+  /** 64-bit signed integer (8 bytes, little-endian). */
   public static readonly i64 = new IdlTypePrimitive("i64", 8, 8);
+  /** 128-bit signed integer (16 bytes, little-endian). */
   public static readonly i128 = new IdlTypePrimitive("i128", 16, 16);
+  /** 32-bit IEEE 754 float (4 bytes, little-endian). */
   public static readonly f32 = new IdlTypePrimitive("f32", 4, 4);
+  /** 64-bit IEEE 754 float (8 bytes, little-endian). */
   public static readonly f64 = new IdlTypePrimitive("f64", 8, 8);
+  /** Boolean (1 byte; 0 = false, non-zero = true). */
   public static readonly bool = new IdlTypePrimitive("bool", 1, 1);
+  /** Solana public key (32-byte Ed25519 point). */
   public static readonly pubkey = new IdlTypePrimitive("pubkey", 32, 1);
 
   public readonly name: string;
@@ -34,6 +53,13 @@ export class IdlTypePrimitive {
     this.alignment = alignment;
   }
 
+  /**
+   * Dispatches to the matching visitor branch based on this primitive's name.
+   * @param visitor - An object with one handler per primitive type.
+   * @param p1 - First context parameter forwarded to the visitor.
+   * @param p2 - Second context parameter forwarded to the visitor.
+   * @returns The value returned by the matched visitor branch.
+   */
   public traverse<P1, P2, T>(
     visitor: {
       u8: (p1: P1, p2: P2) => T;
@@ -58,6 +84,7 @@ export class IdlTypePrimitive {
   }
 }
 
+/** A read-only map from primitive type name (e.g. `"u8"`, `"pubkey"`) to its {@link IdlTypePrimitive} instance. */
 export const idlTypePrimitiveByName: ReadonlyMap<string, IdlTypePrimitive> =
   (() => {
     const primitives = [
@@ -83,6 +110,10 @@ export const idlTypePrimitiveByName: ReadonlyMap<string, IdlTypePrimitive> =
     return primitivesByName;
   })();
 
+/**
+ * Encodes a JSON value into the byte representation of `self`'s primitive type
+ * and appends the resulting {@link Uint8Array} to `blobs`.
+ */
 export function idlTypePrimitiveEncode(
   self: IdlTypePrimitive,
   value: JsonValue,
@@ -95,6 +126,10 @@ export function idlTypePrimitiveEncode(
   });
 }
 
+/**
+ * Decodes a JSON-compatible value from `data` at `dataOffset` according to `self`'s primitive type.
+ * @returns A tuple of `[bytesConsumed, decodedJsonValue]`.
+ */
 export function idlTypePrimitiveDecode(
   self: IdlTypePrimitive,
   data: DataView,
