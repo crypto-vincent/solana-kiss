@@ -15,7 +15,7 @@ That's it. **Simple.**
 
 ## Architecture
 
-Three modules:
+Four modules:
 
 ### 1. `Solana` Class (High-Level)
 **Use this.** Handles everything: RPC, IDL, decoding, transactions.
