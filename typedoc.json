@@ -1,0 +1,15 @@
+{
+  "entryPoints": ["src/index.ts"],
+  "out": "docs",
+  "plugin": ["typedoc-material-theme"],
+  "themeColor": "#9945FF",
+  "name": "solana-kiss",
+  "readme": "README.md",
+  "includeVersion": true,
+  "searchInComments": true,
+  "categorizeByGroup": true,
+  "navigation": {
+    "includeCategories": true,
+    "includeGroups": true
+  }
+}
