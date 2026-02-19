@@ -50,12 +50,12 @@ const hash = sha256Hash(message);
 
 See [/docs](/docs) for detailed documentation:
 
-- [Overview](/docs/Overview.md) - Getting started with the `Solana` class
-- [Solana](/docs/Solana.md) - High-level wrapper API
-- [Data](/docs/Data.md) - Low-level data utilities (`/data` module)
-- [Rpc](/docs/Rpc.md) - RPC client functions (`/rpc` module)
-- [Idl](/docs/Idl.md) - IDL handling (`/idl` module)
+1. [Overview](/docs/1-Overview.md) - Getting started
+2. [Solana](/docs/2-Solana.md) - High-level API (start here)
+3. [Data](/docs/3-Data.md) - Low-level utilities
+4. [Rpc](/docs/4-Rpc.md) - Direct RPC calls
+5. [Idl](/docs/5-Idl.md) - IDL handling
 
 ## Philosophy
 
-No bloat, no dependencies, full functionality. This library provides complete Solana blockchain interaction capabilities without supply-chain vulnerabilities or excessive footprint.
+**Keep it simple, stupid.** No bloat, no dependencies, full functionality. This library provides complete Solana blockchain interaction without supply-chain vulnerabilities or excessive footprint.
