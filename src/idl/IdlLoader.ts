@@ -2,66 +2,12 @@ import { ErrorStack } from "../data/Error";
 import { JsonValue } from "../data/Json";
 import { memoize } from "../data/Memoize";
 import { Pubkey } from "../data/Pubkey";
-import { idlAccountParse } from "./IdlAccount";
-import { idlInstructionParse } from "./IdlInstruction";
 import { IdlProgram, idlProgramParse } from "./IdlProgram";
-import { IdlTypedef } from "./IdlTypedef";
 
 export type IdlLoader = (programAddress: Pubkey) => Promise<IdlProgram>;
 
 export function idlLoaderMemoized(loader: IdlLoader): IdlLoader {
   return memoize(async (programAddress) => programAddress, loader);
-}
-
-export function idlLoaderFallbackToUnknown(): IdlLoader {
-  const typedefs = new Map<string, IdlTypedef>();
-  const instructionIdl = idlInstructionParse(
-    "unknown_instruction",
-    {
-      discriminator: [],
-      accounts: [],
-      args: [],
-    },
-    typedefs,
-  );
-  const accountIdl = idlAccountParse(
-    "UnknownAccount",
-    {
-      discriminator: [],
-      fields: [],
-    },
-    typedefs,
-  );
-  const eventIdl = idlAccountParse(
-    "UnknownEvent",
-    {
-      discriminator: [],
-      fields: [],
-    },
-    typedefs,
-  );
-  return async (programAddress: Pubkey) => {
-    return {
-      metadata: {
-        name: undefined,
-        description: undefined,
-        repository: undefined,
-        contact: undefined,
-        address: programAddress,
-        version: undefined,
-        source: "unknown",
-        spec: undefined,
-        docs: undefined,
-      },
-      typedefs,
-      accounts: new Map([[accountIdl.name, accountIdl]]),
-      instructions: new Map([[instructionIdl.name, instructionIdl]]),
-      events: new Map([[eventIdl.name, eventIdl]]),
-      errors: new Map(),
-      pdas: new Map(),
-      constants: new Map(),
-    };
-  };
 }
 
 export function idlLoaderFromLoaderSequence(

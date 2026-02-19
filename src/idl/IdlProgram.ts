@@ -14,6 +14,8 @@ import {
   jsonDecoderObjectToObject,
   jsonDecoderWrapped,
 } from "../data/Json";
+import { memoize } from "../data/Memoize";
+import { Pubkey } from "../data/Pubkey";
 import { IdlAccount, idlAccountCheck, idlAccountParse } from "./IdlAccount";
 import { IdlConstant, idlConstantParse } from "./IdlConstant";
 import { IdlError, idlErrorParse } from "./IdlError";
@@ -172,6 +174,18 @@ export function idlProgramParse(programValue: JsonValue): IdlProgram {
     constants,
   };
 }
+
+export const idlProgramUnknown = memoize(
+  async (programAddress: Pubkey) => programAddress,
+  async (programAddress: Pubkey) => {
+    return idlProgramParse({
+      metadata: { address: programAddress, source: "unknown" },
+      accounts: { UnknownAccount: { discriminator: [], fields: [] } },
+      instructions: { unknown_instruction: { discriminator: [] } },
+      events: { UnknownEvent: { discriminator: [], fields: [] } },
+    });
+  },
+);
 
 function parseScopedNamedValues<Content, Param>(
   programObject: JsonObject,

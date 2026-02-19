@@ -18,10 +18,10 @@
     "typescript": "^5.8.3",
     "uzip": "^0.20201231.0"
   },
-  "dependencies": {},
   "scripts": {
     "build": "tsup src/index.ts --dts --clean --minify --sourcemap --out-dir dist",
-    "fmt": "prettier --write src && prettier --write tests",
+    "format": "prettier --write src && prettier --write tests",
+    "check": "tsc --noEmit && prettier --check src && prettier --check tests",
     "test": "jest"
   }
 }
