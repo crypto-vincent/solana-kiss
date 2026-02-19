@@ -6,13 +6,11 @@ on:
 jobs:
   protect:
     runs-on: ubuntu-latest
-    permissions:
-      administration: write
     steps:
       - name: Protect main branch
         uses: actions/github-script@v7
         with:
-          github-token: ${{ secrets.GITHUB_TOKEN }}
+          github-token: ${{ secrets.ADMIN_PAT }}
           script: |
             await github.rest.repos.updateBranchProtection({
               owner: context.repo.owner,
