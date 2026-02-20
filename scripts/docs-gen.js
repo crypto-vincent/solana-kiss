@@ -131,21 +131,98 @@ function fnSig(decl, sf) {
   return { params, ret };
 }
 
-// ── Markdown builders ─────────────────────────────────────────────────────────
+// ── HTML generation helpers ───────────────────────────────────────────────────
 
-/** Render a function/method entry compactly. */
-function mdFn(name, params, ret, desc, jsdoc) {
-  const retStr = ret ? ` → \`${ret}\`` : "";
-  const lines = [`### \`${name}(${params})\`${retStr}`];
-  if (desc) lines.push("", desc);
-  if (jsdoc.params.length > 0) {
-    lines.push("");
-    for (const p of jsdoc.params) {
-      lines.push(`- **\`${p.name}\`** — ${p.desc}`);
-    }
-  }
-  return lines.join("\n");
+/** Escape characters that are special in HTML (safe for both text nodes and attribute values). */
+function escapeHtml(str) {
+  return String(str || "")
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#39;");
 }
+
+/**
+ * Returns the first sentence of a description string.
+ * Splits on the first sentence-ending punctuation (.!?) followed by whitespace or end-of-string.
+ * Falls back to the first line truncated at 120 characters.
+ * @param {string} desc - The full description text.
+ * @returns {string} The first sentence, or a truncated fallback.
+ */
+function firstSentence(desc) {
+  if (!desc) return "";
+  const m = desc.match(/^(.+?[.!?])(?:\s|$)/s);
+  return m ? m[1].trim() : desc.replace(/\n[\s\S]*/s, "").trim().slice(0, 120);
+}
+
+/** Render a kind badge: fn / type / const / class / interface / new */
+function htmlBadge(kind) {
+  return `<span class="api-badge api-badge--${kind}">${kind}</span>`;
+}
+
+/**
+ * Render one row in the compact index.
+ * @param {string} kind - badge kind
+ * @param {string} id   - anchor target (without #)
+ * @param {string} name - display name
+ * @param {string} doc  - one-line description
+ */
+function htmlIndexRow(kind, id, name, doc) {
+  return (
+    `<a href="#${escapeHtml(id)}" class="api-item">` +
+    htmlBadge(kind) +
+    `<span class="api-item-name">${escapeHtml(name)}</span>` +
+    `<span class="api-item-doc">${escapeHtml(doc)}</span>` +
+    `</a>\n`
+  );
+}
+
+/**
+ * Render a named group in the compact index.
+ * @param {string}   title - group title (e.g. "Functions")
+ * @param {string[]} rows  - pre-built row HTML strings
+ */
+function htmlIndexGroup(title, rows) {
+  if (!rows || rows.length === 0) return "";
+  return (
+    `<div class="api-group">\n` +
+    `<div class="api-group-title">${escapeHtml(title)}</div>\n` +
+    `<div class="api-group-items">\n` +
+    rows.join("") +
+    `</div>\n` +
+    `</div>\n`
+  );
+}
+
+/**
+ * Render a detail card entry.
+ * @param {string}   id     - the element id (no #)
+ * @param {string}   kind   - badge kind
+ * @param {string}   sig    - full signature string (will be HTML-escaped)
+ * @param {string}   desc   - full description
+ * @param {Array<{name:string,desc:string}>} params - @param entries
+ */
+function htmlDetailEntry(id, kind, sig, desc, params) {
+  let html = `<div class="api-entry" id="${escapeHtml(id)}">\n`;
+  html += `<div class="api-entry-header">${htmlBadge(kind)}<code class="api-sig">${escapeHtml(sig)}</code></div>\n`;
+  if (desc || (params && params.length > 0)) {
+    html += `<div class="api-entry-body">\n`;
+    if (desc) html += `<p class="api-entry-doc">${escapeHtml(desc)}</p>\n`;
+    if (params && params.length > 0) {
+      html += `<dl class="api-params">\n`;
+      for (const p of params) {
+        html += `<dt><code>${escapeHtml(p.name)}</code></dt><dd>${escapeHtml(p.desc)}</dd>\n`;
+      }
+      html += `</dl>\n`;
+    }
+    html += `</div>\n`;
+  }
+  html += `</div>\n`;
+  return html;
+}
+
+// ── Generate HTML page for a module ──────────────────────────────────────────
 
 // ── Process a single source file ──────────────────────────────────────────────
 
@@ -248,71 +325,88 @@ function processFile(sf) {
 // ── Generate markdown for a module ───────────────────────────────────────────
 
 function generateMarkdown(mod) {
+  const totalItems =
+    mod.fns.length + mod.types.length + mod.consts.length +
+    mod.classes.length + mod.interfaces.length;
+  if (totalItems === 0) return null;
+
   const title = mod.relPath.split("/").pop();
-  const lines = [`# ${title}`, ""];
 
-  // Classes (usually 0 or 1 per file)
+  // ── Compact index (docs.rs overview style) ────────────────────────────────
+  const clsRows = [];
+  const fnRows  = [];
+  const typRows = [];
+  const ifcRows = [];
+  const cstRows = [];
+
   for (const cls of mod.classes) {
-    if (cls.desc) lines.push(cls.desc, "");
-
-    const ctor = cls.methods.find((m) => m.name.startsWith("new "));
-    if (ctor) {
-      lines.push("## Constructor", "");
-      lines.push(mdFn(ctor.name, ctor.params, "", ctor.desc, ctor.jsdoc), "");
+    clsRows.push(htmlIndexRow("class", `class-${cls.name}`, cls.name, firstSentence(cls.desc)));
+    for (const m of cls.methods) {
+      const isCtor  = m.name.startsWith("new ");
+      const badge   = isCtor ? "new" : "fn";
+      const id      = isCtor ? `fn-${cls.name}-constructor` : `fn-${cls.name}-${m.name}`;
+      const display = isCtor ? `new ${cls.name}` : m.name;
+      clsRows.push(htmlIndexRow(badge, id, display, firstSentence(m.desc)));
     }
+  }
+  for (const fn of mod.fns) {
+    fnRows.push(htmlIndexRow("fn", `fn-${fn.name}`, fn.name, firstSentence(fn.desc)));
+  }
+  for (const t of mod.types) {
+    typRows.push(htmlIndexRow("type", `type-${t.name}`, t.name, firstSentence(t.desc)));
+  }
+  for (const i of mod.interfaces) {
+    ifcRows.push(htmlIndexRow("interface", `ifc-${i.name}`, i.name, firstSentence(i.desc)));
+  }
+  for (const c of mod.consts) {
+    cstRows.push(htmlIndexRow("const", `const-${c.name}`, c.name, firstSentence(c.desc)));
+  }
 
-    const methods = cls.methods.filter((m) => !m.name.startsWith("new "));
-    if (methods.length > 0) {
-      lines.push("## Methods", "");
-      for (const m of methods) {
-        lines.push(mdFn(m.name, m.params, m.ret, m.desc, m.jsdoc), "");
-      }
+  let overview = `<div class="api-overview">\n`;
+  overview += htmlIndexGroup("Classes",     clsRows);
+  overview += htmlIndexGroup("Functions",   fnRows);
+  overview += htmlIndexGroup("Type Aliases", typRows);
+  overview += htmlIndexGroup("Interfaces",  ifcRows);
+  overview += htmlIndexGroup("Constants",   cstRows);
+  overview += `</div>\n`;
+
+  // ── Detail cards (docs.rs item style) ────────────────────────────────────
+  let details = `<div class="api-entries">\n`;
+
+  for (const cls of mod.classes) {
+    // Class overview card
+    details += htmlDetailEntry(`class-${cls.name}`, "class", cls.name, cls.desc, []);
+    // Constructor and public methods
+    for (const m of cls.methods) {
+      const isCtor = m.name.startsWith("new ");
+      const badge  = isCtor ? "new" : "fn";
+      const id     = isCtor ? `fn-${cls.name}-constructor` : `fn-${cls.name}-${m.name}`;
+      const sig    = `${m.name}(${m.params})${!isCtor && m.ret ? " → " + m.ret : ""}`;
+      details += htmlDetailEntry(id, badge, sig, m.desc, m.jsdoc.params);
     }
   }
 
-  // Functions
-  if (mod.fns.length > 0) {
-    lines.push("## Functions", "");
-    for (const fn of mod.fns) {
-      lines.push(mdFn(fn.name, fn.params, fn.ret, fn.desc, fn.jsdoc), "");
-    }
+  for (const fn of mod.fns) {
+    const sig = `${fn.name}(${fn.params})${fn.ret ? " → " + fn.ret : ""}`;
+    details += htmlDetailEntry(`fn-${fn.name}`, "fn", sig, fn.desc, fn.jsdoc.params);
   }
 
-  // Types
-  if (mod.types.length > 0) {
-    lines.push("## Types", "");
-    for (const t of mod.types) {
-      if (t.typeText) {
-        lines.push(`**\`${t.name}\`** = \`${t.typeText}\``);
-      } else {
-        lines.push(`**\`${t.name}\`**`);
-      }
-      if (t.desc) lines.push(t.desc);
-      lines.push("");
-    }
+  for (const t of mod.types) {
+    const sig = t.typeText ? `${t.name} = ${t.typeText}` : t.name;
+    details += htmlDetailEntry(`type-${t.name}`, "type", sig, t.desc, []);
   }
 
-  // Interfaces
-  if (mod.interfaces.length > 0) {
-    lines.push("## Interfaces", "");
-    for (const i of mod.interfaces) {
-      lines.push(`**\`${i.name}\`**`);
-      if (i.desc) lines.push(i.desc);
-      lines.push("");
-    }
+  for (const i of mod.interfaces) {
+    details += htmlDetailEntry(`ifc-${i.name}`, "interface", i.name, i.desc, []);
   }
 
-  // Constants
-  if (mod.consts.length > 0) {
-    lines.push("## Constants", "");
-    for (const c of mod.consts) {
-      lines.push(`**\`${c.name}\`**: \`${c.typeStr}\``);
-      if (c.desc) lines.push(c.desc);
-      lines.push("");
-    }
+  for (const c of mod.consts) {
+    details += htmlDetailEntry(`const-${c.name}`, "const", `${c.name}: ${c.typeStr}`, c.desc, []);
   }
 
-  return lines.join("\n").replace(/\n{3,}/g, "\n\n").trimEnd() + "\n";
+  details += `</div>\n`;
+
+  return `# ${title}\n\n${overview}\n<hr class="api-sep">\n\n${details}`;
 }
 
 // ── Main: iterate all source files ───────────────────────────────────────────
@@ -336,8 +430,7 @@ for (const sf of program.getSourceFiles()) {
   if (!mod) continue;
 
   const md = generateMarkdown(mod);
-  // Skip files with only a title (no real content)
-  if (md.split("\n").filter((l) => l.trim()).length <= 1) continue;
+  if (!md) continue;
 
   const outFile = path.join(docsApiDir, mod.relPath + ".md");
   ensureDir(path.dirname(outFile));

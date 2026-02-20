@@ -1,0 +1,198 @@
+/* =========================================================
+   API Documentation — Rust docs.rs inspired layout
+   ========================================================= */
+
+/* ── Compact overview index ───────────────────────────── */
+
+.api-overview {
+  margin: 1.5rem 0;
+}
+
+.api-group {
+  margin-bottom: 1.25rem;
+}
+
+.api-group-title {
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+  color: var(--vp-c-text-3);
+  border-bottom: 1px solid var(--vp-c-divider);
+  padding-bottom: 0.25rem;
+  margin: 0 0 0.2rem;
+}
+
+.api-group-items {
+  /* flex column — each row is a flex row */
+}
+
+/* One item row */
+.api-item {
+  display: flex;
+  align-items: baseline;
+  gap: 0.5rem;
+  padding: 2px 4px;
+  border-radius: 4px;
+  text-decoration: none !important;
+  color: inherit;
+  line-height: 1.55;
+}
+
+.api-item:hover {
+  background-color: var(--vp-c-bg-soft);
+  text-decoration: none !important;
+}
+
+/* Kind badge */
+.api-badge {
+  flex: 0 0 auto;
+  font-family: var(--vp-font-family-mono);
+  font-size: 0.75rem;
+  font-weight: 700;
+  line-height: 1;
+  padding: 2px 5px 3px;
+  border-radius: 3px;
+  color: #fff;
+  min-width: 36px;
+  text-align: center;
+  display: inline-block;
+  align-self: center;
+}
+
+.api-badge--fn        { background-color: #22863a; }
+.api-badge--type      { background-color: #c05000; }
+.api-badge--const     { background-color: #7534b0; }
+.api-badge--class     { background-color: #2a5db0; }
+.api-badge--interface { background-color: #0d7f7f; }
+.api-badge--new       { background-color: #2a5db0; }
+
+/* Item name (monospace) */
+.api-item-name {
+  flex: 0 0 auto;
+  font-family: var(--vp-font-family-mono);
+  font-size: 0.875rem;
+  color: var(--vp-c-text-1);
+  min-width: 200px;
+}
+
+.api-item:hover .api-item-name {
+  color: var(--vp-c-brand-1);
+}
+
+/* One-line description (truncated) */
+.api-item-doc {
+  flex: 1 1 0;
+  min-width: 0;
+  font-size: 0.875rem;
+  color: var(--vp-c-text-2);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* ── Divider between overview and details ─────────────── */
+
+hr.api-sep {
+  border: none;
+  border-top: 2px solid var(--vp-c-divider);
+  margin: 2rem 0 1.75rem;
+}
+
+/* ── Detail entry cards ───────────────────────────────── */
+
+.api-entries {
+  /* container */
+}
+
+.api-entry {
+  margin-bottom: 0.85rem;
+  border-radius: 6px;
+  border: 1px solid var(--vp-c-divider);
+  overflow: hidden;
+}
+
+.api-entry-header {
+  display: flex;
+  align-items: center;
+  gap: 0.55rem;
+  padding: 0.4rem 0.75rem;
+  background-color: var(--vp-c-bg-soft);
+  border-bottom: 1px solid var(--vp-c-divider);
+}
+
+/* Override VitePress inline-code styles for the signature */
+.api-sig,
+code.api-sig {
+  font-family: var(--vp-font-family-mono) !important;
+  font-size: 0.875rem !important;
+  color: var(--vp-c-text-1) !important;
+  background: none !important;
+  padding: 0 !important;
+  border-radius: 0 !important;
+  flex: 1;
+  word-break: break-word;
+}
+
+.api-entry-body {
+  padding: 0.45rem 0.75rem 0.55rem;
+}
+
+p.api-entry-doc,
+.api-entry-doc {
+  font-size: 0.9rem !important;
+  color: var(--vp-c-text-1);
+  margin: 0 0 0 !important;
+  line-height: 1.6;
+}
+
+/* ── Parameter list ───────────────────────────────────── */
+
+dl.api-params {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 2px 10px;
+  margin: 0.4rem 0 0 !important;
+  padding-top: 0.35rem;
+  border-top: 1px solid var(--vp-c-divider);
+  font-size: 0.85rem;
+}
+
+.vp-doc dl.api-params dt,
+dl.api-params dt {
+  font-family: var(--vp-font-family-mono);
+  font-size: 0.85rem;
+  font-weight: 400;
+  color: var(--vp-c-brand-1);
+  margin: 0;
+  padding: 1px 0;
+  white-space: nowrap;
+}
+
+/* code inside dt should inherit badge-like styling */
+dl.api-params dt code {
+  background: none !important;
+  padding: 0 !important;
+  font-size: inherit !important;
+  color: inherit !important;
+}
+
+.vp-doc dl.api-params dd,
+dl.api-params dd {
+  margin: 0;
+  padding: 1px 0;
+  color: var(--vp-c-text-2);
+  line-height: 1.5;
+}
+
+/* ── Responsive ───────────────────────────────────────── */
+
+@media (max-width: 640px) {
+  .api-item-doc {
+    display: none;
+  }
+
+  .api-item-name {
+    min-width: 0;
+  }
+}
