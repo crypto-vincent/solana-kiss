@@ -14,11 +14,11 @@ import { RpcHttp } from "./RpcHttp";
  * Optionally filters results by account data size or byte-level memory patterns.
  *
  * @param self - The {@link RpcHttp} client to use.
- * @param programAddress - The program whose owned accounts to find.
+ * @param programAddress - The {@link Pubkey} of the program whose owned accounts to find.
  * @param filters - Optional filters to narrow down results.
  * @param filters.dataSpace - Only return accounts whose data length equals this value (in bytes).
  * @param filters.dataBlobs - Only return accounts that match all given byte patterns at the specified offsets.
- * @returns An object containing `accountsAddresses`, a set of matching account public keys.
+ * @returns An object containing `accountsAddresses`, a set of matching account {@link Pubkey}s.
  * @throws If more than 4 filter entries are provided (Solana RPC limit).
  * @throws If any filter blob has a negative offset.
  */

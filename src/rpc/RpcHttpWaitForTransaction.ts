@@ -14,12 +14,13 @@ import { rpcHttpGetTransaction } from "./RpcHttpGetTransaction";
  * triggers another attempt, while returning `false` throws an error.
  *
  * @param self - The {@link RpcHttp} client to use.
- * @param transactionHandle - The signature of the transaction to wait for.
+ * @param transactionHandle - The {@link TransactionHandle} (signature) of the transaction to wait for.
  * @param retryApprover - Async callback invoked when the transaction is not yet found, receiving context about
  *   the current wait. Return `true` to keep polling or `false` to abort with an error.
  * @param options - Optional options forwarded to {@link rpcHttpGetTransaction}.
  * @param options.skipTransactionFlow - When `true`, skips parsing the program invocation call-stack.
- * @returns An object containing `transactionRequest`, `transactionExecution`, and `transactionFlow`
+ * @returns An object containing `transactionRequest` ({@link TransactionRequest}),
+ *   `transactionExecution` ({@link TransactionExecution}), and `transactionFlow` ({@link TransactionFlow} or `undefined`)
  *   once the transaction is confirmed.
  * @throws If the retry approver returns `false`.
  */
