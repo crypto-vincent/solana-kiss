@@ -224,8 +224,8 @@ export function jsonIsDeepSubset(
 export type JsonPointer = Array<string | number>;
 
 /**
- * Parses a dot-notation or bracket-notation path string (e.g. `"foo.bar[0]"`)
- * into a {@link JsonPointer}.
+ * Parses a dot-notation, bracket-notation, or slash-notation path string
+ * (e.g. `"foo.bar[0]"` or `"/foo/bar/0"`) into a {@link JsonPointer}.
  */
 export function jsonPointerParse(path: string): JsonPointer {
   const tokens = path

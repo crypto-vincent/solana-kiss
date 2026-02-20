@@ -121,8 +121,7 @@ export function mapGuessIntendedKey<Value>(
 }
 
 /**
- * Lexicographically compares two byte arrays.
- * Arrays are ordered first by length, then element-by-element.
+ * Compares two byte arrays, ordering first by length and then element-by-element.
  * @param a - The first byte array.
  * @param b - The second byte array.
  * @returns A negative number if `a < b`, positive if `a > b`, or `0` if equal.
