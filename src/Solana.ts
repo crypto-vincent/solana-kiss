@@ -77,7 +77,8 @@ export class Solana {
   /**
    * Creates a new `Solana` instance.
    *
-   * @param rpcHttp - An existing {@link RpcHttp} client or a public cluster moniker (`"mainnet"`, `"devnet"`, or `"testnet"`) to connect to.
+   * @param rpcHttp - An existing {@link RpcHttp} client, or a public cluster moniker (`"mainnet"`, `"devnet"`, or `"testnet"`).
+   *   When a moniker is provided, a `confirmed`-commitment {@link RpcHttp} client is created automatically.
    * @param options - Optional configuration.
    * @param options.idlLoader - Custom IDL loader to use instead of the built-in
    *   sequence (on-chain native → on-chain Anchor → remote GitHub fallback).
