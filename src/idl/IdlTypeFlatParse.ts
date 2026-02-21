@@ -76,7 +76,7 @@ export function idlTypeFlatParseIsPossible(value: JsonValue): boolean {
  * Parses a JSON value into an unresolved flat IDL type.
  *
  * @param value - The JSON value representing an IDL type node (string, object, array, etc.).
- * @returns The parsed `IdlTypeFlat`.
+ * @returns The parsed {@link IdlTypeFlat}.
  */
 export function idlTypeFlatParse(value: JsonValue): IdlTypeFlat {
   return valueJsonDecoder(value);
@@ -87,7 +87,7 @@ export function idlTypeFlatParse(value: JsonValue): IdlTypeFlat {
  * empty/nothing).
  *
  * @param value - The JSON value representing an IDL fields node.
- * @returns The parsed `IdlTypeFlatFields`.
+ * @returns The parsed {@link IdlTypeFlatFields}.
  */
 export function idlTypeFlatFieldsParse(value: JsonValue): IdlTypeFlatFields {
   return fieldsJsonDecoder(value);

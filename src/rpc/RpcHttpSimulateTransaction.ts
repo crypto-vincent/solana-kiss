@@ -24,15 +24,15 @@ import { RpcHttp } from "./RpcHttp";
  * Optionally fetches the post-simulation state of up to 3 accounts (Solana RPC limit).
  *
  * @param self - The {@link RpcHttp} client to use.
- * @param transactionPacket - The compiled and signed transaction bytes to simulate.
+ * @param transactionPacket - The {@link TransactionPacket} to simulate.
  * @param options - Optional simulation options.
  * @param options.verifySignaturesAndBlockHash - When `true` (default), verifies signatures and the blockhash before simulation.
  *   When `false`, the blockhash is replaced with a recent one and signature verification is skipped.
- * @param options.simulatedAccountsAddresses - An optional set of up to 3 account addresses whose post-simulation
+ * @param options.simulatedAccountsAddresses - An optional set of up to 3 {@link Pubkey} account addresses whose post-simulation
  *   state should be returned.
  * @returns An object containing:
- *   - `transactionExecution` – execution result including logs, error, compute units, and fees.
- *   - `simulatedAccountsByAddress` – a map from each requested account address to its post-simulation state.
+ *   - `transactionExecution` – {@link TransactionExecution} result including logs, error, compute units, and fees.
+ *   - `simulatedAccountsByAddress` – a map from each requested {@link Pubkey} to its post-simulation state.
  * @throws If more than 3 accounts are requested via `simulatedAccountsAddresses`.
  */
 export async function rpcHttpSimulateTransaction(

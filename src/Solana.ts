@@ -77,7 +77,8 @@ export class Solana {
   /**
    * Creates a new `Solana` instance.
    *
-   * @param rpcHttp - An existing {@link RpcHttp} client or a public cluster moniker (`"mainnet"`, `"devnet"`, or `"testnet"`) to connect to.
+   * @param rpcHttp - An existing {@link RpcHttp} client, or a public cluster moniker (`"mainnet"`, `"devnet"`, or `"testnet"`).
+   *   When a moniker is provided, a `confirmed`-commitment {@link RpcHttp} client is created automatically.
    * @param options - Optional configuration.
    * @param options.idlLoader - Custom IDL loader to use instead of the built-in
    *   sequence (on-chain native → on-chain Anchor → remote GitHub fallback).
@@ -178,8 +179,7 @@ export class Solana {
    * @param pdaName - The name of the PDA as declared in the program's IDL.
    * @param pdaInputs - Key/value pairs used to seed the PDA derivation.
    *   Defaults to an empty object when omitted.
-   * @returns The derived PDA {@link Pubkey} together with its canonical bump
-   *   seed, as returned by {@link idlPdaFind}.
+   * @returns The derived PDA {@link Pubkey}, as returned by {@link idlPdaFind}.
    * @throws If the program IDL cannot be loaded, or if no PDA named
    *   `pdaName` exists in the IDL.
    */
@@ -231,7 +231,8 @@ export class Solana {
    *   - `accountExecutable` – whether the account is marked executable
    *   - `accountData` – raw account data bytes
    *   - `accountState` – decoded account state according to the IDL schema
-   * @throws If the account does not exist or the RPC request fails.
+   * @throws If the RPC request fails, or if the account data cannot be decoded
+   *   according to the inferred account type.
    */
   public async getAndInferAndDecodeAccount(accountAddress: Pubkey) {
     const { programAddress, accountExecutable, accountLamports, accountData } =
@@ -561,7 +562,7 @@ export class Solana {
    * @param accountName - The name of the account type as declared in the
    *   program's IDL.
    * @returns The result of {@link rpcHttpFindProgramOwnedAccounts}, containing
-   *   an array of matching accounts with their raw data.
+   *   the set of matching account {@link Pubkey}s (`accountsAddresses`).
    * @throws If the program IDL cannot be loaded, if no account named
    *   `accountName` exists in the IDL, or if the RPC request fails.
    */

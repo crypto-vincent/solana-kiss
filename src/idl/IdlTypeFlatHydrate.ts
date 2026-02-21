@@ -30,7 +30,7 @@ import { IdlTypePrimitive } from "./IdlTypePrimitive";
  * @param self - The unresolved flat IDL type to hydrate.
  * @param genericsBySymbol - Map of generic symbol names to their resolved full types or numeric const literals.
  * @param typedefs - Available typedef definitions for resolving named references, or `null` if not applicable.
- * @returns The fully-resolved `IdlTypeFull`.
+ * @returns The fully-resolved {@link IdlTypeFull}.
  */
 export function idlTypeFlatHydrate(
   self: IdlTypeFlat,
@@ -56,7 +56,7 @@ export function idlTypeFlatHydrate(
  * @param self - The unresolved flat IDL type to hydrate.
  * @param genericsBySymbol - Map of generic symbol names to their resolved full types or numeric const literals.
  * @param typedefs - Available typedef definitions for resolving named references, or `null` if not applicable.
- * @returns The fully-resolved `IdlTypeFull`, or a `number` if the node is a const literal.
+ * @returns The fully-resolved {@link IdlTypeFull}, or a `number` if the node is a const literal.
  */
 export function idlTypeFlatHydrateOrConstLiteral(
   self: IdlTypeFlat,
@@ -77,7 +77,7 @@ export function idlTypeFlatHydrateOrConstLiteral(
  * @param self - The unresolved flat IDL fields to hydrate.
  * @param genericsBySymbol - Map of generic symbol names to their resolved full types or numeric const literals.
  * @param typedefs - Available typedef definitions for resolving named references, or `null` if not applicable.
- * @returns The fully-resolved `IdlTypeFullFields`.
+ * @returns The fully-resolved {@link IdlTypeFullFields}.
  */
 export function idlTypeFlatFieldsHydrate(
   self: IdlTypeFlatFields,

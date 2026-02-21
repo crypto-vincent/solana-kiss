@@ -21,7 +21,7 @@ import { IdlTypePrimitive } from "./IdlTypePrimitive";
 /**
  * The result of a bytemuck (C-like memory layout) analysis for a full IDL
  * type. Contains the computed alignment, total size in bytes, and the
- * rewritten `IdlTypeFull` with explicit padding nodes inserted.
+ * rewritten {@link IdlTypeFull} with explicit padding nodes inserted.
  */
 export type IdlTypeFullBytemuck = {
   alignment: number;
@@ -42,7 +42,7 @@ type IdlTypeFullFieldsBytemuck = {
  * Computes the bytemuck (C-like or Rust memory layout) information for a
  * typedef, applying the `repr` attribute from the typedef to choose between
  * Repr(C) and Repr(Rust) layout rules. Returns the alignment, total size, and
- * the rewritten `IdlTypeFull` with padding nodes.
+ * the rewritten {@link IdlTypeFull} with padding nodes.
  *
  * @param self - The fully-resolved typedef to analyse.
  * @returns The bytemuck layout info including alignment, size, and padded type.

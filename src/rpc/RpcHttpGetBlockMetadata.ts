@@ -12,12 +12,12 @@ import { RpcHttp } from "./RpcHttp";
  * Fetches block metadata for the given slot, without transaction details.
  *
  * @param self - The {@link RpcHttp} client to use.
- * @param blockSlot - The slot number of the block to query.
+ * @param blockSlot - The {@link BlockSlot} to query.
  * @returns An object containing:
- *   - `previousBlockSlot` – the slot of the parent block.
+ *   - `previousBlockSlot` – the parent block's {@link BlockSlot}.
  *   - `blockHeight` – the block height, or `undefined` if not available.
  *   - `blockTime` – the block production time as a `Date`, or `undefined` if not available.
- *   - `blockHash` – the block hash.
+ *   - `blockHash` – the block's {@link BlockHash}.
  */
 export async function rpcHttpGetBlockMetadata(
   self: RpcHttp,

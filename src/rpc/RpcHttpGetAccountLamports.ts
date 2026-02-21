@@ -6,7 +6,7 @@ import { RpcHttp } from "./RpcHttp";
  * Fetches the lamport balance of the given account.
  *
  * @param self - The {@link RpcHttp} client to use.
- * @param accountAddress - The account whose balance to query.
+ * @param accountAddress - The {@link Pubkey} of the account whose balance to query.
  * @returns An object containing `accountLamports`, the account's balance as a `bigint`.
  */
 export async function rpcHttpGetAccountLamports(

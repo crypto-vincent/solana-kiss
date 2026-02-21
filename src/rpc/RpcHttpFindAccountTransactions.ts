@@ -15,12 +15,12 @@ import { RpcHttp } from "./RpcHttp";
  * `rewindUntilTransactionHandle` sentinel is reached, or all available history is exhausted.
  *
  * @param self - The {@link RpcHttp} client to use.
- * @param accountAddress - The account whose transaction history to query.
+ * @param accountAddress - The {@link Pubkey} of the account whose transaction history to query.
  * @param maxResultLength - Maximum number of transaction handles to return.
  * @param pagination - Optional pagination controls.
- * @param pagination.startBeforeTransactionHandle - Start fetching before this transaction handle (exclusive).
- * @param pagination.rewindUntilTransactionHandle - Stop fetching once this transaction handle is encountered (inclusive).
- * @returns An object containing `newToOldTransactionsHandles`, an array of transaction handles ordered newest-first.
+ * @param pagination.startBeforeTransactionHandle - Start fetching before this {@link TransactionHandle} (exclusive).
+ * @param pagination.rewindUntilTransactionHandle - Stop fetching once this {@link TransactionHandle} is encountered (inclusive).
+ * @returns An object containing `newToOldTransactionsHandles`, an array of {@link TransactionHandle}s ordered newest-first.
  */
 export async function rpcHttpFindAccountTransactions(
   self: RpcHttp,
