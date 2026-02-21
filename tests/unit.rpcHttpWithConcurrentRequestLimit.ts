@@ -5,7 +5,7 @@ import {
   rpcHttpWithConcurrentRequestsLimit as rpcHttpWithConcurrentRequestLimit,
 } from "../src";
 
-async function rpcHttp(method: string, params: JsonArray) {
+async function rpcHttp(method: string, params: Readonly<JsonArray>) {
   if (method === "delayMs") {
     await mockClockDelayMs(params[0] as number);
     return params[0]!;

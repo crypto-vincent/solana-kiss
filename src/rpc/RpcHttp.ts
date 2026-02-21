@@ -23,8 +23,8 @@ import { OneKeyOf } from "../data/Utils";
  */
 export type RpcHttp = (
   method: string,
-  params: JsonArray,
-  config: JsonObject | undefined,
+  params: Readonly<JsonArray>,
+  config: Readonly<JsonObject> | undefined,
 ) => Promise<JsonValue>;
 
 /**
@@ -84,7 +84,7 @@ export function rpcHttpFromUrl(
           ...config,
         };
       }
-      params.push(config);
+      params = [...params, config];
     }
     const requestId = uniqueRequestId++;
     const responseJson = await fetcher(url, {
@@ -219,8 +219,8 @@ export function rpcHttpWithRetryOnError(
     retriedCounter: number;
     totalDurationMs: number;
     requestMethod: string;
-    requestParams: JsonArray;
-    requestConfig: JsonObject | undefined;
+    requestParams: Readonly<JsonArray>;
+    requestConfig: Readonly<JsonObject | undefined>;
     lastError: any;
   }) => Promise<boolean>,
 ): RpcHttp {
