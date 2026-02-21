@@ -197,15 +197,15 @@ function htmlIndexGroup(title, rows) {
 
 /**
  * Render a detail card entry.
- * @param {string}   id     - the element id (no #)
- * @param {string}   kind   - badge kind
- * @param {string}   sig    - full signature string (will be HTML-escaped)
- * @param {string}   desc   - full description
+ * @param {string}   id      - the element id (no #)
+ * @param {string}   kind    - badge kind
+ * @param {string}   sigHtml - pre-built, already-HTML-safe signature markup
+ * @param {string}   desc    - full description (will be HTML-escaped)
  * @param {Array<{name:string,desc:string}>} params - @param entries
  */
-function htmlDetailEntry(id, kind, sig, desc, params) {
+function htmlDetailEntry(id, kind, sigHtml, desc, params) {
   let html = `<div class="api-entry" id="${escapeHtml(id)}">\n`;
-  html += `<div class="api-entry-header">${htmlBadge(kind)}<code class="api-sig">${escapeHtml(sig)}</code></div>\n`;
+  html += `<div class="api-entry-header">${htmlBadge(kind)}<code class="api-sig">${sigHtml}</code></div>\n`;
   if (desc || (params && params.length > 0)) {
     html += `<div class="api-entry-body">\n`;
     if (desc) html += `<p class="api-entry-doc">${escapeHtml(desc)}</p>\n`;
@@ -220,6 +220,237 @@ function htmlDetailEntry(id, kind, sig, desc, params) {
   }
   html += `</div>\n`;
   return html;
+}
+
+// ── Syntax-highlighted signature helpers ─────────────────────────────────────
+
+/**
+ * Wraps `txt` in a colored `<span>` for signature syntax highlighting.
+ * `txt` is HTML-escaped automatically.
+ * @param {string} cls - CSS class (e.g. "sig-type")
+ * @param {string} txt - Raw text content (will be escaped).
+ */
+function sp(cls, txt) {
+  return `<span class="${cls}">${escapeHtml(txt)}</span>`;
+}
+
+/** TypeScript keyword kinds that map to primitive type names. */
+const PRIMITIVE_KINDS = new Map([
+  [ts.SyntaxKind.StringKeyword,    "string"],
+  [ts.SyntaxKind.NumberKeyword,    "number"],
+  [ts.SyntaxKind.BooleanKeyword,   "boolean"],
+  [ts.SyntaxKind.BigIntKeyword,    "bigint"],
+  [ts.SyntaxKind.VoidKeyword,      "void"],
+  [ts.SyntaxKind.NeverKeyword,     "never"],
+  [ts.SyntaxKind.AnyKeyword,       "any"],
+  [ts.SyntaxKind.UnknownKeyword,   "unknown"],
+  [ts.SyntaxKind.UndefinedKeyword, "undefined"],
+  [ts.SyntaxKind.NullKeyword,      "null"],
+  [ts.SyntaxKind.SymbolKeyword,    "symbol"],
+  [ts.SyntaxKind.ObjectKeyword,    "object"],
+]);
+
+/**
+ * Recursively converts a TypeScript type AST node into syntax-highlighted HTML.
+ * Handles primitives, type references, unions, intersections, arrays, tuples,
+ * object literals, function types, and more.
+ * Falls back to plain escaped text for unrecognised node kinds.
+ * @param {import("typescript").TypeNode | undefined} node
+ * @param {import("typescript").SourceFile} sf
+ * @returns {string} HTML string with colored `<span>` elements.
+ */
+function htmlTypeNode(node, sf) {
+  if (!node) return "";
+  const k = node.kind;
+
+  // Primitive keywords: string, number, boolean, bigint, void, never, etc.
+  const prim = PRIMITIVE_KINDS.get(k);
+  if (prim) return sp("sig-primitive", prim);
+
+  // true / false keyword literals
+  if (k === ts.SyntaxKind.TrueKeyword)  return sp("sig-primitive", "true");
+  if (k === ts.SyntaxKind.FalseKeyword) return sp("sig-primitive", "false");
+
+  // Literal type:  "str" | 42 | true | null
+  if (k === ts.SyntaxKind.LiteralType) {
+    const lit = node.literal;
+    if (lit.kind === ts.SyntaxKind.StringLiteral)
+      return sp("sig-str", `"${lit.text}"`);
+    if (lit.kind === ts.SyntaxKind.NumericLiteral || lit.kind === ts.SyntaxKind.BigIntLiteral)
+      return sp("sig-primitive", lit.text);
+    if (lit.kind === ts.SyntaxKind.TrueKeyword)  return sp("sig-primitive", "true");
+    if (lit.kind === ts.SyntaxKind.FalseKeyword) return sp("sig-primitive", "false");
+    if (lit.kind === ts.SyntaxKind.NullKeyword)  return sp("sig-primitive", "null");
+    return escapeHtml(nodeText(node, sf));
+  }
+
+  // Type reference:  Pubkey | Array<T> | Record<K,V> | Promise<T>
+  if (k === ts.SyntaxKind.TypeReference) {
+    const name = node.typeName.getText(sf);
+    let html = sp("sig-type", name);
+    if (node.typeArguments && node.typeArguments.length > 0) {
+      html += sp("sig-punct", "<");
+      html += Array.from(node.typeArguments)
+        .map((a) => htmlTypeNode(a, sf))
+        .join(sp("sig-punct", ", "));
+      html += sp("sig-punct", ">");
+    }
+    return html;
+  }
+
+  // Union:  A | B | C
+  if (k === ts.SyntaxKind.UnionType) {
+    return Array.from(node.types)
+      .map((t) => htmlTypeNode(t, sf))
+      .join(sp("sig-op", " | "));
+  }
+
+  // Intersection:  A & B
+  if (k === ts.SyntaxKind.IntersectionType) {
+    return Array.from(node.types)
+      .map((t) => htmlTypeNode(t, sf))
+      .join(sp("sig-op", " & "));
+  }
+
+  // Array:  T[]
+  if (k === ts.SyntaxKind.ArrayType) {
+    return htmlTypeNode(node.elementType, sf) + sp("sig-punct", "[]");
+  }
+
+  // Tuple:  [A, B, C]
+  if (k === ts.SyntaxKind.TupleType) {
+    const elems = Array.from(node.elements).map((e) => {
+      // NamedTupleMember (TS 4.0+):  label: Type  or  ...label: Type
+      if (e.kind === ts.SyntaxKind.NamedTupleMember) {
+        const rest = e.dotDotDotToken ? sp("sig-punct", "...") : "";
+        return rest + sp("sig-param", e.name.getText(sf)) + sp("sig-punct", ": ") + htmlTypeNode(e.type, sf);
+      }
+      return htmlTypeNode(e, sf);
+    });
+    return sp("sig-punct", "[") + elems.join(sp("sig-punct", ", ")) + sp("sig-punct", "]");
+  }
+
+  // Parenthesized:  (T)
+  if (k === ts.SyntaxKind.ParenthesizedType) {
+    return sp("sig-punct", "(") + htmlTypeNode(node.type, sf) + sp("sig-punct", ")");
+  }
+
+  // Object literal type:  { key: Type; ... }
+  if (k === ts.SyntaxKind.TypeLiteral) {
+    const members = Array.from(node.members || []);
+    if (members.length === 0) return sp("sig-punct", "{}");
+    const parts = members.slice(0, 4).map((m) => {
+      if (ts.isPropertySignature(m)) {
+        const opt = m.questionToken ? sp("sig-punct", "?") : "";
+        const typeHtml = m.type ? sp("sig-punct", ": ") + htmlTypeNode(m.type, sf) : "";
+        return sp("sig-param", m.name.getText(sf)) + opt + typeHtml;
+      }
+      if (ts.isIndexSignatureDeclaration(m)) return sp("sig-punct", "[…]");
+      return sp("sig-punct", "…");
+    });
+    const suffix = members.length > 4 ? sp("sig-punct", "; …") : "";
+    return (
+      sp("sig-punct", "{ ") +
+      parts.join(sp("sig-punct", "; ")) +
+      suffix +
+      sp("sig-punct", " }")
+    );
+  }
+
+  // Function type:  (params) => RetType
+  if (k === ts.SyntaxKind.FunctionType) {
+    const paramHtmls = Array.from(node.parameters || []).map((p) => htmlParamNode(p, sf));
+    const ret = node.type ? htmlTypeNode(node.type, sf) : sp("sig-primitive", "void");
+    return (
+      sp("sig-punct", "(") +
+      paramHtmls.join(sp("sig-punct", ", ")) +
+      sp("sig-punct", ")") +
+      sp("sig-op", " => ") +
+      ret
+    );
+  }
+
+  // Indexed access:  T[K]
+  if (k === ts.SyntaxKind.IndexedAccessType) {
+    return (
+      htmlTypeNode(node.objectType, sf) +
+      sp("sig-punct", "[") +
+      htmlTypeNode(node.indexType, sf) +
+      sp("sig-punct", "]")
+    );
+  }
+
+  // Type predicate:  value is Type
+  if (k === ts.SyntaxKind.TypePredicate) {
+    const paramName = node.parameterName.getText(sf);
+    const typeHtml = node.type ? sp("sig-kw", " is ") + htmlTypeNode(node.type, sf) : "";
+    return sp("sig-param", paramName) + typeHtml;
+  }
+
+  // Rest type in tuple:  ...T
+  if (k === ts.SyntaxKind.RestType) {
+    return sp("sig-punct", "...") + htmlTypeNode(node.type, sf);
+  }
+
+  // Optional type in tuple:  T?
+  if (k === ts.SyntaxKind.OptionalType) {
+    return htmlTypeNode(node.type, sf) + sp("sig-punct", "?");
+  }
+
+  // Template literal type:  `prefix${T}`
+  if (k === ts.SyntaxKind.TemplateLiteralType) {
+    return sp("sig-str", nodeText(node, sf));
+  }
+
+  // Conditional / Mapped types — show abbreviated (too complex for inline)
+  if (k === ts.SyntaxKind.ConditionalType || k === ts.SyntaxKind.MappedType) {
+    return sp("sig-type", "…");
+  }
+
+  // Fallback: plain escaped text
+  return escapeHtml(nodeText(node, sf));
+}
+
+/**
+ * Renders a single function parameter declaration as syntax-highlighted HTML.
+ * @param {import("typescript").ParameterDeclaration} p
+ * @param {import("typescript").SourceFile} sf
+ * @returns {string}
+ */
+function htmlParamNode(p, sf) {
+  const rest     = p.dotDotDotToken ? sp("sig-punct", "...") : "";
+  const name     = p.name.getText(sf);
+  const opt      = (p.questionToken || p.initializer) ? sp("sig-punct", "?") : "";
+  const typeHtml = p.type ? sp("sig-punct", ": ") + htmlTypeNode(p.type, sf) : "";
+  return rest + sp("sig-param", name) + opt + typeHtml;
+}
+
+/**
+ * Builds a full syntax-highlighted HTML signature for a function, method, or constructor.
+ * @param {string} displayName - The name shown before `(` (e.g. "pubkeyFromBase58" or "new Solana").
+ * @param {import("typescript").FunctionDeclaration|import("typescript").MethodDeclaration|import("typescript").ConstructorDeclaration|import("typescript").ArrowFunction} decl
+ * @param {import("typescript").SourceFile} sf
+ * @param {boolean} isCtor - Pass `true` for constructors (suppresses return type).
+ * @returns {string} HTML string.
+ */
+function htmlFnSig(displayName, decl, sf, isCtor) {
+  const paramHtmls = Array.from(decl.parameters || []).map((p) => htmlParamNode(p, sf));
+
+  const nameHtml = isCtor
+    ? sp("sig-kw", "new") + " " + sp("sig-fn-name", displayName)
+    : sp("sig-fn-name", displayName);
+
+  const retHtml = (!isCtor && decl.type)
+    ? " " + sp("sig-op", "→") + " " + htmlTypeNode(decl.type, sf)
+    : "";
+
+  return (
+    nameHtml +
+    sp("sig-punct", "(") +
+    paramHtmls.join(sp("sig-punct", ", ")) +
+    sp("sig-punct", ")") +
+    retHtml
+  );
 }
 
 // ── Generate HTML page for a module ──────────────────────────────────────────
@@ -255,10 +486,13 @@ function processFile(sf) {
       const typeText = d ? nodeText(d.type, sf) : "";
       // Abbreviate very long type texts
       const typeShort = typeText.length > MAX_TYPE_DEF_LEN ? typeText.slice(0, MAX_TYPE_DEF_LEN - 2) + "…" : typeText;
-      types.push({ name, typeText: typeShort, desc: docOf(exp) });
+      const sigHtml = d && d.type
+        ? sp("sig-type", name) + " " + sp("sig-punct", "=") + " " + htmlTypeNode(d.type, sf)
+        : sp("sig-type", name);
+      types.push({ name, typeText: typeShort, sigHtml, desc: docOf(exp) });
 
     } else if (flags & ts.SymbolFlags.Interface) {
-      interfaces.push({ name, desc: docOf(exp) });
+      interfaces.push({ name, sigHtml: sp("sig-kw", "interface") + " " + sp("sig-type", name), desc: docOf(exp) });
 
     } else if (flags & ts.SymbolFlags.Class) {
       const d = decls.find((d) => ts.isClassDeclaration(d));
@@ -277,16 +511,16 @@ function processFile(sf) {
           const mDesc = docOfNode(m);
           const mJsdoc = tagsOfNode(m);
           const { params, ret } = fnSig(m, sf);
-          methods.push({ name: mName, params, ret: isCtor ? "" : ret, desc: mDesc, jsdoc: mJsdoc });
+          methods.push({ name: mName, params, ret: isCtor ? "" : ret, sigHtml: htmlFnSig(mName, m, sf, isCtor), desc: mDesc, jsdoc: mJsdoc });
         }
       }
-      classes.push({ name, desc: docOf(exp), methods });
+      classes.push({ name, sigHtml: sp("sig-kw", "class") + " " + sp("sig-type", name), desc: docOf(exp), methods });
 
     } else if (flags & ts.SymbolFlags.Function) {
       const d = decls.find((d) => ts.isFunctionDeclaration(d));
       if (d) {
         const { params, ret } = fnSig(d, sf);
-        fns.push({ name, params, ret, desc: docOf(exp), jsdoc: tagsOf(exp) });
+        fns.push({ name, params, ret, sigHtml: htmlFnSig(name, d, sf, false), desc: docOf(exp), jsdoc: tagsOf(exp) });
       }
 
     } else if (flags & ts.SymbolFlags.Variable) {
@@ -294,7 +528,7 @@ function processFile(sf) {
       const init = d && d.initializer;
       if (init && (ts.isArrowFunction(init) || ts.isFunctionExpression(init))) {
         const { params, ret } = fnSig(init, sf);
-        fns.push({ name, params, ret, desc: docOf(exp), jsdoc: tagsOf(exp) });
+        fns.push({ name, params, ret, sigHtml: htmlFnSig(name, init, sf, false), desc: docOf(exp), jsdoc: tagsOf(exp) });
       } else {
         // Check if the type has call signatures (function type alias variable)
         const type = checker.getTypeOfSymbol(exp);
@@ -309,11 +543,24 @@ function processFile(sf) {
             })
             .join(", ");
           const ret = checker.typeToString(sig.getReturnType());
-          fns.push({ name, params, ret, desc: docOf(exp), jsdoc: tagsOf(exp) });
+          // Build a highlighted sigHtml from the checker-resolved parameter types
+          const sigParamsHtml = sig.parameters
+            .map((p) => {
+              const pt = checker.typeToString(checker.getTypeOfSymbol(p));
+              const ptShort = pt.startsWith("{") ? "{…}" : pt.length > MAX_TYPE_LEN ? pt.slice(0, MAX_TYPE_LEN - 2) + "…" : pt;
+              return sp("sig-param", p.getName()) + sp("sig-punct", ": ") + sp("sig-type", ptShort);
+            })
+            .join(sp("sig-punct", ", "));
+          const sigRetHtml = ret ? " " + sp("sig-op", "→") + " " + sp("sig-type", ret) : "";
+          const sigHtml = sp("sig-fn-name", name) + sp("sig-punct", "(") + sigParamsHtml + sp("sig-punct", ")") + sigRetHtml;
+          fns.push({ name, params, ret, sigHtml, desc: docOf(exp), jsdoc: tagsOf(exp) });
         } else {
           const typeStr = checker.typeToString(type);
           const typeShort = typeStr.length > MAX_TYPE_LEN ? typeStr.slice(0, MAX_TYPE_LEN - 2) + "…" : typeStr;
-          consts.push({ name, typeStr: typeShort, desc: docOf(exp) });
+          const sigHtml = (d && d.type)
+            ? sp("sig-const", name) + sp("sig-punct", ": ") + htmlTypeNode(d.type, sf)
+            : sp("sig-const", name) + sp("sig-punct", ": ") + sp("sig-type", typeShort);
+          consts.push({ name, typeStr: typeShort, sigHtml, desc: docOf(exp) });
         }
       }
     }
@@ -375,33 +622,38 @@ function generateMarkdown(mod) {
 
   for (const cls of mod.classes) {
     // Class overview card
-    details += htmlDetailEntry(`class-${cls.name}`, "class", cls.name, cls.desc, []);
+    details += htmlDetailEntry(`class-${cls.name}`, "class", cls.sigHtml, cls.desc, []);
     // Constructor and public methods
     for (const m of cls.methods) {
       const isCtor = m.name.startsWith("new ");
       const badge  = isCtor ? "new" : "fn";
       const id     = isCtor ? `fn-${cls.name}-constructor` : `fn-${cls.name}-${m.name}`;
-      const sig    = `${m.name}(${m.params})${!isCtor && m.ret ? " → " + m.ret : ""}`;
-      details += htmlDetailEntry(id, badge, sig, m.desc, m.jsdoc.params);
+      details += htmlDetailEntry(id, badge, m.sigHtml, m.desc, m.jsdoc.params);
     }
   }
 
   for (const fn of mod.fns) {
-    const sig = `${fn.name}(${fn.params})${fn.ret ? " → " + fn.ret : ""}`;
-    details += htmlDetailEntry(`fn-${fn.name}`, "fn", sig, fn.desc, fn.jsdoc.params);
+    // Use prebuilt highlighted HTML; fall back to a minimally coloured plain sig
+    const sigHtml = fn.sigHtml ?? (
+      sp("sig-fn-name", fn.name) +
+      sp("sig-punct", "(") +
+      escapeHtml(fn.params) +
+      sp("sig-punct", ")") +
+      (fn.ret ? " " + sp("sig-op", "→") + " " + escapeHtml(fn.ret) : "")
+    );
+    details += htmlDetailEntry(`fn-${fn.name}`, "fn", sigHtml, fn.desc, fn.jsdoc.params);
   }
 
   for (const t of mod.types) {
-    const sig = t.typeText ? `${t.name} = ${t.typeText}` : t.name;
-    details += htmlDetailEntry(`type-${t.name}`, "type", sig, t.desc, []);
+    details += htmlDetailEntry(`type-${t.name}`, "type", t.sigHtml, t.desc, []);
   }
 
   for (const i of mod.interfaces) {
-    details += htmlDetailEntry(`ifc-${i.name}`, "interface", i.name, i.desc, []);
+    details += htmlDetailEntry(`ifc-${i.name}`, "interface", i.sigHtml, i.desc, []);
   }
 
   for (const c of mod.consts) {
-    details += htmlDetailEntry(`const-${c.name}`, "const", `${c.name}: ${c.typeStr}`, c.desc, []);
+    details += htmlDetailEntry(`const-${c.name}`, "const", c.sigHtml, c.desc, []);
   }
 
   details += `</div>\n`;

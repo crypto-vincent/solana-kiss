@@ -126,13 +126,49 @@ hr.api-sep {
 code.api-sig {
   font-family: var(--vp-font-family-mono) !important;
   font-size: 0.875rem !important;
-  color: var(--vp-c-text-1) !important;
+  /* No color override — child spans handle token colours */
   background: none !important;
   padding: 0 !important;
   border-radius: 0 !important;
   flex: 1;
+  white-space: pre-wrap;
   word-break: break-word;
 }
+
+/* ── Signature syntax highlighting ───────────────────── */
+/* Light-mode token colours */
+:root {
+  --sig-fn:        var(--vp-c-brand-1);   /* function / method names   */
+  --sig-type:      #0550ae;               /* custom type references    */
+  --sig-primitive: #0a7c4c;               /* built-in keyword types    */
+  --sig-kw:        #7c3aed;               /* new / class / interface   */
+  --sig-param:     #374151;               /* parameter names           */
+  --sig-op:        #4b5563;               /* → | & =>                  */
+  --sig-punct:     #9ca3af;               /* ( ) , : ; < > [ ]         */
+  --sig-str:       #b45309;               /* string literals           */
+}
+
+/* Dark-mode overrides (VitePress adds .dark on <html>) */
+.dark {
+  --sig-fn:        var(--vp-c-brand-1);
+  --sig-type:      #60a5fa;
+  --sig-primitive: #34d399;
+  --sig-kw:        #a78bfa;
+  --sig-param:     #e2e8f0;
+  --sig-op:        #94a3b8;
+  --sig-punct:     #6b7280;
+  --sig-str:       #fb923c;
+}
+
+.sig-fn-name  { color: var(--sig-fn);        font-weight: 600; }
+.sig-const    { color: var(--sig-fn);        font-weight: 600; }
+.sig-type     { color: var(--sig-type);      }
+.sig-primitive{ color: var(--sig-primitive); }
+.sig-kw       { color: var(--sig-kw);        font-style: italic; }
+.sig-param    { color: var(--sig-param);     }
+.sig-op       { color: var(--sig-op);        }
+.sig-punct    { color: var(--sig-punct);     }
+.sig-str      { color: var(--sig-str);       }
 
 .api-entry-body {
   padding: 0.45rem 0.75rem 0.55rem;
