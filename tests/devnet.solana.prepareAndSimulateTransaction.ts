@@ -3,15 +3,13 @@ import {
   expectDefined,
   lamportsFeePerSignature,
   pubkeyFromBase58,
-  rpcHttpFromUrl,
   signerFromSecret,
   signerGenerate,
   Solana,
-  urlRpcPublicDevnet,
 } from "../src";
 
 it("run", async () => {
-  const solana = new Solana(rpcHttpFromUrl(urlRpcPublicDevnet));
+  const solana = new Solana("devnet");
   const programAddress = pubkeyFromBase58(
     "UCNcQRtrbGmvuLKA3Jv719Cc6DS4r661ZRpyZduxu2j",
   );

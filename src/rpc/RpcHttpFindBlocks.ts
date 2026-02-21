@@ -84,7 +84,11 @@ export async function rpcHttpFindBlocks(
   }
   while (true) {
     const result = resultJsonDecoder(
-      await self("getBlocks", [lowBlockSlot + 1, lowBlockSlot + batchSize], {}),
+      await self(
+        "getBlocks",
+        [lowBlockSlot + 1, lowBlockSlot + batchSize],
+        undefined,
+      ),
     );
     if (result.length === 0) {
       return { blocksSlots };

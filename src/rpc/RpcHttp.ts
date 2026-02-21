@@ -23,8 +23,8 @@ import { OneKeyOf } from "../data/Utils";
  */
 export type RpcHttp = (
   method: string,
-  params: JsonArray,
-  config: JsonObject | undefined,
+  params: Readonly<JsonArray>,
+  config: Readonly<JsonObject> | undefined,
 ) => Promise<JsonValue>;
 
 /**
@@ -57,6 +57,7 @@ export class RpcHttpError extends Error {
  * @param url - The HTTP(S) URL of the Solana RPC node.
  * @param options - Optional configuration.
  * @param options.commitment - Default commitment level (`"confirmed"` or `"finalized"`) applied to every request unless overridden per-call.
+ * @param options.customHeaders - Additional HTTP headers to include in every request.
  * @param options.customFetcher - Custom HTTP fetch implementation. Defaults to the global `fetch`.
  * @returns An {@link RpcHttp} function bound to the given URL.
  */
@@ -64,6 +65,7 @@ export function rpcHttpFromUrl(
   url: string,
   options?: {
     commitment?: "confirmed" | "finalized";
+    customHeaders?: { [key: string]: string };
     customFetcher?: (
       url: string,
       request: {
@@ -91,11 +93,14 @@ export function rpcHttpFromUrl(
           ...config,
         };
       }
-      params.push(config);
+      params = [...params, config];
     }
     const requestId = uniqueRequestId++;
     const responseJson = await fetcher(url, {
-      headers: { "Content-Type": "application/json" },
+      headers: {
+        "Content-Type": "application/json",
+        ...options?.customHeaders,
+      },
       method: "POST",
       body: JSON.stringify({
         jsonrpc: "2.0",
@@ -154,7 +159,7 @@ export function rpcHttpWithTimeout(self: RpcHttp, timeoutMs: number): RpcHttp {
  * @returns A new {@link RpcHttp} client with concurrency limiting.
  * @throws If `maxConcurrentRequests` is not greater than 0.
  */
-export function rpcHttpWithMaxConcurrentRequests(
+export function rpcHttpWithConcurrentRequestsLimit(
   self: RpcHttp,
   maxConcurrentRequests: number,
 ): RpcHttp {
@@ -178,6 +183,36 @@ export function rpcHttpWithMaxConcurrentRequests(
 }
 
 /**
+ * Wraps an {@link RpcHttp} client to limit the rate of requests to a maximum per second.
+ * Excess requests are queued and executed at a controlled rate.
+ *
+ * @param self - The underlying {@link RpcHttp} client to wrap.
+ * @param maxRequestsPerSecond - Maximum number of requests allowed per second. Must be greater than 0.
+ * @returns A new {@link RpcHttp} client with rate limiting.
+ * @throws If `maxRequestsPerSecond` is not greater than 0.
+ */
+export function rpcHttpWithRequestsPerSecondLimit(
+  self: RpcHttp,
+  maxRequestsPerSecond: number,
+): RpcHttp {
+  if (maxRequestsPerSecond <= 0) {
+    throw new Error("RpcHttp: maxRequestsPerSecond must be > 0");
+  }
+  let nextFreeTimeMs = 0;
+  const intervalMs = 1000 / maxRequestsPerSecond;
+  return async function (method, params, config) {
+    const nowTimeMs = Date.now();
+    const scheduledTimeMs = Math.max(nextFreeTimeMs, nowTimeMs);
+    nextFreeTimeMs = scheduledTimeMs + intervalMs;
+    const delayDurationMs = scheduledTimeMs - nowTimeMs;
+    if (delayDurationMs > 0) {
+      await new Promise((resolve) => setTimeout(resolve, delayDurationMs));
+    }
+    return await self(method, params, config);
+  };
+}
+
+/**
  * Wraps an {@link RpcHttp} client to automatically retry failed requests.
  * The `retryApprover` callback is invoked after each failure; returning `true` retries the request,
  * while returning `false` re-throws the original error.
@@ -193,8 +228,8 @@ export function rpcHttpWithRetryOnError(
     retriedCounter: number;
     totalDurationMs: number;
     requestMethod: string;
-    requestParams: JsonArray;
-    requestConfig: JsonObject | undefined;
+    requestParams: Readonly<JsonArray>;
+    requestConfig: Readonly<JsonObject | undefined>;
     lastError: any;
   }) => Promise<boolean>,
 ): RpcHttp {

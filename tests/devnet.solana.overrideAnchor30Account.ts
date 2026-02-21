@@ -6,15 +6,13 @@ import {
   Pubkey,
   pubkeyFindPdaAddress,
   pubkeyFromBase58,
-  rpcHttpFromUrl,
   Solana,
-  urlRpcPublicDevnet,
   utf8Encode,
 } from "../src";
 
 it("run", async () => {
   // Create the endpoint
-  const solana = new Solana(rpcHttpFromUrl(urlRpcPublicDevnet));
+  const solana = new Solana("devnet");
   // Choosing our programAddress
   const programAddress = pubkeyFromBase58(
     "UCNcQRtrbGmvuLKA3Jv719Cc6DS4r661ZRpyZduxu2j",

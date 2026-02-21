@@ -59,7 +59,7 @@ import { rpcHttpSimulateTransaction } from "./rpc/RpcHttpSimulateTransaction";
  *
  * @example
  * ```ts
- * const solana = new Solana("mainnet-beta");
+ * const solana = new Solana("mainnet");
  * const { accountState } = await solana.getAndInferAndDecodeAccount(myAddress);
  * ```
  */
@@ -77,10 +77,7 @@ export class Solana {
   /**
    * Creates a new `Solana` instance.
    *
-   * @param rpcHttp - An existing {@link RpcHttp} client, or a URL / network
-   *   moniker string (e.g. `"mainnet-beta"`, `"devnet"`, or a full RPC URL).
-   *   When a string is provided, a default confirmed-commitment client is
-   *   created automatically.
+   * @param rpcHttp - An existing {@link RpcHttp} client or a public cluster moniker (`"mainnet"`, `"devnet"`, or `"testnet"`) to connect to.
    * @param options - Optional configuration.
    * @param options.idlLoader - Custom IDL loader to use instead of the built-in
    *   sequence (on-chain native → on-chain Anchor → remote GitHub fallback).
@@ -90,7 +87,7 @@ export class Solana {
    *   to cache the most-recently fetched block hash. Defaults to `15_000` ms.
    */
   constructor(
-    rpcHttp: RpcHttp | string,
+    rpcHttp: RpcHttp | "mainnet" | "devnet" | "testnet",
     options?: {
       idlLoader?: IdlLoader;
       idlOverrides?: Map<Pubkey, IdlProgram>;
