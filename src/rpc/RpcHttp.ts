@@ -150,7 +150,7 @@ export function rpcHttpWithTimeout(self: RpcHttp, timeoutMs: number): RpcHttp {
  * @returns A new {@link RpcHttp} client with concurrency limiting.
  * @throws If `maxConcurrentRequests` is not greater than 0.
  */
-export function rpcHttpWithMaxConcurrentRequests(
+export function rpcHttpWithConcurrentRequestsLimit(
   self: RpcHttp,
   maxConcurrentRequests: number,
 ): RpcHttp {
@@ -170,6 +170,37 @@ export function rpcHttpWithMaxConcurrentRequests(
       ongoingRequests--;
       queue.shift()?.();
     }
+  };
+}
+
+/**
+ * Wraps an {@link RpcHttp} client to limit the rate of requests to a maximum per second.
+ * Excess requests are queued and executed at a controlled rate.
+ *
+ * @param self - The underlying {@link RpcHttp} client to wrap.
+ * @param maxRequestsPerSecond - Maximum number of requests allowed per second. Must be greater than 0.
+ * @returns A new {@link RpcHttp} client with rate limiting.
+ * @throws If `maxRequestsPerSecond` is not greater than 0.
+ */
+export function rpcHttpWithRequestsPerSecondLimit(
+  self: RpcHttp,
+  maxRequestsPerSecond: number,
+): RpcHttp {
+  if (maxRequestsPerSecond <= 0) {
+    throw new Error("RpcHttp: maxRequestsPerSecond must be > 0");
+  }
+  let requestsThisSecond = 0;
+  return async function (method, params, config) {
+    while (requestsThisSecond >= maxRequestsPerSecond) {
+      await new Promise((resolve) =>
+        setTimeout(resolve, 1000 / maxRequestsPerSecond),
+      );
+    }
+    requestsThisSecond++;
+    setTimeout(() => {
+      requestsThisSecond -= 1;
+    }, 1000);
+    return await self(method, params, config);
   };
 }
 
