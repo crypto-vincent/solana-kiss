@@ -48,6 +48,7 @@ export class RpcHttpError extends Error {
  * @param url - The HTTP(S) URL of the Solana RPC node.
  * @param options - Optional configuration.
  * @param options.commitment - Default commitment level (`"confirmed"` or `"finalized"`) applied to every request unless overridden per-call.
+ * @param options.customHeaders - Additional HTTP headers to include in every request.
  * @param options.customFetcher - Custom HTTP fetch implementation. Defaults to the global `fetch`.
  * @returns An {@link RpcHttp} function bound to the given URL.
  */
@@ -55,6 +56,7 @@ export function rpcHttpFromUrl(
   url: string,
   options?: {
     commitment?: "confirmed" | "finalized";
+    customHeaders?: { [key: string]: string };
     customFetcher?: (
       url: string,
       request: {
@@ -86,7 +88,10 @@ export function rpcHttpFromUrl(
     }
     const requestId = uniqueRequestId++;
     const responseJson = await fetcher(url, {
-      headers: { "Content-Type": "application/json" },
+      headers: {
+        "Content-Type": "application/json",
+        ...options?.customHeaders,
+      },
       method: "POST",
       body: JSON.stringify({
         jsonrpc: "2.0",

@@ -5,13 +5,11 @@ import {
   pubkeyFromBase58,
   pubkeyNewDummy,
   pubkeyToBytes,
-  rpcHttpFromUrl,
   Solana,
-  urlRpcPublicDevnet,
 } from "../src";
 
 it("run", async () => {
-  const solana = new Solana(rpcHttpFromUrl(urlRpcPublicDevnet));
+  const solana = new Solana("devnet");
   // Check that we can parse a bunch of known on-chain accounts
   await assertAccountState(
     solana,

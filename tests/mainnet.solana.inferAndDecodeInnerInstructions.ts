@@ -1,13 +1,7 @@
-import {
-  rpcHttpFromUrl,
-  rpcHttpWaitForTransaction,
-  signatureFromBase58,
-  Solana,
-  urlRpcPublicMainnet,
-} from "../src";
+import { rpcHttpWaitForTransaction, signatureFromBase58, Solana } from "../src";
 
 it("run", async () => {
-  const solana = new Solana(rpcHttpFromUrl(urlRpcPublicMainnet));
+  const solana = new Solana("mainnet");
 
   const { transactionFlow } = await rpcHttpWaitForTransaction(
     solana.getRpcHttp(),

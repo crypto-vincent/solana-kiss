@@ -1,13 +1,8 @@
 import { it } from "@jest/globals";
-import {
-  pubkeyFromBase58,
-  rpcHttpFromUrl,
-  Solana,
-  urlRpcPublicDevnet,
-} from "../src";
+import { pubkeyFromBase58, Solana } from "../src";
 
 it("run", async () => {
-  const solana = new Solana(rpcHttpFromUrl(urlRpcPublicDevnet));
+  const solana = new Solana("devnet");
 
   const { accountState: accountState1 } =
     await solana.getAndInferAndDecodeAccount(
