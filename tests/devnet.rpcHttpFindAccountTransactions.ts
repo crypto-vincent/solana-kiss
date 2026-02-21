@@ -15,7 +15,8 @@ it("run", async () => {
     pubkeyFromBase58("vVeH6Xd43HAScbxjVtvfwDGqBMaMvNDLsAxwM5WK1pG"),
     4200,
   );
-  expect(newToOldTransactionsHandles.length).toBeGreaterThan(0);
+  expect(newToOldTransactionsHandles.length).toBeGreaterThan(100);
+  expect(newToOldTransactionsHandles.length).toBeLessThanOrEqual(4200);
   const { transactionExecution } = expectDefined(
     await rpcHttpGetTransaction(
       rpcHttp,

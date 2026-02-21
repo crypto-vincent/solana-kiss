@@ -191,6 +191,7 @@ export function rpcHttpWithRequestsPerSecondLimit(
   }
   let nextFreeTimeMs = 0;
   const intervalMs = 1000 / maxRequestsPerSecond;
+  // TODO - use something more accurate for large numbers of requests or very low intervals
   return async function (method, params, config) {
     const nowTimeMs = Date.now();
     const scheduledTimeMs = Math.max(nextFreeTimeMs, nowTimeMs);
