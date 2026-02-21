@@ -3,7 +3,7 @@
  * @param message - A context message describing the operation being attempted.
  * @param fn - The function to execute.
  * @returns The return value of `fn`.
- * @throws {ErrorStack} If `fn` throws, wraps the original error with the provided message.
+ * @throws {@link ErrorStack} If `fn` throws, wraps the original error with the provided message.
  */
 export function withErrorContext<T>(message: string, fn: () => T): T {
   try {

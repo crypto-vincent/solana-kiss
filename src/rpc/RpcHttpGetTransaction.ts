@@ -29,11 +29,12 @@ import { RpcHttp } from "./RpcHttp";
  * and optionally a structured call-stack flow.
  *
  * @param self - The {@link RpcHttp} client to use.
- * @param transactionHandle - The transaction signature to look up.
+ * @param transactionHandle - The {@link TransactionHandle} (transaction signature) to look up.
  * @param options - Optional fetch options.
  * @param options.skipTransactionFlow - When `true`, skips parsing the program invocation call-stack
  *   from the transaction logs, leaving `transactionFlow` as `undefined`.
- * @returns An object containing `transactionRequest`, `transactionExecution`, and `transactionFlow`,
+ * @returns An object containing `transactionRequest` ({@link TransactionRequest}),
+ *   `transactionExecution` ({@link TransactionExecution}), and `transactionFlow` ({@link TransactionFlow}),
  *   or `undefined` if the transaction is not yet found on-chain.
  */
 export async function rpcHttpGetTransaction(

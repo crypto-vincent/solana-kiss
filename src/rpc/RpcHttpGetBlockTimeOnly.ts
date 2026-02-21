@@ -6,7 +6,7 @@ import { RpcHttp } from "./RpcHttp";
  * Fetches only the production timestamp for the given block slot.
  *
  * @param self - The {@link RpcHttp} client to use.
- * @param blockSlot - The slot number of the block to query.
+ * @param blockSlot - The {@link BlockSlot} to query.
  * @returns An object containing `blockTime`, the block production time as a `Date`, or `undefined` if not available.
  */
 export async function rpcHttpGetBlockTimeOnly(

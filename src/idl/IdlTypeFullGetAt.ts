@@ -29,7 +29,7 @@ import { IdlTypePrimitive } from "./IdlTypePrimitive";
  *
  * @param self - The full IDL type to traverse.
  * @param pathOrPointer - A JSON Pointer string or pre-parsed token array.
- * @returns The `IdlTypeFull` found at the specified path.
+ * @returns The {@link IdlTypeFull} found at the specified path.
  */
 export function idlTypeFullGetAt(
   self: IdlTypeFull,
@@ -48,7 +48,7 @@ export function idlTypeFullGetAt(
  *
  * @param self - The full IDL fields to traverse.
  * @param pathOrPointer - A JSON Pointer string or pre-parsed token array.
- * @returns The `IdlTypeFull` found at the specified path.
+ * @returns The {@link IdlTypeFull} found at the specified path.
  */
 export function idlTypeFullFieldsGetAt(
   self: IdlTypeFullFields,

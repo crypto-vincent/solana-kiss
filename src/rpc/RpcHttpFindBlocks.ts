@@ -19,7 +19,7 @@ import { RpcHttp } from "./RpcHttp";
  * @param self - The {@link RpcHttp} client to use.
  * @param maxResultLength - Maximum number of block slots to return.
  * @param context - Defines the search range and direction.
- * @returns An object containing `blocksSlots`, an array of block slots in the order they were found.
+ * @returns An object containing `blocksSlots`, an array of {@link BlockSlot}s in the order they were found.
  */
 export async function rpcHttpFindBlocks(
   self: RpcHttp,

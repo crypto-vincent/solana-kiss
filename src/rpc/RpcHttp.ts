@@ -31,9 +31,18 @@ export type RpcHttp = (
  * Error thrown when a Solana JSON-RPC HTTP response contains an error payload.
  */
 export class RpcHttpError extends Error {
+  /** The numeric JSON-RPC error code. */
   public readonly code: number;
+  /** A short description of the error returned by the node. */
   public readonly desc: string;
+  /** Additional error data attached to the JSON-RPC error object, if any. */
   public readonly data: JsonValue;
+  /**
+   * @param message - Human-readable error message.
+   * @param code - The numeric JSON-RPC error code.
+   * @param desc - Short description of the error.
+   * @param data - Additional error data from the RPC response.
+   */
   constructor(message: string, code: number, desc: string, data: JsonValue) {
     super(message);
     this.code = code;
