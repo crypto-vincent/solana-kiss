@@ -26,38 +26,27 @@ it("run", async () => {
   const promises = [];
   promises.push(
     expectScenarioDurationMs({
-      rpcHttp: rpcHttpWithRequestsPerSecondLimit(rpcHttp, 3),
-      requestsCount: 2,
-      expectedMinDurationMs: 0,
-      expectedMaxDurationMs: 100,
-    }),
-  );
-  promises.push(
-    expectScenarioDurationMs({
-      rpcHttp: rpcHttpWithRequestsPerSecondLimit(rpcHttp, 3),
+      rpcHttp: rpcHttpWithRequestsPerSecondLimit(rpcHttp, 10),
       requestsCount: 5,
-      expectedMinDurationMs: 1000,
-      expectedMaxDurationMs: 1100,
+      expectedMinDurationMs: 400,
+      expectedMaxDurationMs: 450,
     }),
   );
   promises.push(
     expectScenarioDurationMs({
-      rpcHttp: rpcHttpWithRequestsPerSecondLimit(rpcHttp, 3),
-      requestsCount: 7,
-      expectedMinDurationMs: 2000,
-      expectedMaxDurationMs: 2100,
+      rpcHttp: rpcHttpWithRequestsPerSecondLimit(rpcHttp, 10),
+      requestsCount: 15,
+      expectedMinDurationMs: 1400,
+      expectedMaxDurationMs: 1450,
     }),
   );
   promises.push(
     expectScenarioDurationMs({
-      rpcHttp: rpcHttpWithRequestsPerSecondLimit(rpcHttp, 3),
-      requestsCount: 10,
-      expectedMinDurationMs: 3000,
-      expectedMaxDurationMs: 3100,
+      rpcHttp: rpcHttpWithRequestsPerSecondLimit(rpcHttp, 10),
+      requestsCount: 25,
+      expectedMinDurationMs: 2400,
+      expectedMaxDurationMs: 2450,
     }),
   );
   await Promise.all(promises);
-  console.log(
-    "Tested rpcHttpWithRequestsPerSecondLimit with 2, 5, 7 and 10 requests",
-  );
 });

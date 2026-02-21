@@ -189,17 +189,16 @@ export function rpcHttpWithRequestsPerSecondLimit(
   if (maxRequestsPerSecond <= 0) {
     throw new Error("RpcHttp: maxRequestsPerSecond must be > 0");
   }
-  let requestsThisSecond = 0;
+  let nextFreeTimeMs = 0;
+  const intervalMs = 1000 / maxRequestsPerSecond;
   return async function (method, params, config) {
-    while (requestsThisSecond >= maxRequestsPerSecond) {
-      await new Promise((resolve) =>
-        setTimeout(resolve, 1000 / maxRequestsPerSecond),
-      );
+    const nowTimeMs = Date.now();
+    const scheduledTimeMs = Math.max(nextFreeTimeMs, nowTimeMs);
+    nextFreeTimeMs = scheduledTimeMs + intervalMs;
+    const delayDurationMs = scheduledTimeMs - nowTimeMs;
+    if (delayDurationMs > 0) {
+      await new Promise((resolve) => setTimeout(resolve, delayDurationMs));
     }
-    requestsThisSecond++;
-    setTimeout(() => {
-      requestsThisSecond -= 1;
-    }, 1000);
     return await self(method, params, config);
   };
 }
