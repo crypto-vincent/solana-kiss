@@ -2,7 +2,6 @@ import { it } from "@jest/globals";
 import {
   idlProgramParse,
   JsonArray,
-  JsonObject,
   pubkeyCreateFromSeed,
   pubkeyDefault,
   pubkeyFindPdaAddress,
@@ -17,14 +16,12 @@ it("run", async () => {
   const rpcCounters = new Map<string, number>();
 
   const rpcHttp = rpcHttpFromUrl(urlRpcPublicDevnet);
-  const solana = new Solana(
-    (method: string, params: JsonArray, config: JsonObject | undefined) => {
-      const key = counterKey(method, params);
-      const count = rpcCounters.get(key) ?? 0;
-      rpcCounters.set(key, count + 1);
-      return rpcHttp(method, params, config);
-    },
-  );
+  const solana = new Solana((method, params, config) => {
+    const key = counterKey(method, params);
+    const count = rpcCounters.get(key) ?? 0;
+    rpcCounters.set(key, count + 1);
+    return rpcHttp(method, params, config);
+  });
 
   const knownProgramAddress = pubkeyFromBase58(
     "UCNcQRtrbGmvuLKA3Jv719Cc6DS4r661ZRpyZduxu2j",
@@ -98,6 +95,6 @@ it("run", async () => {
   expect(instructionAddresses["system_program"]).toStrictEqual(pubkeyDefault);
 });
 
-function counterKey(method: string, params: JsonArray): string {
+function counterKey(method: string, params: Readonly<JsonArray>): string {
   return `${method}:${JSON.stringify(params)}`;
 }

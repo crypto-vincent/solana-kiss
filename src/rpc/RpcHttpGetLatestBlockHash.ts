@@ -15,7 +15,9 @@ import { RpcHttp } from "./RpcHttp";
 export async function rpcHttpGetLatestBlockHash(self: RpcHttp): Promise<{
   blockHash: BlockHash;
 }> {
-  const result = resultJsonDecoder(await self("getLatestBlockhash", [], {}));
+  const result = resultJsonDecoder(
+    await self("getLatestBlockhash", [], undefined),
+  );
   return { blockHash: result.value.blockhash };
 }
 

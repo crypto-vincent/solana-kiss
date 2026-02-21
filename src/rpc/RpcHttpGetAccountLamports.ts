@@ -16,7 +16,7 @@ export async function rpcHttpGetAccountLamports(
   accountLamports: bigint;
 }> {
   const result = resultJsonDecoder(
-    await self("getBalance", [pubkeyToBase58(accountAddress)], {}),
+    await self("getBalance", [pubkeyToBase58(accountAddress)], undefined),
   );
   return { accountLamports: BigInt(result.value) };
 }
