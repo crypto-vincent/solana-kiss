@@ -19,6 +19,7 @@ import {
   idlInstructionArgsDecode,
   idlInstructionArgsEncode,
 } from "./idl/IdlInstruction";
+import { idlInstructionAccountFind } from "./idl/IdlInstructionAccount";
 import {
   IdlInstructionBlobAccountContent,
   IdlInstructionBlobAccountsContext,
@@ -410,6 +411,60 @@ export class Solana {
         return accountContent;
       },
     });
+  }
+
+  /**
+   * Resolves a specific instruction account address by name.
+   *
+   * @param programAddress - The on-chain address of the target program.
+   * @param instructionName - The name of the instruction as declared in the
+   *   program's IDL.
+   * @param instructionAccountName - The name of the instructionaccount to resolve.
+   * @param options - Resolution options.
+   * @param options.instructionAddresses - Partially-filled named account
+   *   addresses.
+   * @param options.instructionPayload - Instruction arguments, used when
+   *   account derivation depends on argument values.
+   * @param options.accountsContext - Optional context blob providing
+   *   additional on-chain data for account resolution.
+   * @returns The resolved instruction account address.
+   * @throws If the instruction or account does not exist in the IDL.
+   */
+  public async resolveInstructionAddress(
+    programAddress: Pubkey,
+    instructionName: string,
+    instructionAccountName: string,
+    options?: {
+      instructionAddresses?: IdlInstructionAddresses;
+      instructionPayload?: JsonValue;
+      accountsContext?: IdlInstructionBlobAccountsContext;
+    },
+  ) {
+    const { instructionAddresses } = await this.hydrateInstructionAddresses(
+      programAddress,
+      instructionName,
+      options,
+    );
+    const { instructionIdl } = await this.getOrLoadInstructionIdl(
+      programAddress,
+      instructionName,
+    );
+    const findContext = {
+      ...options,
+      instructionAddresses,
+    };
+    for (const instructionAccountIdl of instructionIdl.accounts) {
+      if (instructionAccountIdl.name === instructionAccountName) {
+        return await idlInstructionAccountFind(
+          instructionAccountIdl,
+          programAddress,
+          findContext,
+        );
+      }
+    }
+    throw new Error(
+      `Idl: Could not find instruction account '${instructionAccountName}' in instruction '${instructionName}'`,
+    );
   }
 
   /**

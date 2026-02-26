@@ -198,18 +198,17 @@ export function rpcHttpWithRequestsPerSecondLimit(
   if (maxRequestsPerSecond <= 0) {
     throw new Error("RpcHttp: maxRequestsPerSecond must be > 0");
   }
-  const gapDurationMs = 1000 / maxRequestsPerSecond;
-  let blocked = false;
+  let ongoingRequest = false;
   const queue = new Array<() => void>();
   return async function (method, params, config) {
-    if (blocked) {
+    if (ongoingRequest) {
       await new Promise<void>((resolve) => queue.push(resolve));
     }
-    blocked = true;
+    ongoingRequest = true;
     setTimeout(() => {
-      blocked = false;
+      ongoingRequest = false;
       queue.shift()?.();
-    }, gapDurationMs);
+    }, 1000 / maxRequestsPerSecond);
     return await self(method, params, config);
   };
 }
