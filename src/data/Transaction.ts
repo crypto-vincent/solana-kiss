@@ -100,7 +100,7 @@ export type TransactionFlow = Array<
  */
 export type TransactionInvocation = {
   instructionRequest: InstructionRequest;
-  innerFlow: TransactionFlow; // TODO - naming is weird
+  innerFlow: TransactionFlow; // TODO - naming is weird (separate concept?)
   instructionError: string | undefined;
   instructionReturned: Uint8Array | undefined;
   consumedComputeUnits: number | undefined;

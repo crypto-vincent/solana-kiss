@@ -1,7 +1,5 @@
 import {
   JsonArray,
-  JsonObject,
-  JsonValue,
   jsonCodecNumber,
   jsonCodecString,
   jsonCodecValue,
@@ -9,6 +7,8 @@ import {
   jsonDecoderObjectToObject,
   jsonDecoderTrySequentially,
   jsonDecoderWrapped,
+  JsonObject,
+  JsonValue,
 } from "../data/Json";
 import { OneKeyOf } from "../data/Utils";
 
@@ -198,17 +198,18 @@ export function rpcHttpWithRequestsPerSecondLimit(
   if (maxRequestsPerSecond <= 0) {
     throw new Error("RpcHttp: maxRequestsPerSecond must be > 0");
   }
-  let nextFreeTimeMs = 0;
-  const intervalMs = 1000 / maxRequestsPerSecond;
-  // TODO - use something more accurate for large numbers of requests or very low intervals
+  const gapDurationMs = 1000 / maxRequestsPerSecond;
+  let blocked = false;
+  const queue = new Array<() => void>();
   return async function (method, params, config) {
-    const nowTimeMs = Date.now();
-    const scheduledTimeMs = Math.max(nextFreeTimeMs, nowTimeMs);
-    nextFreeTimeMs = scheduledTimeMs + intervalMs;
-    const delayDurationMs = scheduledTimeMs - nowTimeMs;
-    if (delayDurationMs > 0) {
-      await new Promise((resolve) => setTimeout(resolve, delayDurationMs));
+    if (blocked) {
+      await new Promise<void>((resolve) => queue.push(resolve));
     }
+    blocked = true;
+    setTimeout(() => {
+      blocked = false;
+      queue.shift()?.();
+    }, gapDurationMs);
     return await self(method, params, config);
   };
 }

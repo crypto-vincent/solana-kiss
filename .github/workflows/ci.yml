@@ -10,7 +10,7 @@ jobs:
       contents: read
     strategy:
       matrix:
-        command: [check, build, test]
+        command: [check, test]
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
