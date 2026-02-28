@@ -548,6 +548,7 @@ export class Solana {
       transactionPacket,
       options,
     );
+    // TODO - add a feature to wait for the result also, maybe a separate API
     return { transactionHandle };
   }
 
