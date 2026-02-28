@@ -6,6 +6,7 @@ import { Signer } from "./data/Signer";
 import {
   TransactionAddressLookupTable,
   transactionCompileAndSign,
+  TransactionProcessor,
 } from "./data/Transaction";
 import { urlRpcFromUrlOrMoniker } from "./data/Url";
 import { mapGuessIntendedKey } from "./data/Utils";
@@ -515,17 +516,25 @@ export class Solana {
    * @throws If signing fails, or if the RPC rejects the transaction.
    */
   public async prepareAndSendTransaction(
-    payerSigner: Signer | WalletAccount,
+    payerSigner:
+      | Signer
+      | WalletAccount
+      | { address: Pubkey; processor: TransactionProcessor },
     instructionsRequests: Array<InstructionRequest>,
     options?: {
-      extraSigners?: Array<Signer | WalletAccount>;
+      extraSigners?: Array<Signer | WalletAccount | TransactionProcessor>;
       transactionLookupTables?: Array<TransactionAddressLookupTable>;
       skipPreflight?: boolean;
     },
   ) {
     const payerAddress = payerSigner.address;
     const recentBlockHash = await this.getRecentBlockHash();
-    const signers = [payerSigner];
+    const signers = new Array<Signer | WalletAccount | TransactionProcessor>();
+    if ("processor" in payerSigner) {
+      signers.push(payerSigner.processor);
+    } else {
+      signers.push(payerSigner);
+    }
     if (options?.extraSigners) {
       signers.push(...options.extraSigners);
     }
@@ -573,14 +582,14 @@ export class Solana {
     payer: Pubkey | Signer | WalletAccount,
     instructionsRequests: Array<InstructionRequest>,
     options?: {
-      extraSigners?: Array<Signer | WalletAccount>;
+      extraSigners?: Array<Signer | WalletAccount | TransactionProcessor>;
       transactionLookupTables?: Array<TransactionAddressLookupTable>;
-      verifySignaturesAndBlockHash?: boolean;
+      verifySignaturesAndBlockHash?: boolean; // TODO - can separate this ?
       simulatedAccountsAddresses?: Set<Pubkey>;
     },
   ) {
     let recentBlockHash = blockHashDefault;
-    const signers = new Array<Signer | WalletAccount>();
+    const signers = new Array<Signer | WalletAccount | TransactionProcessor>();
     if (options?.verifySignaturesAndBlockHash ?? true) {
       recentBlockHash = await this.getRecentBlockHash();
       if (payer instanceof Object && "address" in payer) {

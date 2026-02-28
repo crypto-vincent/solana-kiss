@@ -1,5 +1,7 @@
 import { expect, it } from "@jest/globals";
 import {
+  ExecutionFlow,
+  ExecutionInvocation,
   expectDefined,
   InstructionInput,
   InstructionRequest,
@@ -7,7 +9,6 @@ import {
   rpcHttpGetTransaction,
   TransactionHandle,
 } from "../src";
-import { ExecutionFlow, ExecutionInvocation } from "../src/data/Execution";
 
 function rpcHttp() {
   return require("./fixtures/RpcHttpGetTransaction.json");

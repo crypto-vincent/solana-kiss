@@ -64,6 +64,7 @@ export function idlLoaderFromOnchainNative(
     const idlJson = JSON.parse(idlString) as JsonValue;
     const programIdl = idlProgramParse(idlJson);
     programIdl.metadata.address = programAddress;
+    // TODO - more standardized program metadata and source
     programIdl.metadata.source = `onchain://solana-program-metadata/canonical`;
     return programIdl;
   };

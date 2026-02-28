@@ -1,5 +1,7 @@
 import { expect, it } from "@jest/globals";
 import {
+  ExecutionFlow,
+  ExecutionInvocation,
   expectDefined,
   InstructionInput,
   InstructionRequest,
@@ -9,7 +11,6 @@ import {
   signatureFromBase58,
   urlRpcPublicMainnet,
 } from "../src";
-import { ExecutionFlow, ExecutionInvocation } from "../src/data/Execution";
 
 it("run", async () => {
   const rpcHttp = rpcHttpFromUrl(urlRpcPublicMainnet);

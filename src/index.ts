@@ -4,6 +4,7 @@ export * from "./data/Base64";
 export * from "./data/Block";
 export * from "./data/Casing";
 export * from "./data/Error";
+export * from "./data/Execution";
 export * from "./data/Inflate";
 export * from "./data/Instruction";
 export * from "./data/Json";

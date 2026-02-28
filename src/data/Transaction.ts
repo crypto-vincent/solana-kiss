@@ -60,6 +60,14 @@ export type TransactionPacket = Branded<Uint8Array, "TransactionPacket"> & {
 };
 
 /**
+ * A function that processes a {@link TransactionPacket}, typically used for
+ * post-processing or wallet signing after the initial compilation phase.
+ */
+export type TransactionProcessor = (
+  transactionPacket: TransactionPacket,
+) => Promise<TransactionPacket>;
+
+/**
  * An opaque reference to a confirmed transaction on-chain.
  * Backed by the transaction's first signer signature.
  */
@@ -69,7 +77,7 @@ export type TransactionHandle = Signature;
  * Compiles a {@link TransactionRequest} into a wire-ready
  * {@link TransactionPacket} and signs it with the provided signers.
  *
- * @param signers - One or more {@link Signer} or {@link WalletAccount} objects
+ * @param signers - One or more {@link Signer}, {@link WalletAccount}, or {@link TransactionProcessor}
  *   that will sign the transaction.
  * @param transactionRequest - The fee payer, recent blockhash, and
  *   instructions to compile.
@@ -78,7 +86,7 @@ export type TransactionHandle = Signature;
  * @returns A promise that resolves to the fully signed {@link TransactionPacket}.
  */
 export async function transactionCompileAndSign(
-  signers: Array<Signer | WalletAccount>,
+  signers: Array<Signer | WalletAccount | TransactionProcessor>,
   transactionRequest: TransactionRequest,
   transactionAddressLookupTables?: Array<TransactionAddressLookupTable>,
 ): Promise<TransactionPacket> {
@@ -234,7 +242,7 @@ export function transactionCompileUnsigned(
  */
 export async function transactionSign(
   transactionPacket: TransactionPacket,
-  signers: Array<Signer | WalletAccount>,
+  signers: Array<Signer | WalletAccount | TransactionProcessor>,
 ) {
   const signaturesBySignerAddress = new Map<Pubkey, Signature>();
   const transactionMessage = transactionExtractMessage(transactionPacket);
@@ -256,13 +264,16 @@ export async function transactionSign(
     }
     offset += 64;
   }
-  let packet = bytes as TransactionPacket;
+  transactionPacket = bytes as TransactionPacket;
   for (const signer of signers) {
     if ("signTransaction" in signer) {
-      packet = await signer.signTransaction(packet);
+      transactionPacket = await signer.signTransaction(transactionPacket);
+    }
+    if (signer instanceof Function) {
+      transactionPacket = await signer(transactionPacket);
     }
   }
-  return packet;
+  return transactionPacket;
 }
 
 /**

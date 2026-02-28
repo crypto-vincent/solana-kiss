@@ -38,7 +38,7 @@ export type Branded<T, Name> =
  */
 export function expectDefined<T>(value: T | undefined, context?: string): T {
   if (value === undefined) {
-    const error = new ErrorStack(`Expected value to be defined`);
+    const error = new ErrorStack(`Value is undefined`);
     if (context) {
       throw new ErrorStack(context, error);
     } else {
@@ -58,7 +58,7 @@ export function expectDefined<T>(value: T | undefined, context?: string): T {
  */
 export function expectEqual<T>(a: T, b: T, context?: string): void {
   if (a !== b) {
-    const error = new ErrorStack(`Expected values to be equal`, [a, b]);
+    const error = new ErrorStack(`Values are not equal`, [a, b]);
     if (context) {
       throw new ErrorStack(context, error);
     } else {
