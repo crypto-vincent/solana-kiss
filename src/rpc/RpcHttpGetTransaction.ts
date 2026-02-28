@@ -1,5 +1,10 @@
 import { base58Decode } from "../data/Base58";
 import { base64Decode } from "../data/Base64";
+import {
+  ExecutionFlow,
+  ExecutionInvocation,
+  ExecutionReport,
+} from "../data/Execution";
 import { InstructionInput, InstructionRequest } from "../data/Instruction";
 import {
   jsonCodecBlockHash,
@@ -15,13 +20,7 @@ import {
   JsonObject,
 } from "../data/Json";
 import { Pubkey, pubkeyFromBase58 } from "../data/Pubkey";
-import {
-  TransactionExecution,
-  TransactionFlow,
-  TransactionHandle,
-  TransactionInvocation,
-  TransactionRequest,
-} from "../data/Transaction";
+import { TransactionHandle, TransactionRequest } from "../data/Transaction";
 import { RpcHttp } from "./RpcHttp";
 
 /**
@@ -31,21 +30,21 @@ import { RpcHttp } from "./RpcHttp";
  * @param self - The {@link RpcHttp} client to use.
  * @param transactionHandle - The {@link TransactionHandle} (transaction signature) to look up.
  * @param options - Optional fetch options.
- * @param options.skipTransactionFlow - When `true`, skips parsing the program invocation call-stack
- *   from the transaction logs, leaving `transactionFlow` as `undefined`.
+ * @param options.skipExecutionFlow - When `true`, skips parsing the program invocation call-stack
+ *   from the transaction logs, leaving `executionFlow` as `undefined`.
  * @returns An object containing `transactionRequest` ({@link TransactionRequest}),
- *   `transactionExecution` ({@link TransactionExecution}), and `transactionFlow` ({@link TransactionFlow}),
+ *   `executionReport` ({@link ExecutionReport}), and `executionFlow` ({@link ExecutionFlow}),
  *   or `undefined` if the transaction is not yet found on-chain.
  */
 export async function rpcHttpGetTransaction(
   self: RpcHttp,
   transactionHandle: TransactionHandle,
-  options?: { skipTransactionFlow?: boolean },
+  options?: { skipExecutionFlow?: boolean },
 ): Promise<
   | {
       transactionRequest: TransactionRequest;
-      transactionExecution: TransactionExecution;
-      transactionFlow: TransactionFlow | undefined;
+      executionReport: ExecutionReport;
+      executionFlow: ExecutionFlow | undefined;
     }
   | undefined
 > {
@@ -83,7 +82,7 @@ export async function rpcHttpGetTransaction(
     recentBlockHash: message.recentBlockhash,
     instructionsRequests,
   };
-  const transactionExecution: TransactionExecution = {
+  const executionReport: ExecutionReport = {
     blockTime: result.blockTime ? new Date(result.blockTime * 1000) : undefined,
     blockSlot: result.slot,
     transactionLogs: meta.logMessages ?? undefined,
@@ -92,14 +91,14 @@ export async function rpcHttpGetTransaction(
     chargedFeesLamports: meta.fee ? BigInt(meta.fee) : undefined,
   };
   if (
-    options?.skipTransactionFlow ||
+    options?.skipExecutionFlow ||
     meta.innerInstructions === null ||
     meta.logMessages === null
   ) {
     return {
       transactionRequest,
-      transactionExecution,
-      transactionFlow: undefined,
+      executionReport,
+      executionFlow: undefined,
     };
   }
   const instructionsCallStacks = decompileInstructionsCallStacks(
@@ -107,9 +106,9 @@ export async function rpcHttpGetTransaction(
     instructionsInputs,
     meta.innerInstructions,
   );
-  const rootTransactionInvocation: TransactionInvocation = {
+  const rootTransactionInvocation: ExecutionInvocation = {
     instructionRequest: {} as InstructionRequest,
-    innerFlow: [],
+    innerExecutionFlow: [],
     instructionError: undefined,
     instructionReturned: undefined,
     consumedComputeUnits: undefined,
@@ -142,8 +141,8 @@ export async function rpcHttpGetTransaction(
   }
   return {
     transactionRequest,
-    transactionExecution,
-    transactionFlow: rootTransactionInvocation.innerFlow,
+    executionReport,
+    executionFlow: rootTransactionInvocation.innerExecutionFlow,
   };
 }
 
@@ -294,7 +293,7 @@ function decompileInstructionsCallStacks(
 }
 
 function parseTransactionInvocations(
-  invocation: TransactionInvocation,
+  invocation: ExecutionInvocation,
   instructionsCallStacks: Array<InstructionCallStack>,
   logs: Array<string>,
   logIndex: number,
@@ -305,12 +304,12 @@ function parseTransactionInvocations(
     const logLine = logs[logIndex]!;
     const logRegular = stripPrefix(logLine, "Program log: ");
     if (logRegular !== undefined) {
-      invocation.innerFlow.push({ log: logRegular });
+      invocation.innerExecutionFlow.push({ log: logRegular });
       continue;
     }
     const logData = stripPrefix(logLine, "Program data: ");
     if (logData !== undefined) {
-      invocation.innerFlow.push({ data: base64Decode(logData) });
+      invocation.innerExecutionFlow.push({ data: base64Decode(logData) });
       continue;
     }
     const logReturn = stripPrefix(logLine, "Program return: ");
@@ -349,9 +348,9 @@ function parseTransactionInvocations(
             );
           }
           invocationIndex++;
-          const innerInvocation: TransactionInvocation = {
+          const innerInvocation: ExecutionInvocation = {
             instructionRequest: instructionCallStack.instructionRequest,
-            innerFlow: [],
+            innerExecutionFlow: [],
             instructionError: undefined,
             instructionReturned: undefined,
             consumedComputeUnits: undefined,
@@ -363,7 +362,7 @@ function parseTransactionInvocations(
             logIndex,
           );
           logIndex = afterParsing.logIndex;
-          invocation.innerFlow.push({ invocation: innerInvocation });
+          invocation.innerExecutionFlow.push({ invocation: innerInvocation });
           continue;
         }
         if (logProgramAction === "consumed") {
@@ -380,7 +379,7 @@ function parseTransactionInvocations(
         }
       }
     }
-    invocation.innerFlow.push({ unknown: logLine });
+    invocation.innerExecutionFlow.push({ unknown: logLine });
   }
   return { logIndex };
 }

@@ -428,7 +428,7 @@ export class Solana {
    * @param options.accountsContext - Optional context blob providing
    *   additional on-chain data for account resolution.
    * @returns The resolved instruction account address.
-   * @throws If the instruction or account does not exist in the IDL.
+   * @throws If the instruction or account does not exist in the IDL, or if it cannot be resolved with the provided information.
    */
   public async resolveInstructionAddress(
     programAddress: Pubkey,

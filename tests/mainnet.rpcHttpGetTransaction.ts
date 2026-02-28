@@ -7,33 +7,31 @@ import {
   rpcHttpFromUrl,
   rpcHttpGetTransaction,
   signatureFromBase58,
-  TransactionFlow,
-  TransactionInvocation,
   urlRpcPublicMainnet,
 } from "../src";
+import { ExecutionFlow, ExecutionInvocation } from "../src/data/Execution";
 
 it("run", async () => {
   const rpcHttp = rpcHttpFromUrl(urlRpcPublicMainnet);
   // Complex transaction with many inner instructions nested
-  const { transactionRequest, transactionExecution, transactionFlow } =
-    expectDefined(
-      await rpcHttpGetTransaction(
-        rpcHttp,
-        signatureFromBase58(
-          "5c4TRGCXbv6ChbTpTnmFzt3WFqpWMMSAKdEqiqCFzG7hTFTWxdHpv2VxfQBzG3VwvQ2mMyG4rvV2eTN68jrLKy3U",
-        ),
+  const { transactionRequest, executionReport, executionFlow } = expectDefined(
+    await rpcHttpGetTransaction(
+      rpcHttp,
+      signatureFromBase58(
+        "5c4TRGCXbv6ChbTpTnmFzt3WFqpWMMSAKdEqiqCFzG7hTFTWxdHpv2VxfQBzG3VwvQ2mMyG4rvV2eTN68jrLKy3U",
       ),
-    );
+    ),
+  );
   expect(transactionRequest.payerAddress).toStrictEqual(
     "Ewfot2ZKhuGuEWaSRyFpe3LpK9xSEEUrDZk4AQpTazAR",
   );
   expect(transactionRequest.recentBlockHash).toStrictEqual(
     "ETzLkjyxUNupAQxQRnTuG2u7wnQCWEgtdTLegeQycCPv",
   );
-  expect(transactionExecution.transactionError).toStrictEqual(null);
+  expect(executionReport.transactionError).toStrictEqual(null);
   // Check the invocations tree shape
   const createParams = new Uint8Array(410);
-  expect(transactionFlow).toStrictEqual([
+  expect(executionFlow).toStrictEqual([
     inv({
       instructionRequest: ix({
         programAddress: "ComputeBudget111111111111111111111111111111",
@@ -76,7 +74,7 @@ it("run", async () => {
         ],
         data: [194, 8, 161, 87, 153, 164, 25, 171],
       }),
-      innerFlow: [
+      innerExecutionFlow: [
         { log: "Instruction: VaultTransactionExecute" },
         inv({
           instructionRequest: ix({
@@ -96,7 +94,7 @@ it("run", async () => {
               Array.from(createParams),
             ].flat(),
           }),
-          innerFlow: [
+          innerExecutionFlow: [
             { log: "Instruction: PoolCreate" },
             inv({
               instructionRequest: ix({
@@ -126,7 +124,7 @@ it("run", async () => {
                 ],
                 data: [0],
               }),
-              innerFlow: [
+              innerExecutionFlow: [
                 { log: "Create" },
                 inv({
                   instructionRequest: ix({
@@ -137,7 +135,9 @@ it("run", async () => {
                     ],
                     data: [21, 7, 0],
                   }),
-                  innerFlow: [{ log: "Instruction: GetAccountDataSize" }],
+                  innerExecutionFlow: [
+                    { log: "Instruction: GetAccountDataSize" },
+                  ],
                   result: {
                     returned: [165, 0, 0, 0, 0, 0, 0, 0],
                     consumedComputeUnits: 1622,
@@ -168,7 +168,7 @@ it("run", async () => {
                     ],
                     data: [22],
                   }),
-                  innerFlow: [
+                  innerExecutionFlow: [
                     {
                       log: "Instruction: InitializeImmutableOwner",
                     },
@@ -192,7 +192,9 @@ it("run", async () => {
                       194, 157, 194, 135, 102, 47, 149, 8, 226,
                     ],
                   }),
-                  innerFlow: [{ log: "Instruction: InitializeAccount3" }],
+                  innerExecutionFlow: [
+                    { log: "Instruction: InitializeAccount3" },
+                  ],
                   result: { consumedComputeUnits: 4241 },
                 }),
               ],
@@ -209,17 +211,17 @@ it("run", async () => {
 
 function inv(value: {
   instructionRequest: InstructionRequest;
-  innerFlow?: TransactionFlow;
+  innerExecutionFlow?: ExecutionFlow;
   result?: {
     error?: string;
     returned?: Array<number>;
     consumedComputeUnits?: number;
   };
-}): { invocation: TransactionInvocation } {
+}): { invocation: ExecutionInvocation } {
   return {
     invocation: {
       instructionRequest: value.instructionRequest,
-      innerFlow: value.innerFlow ?? [],
+      innerExecutionFlow: value.innerExecutionFlow ?? [],
       instructionError: value.result?.error,
       instructionReturned: value.result?.returned
         ? new Uint8Array(value.result.returned)

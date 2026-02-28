@@ -15,9 +15,7 @@ import { RpcHttp } from "./RpcHttp";
 export async function rpcHttpSendTransaction(
   self: RpcHttp,
   transactionPacket: TransactionPacket,
-  options?: {
-    skipPreflight?: boolean;
-  },
+  options?: { skipPreflight?: boolean },
 ): Promise<{ transactionHandle: TransactionHandle }> {
   const transactionHandle = jsonCodecSignature.decoder(
     await self(

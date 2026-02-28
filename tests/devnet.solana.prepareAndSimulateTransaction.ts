@@ -54,18 +54,16 @@ it("run", async () => {
       simulatedAccountsAddresses: new Set([pledgeAddress]),
     },
   );
-  expect(resultNoVerify.transactionExecution.transactionError).toStrictEqual(
-    null,
+  expect(resultNoVerify.executionReport.transactionError).toStrictEqual(null);
+  expect(resultNoVerify.executionReport.transactionLogs?.length).toStrictEqual(
+    6,
   );
-  expect(
-    resultNoVerify.transactionExecution.transactionLogs?.length,
-  ).toStrictEqual(6);
-  expect(resultNoVerify.transactionExecution.chargedFeesLamports).toStrictEqual(
+  expect(resultNoVerify.executionReport.chargedFeesLamports).toStrictEqual(
     lamportsFeePerSignature * 2n,
   );
-  expect(
-    resultNoVerify.transactionExecution.consumedComputeUnits,
-  ).toBeGreaterThan(0);
+  expect(resultNoVerify.executionReport.consumedComputeUnits).toBeGreaterThan(
+    0,
+  );
   const pledgeAccountNoVerify = expectDefined(
     resultNoVerify.simulatedAccountsByAddress.get(pledgeAddress),
   );
@@ -87,18 +85,16 @@ it("run", async () => {
       simulatedAccountsAddresses: new Set([pledgeAddress]),
     },
   );
-  expect(resultWithVerify.transactionExecution.transactionError).toStrictEqual(
-    null,
-  );
+  expect(resultWithVerify.executionReport.transactionError).toStrictEqual(null);
   expect(
-    resultWithVerify.transactionExecution.transactionLogs?.length,
+    resultWithVerify.executionReport.transactionLogs?.length,
   ).toStrictEqual(6);
-  expect(
-    resultWithVerify.transactionExecution.chargedFeesLamports,
-  ).toStrictEqual(lamportsFeePerSignature * 2n);
-  expect(
-    resultWithVerify.transactionExecution.consumedComputeUnits,
-  ).toBeGreaterThan(0);
+  expect(resultWithVerify.executionReport.chargedFeesLamports).toStrictEqual(
+    lamportsFeePerSignature * 2n,
+  );
+  expect(resultWithVerify.executionReport.consumedComputeUnits).toBeGreaterThan(
+    0,
+  );
   expect(resultWithVerify.simulatedAccountsByAddress.size).toStrictEqual(1);
   const pledgeAccountWithVerify = expectDefined(
     resultWithVerify.simulatedAccountsByAddress.get(pledgeAddress),

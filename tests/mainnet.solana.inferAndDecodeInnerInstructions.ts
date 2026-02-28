@@ -3,7 +3,7 @@ import { rpcHttpWaitForTransaction, signatureFromBase58, Solana } from "../src";
 it("run", async () => {
   const solana = new Solana("mainnet");
 
-  const { transactionFlow } = await rpcHttpWaitForTransaction(
+  const { executionFlow } = await rpcHttpWaitForTransaction(
     solana.getRpcHttp(),
     signatureFromBase58(
       "N5NJqSojV1G69dTPzt3e4ikBtTssLtze8HhWPuJFPjJwSxPBBqkt9n9SMF8KHYXYS3PDkozruJEtKfDNuSZKApi",
@@ -11,8 +11,8 @@ it("run", async () => {
     async () => true,
   );
 
-  const instructionRequest = (transactionFlow as any)[3].invocation.innerFlow[1]
-    .invocation.instructionRequest;
+  const instructionRequest = (executionFlow as any)[3].invocation
+    .innerExecutionFlow[1].invocation.instructionRequest;
 
   const { instructionIdl, instructionAddresses } =
     await solana.inferAndDecodeInstruction(instructionRequest);

@@ -1,16 +1,15 @@
+import { ErrorStack } from "../data/Error";
 import {
   JsonArray,
   jsonCodecNumber,
   jsonCodecString,
   jsonCodecValue,
   jsonDecoderConst,
+  jsonDecoderNullable,
   jsonDecoderObjectToObject,
-  jsonDecoderTrySequentially,
-  jsonDecoderWrapped,
   JsonObject,
   JsonValue,
 } from "../data/Json";
-import { OneKeyOf } from "../data/Utils";
 
 /**
  * A function type representing a Solana JSON-RPC HTTP client.
@@ -110,21 +109,23 @@ export function rpcHttpFromUrl(
       }),
     });
     const responseValue = responseJsonDecoder(responseJson);
-    if (responseValue.requestId !== requestId) {
-      throw new Error(
-        `RpcHttp: Expected response id: ${requestId} (found: ${responseValue.requestId})`,
+    const responseId = responseValue.id;
+    if (responseId !== requestId) {
+      throw new ErrorStack(
+        `RpcHttp: Expected response id: ${requestId} (found: ${responseId})`,
       );
     }
-    const responseError = responseValue.result.error;
-    if (responseError) {
+    const responseError = responseValue.error;
+    if (responseError !== null) {
+      // TODO - nicer exposure of the response value error data fields
       throw new RpcHttpError(
-        `RpcHttp: Error ${responseError.code}: ${responseError.desc}`,
+        `RpcHttp: Error ${responseError.code}: ${responseError.message}`,
         responseError.code,
-        responseError.desc,
+        responseError.message,
         responseError.data,
       );
     }
-    return responseValue.result.value;
+    return responseValue.result;
   };
 }
 
@@ -261,50 +262,15 @@ export function rpcHttpWithRetryOnError(
 
 let uniqueRequestId = 1;
 
-const responseJsonDecoder = jsonDecoderTrySequentially<{
-  requestId: number;
-  result: OneKeyOf<{
-    value: JsonValue;
-    error: {
-      code: number;
-      desc: string;
-      data: JsonValue;
-    };
-  }>;
-}>([
-  jsonDecoderWrapped(
+const responseJsonDecoder = jsonDecoderObjectToObject({
+  jsonrpc: jsonDecoderConst("2.0"),
+  id: jsonCodecNumber.decoder,
+  result: jsonCodecValue.decoder,
+  error: jsonDecoderNullable(
     jsonDecoderObjectToObject({
-      jsonrpc: jsonDecoderConst("2.0"),
-      id: jsonCodecNumber.decoder,
-      result: jsonCodecValue.decoder,
-    }),
-    (response) => ({
-      requestId: response.id,
-      result: { value: response.result },
+      code: jsonCodecNumber.decoder,
+      message: jsonCodecString.decoder,
+      data: jsonCodecValue.decoder,
     }),
   ),
-  jsonDecoderWrapped(
-    jsonDecoderObjectToObject({
-      jsonrpc: jsonDecoderConst("2.0"),
-      id: jsonCodecNumber.decoder,
-      error: jsonDecoderObjectToObject(
-        {
-          code: jsonCodecNumber.decoder,
-          desc: jsonCodecString.decoder,
-          data: jsonCodecValue.decoder,
-        },
-        {
-          keysEncoding: {
-            code: "code",
-            desc: "message",
-            data: "data",
-          },
-        },
-      ),
-    }),
-    (response) => ({
-      requestId: response.id,
-      result: { error: response.error },
-    }),
-  ),
-]);
+});

@@ -62,7 +62,7 @@ it("run", async () => {
       skipPreflight: true,
     },
   );
-  const { transactionExecution } = await rpcHttpWaitForTransaction(
+  const { executionReport } = await rpcHttpWaitForTransaction(
     solana.getRpcHttp(),
     transactionHandle,
     async (context) => {
@@ -73,11 +73,11 @@ it("run", async () => {
       return true;
     },
   );
-  expect(transactionExecution.chargedFeesLamports).toStrictEqual(
+  expect(executionReport.chargedFeesLamports).toStrictEqual(
     lamportsFeePerSignature * 3n,
   );
-  expect(transactionExecution.transactionLogs?.length).toStrictEqual(4);
-  expect(transactionExecution.transactionError).toStrictEqual(null);
+  expect(executionReport.transactionLogs?.length).toStrictEqual(4);
+  expect(executionReport.transactionError).toStrictEqual(null);
   const owned1 = await solana.getAndInferAndDecodeAccount(owned1Signer.address);
   expect(owned1.programAddress).toStrictEqual(ownerAddress);
   expect(owned1.accountLamports).toStrictEqual(transferLamports);

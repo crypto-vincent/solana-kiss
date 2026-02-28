@@ -993,7 +993,7 @@ export function jsonCodecObjectToEnum<
 /** Wraps a {@link JsonDecoder} to also accept `null`, returning `null` directly. */
 export function jsonDecoderNullable<Content>(
   contentDecoder: (encoded: Exclude<JsonValue, null>) => Content,
-): JsonDecoder<Content | null> {
+): JsonDecoder<null | Content> {
   return (encoded) => {
     if (encoded === null) {
       return null;
@@ -1004,8 +1004,8 @@ export function jsonDecoderNullable<Content>(
 /** Wraps a {@link JsonEncoder} to also handle `null`, encoding it as JSON `null`. */
 export function jsonEncoderNullable<Content>(
   contentEncoder: (decoded: Exclude<Content, null>) => JsonValue,
-): JsonEncoder<Content | null> {
-  return (decoded: Content | null) => {
+): JsonEncoder<null | Content> {
+  return (decoded: null | Content) => {
     if (decoded === null) {
       return null;
     }
@@ -1016,7 +1016,7 @@ export function jsonEncoderNullable<Content>(
 export function jsonCodecNullable<Content>(contentCodec: {
   decoder: (encoded: Exclude<JsonValue, null>) => Content;
   encoder: (decoded: Exclude<Content, null>) => JsonValue;
-}): JsonCodec<Content | null> {
+}): JsonCodec<null | Content> {
   return {
     decoder: jsonDecoderNullable(contentCodec.decoder),
     encoder: jsonEncoderNullable(contentCodec.encoder),

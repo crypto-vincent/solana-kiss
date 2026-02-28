@@ -12,7 +12,7 @@ function rpcHttp() {
 
 it("run", async () => {
   const dummyAddress = pubkeyNewDummy();
-  const { transactionExecution, simulatedAccountsByAddress } = expectDefined(
+  const { executionReport, simulatedAccountsByAddress } = expectDefined(
     await rpcHttpSimulateTransaction(
       rpcHttp,
       new Uint8Array() as TransactionPacket,
@@ -20,15 +20,15 @@ it("run", async () => {
     ),
   );
   // Check basic stuff about the transaction
-  expect(transactionExecution.blockTime).toStrictEqual(undefined);
-  expect(transactionExecution.blockSlot).toStrictEqual(412853857);
-  expect(transactionExecution.chargedFeesLamports).toStrictEqual(10000n);
-  expect(transactionExecution.consumedComputeUnits).toStrictEqual(150);
-  expect(transactionExecution.transactionLogs?.length).toStrictEqual(2);
-  expect(transactionExecution.transactionLogs?.[0]).toStrictEqual(
+  expect(executionReport.blockTime).toStrictEqual(undefined);
+  expect(executionReport.blockSlot).toStrictEqual(412853857);
+  expect(executionReport.chargedFeesLamports).toStrictEqual(10000n);
+  expect(executionReport.consumedComputeUnits).toStrictEqual(150);
+  expect(executionReport.transactionLogs?.length).toStrictEqual(2);
+  expect(executionReport.transactionLogs?.[0]).toStrictEqual(
     "Program 11111111111111111111111111111111 invoke [1]",
   );
-  expect(transactionExecution.transactionError).toStrictEqual(null);
+  expect(executionReport.transactionError).toStrictEqual(null);
   // Check simulated accounts info
   expect(simulatedAccountsByAddress.size).toStrictEqual(1);
   const simulatedAccount = expectDefined(
