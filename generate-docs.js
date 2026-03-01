@@ -179,65 +179,134 @@ function escapeHtml(str) {
     .replace(/"/g, "&quot;");
 }
 
+// ---------------------------------------------------------------------------
+// TypeScript syntax highlighter (zero external dependencies)
+// ---------------------------------------------------------------------------
+
+const TS_KEYWORDS = new Set([
+  "abstract", "any", "as", "async", "await", "boolean", "break", "case",
+  "catch", "class", "const", "constructor", "continue", "declare", "default",
+  "delete", "do", "else", "enum", "export", "extends", "false", "finally",
+  "for", "from", "function", "get", "if", "implements", "import", "in",
+  "infer", "instanceof", "interface", "keyof", "let", "module", "namespace",
+  "never", "new", "null", "number", "of", "override", "private", "protected",
+  "public", "readonly", "return", "set", "static", "string", "super",
+  "switch", "symbol", "this", "throw", "true", "try", "type", "typeof",
+  "undefined", "unique", "unknown", "var", "void", "while", "yield",
+]);
+
 /**
- * Within an already-HTML-escaped definition string, wrap every occurrence of a
- * known symbol name (word-boundary matched) with an anchor link.
- * We skip replacement inside existing anchor tags to avoid double-wrapping.
+ * Tokenise raw TypeScript source text and emit syntax-highlighted HTML.
+ * Known exported symbols become cross-link <a> elements; no external deps used.
  */
-function linkSymbols(escapedText, allNames) {
-  if (allNames.size === 0) return escapedText;
+function highlightTs(rawText, allNames) {
+  let out = "";
+  let i = 0;
+  const n = rawText.length;
 
-  // Sort longest-first so "RpcHttpGetBlock" is matched before "RpcHttp"
-  const sorted = [...allNames].sort((a, b) => b.length - a.length);
-  const pattern = new RegExp(`\\b(${sorted.map(escapeRegex).join("|")})\\b`, "g");
+  while (i < n) {
+    const ch = rawText[i];
+    const ch2 = rawText[i + 1];
 
-  // We do a simple pass over the string, skipping content inside <a ...>...</a>
-  let result = "";
-  let pos = 0;
-  const anchorOpen = /<a\s/gi;
-  const anchorClose = /<\/a>/gi;
+    // Block comment  /* ... */
+    if (ch === "/" && ch2 === "*") {
+      const end = rawText.indexOf("*/", i + 2);
+      const chunk = end === -1 ? rawText.slice(i) : rawText.slice(i, end + 2);
+      out += `<span class="hl-comment">${escapeHtml(chunk)}</span>`;
+      i = end === -1 ? n : end + 2;
+      continue;
+    }
 
-  // Reset lastIndex
-  anchorOpen.lastIndex = 0;
-  anchorClose.lastIndex = 0;
+    // Line comment  // ...
+    if (ch === "/" && ch2 === "/") {
+      let end = i;
+      while (end < n && rawText[end] !== "\n") end++;
+      out += `<span class="hl-comment">${escapeHtml(rawText.slice(i, end))}</span>`;
+      i = end;
+      continue;
+    }
 
-  // Collect <a> ranges to skip
-  const skipRanges = [];
-  {
-    const tmp = escapedText;
-    let m;
-    anchorOpen.lastIndex = 0;
-    while ((m = anchorOpen.exec(tmp)) !== null) {
-      const start = m.index;
-      anchorClose.lastIndex = start;
-      const m2 = anchorClose.exec(tmp);
-      if (m2) {
-        skipRanges.push([start, m2.index + m2[0].length]);
+    // Double-quoted string
+    if (ch === '"') {
+      let j = i + 1;
+      while (j < n && rawText[j] !== '"') {
+        if (rawText[j] === "\\") j++;
+        j++;
       }
+      out += `<span class="hl-string">${escapeHtml(rawText.slice(i, j + 1))}</span>`;
+      i = j + 1;
+      continue;
     }
-  }
 
-  function inSkipRange(index) {
-    for (const [s, e] of skipRanges) {
-      if (index >= s && index < e) return true;
+    // Single-quoted string
+    if (ch === "'") {
+      let j = i + 1;
+      while (j < n && rawText[j] !== "'") {
+        if (rawText[j] === "\\") j++;
+        j++;
+      }
+      out += `<span class="hl-string">${escapeHtml(rawText.slice(i, j + 1))}</span>`;
+      i = j + 1;
+      continue;
     }
-    return false;
+
+    // Template literal
+    if (ch === "`") {
+      let j = i + 1;
+      while (j < n && rawText[j] !== "`") {
+        if (rawText[j] === "\\") j++;
+        j++;
+      }
+      out += `<span class="hl-string">${escapeHtml(rawText.slice(i, j + 1))}</span>`;
+      i = j + 1;
+      continue;
+    }
+
+    // Number literal: handle hex (0x), binary (0b), octal (0o), decimal/bigint
+    if (ch >= "0" && ch <= "9") {
+      let j = i;
+      if (ch === "0" && (rawText[j + 1] === "x" || rawText[j + 1] === "X")) {
+        j += 2;
+        while (j < n && /[0-9a-fA-F_]/.test(rawText[j])) j++;
+      } else if (ch === "0" && (rawText[j + 1] === "b" || rawText[j + 1] === "B")) {
+        j += 2;
+        while (j < n && /[01_]/.test(rawText[j])) j++;
+      } else if (ch === "0" && (rawText[j + 1] === "o" || rawText[j + 1] === "O")) {
+        j += 2;
+        while (j < n && /[0-7_]/.test(rawText[j])) j++;
+      } else {
+        while (j < n && /[0-9_.]/.test(rawText[j])) j++;
+        if (j < n && rawText[j] === "n") j++; // BigInt suffix
+      }
+      out += `<span class="hl-number">${escapeHtml(rawText.slice(i, j))}</span>`;
+      i = j;
+      continue;
+    }
+
+    // Identifier, keyword, or known symbol
+    if (/[a-zA-Z_$]/.test(ch)) {
+      let j = i;
+      while (j < n && /[a-zA-Z0-9_$]/.test(rawText[j])) j++;
+      const word = rawText.slice(i, j);
+      if (TS_KEYWORDS.has(word)) {
+        out += `<span class="hl-keyword">${escapeHtml(word)}</span>`;
+      } else if (allNames.has(word)) {
+        out += `<a href="#${escapeHtml(word)}" class="hl-symbol">${escapeHtml(word)}</a>`;
+      } else if (word[0] >= "A" && word[0] <= "Z") {
+        out += `<span class="hl-type">${escapeHtml(word)}</span>`;
+      } else {
+        out += escapeHtml(word);
+      }
+      i = j;
+      continue;
+    }
+
+    // Any other character
+    out += escapeHtml(ch);
+    i++;
   }
 
-  pattern.lastIndex = 0;
-  let match;
-  while ((match = pattern.exec(escapedText)) !== null) {
-    if (inSkipRange(match.index)) continue;
-    result += escapedText.slice(pos, match.index);
-    result += `<a href="#${match[1]}">${match[1]}</a>`;
-    pos = match.index + match[0].length;
-  }
-  result += escapedText.slice(pos);
-  return result;
-}
-
-function escapeRegex(str) {
-  return str.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+  return out;
 }
 
 // ---------------------------------------------------------------------------
@@ -250,14 +319,40 @@ function generateHtml(modules, allNames) {
   const version = pkg.version || "";
   const pkgName = pkg.name || "solana-kiss";
 
-  // ---- Sidebar tree ----
-  let sidebarHtml = "";
+  // ---- Sidebar tree: group modules by top-level directory ----
+  /** @type {Map<string, {filename: string, symbols: {name:string,kind:string}[]}[]>} */
+  const dirGroups = new Map();
   for (const mod of modules) {
-    sidebarHtml += `<details open><summary class="mod-summary">${escapeHtml(mod.path)}</summary><ul>`;
-    for (const sym of mod.symbols) {
-      sidebarHtml += `<li><a href="#${escapeHtml(sym.name)}" class="kind-${escapeHtml(sym.kind.split(" ")[0])}">${escapeHtml(sym.name)}</a></li>`;
+    const slashIdx = mod.path.indexOf("/");
+    const dirname = slashIdx === -1 ? "" : mod.path.slice(0, slashIdx);
+    const filename = slashIdx === -1 ? mod.path : mod.path.slice(slashIdx + 1);
+    if (!dirGroups.has(dirname)) dirGroups.set(dirname, []);
+    dirGroups.get(dirname).push({ filename, symbols: mod.symbols });
+  }
+
+  let sidebarHtml = "";
+  for (const [dirname, files] of dirGroups) {
+    const groupLabel = dirname || (files.length > 0 ? files[0].filename : "(root)");
+    // Directory-level group: open by default (only 3-4 of these)
+    sidebarHtml += `<details class="dir-group" open><summary class="dir-summary">${escapeHtml(groupLabel)}</summary>`;
+    for (const file of files) {
+      // File-level group: collapsed by default
+      const label = dirname ? file.filename : "";
+      if (label) {
+        sidebarHtml += `<details class="file-group"><summary class="file-summary">${escapeHtml(label)}<span class="sym-count">${file.symbols.length}</span></summary><ul>`;
+      } else {
+        sidebarHtml += `<ul class="file-flat">`;
+      }
+      for (const sym of file.symbols) {
+        sidebarHtml += `<li><a href="#${escapeHtml(sym.name)}" class="kind-${escapeHtml(sym.kind.split(" ")[0])}">${escapeHtml(sym.name)}</a></li>`;
+      }
+      if (label) {
+        sidebarHtml += `</ul></details>`;
+      } else {
+        sidebarHtml += `</ul>`;
+      }
     }
-    sidebarHtml += `</ul></details>`;
+    sidebarHtml += `</details>`;
   }
 
   // ---- Main content ----
@@ -266,11 +361,10 @@ function generateHtml(modules, allNames) {
     mainHtml += `<section class="module-section">`;
     mainHtml += `<h2 class="module-heading">${escapeHtml(mod.path)}</h2>`;
     for (const sym of mod.symbols) {
-      const escapedDef = escapeHtml(sym.definition);
-      const linkedDef = linkSymbols(escapedDef, allNames);
+      const highlighted = highlightTs(sym.definition, allNames);
       mainHtml += `<div class="symbol" id="${escapeHtml(sym.name)}">`;
       mainHtml += `<div class="symbol-header"><span class="kind kind-${escapeHtml(sym.kind.split(" ")[0])}">${escapeHtml(sym.kind)}</span> <span class="symbol-name">${escapeHtml(sym.name)}</span></div>`;
-      mainHtml += `<pre>${linkedDef}</pre>`;
+      mainHtml += `<pre>${highlighted}</pre>`;
       mainHtml += `</div>`;
     }
     mainHtml += `</section>`;
@@ -331,27 +425,56 @@ function generateHtml(modules, allNames) {
       color: var(--muted);
       margin-left: 6px;
     }
-    #sidebar details { padding: 0; }
-    #sidebar details + details { border-top: 1px solid var(--border); }
-    .mod-summary {
+    /* Directory-level group */
+    .dir-group { border-top: 1px solid var(--border); }
+    .dir-group:first-of-type { border-top: none; }
+    .dir-summary {
       cursor: pointer;
-      padding: 6px 16px;
+      padding: 7px 16px;
       font-size: 0.78rem;
-      font-weight: 600;
-      color: var(--muted);
+      font-weight: 700;
+      color: var(--text);
       text-transform: uppercase;
-      letter-spacing: .05em;
+      letter-spacing: .07em;
       list-style: none;
       user-select: none;
     }
-    .mod-summary:hover { color: var(--text); }
-    .mod-summary::marker, .mod-summary::-webkit-details-marker { display: none; }
-    details[open] .mod-summary::before { content: "▾ "; }
-    details:not([open]) .mod-summary::before { content: "▸ "; }
-    #sidebar ul { list-style: none; padding: 2px 0 6px 0; }
+    .dir-summary:hover { color: var(--accent); }
+    .dir-summary::marker, .dir-summary::-webkit-details-marker { display: none; }
+    .dir-group[open] > .dir-summary::before { content: "▾ "; color: var(--muted); }
+    .dir-group:not([open]) > .dir-summary::before { content: "▸ "; color: var(--muted); }
+    /* File-level group */
+    .file-group { margin: 0; }
+    .file-summary {
+      cursor: pointer;
+      padding: 3px 16px 3px 28px;
+      font-size: 0.8rem;
+      font-weight: 600;
+      color: var(--muted);
+      list-style: none;
+      user-select: none;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .file-summary:hover { color: var(--text); }
+    .file-summary::marker, .file-summary::-webkit-details-marker { display: none; }
+    .file-group[open] > .file-summary::before { content: "▾ "; }
+    .file-group:not([open]) > .file-summary::before { content: "▸ "; }
+    .sym-count {
+      font-size: 0.68rem;
+      color: var(--muted);
+      background: rgba(255,255,255,.06);
+      border-radius: 8px;
+      padding: 0 5px;
+      margin-left: 6px;
+    }
+    /* Symbol links */
+    #sidebar ul { list-style: none; padding: 2px 0 4px 0; }
+    #sidebar ul.file-flat { padding-left: 0; }
     #sidebar ul li a {
       display: block;
-      padding: 2px 16px 2px 28px;
+      padding: 2px 16px 2px 44px;
       color: var(--text);
       text-decoration: none;
       font-family: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, monospace;
@@ -360,6 +483,7 @@ function generateHtml(modules, allNames) {
       overflow: hidden;
       text-overflow: ellipsis;
     }
+    #sidebar ul.file-flat li a { padding-left: 28px; }
     #sidebar ul li a:hover { background: rgba(88,166,255,.08); color: var(--accent); }
     /* ---- Main ---- */
     #main {
@@ -407,12 +531,12 @@ function generateHtml(modules, allNames) {
       letter-spacing: .05em;
       background: rgba(255,255,255,.06);
     }
-    .kind-type    { color: var(--kind-type); }
+    .kind-type      { color: var(--kind-type); }
     .kind-interface { color: var(--kind-interface); }
-    .kind-class   { color: var(--kind-class); }
-    .kind-function { color: var(--kind-function); }
-    .kind-const   { color: var(--kind-const); }
-    .kind-enum    { color: var(--kind-enum); }
+    .kind-class     { color: var(--kind-class); }
+    .kind-function  { color: var(--kind-function); }
+    .kind-const     { color: var(--kind-const); }
+    .kind-enum      { color: var(--kind-enum); }
     pre {
       background: var(--pre-bg);
       padding: 14px 16px;
@@ -423,10 +547,15 @@ function generateHtml(modules, allNames) {
       tab-size: 2;
       white-space: pre;
     }
-    pre a {
-      color: var(--accent);
-      text-decoration: none;
-    }
+    /* Syntax highlighting */
+    .hl-keyword { color: #ff7b72; }
+    .hl-string  { color: #a5d6ff; }
+    .hl-comment { color: #8b949e; font-style: italic; }
+    .hl-number  { color: #79c0ff; }
+    .hl-type    { color: #ffa657; }
+    .hl-symbol  { color: var(--accent); text-decoration: none; }
+    .hl-symbol:hover { text-decoration: underline; }
+    pre a { color: var(--accent); text-decoration: none; }
     pre a:hover { text-decoration: underline; }
     /* Scrollbar styling */
     ::-webkit-scrollbar { width: 6px; height: 6px; }
