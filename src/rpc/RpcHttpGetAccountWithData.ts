@@ -20,7 +20,7 @@ import { RpcHttp } from "./RpcHttp";
  * `accountLamports` is `0n`, and `accountData` is an empty `Uint8Array`.
  *
  * @param self - The {@link RpcHttp} client to use.
- * @param accountAddress - The account to query.
+ * @param accountAddress - The {@link Pubkey} of the account to query.
  * @returns An object containing the account's owning program address, executable flag, lamport balance, and raw data bytes.
  * @throws If the returned data length does not match the reported account space.
  */

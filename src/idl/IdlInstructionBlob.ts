@@ -319,7 +319,7 @@ const computeVisitor = {
       }
     }
     throw new Error(
-      `Idl: Could not resolve matching account content for path: ${self.paths[0]}`,
+      `Idl: Could not resolve blob account content for path: ${self.paths[0]}`,
     );
   },
 };

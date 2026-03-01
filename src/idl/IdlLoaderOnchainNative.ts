@@ -35,11 +35,14 @@ export function idlLoaderFromOnchainNative(
   accountDataFetcher: (accountAddress: Pubkey) => Promise<Uint8Array>,
 ): IdlLoader {
   return async (programAddress: Pubkey) => {
-    const idlAddress = pubkeyFindPdaAddress(metadataProgramAddres, [
+    const idlAddress = pubkeyFindPdaAddress(metadataProgramAddress, [
       pubkeyToBytes(programAddress),
       metadataProgramIdlSeed,
     ]);
     const idlData = await accountDataFetcher(idlAddress);
+    if (idlData.length === 0) {
+      throw new ErrorStack(`IDL: No native idl found at address ${idlAddress}`);
+    }
     const { accountState: idlState } = idlAccountDecode(
       metadataProgramAccount,
       idlData,
@@ -55,11 +58,13 @@ export function idlLoaderFromOnchainNative(
       throw new ErrorStack(`IDL: Unsupported format ${idlContent.format}`);
     }
     // TODO - improve support for other formats and compression and encoding
+    // TODO - handle account/url/text data sources for example
     const idlBytes = await extractMetadataIdlBytes(idlContent);
     const idlString = utf8Decode(idlBytes);
     const idlJson = JSON.parse(idlString) as JsonValue;
     const programIdl = idlProgramParse(idlJson);
     programIdl.metadata.address = programAddress;
+    // TODO - more standardized program metadata and source
     programIdl.metadata.source = `onchain://solana-program-metadata/canonical`;
     return programIdl;
   };
@@ -86,7 +91,7 @@ async function extractMetadataIdlBytes(
   );
 }
 
-const metadataProgramAddres = pubkeyFromBase58(
+const metadataProgramAddress = pubkeyFromBase58(
   "ProgM6JCCvbYkfKqJYHePx4xxSUSqJp7rh8Lyv7nk7S",
 );
 

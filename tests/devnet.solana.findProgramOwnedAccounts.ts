@@ -1,14 +1,8 @@
 import { it } from "@jest/globals";
-import {
-  jsonIsDeepSubset,
-  pubkeyFromBase58,
-  rpcHttpFromUrl,
-  Solana,
-  urlRpcPublicDevnet,
-} from "../src";
+import { jsonIsDeepSubset, pubkeyFromBase58, Solana } from "../src";
 
 it("run", async () => {
-  const solana = new Solana(rpcHttpFromUrl(urlRpcPublicDevnet));
+  const solana = new Solana("devnet");
   const programAddress = pubkeyFromBase58(
     "UCNcQRtrbGmvuLKA3Jv719Cc6DS4r661ZRpyZduxu2j",
   );

@@ -43,8 +43,11 @@ export class IdlTypePrimitive {
   /** Solana public key (32-byte Ed25519 point). */
   public static readonly pubkey = new IdlTypePrimitive("pubkey", 32, 1);
 
+  /** The name of this primitive type (e.g. `"u8"`, `"bool"`, `"pubkey"`). */
   public readonly name: string;
+  /** The size in bytes of this primitive type. */
   public readonly size: number;
+  /** The required byte alignment of this primitive type. */
   public readonly alignment: number;
 
   private constructor(name: string, size: number, alignment: number) {

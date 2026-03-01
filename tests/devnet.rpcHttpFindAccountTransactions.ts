@@ -15,18 +15,19 @@ it("run", async () => {
     pubkeyFromBase58("vVeH6Xd43HAScbxjVtvfwDGqBMaMvNDLsAxwM5WK1pG"),
     4200,
   );
-  expect(newToOldTransactionsHandles.length).toBeGreaterThan(0);
-  const { transactionExecution } = expectDefined(
+  expect(newToOldTransactionsHandles.length).toBeGreaterThan(100);
+  expect(newToOldTransactionsHandles.length).toBeLessThanOrEqual(4200);
+  const { executionReport } = expectDefined(
     await rpcHttpGetTransaction(
       rpcHttp,
       expectDefined(newToOldTransactionsHandles[0]),
     ),
   );
-  expect(transactionExecution.blockTime?.toISOString()).toStrictEqual(
+  expect(executionReport.blockTime?.toISOString()).toStrictEqual(
     "2025-08-21T15:26:48.000Z",
   );
   let found = 0;
-  for (const log of transactionExecution.transactionLogs ?? []) {
+  for (const log of executionReport.transactionLogs ?? []) {
     if (log.includes("vVeH6Xd43HAScbxjVtvfwDGqBMaMvNDLsAxwM5WK1pG")) {
       found += 1;
     }

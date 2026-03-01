@@ -1,4 +1,5 @@
 import { base64Encode } from "../data/Base64";
+import { ExecutionReport } from "../data/Execution";
 import {
   jsonCodecBase64ToBytes,
   jsonCodecBlockSlot,
@@ -15,7 +16,7 @@ import {
   JsonObject,
 } from "../data/Json";
 import { Pubkey, pubkeyDefault } from "../data/Pubkey";
-import { TransactionExecution, TransactionPacket } from "../data/Transaction";
+import { TransactionPacket } from "../data/Transaction";
 import { RpcHttp } from "./RpcHttp";
 
 /**
@@ -24,15 +25,15 @@ import { RpcHttp } from "./RpcHttp";
  * Optionally fetches the post-simulation state of up to 3 accounts (Solana RPC limit).
  *
  * @param self - The {@link RpcHttp} client to use.
- * @param transactionPacket - The compiled and signed transaction bytes to simulate.
+ * @param transactionPacket - The {@link TransactionPacket} to simulate.
  * @param options - Optional simulation options.
  * @param options.verifySignaturesAndBlockHash - When `true` (default), verifies signatures and the blockhash before simulation.
  *   When `false`, the blockhash is replaced with a recent one and signature verification is skipped.
- * @param options.simulatedAccountsAddresses - An optional set of up to 3 account addresses whose post-simulation
+ * @param options.simulatedAccountsAddresses - An optional set of up to 3 {@link Pubkey} account addresses whose post-simulation
  *   state should be returned.
  * @returns An object containing:
- *   - `transactionExecution` – execution result including logs, error, compute units, and fees.
- *   - `simulatedAccountsByAddress` – a map from each requested account address to its post-simulation state.
+ *   - `executionReport` – {@link ExecutionReport} result including logs, error, compute units, and fees.
+ *   - `simulatedAccountsByAddress` – a map from each requested {@link Pubkey} to its post-simulation state.
  * @throws If more than 3 accounts are requested via `simulatedAccountsAddresses`.
  */
 export async function rpcHttpSimulateTransaction(
@@ -43,7 +44,7 @@ export async function rpcHttpSimulateTransaction(
     simulatedAccountsAddresses?: Set<Pubkey>;
   },
 ): Promise<{
-  transactionExecution: TransactionExecution;
+  executionReport: ExecutionReport;
   simulatedAccountsByAddress: Map<
     Pubkey,
     {
@@ -78,7 +79,7 @@ export async function rpcHttpSimulateTransaction(
       },
     ),
   );
-  const transactionExecution: TransactionExecution = {
+  const executionReport: ExecutionReport = {
     blockTime: undefined,
     blockSlot: result.context.slot,
     transactionLogs: result.value.logs ?? undefined,
@@ -112,10 +113,7 @@ export async function rpcHttpSimulateTransaction(
       },
     ),
   );
-  return {
-    transactionExecution,
-    simulatedAccountsByAddress,
-  };
+  return { executionReport, simulatedAccountsByAddress };
 }
 
 const resultJsonDecoder = jsonDecoderObjectToObject({

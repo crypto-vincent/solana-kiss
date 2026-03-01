@@ -2,6 +2,7 @@ import {
   casingLosslessConvertToCamel,
   casingLosslessConvertToSnake,
 } from "./Casing";
+import { ErrorStack } from "./Error";
 
 /**
  * Constructs a union type where exactly one key of `T` is present and all others are absent.
@@ -31,15 +32,39 @@ export type Branded<T, Name> =
 /**
  * Asserts that a value is defined (not `undefined`), throwing if it is.
  * @param value - The value to check.
- * @param name - Optional name used in the error message.
+ * @param context - Optional additional context to include in the error message.
  * @returns The value, narrowed to exclude `undefined`.
- * @throws {Error} If `value` is `undefined`.
+ * @throws {ErrorStack} If `value` is `undefined`.
  */
-export function expectDefined<T>(value: T | undefined, name?: string): T {
+export function expectDefined<T>(value: T | undefined, context?: string): T {
   if (value === undefined) {
-    throw new Error(`Expected ${name ?? "value"} to be defined`);
+    const error = new ErrorStack(`Value is undefined`);
+    if (context) {
+      throw new ErrorStack(context, error);
+    } else {
+      throw error;
+    }
   }
   return value;
+}
+
+/**
+ * Asserts that two values are equal, throwing if they are not.
+ * @param a - The first value to compare.
+ * @param b - The second value to compare.
+ * @param context - Optional additional context to include in the error message.
+ * @return `void` if the values are equal.
+ * @throws {ErrorStack} If `a` is not equal to `b`.
+ */
+export function expectEqual<T>(a: T, b: T, context?: string): void {
+  if (a !== b) {
+    const error = new ErrorStack(`Values are not equal`, [a, b]);
+    if (context) {
+      throw new ErrorStack(context, error);
+    } else {
+      throw error;
+    }
+  }
 }
 
 /**
@@ -121,8 +146,7 @@ export function mapGuessIntendedKey<Value>(
 }
 
 /**
- * Lexicographically compares two byte arrays.
- * Arrays are ordered first by length, then element-by-element.
+ * Compares two byte arrays, ordering first by length and then element-by-element.
  * @param a - The first byte array.
  * @param b - The second byte array.
  * @returns A negative number if `a < b`, positive if `a > b`, or `0` if equal.

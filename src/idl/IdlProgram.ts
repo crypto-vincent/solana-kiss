@@ -47,7 +47,8 @@ export type IdlProgram = {
 
 /**
  * Attempts to identify which IDL account definition matches the given raw account data.
- * Iterates over all known accounts and returns the first one that passes its discriminator check.
+ * Iterates over all known accounts and returns the first one that passes its data
+ * validation check (data space and blob/discriminator comparison).
  * @throws {@link ErrorStack} if no account definition matches.
  */
 export function idlProgramGuessAccount(
@@ -176,6 +177,7 @@ export function idlProgramParse(programValue: JsonValue): IdlProgram {
     undefined,
     idlErrorParse,
   );
+  // TODO - auto-generate pdas if instructions agree on seeds
   const pdas = parseScopedNamedValues(
     programObject,
     "pdas",

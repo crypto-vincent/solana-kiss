@@ -6,7 +6,7 @@ import { Result } from "./Utils";
  * @param inputToCacheKey - Async function that maps an input to a cache key.
  * @param invocation - The async function to memoize.
  * @param options - Optional approvers to control when cached values are used or stored.
- * @param options.cacheUseApprover - Called before using a cached value; return `false` to bypass the cache.
+ * @param options.cacheUseApprover - Called before using a cached value; return `false` to invalidate and bypass the cached entry.
  * @param options.cacheSetApprover - Called before storing a result; return `false` to skip caching.
  * @returns An async function with the same signature as `invocation` that uses the cache.
  */

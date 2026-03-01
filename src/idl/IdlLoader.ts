@@ -62,6 +62,11 @@ export function idlLoaderFromUrl(
     options?.customFetcher ??
     (async (url) => {
       const response = await fetch(url);
+      if (!response.ok) {
+        throw new ErrorStack(
+          `Failed to fetch IDL from ${url}: ${response.status}: ${response.statusText}`,
+        );
+      }
       return (await response.json()) as JsonValue;
     });
   return async (programAddress: Pubkey) => {

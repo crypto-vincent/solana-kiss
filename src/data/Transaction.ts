@@ -1,11 +1,5 @@
-import {
-  BlockHash,
-  blockHashFromBytes,
-  blockHashToBytes,
-  BlockSlot,
-} from "./Block";
+import { BlockHash, blockHashFromBytes, blockHashToBytes } from "./Block";
 import { InstructionInput, InstructionRequest } from "./Instruction";
-import { JsonObject } from "./Json";
 import {
   Pubkey,
   pubkeyFromBytes,
@@ -18,6 +12,8 @@ import { Signer } from "./Signer";
 import { Branded } from "./Utils";
 import { WalletAccount } from "./Wallet";
 
+// TODO - add transactions check functions (for Uint8Array conversions)
+
 /**
  * The inputs required to build a Solana transaction.
  * Contains the fee payer, a recent blockhash for expiry, and the list of
@@ -28,6 +24,7 @@ export type TransactionRequest = {
   recentBlockHash: BlockHash;
   instructionsRequests: Array<InstructionRequest>;
 };
+
 /**
  * An on-chain address lookup table (ALT) and the subset of its addresses
  * referenced by a versioned transaction.
@@ -63,54 +60,24 @@ export type TransactionPacket = Branded<Uint8Array, "TransactionPacket"> & {
 };
 
 /**
+ * A function that processes a {@link TransactionPacket}, typically used for
+ * post-processing or wallet signing after the initial compilation phase.
+ */
+export type TransactionProcessor = (
+  transactionPacket: TransactionPacket,
+) => Promise<TransactionPacket>;
+
+/**
  * An opaque reference to a confirmed transaction on-chain.
  * Backed by the transaction's first signer signature.
  */
 export type TransactionHandle = Signature;
 
 /**
- * On-chain execution metadata returned after a transaction is confirmed.
- * Includes timing, logs, any error, and resource-consumption figures.
- */
-export type TransactionExecution = {
-  blockTime: Date | undefined;
-  blockSlot: BlockSlot;
-  transactionLogs: Array<string> | undefined;
-  transactionError: null | string | JsonObject;
-  consumedComputeUnits: number;
-  chargedFeesLamports: bigint | undefined;
-};
-
-/**
- * The structured trace of a transaction's execution as an ordered sequence of
- * program invocations, raw data payloads, log messages, and unrecognized
- * entries.
- */
-export type TransactionFlow = Array<
-  | { invocation: TransactionInvocation }
-  | { data: Uint8Array }
-  | { log: string }
-  | { unknown: string }
->;
-
-/**
- * A single program invocation captured within a {@link TransactionFlow},
- * including the original instruction, nested inner calls, any error raised,
- * the raw return data, and the number of compute units consumed.
- */
-export type TransactionInvocation = {
-  instructionRequest: InstructionRequest;
-  innerFlow: TransactionFlow; // TODO - naming is weird
-  instructionError: string | undefined;
-  instructionReturned: Uint8Array | undefined;
-  consumedComputeUnits: number | undefined;
-};
-
-/**
  * Compiles a {@link TransactionRequest} into a wire-ready
  * {@link TransactionPacket} and signs it with the provided signers.
  *
- * @param signers - One or more {@link Signer} or {@link WalletAccount} objects
+ * @param signers - One or more {@link Signer}, {@link WalletAccount}, or {@link TransactionProcessor}
  *   that will sign the transaction.
  * @param transactionRequest - The fee payer, recent blockhash, and
  *   instructions to compile.
@@ -119,7 +86,7 @@ export type TransactionInvocation = {
  * @returns A promise that resolves to the fully signed {@link TransactionPacket}.
  */
 export async function transactionCompileAndSign(
-  signers: Array<Signer | WalletAccount>,
+  signers: Array<Signer | WalletAccount | TransactionProcessor>,
   transactionRequest: TransactionRequest,
   transactionAddressLookupTables?: Array<TransactionAddressLookupTable>,
 ): Promise<TransactionPacket> {
@@ -275,13 +242,16 @@ export function transactionCompileUnsigned(
  */
 export async function transactionSign(
   transactionPacket: TransactionPacket,
-  signers: Array<Signer | WalletAccount>,
+  signers: Array<Signer | WalletAccount | TransactionProcessor>,
 ) {
   const signaturesBySignerAddress = new Map<Pubkey, Signature>();
-  const message = transactionExtractMessage(transactionPacket);
+  const transactionMessage = transactionExtractMessage(transactionPacket);
   for (const signer of signers) {
     if ("sign" in signer) {
-      signaturesBySignerAddress.set(signer.address, await signer.sign(message));
+      signaturesBySignerAddress.set(
+        signer.address,
+        await signer.sign(transactionMessage),
+      );
     }
   }
   const bytes = new Uint8Array(transactionPacket);
@@ -294,13 +264,16 @@ export async function transactionSign(
     }
     offset += 64;
   }
-  let packet = bytes as TransactionPacket;
+  transactionPacket = bytes as TransactionPacket;
   for (const signer of signers) {
     if ("signTransaction" in signer) {
-      packet = await signer.signTransaction(packet);
+      transactionPacket = await signer.signTransaction(transactionPacket);
+    }
+    if (signer instanceof Function) {
+      transactionPacket = await signer(transactionPacket);
     }
   }
-  return packet;
+  return transactionPacket;
 }
 
 /**
@@ -314,11 +287,11 @@ export async function transactionSign(
 export async function transactionVerify(
   transactionPacket: TransactionPacket,
 ): Promise<void> {
-  const message = transactionExtractMessage(transactionPacket);
+  const transactionMessage = transactionExtractMessage(transactionPacket);
   const signing = transactionExtractSigning(transactionPacket);
   for (const { signerAddress, signature } of signing) {
     const signerVerifier = await pubkeyToVerifier(signerAddress);
-    if (!(await signerVerifier(signature, message))) {
+    if (!(await signerVerifier(signature, transactionMessage))) {
       throw new Error(
         `Transaction: invalid signature for signer: ${signerAddress}`,
       );

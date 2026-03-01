@@ -9,13 +9,11 @@ import {
   Pubkey,
   pubkeyDefault,
   pubkeyFromBase58,
-  rpcHttpFromUrl,
   Solana,
-  urlRpcPublicMainnet,
 } from "../src";
 
 it("run", async () => {
-  const solana = new Solana(rpcHttpFromUrl(urlRpcPublicMainnet));
+  const solana = new Solana("mainnet");
   const { programIdl, accountState } = await solana.getAndInferAndDecodeAccount(
     pubkeyFromBase58("45AMNJMGuojexK1rEBHJSSVFDpTUcoHRcAUmRfLF8hrm"),
   );

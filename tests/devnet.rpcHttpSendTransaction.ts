@@ -83,17 +83,17 @@ it("run", async () => {
     ]),
     { skipPreflight: true },
   );
-  const { transactionRequest, transactionExecution } =
+  const { transactionRequest, executionReport } =
     await rpcHttpWaitForTransaction(rpcHttp, transactionHandle, async () => {
       await timeoutMs(2000);
       return true;
     });
   expect(transactionRequest).toStrictEqual(originalRequest);
-  expect(transactionExecution.chargedFeesLamports).toStrictEqual(
+  expect(executionReport.chargedFeesLamports).toStrictEqual(
     lamportsFeePerSignature * 3n,
   );
-  expect(transactionExecution.transactionLogs?.length).toStrictEqual(4);
-  expect(transactionExecution.transactionError).toStrictEqual(null);
+  expect(executionReport.transactionLogs?.length).toStrictEqual(4);
+  expect(executionReport.transactionError).toStrictEqual(null);
   const owned1 = await rpcHttpGetAccountMetadata(rpcHttp, owned1Signer.address);
   expect(owned1.programAddress).toStrictEqual(ownerAddress);
   expect(owned1.accountExecutable).toStrictEqual(false);

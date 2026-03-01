@@ -6,6 +6,7 @@ import { Signer } from "./data/Signer";
 import {
   TransactionAddressLookupTable,
   transactionCompileAndSign,
+  TransactionProcessor,
 } from "./data/Transaction";
 import { urlRpcFromUrlOrMoniker } from "./data/Url";
 import { mapGuessIntendedKey } from "./data/Utils";
@@ -19,6 +20,7 @@ import {
   idlInstructionArgsDecode,
   idlInstructionArgsEncode,
 } from "./idl/IdlInstruction";
+import { idlInstructionAccountFind } from "./idl/IdlInstructionAccount";
 import {
   IdlInstructionBlobAccountContent,
   IdlInstructionBlobAccountsContext,
@@ -59,7 +61,7 @@ import { rpcHttpSimulateTransaction } from "./rpc/RpcHttpSimulateTransaction";
  *
  * @example
  * ```ts
- * const solana = new Solana("mainnet-beta");
+ * const solana = new Solana("mainnet");
  * const { accountState } = await solana.getAndInferAndDecodeAccount(myAddress);
  * ```
  */
@@ -77,10 +79,8 @@ export class Solana {
   /**
    * Creates a new `Solana` instance.
    *
-   * @param rpcHttp - An existing {@link RpcHttp} client, or a URL / network
-   *   moniker string (e.g. `"mainnet-beta"`, `"devnet"`, or a full RPC URL).
-   *   When a string is provided, a default confirmed-commitment client is
-   *   created automatically.
+   * @param rpcHttp - An existing {@link RpcHttp} client, or a public cluster moniker (`"mainnet"`, `"devnet"`, or `"testnet"`).
+   *   When a moniker is provided, a `confirmed`-commitment {@link RpcHttp} client is created automatically.
    * @param options - Optional configuration.
    * @param options.idlLoader - Custom IDL loader to use instead of the built-in
    *   sequence (on-chain native → on-chain Anchor → remote GitHub fallback).
@@ -90,7 +90,7 @@ export class Solana {
    *   to cache the most-recently fetched block hash. Defaults to `15_000` ms.
    */
   constructor(
-    rpcHttp: RpcHttp | string,
+    rpcHttp: RpcHttp | "mainnet" | "devnet" | "testnet",
     options?: {
       idlLoader?: IdlLoader;
       idlOverrides?: Map<Pubkey, IdlProgram>;
@@ -181,8 +181,7 @@ export class Solana {
    * @param pdaName - The name of the PDA as declared in the program's IDL.
    * @param pdaInputs - Key/value pairs used to seed the PDA derivation.
    *   Defaults to an empty object when omitted.
-   * @returns The derived PDA {@link Pubkey} together with its canonical bump
-   *   seed, as returned by {@link idlPdaFind}.
+   * @returns The derived PDA {@link Pubkey}, as returned by {@link idlPdaFind}.
    * @throws If the program IDL cannot be loaded, or if no PDA named
    *   `pdaName` exists in the IDL.
    */
@@ -234,7 +233,8 @@ export class Solana {
    *   - `accountExecutable` – whether the account is marked executable
    *   - `accountData` – raw account data bytes
    *   - `accountState` – decoded account state according to the IDL schema
-   * @throws If the account does not exist or the RPC request fails.
+   * @throws If the RPC request fails, or if the account data cannot be decoded
+   *   according to the inferred account type.
    */
   public async getAndInferAndDecodeAccount(accountAddress: Pubkey) {
     const { programAddress, accountExecutable, accountLamports, accountData } =
@@ -415,6 +415,60 @@ export class Solana {
   }
 
   /**
+   * Resolves a specific instruction account address by name.
+   *
+   * @param programAddress - The on-chain address of the target program.
+   * @param instructionName - The name of the instruction as declared in the
+   *   program's IDL.
+   * @param instructionAccountName - The name of the instructionaccount to resolve.
+   * @param options - Resolution options.
+   * @param options.instructionAddresses - Partially-filled named account
+   *   addresses.
+   * @param options.instructionPayload - Instruction arguments, used when
+   *   account derivation depends on argument values.
+   * @param options.accountsContext - Optional context blob providing
+   *   additional on-chain data for account resolution.
+   * @returns The resolved instruction account address.
+   * @throws If the instruction or account does not exist in the IDL, or if it cannot be resolved with the provided information.
+   */
+  public async resolveInstructionAddress(
+    programAddress: Pubkey,
+    instructionName: string,
+    instructionAccountName: string,
+    options?: {
+      instructionAddresses?: IdlInstructionAddresses;
+      instructionPayload?: JsonValue;
+      accountsContext?: IdlInstructionBlobAccountsContext;
+    },
+  ) {
+    const { instructionAddresses } = await this.hydrateInstructionAddresses(
+      programAddress,
+      instructionName,
+      options,
+    );
+    const { instructionIdl } = await this.getOrLoadInstructionIdl(
+      programAddress,
+      instructionName,
+    );
+    const findContext = {
+      ...options,
+      instructionAddresses,
+    };
+    for (const instructionAccountIdl of instructionIdl.accounts) {
+      if (instructionAccountIdl.name === instructionAccountName) {
+        return await idlInstructionAccountFind(
+          instructionAccountIdl,
+          programAddress,
+          findContext,
+        );
+      }
+    }
+    throw new Error(
+      `Idl: Could not find instruction account '${instructionAccountName}' in instruction '${instructionName}'`,
+    );
+  }
+
+  /**
    * Returns the most recent block hash, using an in-memory cache to avoid
    * redundant RPC calls.
    *
@@ -462,17 +516,25 @@ export class Solana {
    * @throws If signing fails, or if the RPC rejects the transaction.
    */
   public async prepareAndSendTransaction(
-    payerSigner: Signer | WalletAccount,
+    payerSigner:
+      | Signer
+      | WalletAccount
+      | { address: Pubkey; processor: TransactionProcessor },
     instructionsRequests: Array<InstructionRequest>,
     options?: {
-      extraSigners?: Array<Signer | WalletAccount>;
+      extraSigners?: Array<Signer | WalletAccount | TransactionProcessor>;
       transactionLookupTables?: Array<TransactionAddressLookupTable>;
       skipPreflight?: boolean;
     },
   ) {
     const payerAddress = payerSigner.address;
     const recentBlockHash = await this.getRecentBlockHash();
-    const signers = [payerSigner];
+    const signers = new Array<Signer | WalletAccount | TransactionProcessor>();
+    if ("processor" in payerSigner) {
+      signers.push(payerSigner.processor);
+    } else {
+      signers.push(payerSigner);
+    }
     if (options?.extraSigners) {
       signers.push(...options.extraSigners);
     }
@@ -486,6 +548,7 @@ export class Solana {
       transactionPacket,
       options,
     );
+    // TODO - add a feature to wait for the result also, maybe a separate API
     return { transactionHandle };
   }
 
@@ -520,14 +583,14 @@ export class Solana {
     payer: Pubkey | Signer | WalletAccount,
     instructionsRequests: Array<InstructionRequest>,
     options?: {
-      extraSigners?: Array<Signer | WalletAccount>;
+      extraSigners?: Array<Signer | WalletAccount | TransactionProcessor>;
       transactionLookupTables?: Array<TransactionAddressLookupTable>;
-      verifySignaturesAndBlockHash?: boolean;
+      verifySignaturesAndBlockHash?: boolean; // TODO - can separate this ?
       simulatedAccountsAddresses?: Set<Pubkey>;
     },
   ) {
     let recentBlockHash = blockHashDefault;
-    const signers = new Array<Signer | WalletAccount>();
+    const signers = new Array<Signer | WalletAccount | TransactionProcessor>();
     if (options?.verifySignaturesAndBlockHash ?? true) {
       recentBlockHash = await this.getRecentBlockHash();
       if (payer instanceof Object && "address" in payer) {
@@ -564,7 +627,7 @@ export class Solana {
    * @param accountName - The name of the account type as declared in the
    *   program's IDL.
    * @returns The result of {@link rpcHttpFindProgramOwnedAccounts}, containing
-   *   an array of matching accounts with their raw data.
+   *   the set of matching account {@link Pubkey}s (`accountsAddresses`).
    * @throws If the program IDL cannot be loaded, if no account named
    *   `accountName` exists in the IDL, or if the RPC request fails.
    */

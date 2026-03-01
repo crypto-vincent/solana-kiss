@@ -1,13 +1,13 @@
 import { expect, it } from "@jest/globals";
 import {
+  ExecutionFlow,
+  ExecutionInvocation,
   expectDefined,
   InstructionInput,
   InstructionRequest,
   pubkeyFromBase58,
   rpcHttpGetTransaction,
-  TransactionFlow,
   TransactionHandle,
-  TransactionInvocation,
 } from "../src";
 
 function rpcHttp() {
@@ -15,22 +15,21 @@ function rpcHttp() {
 }
 
 it("run", async () => {
-  const { transactionRequest, transactionExecution, transactionFlow } =
-    expectDefined(
-      await rpcHttpGetTransaction(rpcHttp, "!" as TransactionHandle),
-    );
+  const { transactionRequest, executionReport, executionFlow } = expectDefined(
+    await rpcHttpGetTransaction(rpcHttp, "!" as TransactionHandle),
+  );
   // Check basic stuff about the transaction
-  expect(transactionExecution.blockTime?.toISOString()).toStrictEqual(
+  expect(executionReport.blockTime?.toISOString()).toStrictEqual(
     "2025-03-24T14:28:45.000Z",
   );
-  expect(transactionExecution.blockSlot).toStrictEqual(328883613);
-  expect(transactionExecution.chargedFeesLamports).toStrictEqual(32510n);
-  expect(transactionExecution.consumedComputeUnits).toStrictEqual(42381);
-  expect(transactionExecution.transactionLogs?.length).toStrictEqual(22);
-  expect(transactionExecution.transactionLogs?.[0]).toStrictEqual(
+  expect(executionReport.blockSlot).toStrictEqual(328883613);
+  expect(executionReport.chargedFeesLamports).toStrictEqual(32510n);
+  expect(executionReport.consumedComputeUnits).toStrictEqual(42381);
+  expect(executionReport.transactionLogs?.length).toStrictEqual(22);
+  expect(executionReport.transactionLogs?.[0]).toStrictEqual(
     "Program ComputeBudget111111111111111111111111111111 invoke [1]",
   );
-  expect(transactionExecution.transactionError).toStrictEqual(null);
+  expect(executionReport.transactionError).toStrictEqual(null);
   // Check the message content
   expect(transactionRequest.payerAddress).toStrictEqual(
     "Hc3EobqKYuqndAYmPzEhokBab3trofMWDafj4PJxFYUL",
@@ -46,7 +45,7 @@ it("run", async () => {
     "4nTobZxuiA9xZDuSMfSQE6WJSswAkoVoF7ycve42iiy2",
   );
   // Check the invocations content
-  expect(transactionFlow).toStrictEqual([
+  expect(executionFlow).toStrictEqual([
     invocation({
       instructionRequest: instruction({
         programAddress: "ComputeBudget111111111111111111111111111111",
@@ -87,7 +86,7 @@ it("run", async () => {
         ],
         data: [194, 8, 161, 87, 153, 164, 25, 171],
       }),
-      innerFlow: [
+      innerExecutionFlow: [
         { log: "Instruction: VaultTransactionExecute" },
         invocation({
           instructionRequest: instruction({
@@ -101,7 +100,7 @@ it("run", async () => {
             ],
             data: [11, 36, 247, 105, 0, 212, 165, 190, 42, 0, 0, 0, 0, 0, 0, 0],
           }),
-          innerFlow: [
+          innerExecutionFlow: [
             { log: "Instruction: PoolExtract" },
             invocation({
               instructionRequest: instruction({
@@ -113,7 +112,7 @@ it("run", async () => {
                 ],
                 data: [3, 42, 0, 0, 0, 0, 0, 0, 0],
               }),
-              innerFlow: [
+              innerExecutionFlow: [
                 { log: "Instruction: Transfer" },
                 invocation({
                   instructionRequest: instruction({
@@ -139,17 +138,17 @@ it("run", async () => {
 
 function invocation(value: {
   instructionRequest: InstructionRequest;
-  innerFlow?: TransactionFlow;
+  innerExecutionFlow?: ExecutionFlow;
   result?: {
     error?: string;
     returned?: Uint8Array;
     consumedComputeUnits?: number;
   };
-}): { invocation: TransactionInvocation } {
+}): { invocation: ExecutionInvocation } {
   return {
     invocation: {
       instructionRequest: value.instructionRequest,
-      innerFlow: value.innerFlow ?? [],
+      innerExecutionFlow: value.innerExecutionFlow ?? [],
       instructionError: value.result?.error,
       instructionReturned: value.result?.returned,
       consumedComputeUnits: value.result?.consumedComputeUnits,

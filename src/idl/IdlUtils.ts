@@ -65,7 +65,7 @@ export const idlUtilsBytesJsonDecoder = jsonDecoderByType({
  * treated as byte arrays (`bytes`). Throws for unsupported value shapes.
  *
  * @param value - The JSON value whose flat IDL type should be inferred.
- * @returns The inferred `IdlTypeFlat`.
+ * @returns The inferred {@link IdlTypeFlat}.
  */
 export function idlUtilsInferValueTypeFlat(value: JsonValue): IdlTypeFlat {
   if (jsonAsString(value) !== undefined) {
@@ -114,12 +114,12 @@ export function idlUtilsExpectBlobAt(
 }
 
 /**
- * Parses a Rust-flavored JSON string into a standard `JsonValue`. Handles
+ * Parses a Rust-flavored JSON string into a standard {@link JsonValue}. Handles
  * Rust-style numeric literals that contain underscores as digit separators
  * (e.g. `1_000_000`), which are not valid in standard JSON.
  *
  * @param jsonRusted - A JSON string potentially containing Rust numeric literals.
- * @returns The parsed `JsonValue`.
+ * @returns The parsed {@link JsonValue}.
  */
 export function idlUtilsJsonRustedParse(jsonRusted: string): JsonValue {
   return JSON.parse(

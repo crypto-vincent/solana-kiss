@@ -12,8 +12,8 @@ it("run", async () => {
   // This should be a simple success
   const {
     transactionRequest: transactionRequest1,
-    transactionExecution: transactionExecution1,
-    transactionFlow: transactionFlow1,
+    executionReport: executionReport1,
+    executionFlow: executionFlow1,
   } = expectDefined(
     await rpcHttpGetTransaction(
       rpcHttp,
@@ -28,13 +28,13 @@ it("run", async () => {
   expect(transactionRequest1.recentBlockHash).toStrictEqual(
     "EZY4BjNgBeSKEnCV2DycDchJg1kjqiwJ3cb9GFc5Avhy",
   );
-  expect(transactionExecution1.transactionError).toStrictEqual(null);
-  expect(transactionFlow1?.length).toStrictEqual(1);
+  expect(executionReport1.transactionError).toStrictEqual(null);
+  expect(executionFlow1?.length).toStrictEqual(1);
   // This should be a failure with error
   const {
     transactionRequest: transactionRequest2,
-    transactionExecution: transactionExecution2,
-    transactionFlow: transactionFlow2,
+    executionReport: executionReport2,
+    executionFlow: executionFlow2,
   } = expectDefined(
     await rpcHttpGetTransaction(
       rpcHttp,
@@ -49,18 +49,18 @@ it("run", async () => {
   expect(transactionRequest2.recentBlockHash).toStrictEqual(
     "EEkjZAAnF3qd5VRRt62GXjcoBqQYm2ezt9vNVZgZi6xQ",
   );
-  expect(transactionExecution2.transactionError).toEqual({
+  expect(executionReport2.transactionError).toEqual({
     InstructionError: [1, { Custom: 3012 }],
   });
-  expect(transactionFlow2?.length).toStrictEqual(2);
-  expect(
-    (transactionFlow2 as any)[1].invocation.instructionError,
-  ).toStrictEqual("custom program error: 0xbc4");
+  expect(executionFlow2?.length).toStrictEqual(2);
+  expect((executionFlow2 as any)[1].invocation.instructionError).toStrictEqual(
+    "custom program error: 0xbc4",
+  );
   // This should be a transaction with many instructions (> 50)
   const {
     transactionRequest: transactionRequest3,
-    transactionExecution: transactionExecution3,
-    transactionFlow: transactionFlow3,
+    executionReport: executionReport3,
+    executionFlow: executionFlow3,
   } = expectDefined(
     await rpcHttpGetTransaction(
       rpcHttp,
@@ -75,13 +75,13 @@ it("run", async () => {
   expect(transactionRequest3.recentBlockHash).toStrictEqual(
     "6gtmFZxPgbkS5b2Wxw9bk5XUGZXqwjRTwn2rLVYJiRJS",
   );
-  expect(transactionExecution3.transactionError).toStrictEqual(null);
-  expect(transactionFlow3?.length).toStrictEqual(50);
+  expect(executionReport3.transactionError).toStrictEqual(null);
+  expect(executionFlow3?.length).toStrictEqual(50);
   // This transaction should have failed but still be parsable
   const {
     transactionRequest: transactionRequest4,
-    transactionExecution: transactionExecution4,
-    transactionFlow: transactionFlow4,
+    executionReport: executionReport4,
+    executionFlow: executionFlow4,
   } = expectDefined(
     await rpcHttpGetTransaction(
       rpcHttp,
@@ -96,10 +96,10 @@ it("run", async () => {
   expect(transactionRequest4.recentBlockHash).toStrictEqual(
     "DSdtibZUiVuXff5fGVWVmTCAM6NHEhkRo6LENA3kvNYc",
   );
-  expect(transactionExecution4.transactionError?.toString()).toStrictEqual(
+  expect(executionReport4.transactionError?.toString()).toStrictEqual(
     {
       InstructionError: [0, "UnsupportedProgramId"],
     }.toString(),
   );
-  expect(transactionFlow4?.length).toStrictEqual(1);
+  expect(executionFlow4?.length).toStrictEqual(1);
 });

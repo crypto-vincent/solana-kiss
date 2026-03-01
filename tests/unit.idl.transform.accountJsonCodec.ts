@@ -5,12 +5,10 @@ import {
   idlAccountDecode,
   idlAccountEncode,
   idlProgramParse,
-  pubkeyDefault,
-} from "../src";
-import {
   idlTypeFullJsonCodecExpression,
   idlTypeFullJsonCodecModule,
-} from "../src/idl/IdlTypeFullJsonCodec";
+  pubkeyDefault,
+} from "../src";
 
 it("run", async () => {
   const programIdl = idlProgramParse({

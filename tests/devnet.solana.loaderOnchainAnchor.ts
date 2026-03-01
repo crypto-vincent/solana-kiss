@@ -1,13 +1,8 @@
 import { expect, it } from "@jest/globals";
-import {
-  pubkeyFromBase58,
-  rpcHttpFromUrl,
-  Solana,
-  urlRpcPublicDevnet,
-} from "../src";
+import { pubkeyFromBase58, Solana } from "../src";
 
 it("run", async () => {
-  const solana = new Solana(rpcHttpFromUrl(urlRpcPublicDevnet));
+  const solana = new Solana("devnet");
   const programAddress = pubkeyFromBase58(
     "UCNcQRtrbGmvuLKA3Jv719Cc6DS4r661ZRpyZduxu2j",
   );

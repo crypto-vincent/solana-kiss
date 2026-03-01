@@ -1,20 +1,21 @@
 import { expect, it } from "@jest/globals";
-import {
-  pubkeyFromBase58,
-  rpcHttpFromUrl,
-  Solana,
-  urlRpcPublicDevnet,
-} from "../src";
+import { pubkeyFromBase58, Solana } from "../src";
 
 it("run", async () => {
-  const solana = new Solana(rpcHttpFromUrl(urlRpcPublicDevnet));
-  const programAddress = pubkeyFromBase58(
+  const solana = new Solana("devnet");
+  const programAddress1 = pubkeyFromBase58(
     "ProgM6JCCvbYkfKqJYHePx4xxSUSqJp7rh8Lyv7nk7S",
   );
-  const { programIdl } = await solana.getOrLoadProgramIdl(programAddress);
-  expect(programIdl.metadata.address).toStrictEqual(programAddress);
-  expect(programIdl.metadata.version).toStrictEqual("1.0.0");
-  expect(programIdl.metadata.source).toStrictEqual(
-    `onchain://solana-program-metadata/canonical`,
+  const { programIdl: programIdl1 } =
+    await solana.getOrLoadProgramIdl(programAddress1);
+  expect(programIdl1.metadata.address).toStrictEqual(programAddress1);
+  expect(programIdl1.metadata.version).toStrictEqual("1.0.0");
+
+  const programAddress2 = pubkeyFromBase58(
+    "6hCEKFurgG2DFgKwAeTu1umfZecXSfoHj1nxZhRRcxvN",
   );
+  const { programIdl: programIdl2 } =
+    await solana.getOrLoadProgramIdl(programAddress2);
+  expect(programIdl2.metadata.address).toStrictEqual(programAddress2);
+  expect(programIdl2.metadata.version).toStrictEqual("0.1.1");
 });

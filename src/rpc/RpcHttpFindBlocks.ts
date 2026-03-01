@@ -19,7 +19,7 @@ import { RpcHttp } from "./RpcHttp";
  * @param self - The {@link RpcHttp} client to use.
  * @param maxResultLength - Maximum number of block slots to return.
  * @param context - Defines the search range and direction.
- * @returns An object containing `blocksSlots`, an array of block slots in the order they were found.
+ * @returns An object containing `blocksSlots`, an array of {@link BlockSlot}s in the order they were found.
  */
 export async function rpcHttpFindBlocks(
   self: RpcHttp,
@@ -84,7 +84,11 @@ export async function rpcHttpFindBlocks(
   }
   while (true) {
     const result = resultJsonDecoder(
-      await self("getBlocks", [lowBlockSlot + 1, lowBlockSlot + batchSize], {}),
+      await self(
+        "getBlocks",
+        [lowBlockSlot + 1, lowBlockSlot + batchSize],
+        undefined,
+      ),
     );
     if (result.length === 0) {
       return { blocksSlots };
