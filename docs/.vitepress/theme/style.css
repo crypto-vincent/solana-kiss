@@ -112,63 +112,76 @@ hr.api-sep {
   overflow: hidden;
 }
 
-.api-entry-header {
+/* Override VitePress inline-code styles for the signature */
+/* (No longer needed — .api-pre uses a full <pre> block) */
+
+/* ── Signature pre block ──────────────────────────────── */
+
+.api-entry-pre {
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   gap: 0.55rem;
-  padding: 0.4rem 0.75rem;
-  background-color: var(--vp-c-bg-soft);
+  padding: 0.5rem 0.75rem;
+  background-color: var(--vp-code-block-bg);
   border-bottom: 1px solid var(--vp-c-divider);
 }
 
-/* Override VitePress inline-code styles for the signature */
-.api-sig,
-code.api-sig {
+.api-pre,
+pre.api-pre {
+  flex: 1;
+  margin: 0 !important;
+  padding: 0 !important;
+  background: none !important;
+  border-radius: 0 !important;
+  overflow-x: auto;
   font-family: var(--vp-font-family-mono) !important;
   font-size: 0.875rem !important;
-  /* No color override — child spans handle token colours */
+  line-height: 1.65;
+  white-space: pre;
+}
+
+.api-pre code {
   background: none !important;
   padding: 0 !important;
-  border-radius: 0 !important;
-  flex: 1;
-  white-space: pre-wrap;
-  word-break: break-word;
+  font-size: inherit !important;
+  color: inherit;
 }
 
-/* ── Signature syntax highlighting ───────────────────── */
-/* Light-mode token colours */
+/* ── Syntax token colours ─────────────────────────────── */
+/* Light mode */
 :root {
-  --sig-fn:        var(--vp-c-brand-1);   /* function / method names   */
-  --sig-type:      #0550ae;               /* custom type references    */
-  --sig-primitive: #0a7c4c;               /* built-in keyword types    */
-  --sig-kw:        #7c3aed;               /* new / class / interface   */
-  --sig-param:     #374151;               /* parameter names           */
-  --sig-op:        #4b5563;               /* → | & =>                  */
-  --sig-punct:     #9ca3af;               /* ( ) , : ; < > [ ]         */
-  --sig-str:       #b45309;               /* string literals           */
+  --sh-kw:        #cf222e;
+  --sh-prim:      #0550ae;
+  --sh-type:      #953800;
+  --sh-type-link: #0969da;
+  --sh-str:       #0a3069;
+  --sh-comment:   #6e7781;
 }
 
-/* Dark-mode overrides (VitePress adds .dark on <html>) */
+/* Dark mode */
 .dark {
-  --sig-fn:        var(--vp-c-brand-1);
-  --sig-type:      #60a5fa;
-  --sig-primitive: #34d399;
-  --sig-kw:        #a78bfa;
-  --sig-param:     #e2e8f0;
-  --sig-op:        #94a3b8;
-  --sig-punct:     #6b7280;
-  --sig-str:       #fb923c;
+  --sh-kw:        #ff7b72;
+  --sh-prim:      #79c0ff;
+  --sh-type:      #ffa657;
+  --sh-type-link: #58a6ff;
+  --sh-str:       #a5d6ff;
+  --sh-comment:   #8b949e;
 }
 
-.sig-fn-name  { color: var(--sig-fn);        font-weight: 600; }
-.sig-const    { color: var(--sig-fn);        font-weight: 600; }
-.sig-type     { color: var(--sig-type);      }
-.sig-primitive{ color: var(--sig-primitive); }
-.sig-kw       { color: var(--sig-kw);        font-style: italic; }
-.sig-param    { color: var(--sig-param);     }
-.sig-op       { color: var(--sig-op);        }
-.sig-punct    { color: var(--sig-punct);     }
-.sig-str      { color: var(--sig-str);       }
+.sh-kw      { color: var(--sh-kw);      }
+.sh-prim    { color: var(--sh-prim);    }
+.sh-type    { color: var(--sh-type);    }
+.sh-str     { color: var(--sh-str);     }
+.sh-comment { color: var(--sh-comment); font-style: italic; }
+
+a.sh-type-link {
+  color: var(--sh-type-link);
+  text-decoration: none;
+  border-bottom: 1px solid transparent;
+}
+a.sh-type-link:hover {
+  border-bottom-color: var(--sh-type-link);
+}
 
 .api-entry-body {
   padding: 0.45rem 0.75rem 0.55rem;
