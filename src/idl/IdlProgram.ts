@@ -49,6 +49,9 @@ export type IdlProgram = {
  * Attempts to identify which IDL account definition matches the given raw account data.
  * Iterates over all known accounts and returns the first one that passes its data
  * validation check (data space and blob/discriminator comparison).
+ * @param self - The {@link IdlProgram} to search.
+ * @param accountData - The raw account data bytes to match against.
+ * @returns The first matching {@link IdlAccount}.
  * @throws {@link ErrorStack} if no account definition matches.
  */
 export function idlProgramGuessAccount(
@@ -70,6 +73,9 @@ export function idlProgramGuessAccount(
 /**
  * Attempts to identify which IDL instruction definition matches the given instruction request.
  * Iterates over all known instructions and returns the first one whose accounts and args check pass.
+ * @param self - The {@link IdlProgram} to search.
+ * @param instructionRequest - The {@link InstructionRequest} to match against.
+ * @returns The first matching {@link IdlInstruction}.
  * @throws {@link ErrorStack} if no instruction definition matches.
  */
 export function idlProgramGuessInstruction(
@@ -98,6 +104,9 @@ export function idlProgramGuessInstruction(
 /**
  * Attempts to identify which IDL event definition matches the given raw event data.
  * Iterates over all known events and returns the first one that passes its discriminator check.
+ * @param self - The {@link IdlProgram} to search.
+ * @param eventData - The raw event data bytes to match against.
+ * @returns The first matching {@link IdlEvent}.
  * @throws {@link ErrorStack} if no event definition matches.
  */
 export function idlProgramGuessEvent(
@@ -118,6 +127,9 @@ export function idlProgramGuessEvent(
 
 /**
  * Attempts to identify which IDL error definition matches the given numeric error code.
+ * @param self - The {@link IdlProgram} to search.
+ * @param errorCode - The numeric error code to look up.
+ * @returns The matching {@link IdlError}.
  * @throws {@link ErrorStack} listing all known error codes if no match is found.
  */
 export function idlProgramGuessError(
@@ -138,6 +150,8 @@ export function idlProgramGuessError(
 /**
  * Parses a raw JSON value into an {@link IdlProgram}.
  * Supports Anchor IDL format; CODAMA IDL support is not yet implemented.
+ * @param programValue - The raw JSON value representing the IDL.
+ * @returns The parsed {@link IdlProgram}.
  */
 export function idlProgramParse(programValue: JsonValue): IdlProgram {
   const programObject = jsonCodecObject.decoder(programValue);

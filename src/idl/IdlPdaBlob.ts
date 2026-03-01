@@ -74,12 +74,22 @@ export class IdlPdaBlob {
   }
 }
 
-/** Computes the raw byte representation of a PDA seed by resolving it against the given named inputs. */
+/**
+ * Computes the raw byte representation of a PDA seed by resolving it against the given named inputs.
+ * @param self - The {@link IdlPdaBlob} seed to compute.
+ * @param inputs - Named input values used when the seed is an `input` variant.
+ * @returns The computed seed bytes.
+ */
 export function idlPdaBlobCompute(self: IdlPdaBlob, inputs: IdlPdaInputs) {
   return self.traverse(computeVisitor, inputs, undefined, undefined);
 }
 
-/** Parses a raw IDL PDA blob JSON value into an {@link IdlPdaBlob}, resolving constant or named-input variants. */
+/**
+ * Parses a raw IDL PDA blob JSON value into an {@link IdlPdaBlob}, resolving constant or named-input variants.
+ * @param pdaBlobValue - The raw JSON value describing the PDA seed.
+ * @param typedefsIdls - A map of known typedef definitions for type resolution.
+ * @returns The parsed {@link IdlPdaBlob}.
+ */
 export function idlPdaBlobParse(
   pdaBlobValue: JsonValue,
   typedefsIdls: Map<string, IdlTypedef>,

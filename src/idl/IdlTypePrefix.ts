@@ -50,6 +50,9 @@ export class IdlTypePrefix {
 /**
  * Encodes a `bigint` value into the byte representation determined by `self`'s width
  * and appends the resulting {@link Uint8Array} to `blobs`.
+ * @param self - The {@link IdlTypePrefix} defining the byte width to use.
+ * @param value - The `bigint` value to encode.
+ * @param blobs - The output array to which the encoded bytes are appended.
  */
 export function idlTypePrefixEncode(
   self: IdlTypePrefix,
@@ -63,6 +66,9 @@ export function idlTypePrefixEncode(
 
 /**
  * Decodes a `bigint` value from `data` at `dataOffset` using `self`'s byte width.
+ * @param self - The {@link IdlTypePrefix} defining the byte width to use.
+ * @param data - The `DataView` over the raw binary buffer.
+ * @param dataOffset - Byte offset within `data` at which to start reading.
  * @returns A tuple of `[bytesConsumed, decodedValue]`.
  */
 export function idlTypePrefixDecode(

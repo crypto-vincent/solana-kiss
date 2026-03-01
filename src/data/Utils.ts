@@ -34,7 +34,7 @@ export type Branded<T, Name> =
  * @param value - The value to check.
  * @param context - Optional additional context to include in the error message.
  * @returns The value, narrowed to exclude `undefined`.
- * @throws {ErrorStack} If `value` is `undefined`.
+ * @throws {@link ErrorStack} If `value` is `undefined`.
  */
 export function expectDefined<T>(value: T | undefined, context?: string): T {
   if (value === undefined) {
@@ -54,7 +54,7 @@ export function expectDefined<T>(value: T | undefined, context?: string): T {
  * @param b - The second value to compare.
  * @param context - Optional additional context to include in the error message.
  * @return `void` if the values are equal.
- * @throws {ErrorStack} If `a` is not equal to `b`.
+ * @throws {@link ErrorStack} If `a` is not equal to `b`.
  */
 export function expectEqual<T>(a: T, b: T, context?: string): void {
   if (a !== b) {
