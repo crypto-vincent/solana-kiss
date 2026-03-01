@@ -66,7 +66,13 @@ export type IdlInstruction = {
   };
 };
 
-/** Encodes a map of instruction account addresses into the ordered {@link InstructionInput} array required by the transaction builder. */
+/**
+ * Encodes a map of instruction account addresses into the ordered {@link InstructionInput} array required by the transaction builder.
+ * @param self - The {@link IdlInstruction} whose account list defines the expected order.
+ * @param instructionAddresses - Named account addresses to encode.
+ * @returns An object containing the ordered `instructionInputs` array.
+ * @throws If a required account address is missing from `instructionAddresses`.
+ */
 export function idlInstructionAccountsEncode(
   self: IdlInstruction,
   instructionAddresses: IdlInstructionAddresses,
@@ -94,7 +100,13 @@ export function idlInstructionAccountsEncode(
   return { instructionInputs };
 }
 
-/** Decodes an ordered array of {@link InstructionInput}s back into a named {@link IdlInstructionAddresses} map. */
+/**
+ * Decodes an ordered array of {@link InstructionInput}s back into a named {@link IdlInstructionAddresses} map.
+ * @param self - The {@link IdlInstruction} whose account list defines the expected mapping.
+ * @param instructionInputs - The ordered account inputs to decode.
+ * @returns An object containing the decoded `instructionAddresses` map.
+ * @throws If the number of inputs is fewer than the number of required accounts.
+ */
 export function idlInstructionAccountsDecode(
   self: IdlInstruction,
   instructionInputs: Array<InstructionInput>,
@@ -139,6 +151,15 @@ export function idlInstructionAccountsDecode(
 /**
  * Iteratively resolves all account addresses for an instruction, deriving PDAs where possible.
  * Continues until no further progress can be made, optionally throwing if any required address remains unresolved.
+ * @param self - The {@link IdlInstruction} whose accounts to resolve.
+ * @param programAddress - The on-chain address of the owning program.
+ * @param options - Optional resolution context.
+ * @param options.throwOnMissing - When `true`, throws if any required account remains unresolved.
+ * @param options.instructionAddresses - Partially-filled named account addresses to start from.
+ * @param options.instructionPayload - Instruction arguments used when account derivation depends on args.
+ * @param options.accountsContext - Optional context for resolving accounts requiring on-chain state.
+ * @param options.accountFetcher - Optional async function to fetch and decode on-chain account data.
+ * @returns An object containing the resolved `instructionAddresses` map.
  */
 export async function idlInstructionAccountsFind(
   self: IdlInstruction,
@@ -204,7 +225,12 @@ export async function idlInstructionAccountsFind(
   return { instructionAddresses };
 }
 
-/** Validates that the provided instruction inputs satisfy all required accounts defined in the IDL instruction. */
+/**
+ * Validates that the provided instruction inputs satisfy all required accounts defined in the IDL instruction.
+ * @param self - The {@link IdlInstruction} whose account list to validate against.
+ * @param instructionInputs - The ordered account inputs to check.
+ * @throws If the inputs do not satisfy the instruction's account requirements.
+ */
 export function idlInstructionAccountsCheck(
   self: IdlInstruction,
   instructionInputs: Array<InstructionInput>,
@@ -212,7 +238,12 @@ export function idlInstructionAccountsCheck(
   idlInstructionAccountsDecode(self, instructionInputs);
 }
 
-/** Encodes a JSON instruction payload into binary instruction data, prepending the discriminator. */
+/**
+ * Encodes a JSON instruction payload into binary instruction data, prepending the discriminator.
+ * @param self - The {@link IdlInstruction} whose args schema and discriminator to use.
+ * @param instructionPayload - The instruction arguments as a JSON value.
+ * @returns An object containing the encoded `instructionData` bytes.
+ */
 export function idlInstructionArgsEncode(
   self: IdlInstruction,
   instructionPayload: JsonValue,
@@ -227,7 +258,13 @@ export function idlInstructionArgsEncode(
   };
 }
 
-/** Decodes binary instruction data (after verifying its discriminator) into a JSON instruction payload. */
+/**
+ * Decodes binary instruction data (after verifying its discriminator) into a JSON instruction payload.
+ * @param self - The {@link IdlInstruction} whose args schema and discriminator to use.
+ * @param instructionData - The binary instruction data bytes to decode.
+ * @returns An object containing the decoded `instructionPayload`.
+ * @throws If the discriminator does not match.
+ */
 export function idlInstructionArgsDecode(
   self: IdlInstruction,
   instructionData: Uint8Array,
@@ -241,7 +278,12 @@ export function idlInstructionArgsDecode(
   return { instructionPayload };
 }
 
-/** Validates that the binary instruction data starts with the correct discriminator for this instruction. */
+/**
+ * Validates that the binary instruction data starts with the correct discriminator for this instruction.
+ * @param self - The {@link IdlInstruction} whose discriminator to check against.
+ * @param instructionData - The binary instruction data bytes to validate.
+ * @throws If the discriminator bytes do not match.
+ */
 export function idlInstructionArgsCheck(
   self: IdlInstruction,
   instructionData: Uint8Array,
@@ -249,7 +291,12 @@ export function idlInstructionArgsCheck(
   idlUtilsExpectBlobAt(0, self.discriminator, instructionData);
 }
 
-/** Encodes a JSON instruction return value into its binary representation. */
+/**
+ * Encodes a JSON instruction return value into its binary representation.
+ * @param self - The {@link IdlInstruction} whose return type schema to use.
+ * @param instructionResult - The return value as a JSON value.
+ * @returns An object containing the encoded `instructionReturned` bytes.
+ */
 export function idlInstructionReturnEncode(
   self: IdlInstruction,
   instructionResult: JsonValue,
@@ -263,7 +310,12 @@ export function idlInstructionReturnEncode(
   };
 }
 
-/** Decodes binary instruction return data into a JSON result value. */
+/**
+ * Decodes binary instruction return data into a JSON result value.
+ * @param self - The {@link IdlInstruction} whose return type schema to use.
+ * @param instructionReturned - The binary return data bytes to decode.
+ * @returns An object containing the decoded `instructionResult`.
+ */
 export function idlInstructionReturnDecode(
   self: IdlInstruction,
   instructionReturned: Uint8Array,
@@ -276,7 +328,13 @@ export function idlInstructionReturnDecode(
   return { instructionResult };
 }
 
-/** Parses a raw IDL instruction JSON value into a fully-typed {@link IdlInstruction}, resolving all typedefs. */
+/**
+ * Parses a raw IDL instruction JSON value into a fully-typed {@link IdlInstruction}, resolving all typedefs.
+ * @param instructionName - The name of the instruction.
+ * @param instructionValue - The raw JSON value describing the instruction.
+ * @param typedefsIdls - A map of known typedef definitions for type resolution.
+ * @returns The parsed {@link IdlInstruction}.
+ */
 export function idlInstructionParse(
   instructionName: string,
   instructionValue: JsonValue,

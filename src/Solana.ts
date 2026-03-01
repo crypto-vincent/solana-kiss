@@ -420,7 +420,7 @@ export class Solana {
    * @param programAddress - The on-chain address of the target program.
    * @param instructionName - The name of the instruction as declared in the
    *   program's IDL.
-   * @param instructionAccountName - The name of the instructionaccount to resolve.
+   * @param instructionAccountName - The name of the instruction account to resolve.
    * @param options - Resolution options.
    * @param options.instructionAddresses - Partially-filled named account
    *   addresses.
@@ -500,8 +500,9 @@ export class Solana {
    * signers, compiles the versioned transaction, and sends it via the
    * configured RPC endpoint.
    *
-   * @param payerSigner - The transaction fee-payer; must be able to sign (i.e.
-   *   a {@link Signer} or {@link WalletAccount} with signing capability).
+   * @param payerSigner - The transaction fee-payer; either a {@link Signer} or
+   *   {@link WalletAccount} that can sign directly, or an object with `address`
+   *   and `processor` fields to sign via a {@link TransactionProcessor}.
    * @param instructionsRequests - Ordered list of instructions to include in
    *   the transaction.
    * @param options - Optional submission settings.

@@ -50,7 +50,14 @@ export type IdlInstructionAccountFindContext = {
   accountFetcher?: IdlInstructionBlobAccountFetcher;
 };
 
-/** Resolves the public key address for a single instruction account, using a fixed address, PDA derivation, or the find context. */
+/**
+ * Resolves the public key address for a single instruction account, using a fixed address, PDA derivation, or the find context.
+ * @param self - The {@link IdlInstructionAccount} to resolve.
+ * @param programAddress - The on-chain address of the owning program (used for PDA derivation).
+ * @param findContext - The resolution context containing already-known addresses and optional payload/account data.
+ * @returns The resolved {@link Pubkey} address.
+ * @throws If the address cannot be resolved from any available source.
+ */
 export async function idlInstructionAccountFind(
   self: IdlInstructionAccount,
   programAddress: Pubkey,
@@ -87,7 +94,14 @@ export async function idlInstructionAccountFind(
   );
 }
 
-/** Parses a raw IDL account JSON value into one or more {@link IdlInstructionAccount} entries, expanding nested account groups. */
+/**
+ * Parses a raw IDL account JSON value into one or more {@link IdlInstructionAccount} entries, expanding nested account groups.
+ * @param instructionAccountGroups - The accumulated parent group names for nested accounts.
+ * @param instructionAccountValue - The raw JSON value describing the account or group.
+ * @param instructionArgsTypeFullFields - The instruction's resolved argument fields, used for PDA seed blob parsing.
+ * @param typedefsIdls - A map of known typedef definitions for type resolution.
+ * @returns An array of parsed {@link IdlInstructionAccount} entries.
+ */
 export function idlInstructionAccountParse(
   instructionAccountGroups: Array<string>,
   instructionAccountValue: JsonValue,

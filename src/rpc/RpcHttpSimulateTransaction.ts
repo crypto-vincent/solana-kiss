@@ -22,7 +22,7 @@ import { RpcHttp } from "./RpcHttp";
 /**
  * Simulates a transaction against the current cluster state without broadcasting it.
  *
- * Optionally fetches the post-simulation state of up to 3 accounts (Solana RPC limit).
+ * Optionally fetches the post-simulation state of up to 3 accounts.
  *
  * @param self - The {@link RpcHttp} client to use.
  * @param transactionPacket - The {@link TransactionPacket} to simulate.
@@ -56,7 +56,7 @@ export async function rpcHttpSimulateTransaction(
   >;
 }> {
   if ((options?.simulatedAccountsAddresses?.size ?? 0) > 3) {
-    throw new Error("RpcHttp: fetchAccountsAddresses max size is 3");
+    throw new Error("RpcHttp: simulatedAccountsAddresses max size is 3");
   }
   const simulatedAccountsAddresses = options?.simulatedAccountsAddresses
     ? [...options.simulatedAccountsAddresses]

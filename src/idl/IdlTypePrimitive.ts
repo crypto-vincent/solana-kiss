@@ -116,6 +116,9 @@ export const idlTypePrimitiveByName: ReadonlyMap<string, IdlTypePrimitive> =
 /**
  * Encodes a JSON value into the byte representation of `self`'s primitive type
  * and appends the resulting {@link Uint8Array} to `blobs`.
+ * @param self - The {@link IdlTypePrimitive} defining the scalar type to encode.
+ * @param value - The JSON-compatible value to encode.
+ * @param blobs - The output array to which the encoded bytes are appended.
  */
 export function idlTypePrimitiveEncode(
   self: IdlTypePrimitive,
@@ -131,6 +134,9 @@ export function idlTypePrimitiveEncode(
 
 /**
  * Decodes a JSON-compatible value from `data` at `dataOffset` according to `self`'s primitive type.
+ * @param self - The {@link IdlTypePrimitive} defining the scalar type to decode.
+ * @param data - The `DataView` over the raw binary buffer.
+ * @param dataOffset - Byte offset within `data` at which to start reading.
  * @returns A tuple of `[bytesConsumed, decodedJsonValue]`.
  */
 export function idlTypePrimitiveDecode(
