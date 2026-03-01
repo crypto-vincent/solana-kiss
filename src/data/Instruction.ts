@@ -9,6 +9,7 @@ export type InstructionRequest = {
   instructionInputs: Array<InstructionInput>;
   instructionData: Uint8Array;
 };
+
 /**
  * Describes an account input for a Solana instruction.
  * Specifies the account address and its required access permissions.
