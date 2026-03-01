@@ -22,6 +22,7 @@
     "format": "prettier --write src && prettier --write tests",
     "check": "tsc --noEmit --skipLibCheck && prettier --check src && prettier --check tests/*.ts",
     "build": "tsup src/index.ts --dts --clean --minify --sourcemap --out-dir dist",
-    "test": "jest"
+    "test": "jest",
+    "docs": "node generate-docs.js"
   }
 }
