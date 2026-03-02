@@ -1,13 +1,17 @@
 {
-  "entryPoints": [
-    "src/index.ts"
-  ],
+  "entryPoints": ["src"],
+  "entryPointStrategy": "expand",
+  "exclude": ["**/index.ts"],
   "out": "docs-site",
   "name": "solana-kiss",
   "readme": "README.md",
   "includeVersion": true,
   "navigationLinks": {
     "GitHub": "https://github.com/crypto-vincent/solana-kiss"
+  },
+  "navigation": {
+    "includeFolders": true,
+    "includeGroups": false
   },
   "tsconfig": "tsconfig.json"
 }
