@@ -15,6 +15,7 @@
     "ts-jest": "^29.4.4",
     "ts-node": "^10.9.2",
     "tsup": "^8.5.0",
+    "typedoc": "^0.28.17",
     "typescript": "^5.8.3",
     "uzip": "^0.20201231.0"
   },
@@ -22,6 +23,7 @@
     "format": "prettier --write src && prettier --write tests",
     "check": "tsc --noEmit --skipLibCheck && prettier --check src && prettier --check tests/*.ts",
     "tests": "jest",
-    "build": "tsup src/index.ts --dts --clean --minify --sourcemap --out-dir dist"
+    "build": "tsup src/index.ts --dts --clean --minify --sourcemap --out-dir dist",
+    "docs": "typedoc"
   }
 }
