@@ -11,7 +11,9 @@
   },
   "navigation": {
     "includeFolders": false,
-    "includeGroups": false
+    "includeGroups": false,
+    "includeCategories": false,
+    "compactFolders": true
   },
   "sort": ["alphabetical"],
   "sortEntryPoints": true,
