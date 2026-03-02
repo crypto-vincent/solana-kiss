@@ -10,8 +10,10 @@
     "GitHub": "https://github.com/crypto-vincent/solana-kiss"
   },
   "navigation": {
-    "includeFolders": true,
+    "includeFolders": false,
     "includeGroups": false
   },
+  "sort": ["alphabetical"],
+  "sortEntryPoints": true,
   "tsconfig": "tsconfig.json"
 }
