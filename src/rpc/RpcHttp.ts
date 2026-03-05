@@ -25,7 +25,7 @@ import {
 export type RpcHttp = (
   method: string,
   params: Readonly<JsonArray>,
-  config: Readonly<JsonObject> | "no-configuration-object",
+  config: Readonly<JsonObject> | "skip-configuration-object",
 ) => Promise<JsonValue>;
 
 /**
@@ -72,7 +72,7 @@ export function rpcHttpFromUrl(
 ): RpcHttp {
   const jsonFetcher = options?.customJsonFetcher ?? jsonFetcherDefault;
   return async function (method, params, config) {
-    if (config !== "no-configuration-object") {
+    if (config !== "skip-configuration-object") {
       const commitmentLevel = options?.commitmentLevel ?? "confirmed";
       config = {
         preflightCommitment: commitmentLevel,
@@ -218,7 +218,7 @@ export function rpcHttpWithRetryOnError(
     totalDurationMs: number;
     requestMethod: string;
     requestParams: Readonly<JsonArray>;
-    requestConfig: Readonly<JsonObject> | "no-configuration-object";
+    requestConfig: Readonly<JsonObject> | "skip-configuration-object";
     lastError: any;
   }) => Promise<boolean>,
 ): RpcHttp {

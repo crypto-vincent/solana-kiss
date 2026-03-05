@@ -17,7 +17,7 @@ export async function rpcHttpGetBlockTimeOnly(
     await self(
       "getBlockTime",
       [blockSlotToNumber(blockSlot)],
-      "no-configuration-object",
+      "skip-configuration-object",
     ),
   );
   return { blockTime: result ? new Date(result * 1000) : undefined };

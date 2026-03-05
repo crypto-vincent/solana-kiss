@@ -365,6 +365,7 @@ export async function jsonFetcherDefault(
 ): Promise<JsonValue> {
   const response = await fetch(url, request);
   if (!response.ok) {
+    url.search = "";
     throw new ErrorStack(
       `Failed to fetch JSON from ${url}: ${response.status}: ${response.statusText}`,
     );
