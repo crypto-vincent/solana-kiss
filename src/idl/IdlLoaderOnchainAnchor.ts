@@ -47,7 +47,7 @@ export function idlLoaderFromOnchainAnchor(
     const idlJson = JSON.parse(idlString) as JsonValue;
     const programIdl = idlProgramParse(idlJson);
     programIdl.metadata.address = programAddress;
-    programIdl.metadata.source = `onchain://anchor-program`;
+    programIdl.metadata.source = new URL(`onchain://anchor-program`);
     return programIdl;
   };
 }

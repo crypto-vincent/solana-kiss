@@ -123,13 +123,13 @@ it("run", () => {
   // Assert metadata was parsed correctly
   expect(programIdl1.metadata).toStrictEqual({
     name: "MyProgram",
+    spec: undefined,
     description: undefined,
     repository: undefined,
     contact: undefined,
-    address: undefined,
     version: "0.0.1",
+    address: undefined,
     source: undefined,
-    spec: undefined,
     docs: undefined,
   });
   // Assert instruction was parsed correctly

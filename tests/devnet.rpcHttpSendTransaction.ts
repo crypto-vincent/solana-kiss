@@ -28,9 +28,7 @@ import {
 } from "../src";
 
 it("run", async () => {
-  const rpcHttp = rpcHttpFromUrl(urlRpcPublicDevnet, {
-    commitment: "confirmed",
-  });
+  const rpcHttp = rpcHttpFromUrl(urlRpcPublicDevnet);
   const programAddress = pubkeyDefault;
   const ownerAddress = pubkeyNewDummy();
   const requestedSpace = 42;

@@ -24,9 +24,12 @@ it("run", async () => {
     urlExplorerBlock("devnet", blockSlotFromNumber(377349811)),
   ).toStrictEqual("https://explorer.solana.com/block/377349811?cluster=devnet");
   expect(
-    urlExplorerBlock("https://custom.rpc.url", blockSlotFromNumber(987654321)),
+    urlExplorerBlock(
+      new URL("https://custom.rpc.url"),
+      blockSlotFromNumber(987654321),
+    ),
   ).toStrictEqual(
-    "https://explorer.solana.com/block/987654321?customUrl=https%3A%2F%2Fcustom.rpc.url",
+    "https://explorer.solana.com/block/987654321?customUrl=https%3A%2F%2Fcustom.rpc.url%2F",
   );
 
   expect(

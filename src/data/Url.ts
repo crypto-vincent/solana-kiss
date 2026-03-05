@@ -1,6 +1,6 @@
 import { base64Encode } from "./Base64";
 import { BlockSlot } from "./Block";
-import { Pubkey, pubkeyToBase58 } from "./Pubkey";
+import { Pubkey } from "./Pubkey";
 import { signatureToBase58 } from "./Signature";
 import {
   transactionExtractMessage,
@@ -9,20 +9,32 @@ import {
   TransactionPacket,
 } from "./Transaction";
 
-/** Public JSON-RPC endpoint for the Solana mainnet-beta cluster. */
-export const urlRpcPublicMainnet = "https://api.mainnet-beta.solana.com";
+/** A union type representing either a well-known cluster moniker or a full RPC URL. */
+export type UrlOrMoniker =
+  | URL
+  | "m"
+  | "mainnet"
+  | "d"
+  | "devnet"
+  | "t"
+  | "testnet";
+
+/** Public JSON-RPC endpoint for the Solana mainnet cluster. */
+export const urlRpcPublicMainnet = new URL(
+  "https://api.mainnet-beta.solana.com",
+);
 
 /** Public JSON-RPC endpoint for the Solana devnet cluster. */
-export const urlRpcPublicDevnet = "https://api.devnet.solana.com";
+export const urlRpcPublicDevnet = new URL("https://api.devnet.solana.com");
 
 /** Public JSON-RPC endpoint for the Solana testnet cluster. */
-export const urlRpcPublicTestnet = "https://api.testnet.solana.com";
+export const urlRpcPublicTestnet = new URL("https://api.testnet.solana.com");
 
 /**
  * Resolves a short moniker or a raw URL string to a canonical RPC endpoint URL.
  *
  * Accepted monikers:
- * - `"m"`, `"mainnet"`, `"mainnet-beta"` → {@link urlRpcPublicMainnet}
+ * - `"m"`, `"mainnet"` → {@link urlRpcPublicMainnet}
  * - `"d"`, `"devnet"` → {@link urlRpcPublicDevnet}
  * - `"t"`, `"testnet"` → {@link urlRpcPublicTestnet}
  *
@@ -32,11 +44,10 @@ export const urlRpcPublicTestnet = "https://api.testnet.solana.com";
  * @param rpcUrlOrMoniker - A well-known moniker or a full RPC URL.
  * @returns The resolved RPC endpoint URL string.
  */
-export function urlRpcFromUrlOrMoniker(rpcUrlOrMoniker: string) {
+export function urlRpcFromUrlOrMoniker(rpcUrlOrMoniker: UrlOrMoniker): URL {
   switch (rpcUrlOrMoniker) {
     case "m":
     case "mainnet":
-    case "mainnet-beta":
       return urlRpcPublicMainnet;
     case "d":
     case "devnet":
@@ -57,8 +68,11 @@ export function urlRpcFromUrlOrMoniker(rpcUrlOrMoniker: string) {
  * @param accountAddress - The public key of the account to inspect.
  * @returns The full Explorer URL string.
  */
-export function urlExplorerAccount(rpc: string, accountAddress: Pubkey) {
-  return urlExplorer(rpc, "address", pubkeyToBase58(accountAddress), {});
+export function urlExplorerAccount(
+  rpcUrlOrMoniker: UrlOrMoniker,
+  accountAddress: Pubkey,
+) {
+  return urlExplorer(rpcUrlOrMoniker, "address", accountAddress.toString());
 }
 
 /**
@@ -69,8 +83,11 @@ export function urlExplorerAccount(rpc: string, accountAddress: Pubkey) {
  * @param blockSlot - The slot number of the block to inspect.
  * @returns The full Explorer URL string.
  */
-export function urlExplorerBlock(rpc: string, blockSlot: BlockSlot) {
-  return urlExplorer(rpc, "block", blockSlot.toString(), {});
+export function urlExplorerBlock(
+  rpcUrlOrMoniker: UrlOrMoniker,
+  blockSlot: BlockSlot,
+) {
+  return urlExplorer(rpcUrlOrMoniker, "block", blockSlot.toString());
 }
 
 /**
@@ -83,10 +100,10 @@ export function urlExplorerBlock(rpc: string, blockSlot: BlockSlot) {
  * @returns The full Explorer URL string.
  */
 export function urlExplorerTransaction(
-  rpc: string,
+  rpcUrlOrMoniker: UrlOrMoniker,
   transactionHandle: TransactionHandle,
 ) {
-  return urlExplorer(rpc, "tx", signatureToBase58(transactionHandle), {});
+  return urlExplorer(rpcUrlOrMoniker, "tx", transactionHandle.toString());
 }
 
 /**
@@ -101,12 +118,12 @@ export function urlExplorerTransaction(
  * @returns The full Explorer inspector URL string.
  */
 export function urlExplorerSimulation(
-  rpc: string,
+  rpcUrlOrMoniker: UrlOrMoniker,
   transactionPacket: TransactionPacket,
 ) {
   const message = transactionExtractMessage(transactionPacket);
   const signing = transactionExtractSigning(transactionPacket);
-  return urlExplorer(rpc, "tx", "inspector", {
+  return urlExplorer(rpcUrlOrMoniker, "tx", "inspector", {
     message: base64Encode(message as Uint8Array),
     signatures: JSON.stringify(
       signing.map(({ signature }) => signatureToBase58(signature)),
@@ -115,21 +132,23 @@ export function urlExplorerSimulation(
 }
 
 function urlExplorer(
-  rpc: string,
+  rpcUrlOrMoniker: UrlOrMoniker,
   category: string,
   payload: string,
-  params: Record<string, string>,
+  params?: Record<string, string>,
 ) {
   const args = [];
-  for (const [key, value] of Object.entries(params)) {
-    args.push(`${encodeURIComponent(key)}=${encodeURIComponent(value)}`);
+  if (params !== undefined) {
+    for (const [key, value] of Object.entries(params)) {
+      args.push(`${encodeURIComponent(key)}=${encodeURIComponent(value)}`);
+    }
   }
-  args.push(urlExplorerArgCluster(rpc));
+  args.push(urlExplorerArgCluster(rpcUrlOrMoniker));
   return `https://explorer.solana.com/${category}/${payload}?${args.join("&")}`;
 }
 
-function urlExplorerArgCluster(rpc: string) {
-  const urlRpc = urlRpcFromUrlOrMoniker(rpc);
+function urlExplorerArgCluster(rpcUrlOrMoniker: UrlOrMoniker) {
+  const urlRpc = urlRpcFromUrlOrMoniker(rpcUrlOrMoniker);
   switch (urlRpc) {
     case urlRpcPublicMainnet:
       return "cluster=mainnet-beta";
@@ -138,6 +157,6 @@ function urlExplorerArgCluster(rpc: string) {
     case urlRpcPublicTestnet:
       return "cluster=testnet";
     default:
-      return `customUrl=${encodeURIComponent(rpc)}`;
+      return `customUrl=${encodeURIComponent(urlRpc.toString())}`;
   }
 }

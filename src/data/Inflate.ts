@@ -1,4 +1,5 @@
 // TODO - clean this up
+// TODO - protect against loop in case of malformed data
 // @ts-nocheck
 
 /**

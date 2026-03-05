@@ -226,7 +226,7 @@ export const idlProgramUnknown = memoize(
   async (programAddress: Pubkey) => programAddress,
   async (programAddress: Pubkey) => {
     return idlProgramParse({
-      metadata: { address: programAddress, source: "unknown" },
+      metadata: { address: programAddress, source: "memory://unknown-program" },
       accounts: { UnknownAccount: { discriminator: [], fields: [] } },
       instructions: { unknown_instruction: { discriminator: [] } },
       events: { UnknownEvent: { discriminator: [], fields: [] } },

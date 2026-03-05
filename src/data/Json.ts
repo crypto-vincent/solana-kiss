@@ -340,6 +340,38 @@ export function jsonGetAt(
   return current;
 }
 
+/**
+ * A function type for fetching JSON data from a URL with an optional request configuration.
+ */
+export type JsonFetcher = (
+  url: URL,
+  request?: {
+    headers: { [key: string]: string };
+    method: string;
+    body: string;
+  },
+) => Promise<JsonValue>;
+
+/**
+ * Default {@link JsonFetcher} implementation that fetches JSON from a URL using the Fetch API.
+ * @param url The URL to fetch JSON from.
+ * @param request Optional request configuration with headers, method, and body.
+ * @returns A promise that resolves to the parsed JSON value.
+ * @throws {ErrorStack} If the fetch response is not ok (status not 200-299).
+ */
+export async function jsonFetcherDefault(
+  url: Parameters<JsonFetcher>[0],
+  request: Parameters<JsonFetcher>[1],
+): Promise<JsonValue> {
+  const response = await fetch(url, request);
+  if (!response.ok) {
+    throw new ErrorStack(
+      `Failed to fetch JSON from ${url}: ${response.status}: ${response.statusText}`,
+    );
+  }
+  return response.json() as Promise<JsonValue>;
+}
+
 /** Extracts the decoded content type `T` from a `JsonDecoder<T>`. */
 export type JsonDecoderContent<S> = S extends JsonDecoder<infer T> ? T : never;
 /** A function that decodes a {@link JsonValue} into a value of type `Content`. */
@@ -512,6 +544,11 @@ export const jsonCodecDateTime: JsonCodec<Date> = jsonCodecWrapped(
     encoder: (decoded) => decoded.toISOString(),
   },
 );
+/** {@link JsonCodec} for `URL`, encoded as a string. */
+export const jsonCodecUrl: JsonCodec<URL> = jsonCodecWrapped(jsonCodecString, {
+  decoder: (encoded) => new URL(encoded),
+  encoder: (decoded) => decoded.toString(),
+});
 
 /** {@link JsonCodec} for `Uint8Array`, encoded as a JSON array of byte integers (0–255). */
 export const jsonCodecArrayToBytes: JsonCodec<Uint8Array> = jsonCodecWrapped(

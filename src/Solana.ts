@@ -47,6 +47,8 @@ import { rpcHttpGetLatestBlockHash } from "./rpc/RpcHttpGetLatestBlockHash";
 import { rpcHttpSendTransaction } from "./rpc/RpcHttpSendTransaction";
 import { rpcHttpSimulateTransaction } from "./rpc/RpcHttpSimulateTransaction";
 
+// TODO - add documentation website
+
 /**
  * High-level entry point for interacting with the Solana blockchain.
  *
@@ -98,9 +100,7 @@ export class Solana {
     },
   ) {
     if (typeof rpcHttp === "string") {
-      this.#rpcHttp = rpcHttpFromUrl(urlRpcFromUrlOrMoniker(rpcHttp), {
-        commitment: "confirmed",
-      });
+      this.#rpcHttp = rpcHttpFromUrl(urlRpcFromUrlOrMoniker(rpcHttp));
     } else {
       this.#rpcHttp = rpcHttp;
     }
@@ -668,7 +668,9 @@ function recommendedIdlLoader(rpcHttp: RpcHttp) {
         const githubRawBase = "https://raw.githubusercontent.com";
         const githubRepository = "crypto-vincent/solana-idls";
         const githubRefMain = "refs/heads/main";
-        return `${githubRawBase}/${githubRepository}/${githubRefMain}/data/${programAddress}.json`;
+        return new URL(
+          `${githubRawBase}/${githubRepository}/${githubRefMain}/data/${programAddress}.json`,
+        );
       }),
     ]),
   );

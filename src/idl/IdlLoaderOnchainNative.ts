@@ -1,3 +1,4 @@
+import { URL } from "url";
 import { ErrorStack } from "../data/Error";
 import { inflate } from "../data/Inflate";
 import {
@@ -8,12 +9,15 @@ import {
   jsonCodecObjectToObject,
   jsonCodecPubkey,
   jsonCodecString,
+  JsonFetcher,
+  jsonFetcherDefault,
   JsonValue,
 } from "../data/Json";
 import {
   Pubkey,
   pubkeyFindPdaAddress,
   pubkeyFromBase58,
+  pubkeyFromBytes,
   pubkeyToBytes,
 } from "../data/Pubkey";
 import { utf8Decode, utf8Encode } from "../data/Utf8";
@@ -29,14 +33,24 @@ import { idlProgramParse } from "./IdlProgram";
  * seed and format, optionally decompresses the payload, then parses the result
  * as an {@link IdlProgram}.
  * @param accountDataFetcher - A function that fetches raw account data by address.
+ * @param params - Optional parameters for handling non-canonical authority addresses and custom JSON fetching.
+ * @param params.nonCanonicalAuthorityAddress - An optional non-canonical authority address to use in the PDA derivation, if the program does not follow the canonical pattern.
+ * @param params.customJsonFetcher - An optional custom JSON fetcher function to retrieve IDL JSON from URLs, if needed.
  * @returns A new {@link IdlLoader} backed by on-chain native IDL storage.
  */
 export function idlLoaderFromOnchainNative(
   accountDataFetcher: (accountAddress: Pubkey) => Promise<Uint8Array>,
+  params?: {
+    nonCanonicalAuthorityAddress?: Pubkey;
+    customJsonFetcher?: JsonFetcher;
+  },
 ): IdlLoader {
   return async (programAddress: Pubkey) => {
     const idlAddress = pubkeyFindPdaAddress(metadataProgramAddress, [
       pubkeyToBytes(programAddress),
+      params?.nonCanonicalAuthorityAddress
+        ? pubkeyToBytes(params.nonCanonicalAuthorityAddress)
+        : new Uint8Array(0),
       metadataProgramIdlSeed,
     ]);
     const idlData = await accountDataFetcher(idlAddress);
@@ -51,44 +65,73 @@ export function idlLoaderFromOnchainNative(
     if (bytesCompare(idlContent.seed, metadataProgramIdlSeed) !== 0) {
       throw new ErrorStack(`IDL: Invalid seed value`);
     }
-    if (idlContent.encoding !== "Utf8") {
-      throw new ErrorStack(`IDL: Unsupported encoding ${idlContent.encoding}`);
-    }
     if (idlContent.format !== "None" && idlContent.format !== "Json") {
-      throw new ErrorStack(`IDL: Unsupported format ${idlContent.format}`);
+      throw new ErrorStack(`IDL: Unexpected format ${idlContent.format}`);
     }
-    // TODO - improve support for other formats and compression and encoding
-    // TODO - handle account/url/text data sources for example
-    const idlBytes = await extractMetadataIdlBytes(idlContent);
-    const idlString = utf8Decode(idlBytes);
-    const idlJson = JSON.parse(idlString) as JsonValue;
+    const idlJson = await resolveIdlJson(
+      idlContent,
+      accountDataFetcher,
+      params?.customJsonFetcher,
+    );
     const programIdl = idlProgramParse(idlJson);
     programIdl.metadata.address = programAddress;
-    // TODO - more standardized program metadata and source
-    programIdl.metadata.source = `onchain://solana-program-metadata/canonical`;
+    if (params?.nonCanonicalAuthorityAddress) {
+      programIdl.metadata.source = new URL(
+        `onchain://solana-program-metadata/authority/${params.nonCanonicalAuthorityAddress}`,
+      );
+    } else {
+      programIdl.metadata.source = new URL(
+        `onchain://solana-program-metadata/canonical`,
+      );
+    }
     return programIdl;
   };
 }
 
-async function extractMetadataIdlBytes(
+async function resolveIdlJson(
   idlContent: JsonCodecContent<typeof metadataProgramJsonCodec>,
-): Promise<Uint8Array> {
-  // TODO - support indirect loading
-  if (idlContent.dataSource !== "Direct") {
-    throw new ErrorStack(
-      `IDL: Unsupported data source ${idlContent.dataSource}`,
+  accountDataFetcher: (accountAddress: Pubkey) => Promise<Uint8Array>,
+  customJsonFetcher?: JsonFetcher,
+): Promise<JsonValue> {
+  const directData = idlContent.dataRaw.slice(0, idlContent.dataLength);
+  if (idlContent.dataSource === "Direct") {
+    const idlBytes = decompressIfNeeded(idlContent.compression, directData);
+    const idlString = utf8Decode(idlBytes);
+    return JSON.parse(idlString) as JsonValue;
+  }
+  if (idlContent.dataSource === "External") {
+    const externalAddress = pubkeyFromBytes(directData.slice(0, 32));
+    const externalDataView = new DataView(directData.buffer);
+    const externalOffset = externalDataView.getUint32(32, true);
+    const externalLength = externalDataView.getUint32(36, true);
+    const externalData = await accountDataFetcher(externalAddress);
+    const externalBytes = externalData.slice(
+      externalOffset,
+      externalLength === 0 ? undefined : externalOffset + externalLength,
     );
+    const idlBytes = decompressIfNeeded(idlContent.compression, externalBytes);
+    const idlString = utf8Decode(idlBytes);
+    return JSON.parse(idlString) as JsonValue;
   }
-  const idlBytes = idlContent.dataRaw.slice(0, idlContent.dataLength);
-  if (idlContent.compression === "ZLib") {
-    return inflate(idlBytes, null);
+  if (idlContent.dataSource == "Url") {
+    const urlBytes = decompressIfNeeded(idlContent.compression, directData);
+    const urlString = utf8Decode(urlBytes);
+    return await (customJsonFetcher ?? jsonFetcherDefault)(new URL(urlString));
   }
-  if (idlContent.compression === "None") {
+  throw new ErrorStack(`IDL: Unsupported data source ${idlContent.dataSource}`);
+}
+
+function decompressIfNeeded(
+  idlCompression: string,
+  idlBytes: Uint8Array,
+): Uint8Array {
+  if (idlCompression === "None") {
     return idlBytes;
   }
-  throw new ErrorStack(
-    `IDL: Unsupported compression ${idlContent.compression}`,
-  );
+  if (idlCompression === "ZLib") {
+    return inflate(idlBytes, null);
+  }
+  throw new ErrorStack(`IDL: Unexpected compression ${idlCompression}`);
 }
 
 const metadataProgramAddress = pubkeyFromBase58(
@@ -118,10 +161,7 @@ const metadataProgramAccount = idlAccountParse(
       { name: "data_length", type: "u32" },
       {
         name: "data_raw",
-        padded: {
-          before: 5,
-          loop: { items: "u8", stop: "end" },
-        },
+        padded: { before: 5, loop: { items: "u8", stop: "end" } },
       },
     ],
   },

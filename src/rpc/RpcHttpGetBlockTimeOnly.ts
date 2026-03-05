@@ -14,7 +14,11 @@ export async function rpcHttpGetBlockTimeOnly(
   blockSlot: BlockSlot,
 ): Promise<{ blockTime: Date | undefined }> {
   const result = resultJsonDecoder(
-    await self("getBlockTime", [blockSlotToNumber(blockSlot)], undefined),
+    await self(
+      "getBlockTime",
+      [blockSlotToNumber(blockSlot)],
+      "no-configuration-object",
+    ),
   );
   return { blockTime: result ? new Date(result * 1000) : undefined };
 }

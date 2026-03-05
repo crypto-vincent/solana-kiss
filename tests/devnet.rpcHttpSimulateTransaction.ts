@@ -23,9 +23,7 @@ import {
 } from "../src";
 
 it("run", async () => {
-  const rpcHttp = rpcHttpFromUrl(urlRpcPublicDevnet, {
-    commitment: "confirmed",
-  });
+  const rpcHttp = rpcHttpFromUrl(urlRpcPublicDevnet);
   // Find the necessary addresses
   const programAddress = pubkeyFromBase58(
     "UCNcQRtrbGmvuLKA3Jv719Cc6DS4r661ZRpyZduxu2j",

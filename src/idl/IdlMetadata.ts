@@ -2,6 +2,7 @@ import {
   JsonValue,
   jsonCodecPubkey,
   jsonCodecString,
+  jsonCodecUrl,
   jsonDecoderInParallel,
   jsonDecoderNullable,
   jsonDecoderObjectToObject,
@@ -15,13 +16,13 @@ import { IdlDocs, idlDocsParse } from "./IdlDocs";
  */
 export type IdlMetadata = {
   name: string | undefined;
+  spec: string | undefined;
   description: string | undefined;
   repository: string | undefined;
   contact: string | undefined;
-  address: Pubkey | undefined;
   version: string | undefined;
-  source: string | undefined;
-  spec: string | undefined;
+  address: Pubkey | undefined;
+  source: URL | undefined;
   docs: IdlDocs;
 };
 
@@ -36,13 +37,13 @@ export function idlMetadataParse(value: JsonValue): IdlMetadata {
   const metadata = keyed?.metadata;
   return {
     name: metadata?.name ?? root?.name ?? undefined,
+    spec: metadata?.spec ?? root?.spec ?? undefined,
     description: metadata?.description ?? root?.description ?? undefined,
     repository: metadata?.repository ?? root?.repository ?? undefined,
     contact: metadata?.contact ?? root?.contact ?? undefined,
-    address: metadata?.address ?? root?.address ?? undefined,
     version: metadata?.version ?? root?.version ?? undefined,
+    address: metadata?.address ?? root?.address ?? undefined,
     source: metadata?.source ?? root?.source ?? undefined,
-    spec: metadata?.spec ?? root?.spec ?? undefined,
     docs: metadata?.docs ?? root?.docs ?? undefined,
   };
 }
@@ -50,13 +51,13 @@ export function idlMetadataParse(value: JsonValue): IdlMetadata {
 const innerJsonDecoder = jsonDecoderNullable(
   jsonDecoderObjectToObject({
     name: jsonDecoderNullable(jsonCodecString.decoder),
+    spec: jsonDecoderNullable(jsonCodecString.decoder),
     description: jsonDecoderNullable(jsonCodecString.decoder),
     repository: jsonDecoderNullable(jsonCodecString.decoder),
     contact: jsonDecoderNullable(jsonCodecString.decoder),
-    address: jsonDecoderNullable(jsonCodecPubkey.decoder),
     version: jsonDecoderNullable(jsonCodecString.decoder),
-    source: jsonDecoderNullable(jsonCodecString.decoder),
-    spec: jsonDecoderNullable(jsonCodecString.decoder),
+    address: jsonDecoderNullable(jsonCodecPubkey.decoder),
+    source: jsonDecoderNullable(jsonCodecUrl.decoder),
     docs: idlDocsParse,
   }),
 );
