@@ -1,5 +1,7 @@
 import { base58Encode } from "../data/Base58";
 import {
+  jsonCodecBoolean,
+  jsonCodecNumber,
   jsonCodecPubkey,
   jsonDecoderArrayToArray,
   jsonDecoderObjectToObject,
@@ -7,7 +9,6 @@ import {
 import { Pubkey, pubkeyToBase58 } from "../data/Pubkey";
 import { RpcHttp } from "./RpcHttp";
 
-// TODO - expose lamport and space info per account
 /**
  * Fetches the set of all account addresses owned by the given program.
  *
@@ -29,7 +30,14 @@ export async function rpcHttpFindProgramOwnedAccounts(
     dataSpace?: number | undefined;
     dataBlobs?: Array<{ offset: number; bytes: Uint8Array }> | undefined;
   },
-): Promise<{ accountsAddresses: Set<Pubkey> }> {
+): Promise<
+  Array<{
+    accountAddress: Pubkey;
+    accountExecutable: boolean;
+    accountLamports: bigint;
+    accountSpace: number;
+  }>
+> {
   const paramFilters = [];
   if (filters?.dataSpace !== undefined) {
     paramFilters.push({ dataSize: filters.dataSpace });
@@ -60,13 +68,21 @@ export async function rpcHttpFindProgramOwnedAccounts(
       encoding: "base64",
     }),
   );
-  const accountsAddresses = new Set<Pubkey>();
-  for (const item of result) {
-    accountsAddresses.add(item.pubkey);
-  }
-  return { accountsAddresses };
+  return result.map((item) => ({
+    accountAddress: item.pubkey,
+    accountExecutable: item.account.executable,
+    accountLamports: BigInt(item.account.lamports),
+    accountSpace: item.account.space,
+  }));
 }
 
 const resultJsonDecoder = jsonDecoderArrayToArray(
-  jsonDecoderObjectToObject({ pubkey: jsonCodecPubkey.decoder }),
+  jsonDecoderObjectToObject({
+    pubkey: jsonCodecPubkey.decoder,
+    account: jsonDecoderObjectToObject({
+      executable: jsonCodecBoolean.decoder,
+      lamports: jsonCodecNumber.decoder,
+      space: jsonCodecNumber.decoder,
+    }),
+  }),
 );

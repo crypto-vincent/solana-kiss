@@ -6,16 +6,28 @@ function rpcHttp() {
 }
 
 it("run", async () => {
-  const accountsOwnedResponse = await rpcHttpFindProgramOwnedAccounts(
+  const ownedAccounts = await rpcHttpFindProgramOwnedAccounts(
     rpcHttp,
     pubkeyNewDummy(),
   );
-  const accountsOwnedAddresses = accountsOwnedResponse.accountsAddresses;
-  expect(accountsOwnedAddresses.size).toStrictEqual(100);
-  expect(accountsOwnedAddresses).toContain(
-    "Bj9bLzPSGPz9SFksM14t3nWJyV7ukTKtzDv2F2EU3nV3",
-  );
-  expect(accountsOwnedAddresses).toContain(
-    "EgawuSvYdmEDPMM6HFpbgYzbMgBFMWGgbUBNNDnFtqPu",
-  );
+  expect(ownedAccounts).toStrictEqual([
+    {
+      accountAddress: "GiFS9qwe8qtA3rxTDZ6tdK5CKbUz4QhTCvd5rBRbFy6U",
+      accountExecutable: false,
+      accountLamports: 1113600n,
+      accountSpace: 1,
+    },
+    {
+      accountAddress: "DRC1cPt9bR91pmhARVVoMCXW5wSqXMummxdRyDzy5zHE",
+      accountExecutable: true,
+      accountLamports: 999999999n,
+      accountSpace: 99,
+    },
+    {
+      accountAddress: "8uTb3omT5W4gQpaNvGJfzr7FP1GyjebumN4UshBBEcoo",
+      accountExecutable: false,
+      accountLamports: 1113600n,
+      accountSpace: 32,
+    },
+  ]);
 });

@@ -6,14 +6,14 @@ it("run", async () => {
   const programAddress = pubkeyFromBase58(
     "UCNcQRtrbGmvuLKA3Jv719Cc6DS4r661ZRpyZduxu2j",
   );
-  const { accountsAddresses } = await solana.findProgramOwnedAccounts(
+  const ownedAccounts = await solana.findProgramOwnedAccounts(
     programAddress,
     "Campaign",
   );
-  const ownedAccountsAddresses = [...accountsAddresses];
-  for (const ownedAccountAddress of ownedAccountsAddresses.slice(0, 3)) {
-    const ownedInfo =
-      await solana.getAndInferAndDecodeAccount(ownedAccountAddress);
+  for (const ownedAccount of ownedAccounts.slice(0, 3)) {
+    const ownedInfo = await solana.getAndInferAndDecodeAccount(
+      ownedAccount.accountAddress,
+    );
     expect(ownedInfo.programAddress).toStrictEqual(programAddress);
     expect(ownedInfo.accountIdl.name).toStrictEqual("Campaign");
     expect(

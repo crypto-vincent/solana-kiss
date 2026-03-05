@@ -59,13 +59,13 @@ it("run", async () => {
     rpcCounters.clear();
   }
 
-  const { accountsAddresses } = await solana.findProgramOwnedAccounts(
+  const ownedAccounts = await solana.findProgramOwnedAccounts(
     knownProgramAddress,
     "Campaign",
   );
   rpcCounters.clear();
 
-  const ownedAccountAddress = accountsAddresses.values().next().value!;
+  const ownedAccountAddress = ownedAccounts[0]!.accountAddress;
   await solana.getAndInferAndDecodeAccount(ownedAccountAddress);
   await solana.getAndInferAndDecodeAccount(ownedAccountAddress);
   expect(rpcCounters.size).toBe(1);
