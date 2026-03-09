@@ -11,7 +11,12 @@ import {
 } from "./Block";
 import { ErrorStack, withErrorContext } from "./Error";
 import { Pubkey, pubkeyFromBase58, pubkeyToBase58 } from "./Pubkey";
-import { Signature, signatureFromBase58, signatureToBase58 } from "./Signature";
+import { Signature, signatureFromBytes, signatureToBytes } from "./Signature";
+import {
+  TransactionHandle,
+  transactionHandleFromBase58,
+  transactionHandleToBase58,
+} from "./Transaction";
 import { utf8Decode, utf8Encode } from "./Utf8";
 import {
   objectGetOwnProperty,
@@ -28,6 +33,27 @@ export type JsonArray = Array<JsonValue>;
 /** A JSON object with string keys and {@link JsonValue} values. */
 export interface JsonObject {
   [key: string]: JsonValue | undefined;
+}
+
+/**
+ * Parses a JSON string into a {@link JsonValue}.
+ * @param jsonString - The JSON string to parse.
+ * @returns The parsed {@link JsonValue}.
+ */
+export function jsonParse(jsonString: string): JsonValue {
+  return JSON.parse(jsonString) as JsonValue;
+}
+/**
+ * Stringifies a {@link JsonValue} into a JSON string.
+ * @param value - The {@link JsonValue} to stringify.
+ * @param space - Optional. A string or number that's used to insert white space into the output JSON string for readability purposes.
+ * @returns The JSON string representation of the {@link JsonValue}.
+ */
+export function jsonStringify(
+  value: JsonValue,
+  space?: string | number,
+): string {
+  return JSON.stringify(value, null, space);
 }
 
 /** Narrows a {@link JsonValue} to `boolean`, or returns `undefined` if it is not a boolean. */
@@ -505,52 +531,6 @@ export const jsonCodecBigInt: JsonCodec<bigint> = {
   encoder: (decoded) => String(decoded),
 };
 
-/** {@link JsonCodec} for {@link Pubkey}, encoded as a Base58 string. */
-export const jsonCodecPubkey: JsonCodec<Pubkey> = jsonCodecWrapped(
-  jsonCodecString,
-  {
-    decoder: pubkeyFromBase58,
-    encoder: pubkeyToBase58,
-  },
-);
-/** {@link JsonCodec} for {@link Signature}, encoded as a Base58 string. */
-export const jsonCodecSignature: JsonCodec<Signature> = jsonCodecWrapped(
-  jsonCodecString,
-  {
-    decoder: signatureFromBase58,
-    encoder: signatureToBase58,
-  },
-);
-/** {@link JsonCodec} for {@link BlockHash}, encoded as a Base58 string. */
-export const jsonCodecBlockHash: JsonCodec<BlockHash> = jsonCodecWrapped(
-  jsonCodecString,
-  {
-    decoder: blockHashFromBase58,
-    encoder: blockHashToBase58,
-  },
-);
-/** {@link JsonCodec} for {@link BlockSlot}, encoded as a JSON number. */
-export const jsonCodecBlockSlot: JsonCodec<BlockSlot> = jsonCodecWrapped(
-  jsonCodecNumber,
-  {
-    decoder: blockSlotFromNumber,
-    encoder: blockSlotToNumber,
-  },
-);
-/** {@link JsonCodec} for `Date`, encoded as an ISO 8601 string. */
-export const jsonCodecDateTime: JsonCodec<Date> = jsonCodecWrapped(
-  jsonCodecString,
-  {
-    decoder: (encoded) => new Date(encoded),
-    encoder: (decoded) => decoded.toISOString(),
-  },
-);
-/** {@link JsonCodec} for `URL`, encoded as a string. */
-export const jsonCodecUrl: JsonCodec<URL> = jsonCodecWrapped(jsonCodecString, {
-  decoder: (encoded) => new URL(encoded),
-  encoder: (decoded) => decoded.toString(),
-});
-
 /** {@link JsonCodec} for `Uint8Array`, encoded as a JSON array of byte integers (0–255). */
 export const jsonCodecArrayToBytes: JsonCodec<Uint8Array> = jsonCodecWrapped(
   jsonCodecArrayToArray(jsonCodecNumber),
@@ -588,6 +568,47 @@ export const jsonCodecUtf8ToBytes: JsonCodec<Uint8Array> = jsonCodecWrapped(
   jsonCodecString,
   { decoder: utf8Encode, encoder: utf8Decode },
 );
+
+/** {@link JsonCodec} for `Date`, encoded as an ISO 8601 string. */
+export const jsonCodecDateTime: JsonCodec<Date> = jsonCodecWrapped(
+  jsonCodecString,
+  {
+    decoder: (encoded) => new Date(encoded),
+    encoder: (decoded) => decoded.toISOString(),
+  },
+);
+/** {@link JsonCodec} for `URL`, encoded as a string. */
+export const jsonCodecUrl: JsonCodec<URL> = jsonCodecWrapped(jsonCodecString, {
+  decoder: (encoded) => new URL(encoded),
+  encoder: (decoded) => decoded.toString(),
+});
+
+/** {@link JsonCodec} for {@link Pubkey}, encoded as a Base58 string. */
+export const jsonCodecPubkey: JsonCodec<Pubkey> = jsonCodecWrapped(
+  jsonCodecString,
+  { decoder: pubkeyFromBase58, encoder: pubkeyToBase58 },
+);
+/** {@link JsonCodec} for {@link BlockHash}, encoded as a Base58 string. */
+export const jsonCodecBlockHash: JsonCodec<BlockHash> = jsonCodecWrapped(
+  jsonCodecString,
+  { decoder: blockHashFromBase58, encoder: blockHashToBase58 },
+);
+/** {@link JsonCodec} for {@link BlockSlot}, encoded as a JSON number. */
+export const jsonCodecBlockSlot: JsonCodec<BlockSlot> = jsonCodecWrapped(
+  jsonCodecNumber,
+  { decoder: blockSlotFromNumber, encoder: blockSlotToNumber },
+);
+/** {@link JsonCodec} for {@link Signature}, encoded as a Base58 string. */
+export const jsonCodecSignature: JsonCodec<Signature> = jsonCodecWrapped(
+  jsonCodecBase58ToBytes,
+  { decoder: signatureFromBytes, encoder: signatureToBytes },
+);
+/** {@link JsonCodec} for {@link TransactionHandle}, encoded as a Base58 string. */
+export const jsonCodecTransactionHandle: JsonCodec<TransactionHandle> =
+  jsonCodecWrapped(jsonCodecString, {
+    decoder: transactionHandleFromBase58,
+    encoder: transactionHandleToBase58,
+  });
 
 /** Creates a {@link JsonDecoder} that only accepts the specified literal primitive `values`. */
 export function jsonDecoderConst<Values extends Array<JsonPrimitive>>(

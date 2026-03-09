@@ -1,11 +1,15 @@
-import { rpcHttpWaitForTransaction, signatureFromBase58, Solana } from "../src";
+import {
+  rpcHttpWaitForTransaction,
+  Solana,
+  transactionHandleFromBase58,
+} from "../src";
 
 it("run", async () => {
   const solana = new Solana("mainnet");
 
   const { executionFlow } = await rpcHttpWaitForTransaction(
     solana.getRpcHttp(),
-    signatureFromBase58(
+    transactionHandleFromBase58(
       "N5NJqSojV1G69dTPzt3e4ikBtTssLtze8HhWPuJFPjJwSxPBBqkt9n9SMF8KHYXYS3PDkozruJEtKfDNuSZKApi",
     ),
     async () => true,

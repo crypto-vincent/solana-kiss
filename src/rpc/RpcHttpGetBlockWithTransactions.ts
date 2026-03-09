@@ -3,7 +3,7 @@ import {
   jsonCodecBlockHash,
   jsonCodecBlockSlot,
   jsonCodecNumber,
-  jsonCodecSignature,
+  jsonCodecTransactionHandle,
   jsonDecoderArrayToArray,
   jsonDecoderNullable,
   jsonDecoderObjectToObject,
@@ -55,5 +55,5 @@ const resultJsonDecoder = jsonDecoderObjectToObject({
   blockHeight: jsonDecoderNullable(jsonCodecNumber.decoder),
   blockTime: jsonDecoderNullable(jsonCodecNumber.decoder),
   blockhash: jsonCodecBlockHash.decoder,
-  signatures: jsonDecoderArrayToArray(jsonCodecSignature.decoder),
+  signatures: jsonDecoderArrayToArray(jsonCodecTransactionHandle.decoder),
 });

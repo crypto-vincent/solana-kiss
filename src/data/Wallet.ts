@@ -1,7 +1,7 @@
 import { Pubkey, pubkeyFromBase58 } from "./Pubkey";
 import { rxBehaviourSubject, RxObservable } from "./Rx";
 import { Signature, signatureFromBytes } from "./Signature";
-import { TransactionPacket } from "./Transaction";
+import { TransactionPacket, transactionPacketFromBytes } from "./Transaction";
 
 /**
  * Represents a Wallet Standard–compatible wallet provider plugin for Solana.
@@ -246,6 +246,6 @@ function walletAccountSignTransactionFactory(
     if (!(signedTransactionBytes instanceof Uint8Array)) {
       throw new Error("Invalid transaction returned from wallet provider");
     }
-    return signedTransactionBytes as TransactionPacket;
+    return transactionPacketFromBytes(signedTransactionBytes);
   };
 }

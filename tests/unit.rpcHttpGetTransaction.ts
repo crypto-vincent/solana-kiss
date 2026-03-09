@@ -7,7 +7,6 @@ import {
   InstructionRequest,
   pubkeyFromBase58,
   rpcHttpGetTransaction,
-  TransactionHandle,
 } from "../src";
 
 function rpcHttp() {
@@ -16,7 +15,7 @@ function rpcHttp() {
 
 it("run", async () => {
   const { transactionRequest, executionReport, executionFlow } = expectDefined(
-    await rpcHttpGetTransaction(rpcHttp, "!" as TransactionHandle),
+    await rpcHttpGetTransaction(rpcHttp, null as any),
   );
   // Check basic stuff about the transaction
   expect(executionReport.blockTime?.toISOString()).toStrictEqual(

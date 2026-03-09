@@ -3,9 +3,9 @@ import {
   blockHashFromBytes,
   blockSlotFromNumber,
   pubkeyFromBase58,
-  signatureFromBase58,
   signerFromSecret,
   transactionCompileAndSign,
+  transactionHandleFromBase58,
   urlExplorerAccount,
   urlExplorerBlock,
   urlExplorerSimulation,
@@ -46,7 +46,7 @@ it("run", async () => {
   expect(
     urlExplorerTransaction(
       urlRpcPublicDevnet,
-      signatureFromBase58(
+      transactionHandleFromBase58(
         "5AVjDXZskdayztESDeaumG4E8s28Fn6ttEkM7oAVEcG62g8A6te4NMBuQtKNGg8dvxRatp8nw4tkh19AasLQZYFj",
       ),
     ),

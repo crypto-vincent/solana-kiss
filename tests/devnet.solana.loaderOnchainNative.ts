@@ -53,11 +53,6 @@ it("run", async () => {
     pubkeyFromBase58("4EhK6yKokBZjn9aWDCxoH65T3eNyPUJSaGaki5i9RuGh"),
   );
 
-  // Case for: URL + Zlib
-  await nonCanonicalExampleTester(
-    pubkeyFromBase58("Horhk7ZDq1vajnR2243MM3oDhc5G5TGkwCfJGCpbTin"),
-  );
-
   // Case for: External + Zlib
   await nonCanonicalExampleTester(
     pubkeyFromBase58("6EAYWCvqfrAZ5qWXm5Lhrwh2dMyxwssGhAyEgaTRVMe6"),
@@ -66,5 +61,10 @@ it("run", async () => {
   // Case for: External + None
   await nonCanonicalExampleTester(
     pubkeyFromBase58("GAGDk1Cn8RrshKDvGXgtkqMfFbdUrkXSfsPoUAqozNK8"),
+  );
+
+  // Case for: URL + Zlib
+  await nonCanonicalExampleTester(
+    pubkeyFromBase58("Horhk7ZDq1vajnR2243MM3oDhc5G5TGkwCfJGCpbTin"),
   );
 });

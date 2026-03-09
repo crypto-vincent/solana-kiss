@@ -20,7 +20,11 @@ import {
   JsonObject,
 } from "../data/Json";
 import { Pubkey, pubkeyFromBase58 } from "../data/Pubkey";
-import { TransactionHandle, TransactionRequest } from "../data/Transaction";
+import {
+  TransactionHandle,
+  transactionHandleToBase58,
+  TransactionRequest,
+} from "../data/Transaction";
 import { RpcHttp } from "./RpcHttp";
 
 /**
@@ -49,10 +53,11 @@ export async function rpcHttpGetTransaction(
   | undefined
 > {
   const result = resultJsonDecoder(
-    await self("getTransaction", [transactionHandle], {
-      encoding: "json",
-      maxSupportedTransactionVersion: 0,
-    }),
+    await self(
+      "getTransaction",
+      [transactionHandleToBase58(transactionHandle)],
+      { encoding: "json", maxSupportedTransactionVersion: 0 },
+    ),
   );
   if (result === null) {
     return undefined;

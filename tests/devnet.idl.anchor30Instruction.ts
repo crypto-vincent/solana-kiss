@@ -7,7 +7,7 @@ import {
   idlProgramParse,
   rpcHttpFromUrl,
   rpcHttpGetTransaction,
-  signatureFromBase58,
+  transactionHandleFromBase58,
   urlRpcPublicDevnet,
 } from "../src";
 
@@ -20,7 +20,7 @@ it("run", async () => {
   const { transactionRequest } = expectDefined(
     await rpcHttpGetTransaction(
       rpcHttp,
-      signatureFromBase58(
+      transactionHandleFromBase58(
         "H8Kx9Qq8XHB8gfoGQ7o1gTRkZc7aRD336PA9Nbvucn3qQbtZFtb78PpdvuPVTSWGnymUoJfZWki9e28xAZVFbt5",
       ),
     ),

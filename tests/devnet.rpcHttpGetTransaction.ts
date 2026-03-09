@@ -3,7 +3,7 @@ import {
   expectDefined,
   rpcHttpFromUrl,
   rpcHttpGetTransaction,
-  signatureFromBase58,
+  transactionHandleFromBase58,
   urlRpcPublicDevnet,
 } from "../src";
 
@@ -17,7 +17,7 @@ it("run", async () => {
   } = expectDefined(
     await rpcHttpGetTransaction(
       rpcHttp,
-      signatureFromBase58(
+      transactionHandleFromBase58(
         "2pqW2HvC2FqVr1GkSgLrPCp55THBzYWP6oMkaB6bZzaRXKYNJ2wfcBCu3M9r64SVcX3fEC5EomwxF939kn4pYXBW",
       ),
     ),
@@ -38,7 +38,7 @@ it("run", async () => {
   } = expectDefined(
     await rpcHttpGetTransaction(
       rpcHttp,
-      signatureFromBase58(
+      transactionHandleFromBase58(
         "3VBrBZQERLxdNjqLTzwx7TMQYbUr8ti4547CUK53WByooyJHJGmnkccw2pCQVv7D7Xi65S1E7mSFZETw6ECjxdmd",
       ),
     ),
@@ -64,7 +64,7 @@ it("run", async () => {
   } = expectDefined(
     await rpcHttpGetTransaction(
       rpcHttp,
-      signatureFromBase58(
+      transactionHandleFromBase58(
         "2MZyi9uezffec3YyAHpkC33r8Nmgwf3cBHKH1Y9H4EHfoKtZ8sQEKVCHF2Rwb17qQCrUDXS1u1wpNnxgz79U6yWY",
       ),
     ),
@@ -85,7 +85,7 @@ it("run", async () => {
   } = expectDefined(
     await rpcHttpGetTransaction(
       rpcHttp,
-      signatureFromBase58(
+      transactionHandleFromBase58(
         "2ruAW8qcrTPquhCntAjW71EjVjvaCaqXkS31urMjUUQ3TG2eYP6nSGwF4PNbkWFFTyCHtcUojx16Gx1PHXCWA2B4",
       ),
     ),

@@ -1,7 +1,8 @@
+import { base58Encode } from "./Base58";
 import { base64Encode } from "./Base64";
 import { BlockSlot } from "./Block";
 import { Pubkey } from "./Pubkey";
-import { signatureToBase58 } from "./Signature";
+import { signatureToBytes } from "./Signature";
 import {
   transactionExtractMessage,
   transactionExtractSigning,
@@ -9,15 +10,8 @@ import {
   TransactionPacket,
 } from "./Transaction";
 
-/** A union type representing either a well-known cluster moniker or a full RPC URL. */
-export type UrlOrMoniker =
-  | URL
-  | "m"
-  | "mainnet"
-  | "d"
-  | "devnet"
-  | "t"
-  | "testnet";
+/** A union type representing either a public cluster moniker or a full RPC URL. */
+export type UrlOrMoniker = URL | "mainnet" | "devnet" | "testnet";
 
 /** Public JSON-RPC endpoint for the Solana mainnet cluster. */
 export const urlRpcPublicMainnet = new URL(
@@ -34,9 +28,9 @@ export const urlRpcPublicTestnet = new URL("https://api.testnet.solana.com");
  * Resolves a short moniker or a raw URL string to a canonical RPC endpoint URL.
  *
  * Accepted monikers:
- * - `"m"`, `"mainnet"` → {@link urlRpcPublicMainnet}
- * - `"d"`, `"devnet"` → {@link urlRpcPublicDevnet}
- * - `"t"`, `"testnet"` → {@link urlRpcPublicTestnet}
+ * - `"mainnet"` → {@link urlRpcPublicMainnet}
+ * - `"devnet"` → {@link urlRpcPublicDevnet}
+ * - `"testnet"` → {@link urlRpcPublicTestnet}
  *
  * Any other value is returned unchanged, allowing callers to pass a raw URL
  * directly.
@@ -46,13 +40,10 @@ export const urlRpcPublicTestnet = new URL("https://api.testnet.solana.com");
  */
 export function urlRpcFromUrlOrMoniker(rpcUrlOrMoniker: UrlOrMoniker): URL {
   switch (rpcUrlOrMoniker) {
-    case "m":
     case "mainnet":
       return urlRpcPublicMainnet;
-    case "d":
     case "devnet":
       return urlRpcPublicDevnet;
-    case "t":
     case "testnet":
       return urlRpcPublicTestnet;
     default:
@@ -126,7 +117,7 @@ export function urlExplorerSimulation(
   return urlExplorer(rpcUrlOrMoniker, "tx", "inspector", {
     message: base64Encode(message as Uint8Array),
     signatures: JSON.stringify(
-      signing.map(({ signature }) => signatureToBase58(signature)),
+      signing.map(({ signature }) => base58Encode(signatureToBytes(signature))),
     ),
   });
 }

@@ -1,3 +1,4 @@
+import { base58BytesLength } from "./Base58";
 import { BlockHash, blockHashFromBytes, blockHashToBytes } from "./Block";
 import { InstructionInput, InstructionRequest } from "./Instruction";
 import {
@@ -11,8 +12,6 @@ import { Signature, signatureFromBytes, signatureToBytes } from "./Signature";
 import { Signer } from "./Signer";
 import { Branded } from "./Utils";
 import { WalletAccount } from "./Wallet";
-
-// TODO - add transactions check functions (for Uint8Array conversions)
 
 /**
  * The inputs required to build a Solana transaction.
@@ -68,10 +67,60 @@ export type TransactionProcessor = (
 ) => Promise<TransactionPacket>;
 
 /**
- * An opaque reference to a confirmed transaction on-chain.
- * Backed by the transaction's first signer signature.
+ * An opaque reference to a transaction on-chain, base58-encoded.
+ * (Backed by the transaction's first signer signature)
  */
-export type TransactionHandle = Signature;
+export type TransactionHandle = Branded<string, "TransactionHandle">;
+
+/**
+ * Creates a {@link TransactionHandle} from a Base58-encoded string.
+ * @param base58 - A 64-byte signature encoded as Base58.
+ * @returns The typed {@link TransactionHandle}.
+ * @throws {Error} If the decoded bytes are not exactly 64 bytes.
+ */
+export function transactionHandleFromBase58(base58: string): TransactionHandle {
+  const bytesLength = base58BytesLength(base58);
+  if (bytesLength !== 64) {
+    throw new Error(
+      `TransactionHandle: Expected 64 bytes (found: ${bytesLength})`,
+    );
+  }
+  return base58 as TransactionHandle;
+}
+
+/**
+ * Returns the Base58 string representation of a {@link TransactionHandle}.
+ * @param handle - The {@link TransactionHandle} to convert.
+ * @returns The Base58 string representation of the {@link TransactionHandle}.
+ */
+export function transactionHandleToBase58(handle: TransactionHandle): string {
+  return handle as string;
+}
+
+/**
+ * Creates a {@link TransactionPacket} from a raw byte array, performing a structural check to ensure it is well-formed and can be safely parsed.
+ * @param bytes - The raw byte array to convert.
+ * @returns The typed {@link TransactionPacket}.
+ * @throws {Error} If the byte array is not a valid transaction packet.
+ */
+export function transactionPacketFromBytes(
+  bytes: Uint8Array,
+): TransactionPacket {
+  const transactionPacket = bytes as TransactionPacket;
+  checkPacket(transactionPacket);
+  return transactionPacket;
+}
+
+/**
+ * Returns the raw byte array from a {@link TransactionPacket}.
+ * @param transactionPacket - The {@link TransactionPacket} to convert.
+ * @returns The raw byte array representation of the {@link TransactionPacket}.
+ */
+export function transactionPacketToBytes(
+  transactionPacket: TransactionPacket,
+): Uint8Array {
+  return transactionPacket as Uint8Array;
+}
 
 /**
  * Compiles a {@link TransactionRequest} into a wire-ready
@@ -343,18 +392,16 @@ export function transactionExtractSigning(
   if ((firstMessageByte & 0b10000000) !== 0) {
     messageOffset++;
   }
-  const messageSignaturesCount = byteRead(transactionMessage, messageOffset++);
-  if (packetSignaturesCount != messageSignaturesCount) {
-    throw new Error(
-      `Transaction: Mismatched signatures count between packet (${packetSignaturesCount}) and message (${messageSignaturesCount})`,
-    );
-  }
+  checkSignaturesCount(
+    packetSignaturesCount,
+    byteRead(transactionMessage, messageOffset++),
+  );
   messageOffset += 3;
   const signing = new Array<{
     signerAddress: Pubkey;
     signature: Signature;
   }>();
-  for (let i = 0; i < messageSignaturesCount; i++) {
+  for (let i = 0; i < packetSignaturesCount; i++) {
     const signerAddressBytes = bytesRead(transactionMessage, messageOffset, 32);
     const signatureBytes = bytesRead(transactionPacket, packetOffset, 64);
     messageOffset += 32;
@@ -383,8 +430,8 @@ export function transactionDecompileRequest(
   transactionAddressLookupTables?: Array<TransactionAddressLookupTable>,
 ): TransactionRequest {
   let offset = 0;
-  const firstByte = byteRead(transactionMessage, offset);
-  if ((firstByte & 0b10000000) !== 0) {
+  const firstMessageByte = byteRead(transactionMessage, offset);
+  if ((firstMessageByte & 0b10000000) !== 0) {
     offset++;
   }
   const signatureCount = byteRead(transactionMessage, offset++);
@@ -513,9 +560,7 @@ export function transactionDecompileRequest(
 
 function addressesMetasByCategory(
   transactionRequest: TransactionRequest,
-  options?: {
-    legacyAddressSorting?: boolean;
-  },
+  options?: { legacyAddressSorting?: boolean },
 ) {
   const metaByAddress = new Map<
     Pubkey,
@@ -598,7 +643,7 @@ function varIntWrite(byteArray: Array<number>, value: number) {
 }
 
 function varIntRead(
-  data: TransactionMessage | TransactionPacket,
+  data: Uint8Array | TransactionMessage | TransactionPacket,
   offset: number,
 ): { value: number; size: number } {
   const firstByte = byteRead(data, offset);
@@ -611,7 +656,7 @@ function varIntRead(
 }
 
 function byteRead(
-  bytes: TransactionMessage | TransactionPacket,
+  bytes: Uint8Array | TransactionMessage | TransactionPacket,
   offset: number,
 ): number {
   if (offset < 0 || offset >= bytes.length) {
@@ -623,7 +668,7 @@ function byteRead(
 }
 
 function bytesRead(
-  bytes: TransactionMessage | TransactionPacket,
+  bytes: Uint8Array | TransactionMessage | TransactionPacket,
   offset: number,
   size: number,
 ): Uint8Array {
@@ -657,4 +702,52 @@ function lookupLoadedAddress(
     );
   }
   return transactionLookupTableAddresses[index]!;
+}
+
+function checkPacket(transactionPacket: TransactionPacket) {
+  let offset = 0;
+  const signaturesCount = byteRead(transactionPacket, offset++);
+  offset += signaturesCount * 64;
+  const firstMessageByte = byteRead(transactionPacket, offset);
+  if ((firstMessageByte & 0b10000000) !== 0) {
+    offset++;
+  }
+  checkSignaturesCount(signaturesCount, byteRead(transactionPacket, offset++));
+  offset += 2;
+  const staticAddressesCount = byteRead(transactionPacket, offset++);
+  offset += staticAddressesCount * 32;
+  offset += 32;
+  const instructionCount = varIntRead(transactionPacket, offset);
+  offset += instructionCount.size;
+  for (let i = 0; i < instructionCount.value; i++) {
+    offset++;
+    const inputCount = varIntRead(transactionPacket, offset);
+    offset += inputCount.size + inputCount.value;
+    const dataLength = varIntRead(transactionPacket, offset);
+    offset += dataLength.size + dataLength.value;
+  }
+  if (offset < transactionPacket.length) {
+    const loadedAddressLookupTablesCount = byteRead(
+      transactionPacket,
+      offset++,
+    );
+    for (let i = 0; i < loadedAddressLookupTablesCount; i++) {
+      offset += 32;
+      const loadedWritableCount = byteRead(transactionPacket, offset++);
+      offset += loadedWritableCount;
+      const loadedReadonlyCount = byteRead(transactionPacket, offset++);
+      offset += loadedReadonlyCount;
+    }
+  }
+}
+
+function checkSignaturesCount(
+  packetSignaturesCount: number,
+  messageSignaturesCount: number,
+) {
+  if (packetSignaturesCount !== messageSignaturesCount) {
+    throw new Error(
+      `TransactionPacket: Invalid packet: signatures count in header (${packetSignaturesCount}) does not match message (${messageSignaturesCount})`,
+    );
+  }
 }

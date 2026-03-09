@@ -8,7 +8,7 @@ import {
   transactionCompileAndSign,
   TransactionProcessor,
 } from "./data/Transaction";
-import { urlRpcFromUrlOrMoniker } from "./data/Url";
+import { UrlOrMoniker, urlRpcFromUrlOrMoniker } from "./data/Url";
 import { mapGuessIntendedKey } from "./data/Utils";
 import { WalletAccount } from "./data/Wallet";
 import { idlAccountDecode } from "./idl/IdlAccount";
@@ -48,6 +48,7 @@ import { rpcHttpSendTransaction } from "./rpc/RpcHttpSendTransaction";
 import { rpcHttpSimulateTransaction } from "./rpc/RpcHttpSimulateTransaction";
 
 // TODO - add documentation website
+// TODO - add versioning for slots and IDLs upgrades
 
 /**
  * High-level entry point for interacting with the Solana blockchain.
@@ -92,7 +93,7 @@ export class Solana {
    *   to cache the most-recently fetched block hash. Defaults to `15_000` ms.
    */
   constructor(
-    rpcHttp: RpcHttp | "mainnet" | "devnet" | "testnet",
+    rpcHttp: RpcHttp | UrlOrMoniker,
     options?: {
       idlLoader?: IdlLoader;
       idlOverrides?: Map<Pubkey, IdlProgram>;
@@ -101,6 +102,8 @@ export class Solana {
   ) {
     if (typeof rpcHttp === "string") {
       this.#rpcHttp = rpcHttpFromUrl(urlRpcFromUrlOrMoniker(rpcHttp));
+    } else if (rpcHttp instanceof URL) {
+      this.#rpcHttp = rpcHttpFromUrl(rpcHttp);
     } else {
       this.#rpcHttp = rpcHttp;
     }

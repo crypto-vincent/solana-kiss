@@ -16,7 +16,10 @@ import {
   JsonObject,
 } from "../data/Json";
 import { Pubkey, pubkeyDefault } from "../data/Pubkey";
-import { TransactionPacket } from "../data/Transaction";
+import {
+  TransactionPacket,
+  transactionPacketToBytes,
+} from "../data/Transaction";
 import { RpcHttp } from "./RpcHttp";
 
 /**
@@ -66,7 +69,7 @@ export async function rpcHttpSimulateTransaction(
   const result = resultJsonDecoder(
     await self(
       "simulateTransaction",
-      [base64Encode(transactionPacket as Uint8Array)],
+      [base64Encode(transactionPacketToBytes(transactionPacket))],
       {
         encoding: "base64",
         accounts: {

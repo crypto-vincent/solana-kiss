@@ -39,9 +39,7 @@ export async function signerGenerate(): Promise<Signer> {
  */
 export async function signerFromSecret(
   secret: Uint8Array,
-  options?: {
-    skipVerification?: boolean;
-  },
+  options?: { skipVerification?: boolean },
 ): Promise<Signer> {
   if (secret.length != 64) {
     throw new Error(

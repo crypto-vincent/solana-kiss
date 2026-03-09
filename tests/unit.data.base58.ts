@@ -1,6 +1,11 @@
 import { expect, it } from "@jest/globals";
 import bs58 from "bs58";
-import { base58Decode, base58Encode, utf8Encode } from "../src";
+import {
+  base58BytesLength,
+  base58Decode,
+  base58Encode,
+  utf8Encode,
+} from "../src";
 
 function referenceImplementation(data: Uint8Array): string {
   return bs58.encode(data);
@@ -43,5 +48,6 @@ it("run", async () => {
     const expected = referenceImplementation(bytes);
     expect(decoded).toStrictEqual(bytes);
     expect(encoded).toStrictEqual(expected);
+    expect(base58BytesLength(encoded)).toStrictEqual(bytes.length);
   }
 });

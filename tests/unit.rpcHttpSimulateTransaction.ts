@@ -3,7 +3,6 @@ import {
   expectDefined,
   pubkeyNewDummy,
   rpcHttpSimulateTransaction,
-  TransactionPacket,
 } from "../src";
 
 function rpcHttp() {
@@ -13,11 +12,9 @@ function rpcHttp() {
 it("run", async () => {
   const dummyAddress = pubkeyNewDummy();
   const { executionReport, simulatedAccountsByAddress } = expectDefined(
-    await rpcHttpSimulateTransaction(
-      rpcHttp,
-      new Uint8Array() as TransactionPacket,
-      { simulatedAccountsAddresses: new Set([dummyAddress]) },
-    ),
+    await rpcHttpSimulateTransaction(rpcHttp, new Uint8Array() as any, {
+      simulatedAccountsAddresses: new Set([dummyAddress]),
+    }),
   );
   // Check basic stuff about the transaction
   expect(executionReport.blockTime).toStrictEqual(undefined);

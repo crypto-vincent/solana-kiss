@@ -16,19 +16,19 @@ const codePadding = "=".charCodeAt(0);
 
 /**
  * Encodes a byte array as a Base64 string with `=` padding.
- * @param decoded - The bytes to encode.
+ * @param bytes - The bytes to encode.
  * @returns The Base64 encoded string.
  */
-export function base64Encode(decoded: Uint8Array): string {
-  const chunks = decoded.length / 3;
+export function base64Encode(bytes: Uint8Array): string {
+  const chunks = bytes.length / 3;
   const codes = new Uint8Array(Math.ceil(chunks) * 4);
   let codeIndex = 0;
   let byteIndex = 0;
   const chunksFloor = Math.floor(chunks);
   for (let chunk = 0; chunk < chunksFloor; chunk++) {
-    const byte1 = decoded[byteIndex++]!;
-    const byte2 = decoded[byteIndex++]!;
-    const byte3 = decoded[byteIndex++]!;
+    const byte1 = bytes[byteIndex++]!;
+    const byte2 = bytes[byteIndex++]!;
+    const byte3 = bytes[byteIndex++]!;
     const digit1 = byte1 >> 2;
     const digit2 = ((byte1 & 0b00000011) << 4) | (byte2 >> 4);
     const digit3 = ((byte2 & 0b00001111) << 2) | (byte3 >> 6);
@@ -38,12 +38,12 @@ export function base64Encode(decoded: Uint8Array): string {
     codes[codeIndex++] = digitToCode[digit3]!;
     codes[codeIndex++] = digitToCode[digit4]!;
   }
-  if (byteIndex < decoded.length) {
-    const byte1 = decoded[byteIndex++]!;
+  if (byteIndex < bytes.length) {
+    const byte1 = bytes[byteIndex++]!;
     const digit1 = byte1 >> 2;
     codes[codeIndex++] = digitToCode[digit1]!;
-    if (byteIndex < decoded.length) {
-      const byte2 = decoded[byteIndex++]!;
+    if (byteIndex < bytes.length) {
+      const byte2 = bytes[byteIndex++]!;
       const digit2 = ((byte1 & 0b00000011) << 4) | (byte2 >> 4);
       const digit3 = (byte2 & 0b00001111) << 2;
       codes[codeIndex++] = digitToCode[digit2]!;
@@ -61,53 +61,63 @@ export function base64Encode(decoded: Uint8Array): string {
 
 /**
  * Decodes a Base64 string into a byte array.
- * @param encoded - The Base64 string to decode (must be padded with `=`).
+ * @param base64 - The Base64 string to decode
  * @returns The decoded bytes.
- * @throws {Error} If the string length is not a multiple of 4 or contains invalid characters.
+ * @throws {Error} If the string contains characters outside the Base64 alphabet or has invalid length.
  */
-export function base64Decode(encoded: string): Uint8Array {
-  const encodedLength = encoded.length;
-  if (encodedLength % 4 != 0) {
-    throw new Error(`Base64: decode: invalid encoded length: ${encodedLength}`);
+export function base64Decode(base64: string): Uint8Array {
+  let encodedLength = base64.length;
+  for (let i = base64.length - 1; i >= 0; i--) {
+    if (base64.charCodeAt(i) === codePadding) {
+      encodedLength--;
+    } else {
+      break;
+    }
   }
-  const chunks = encodedLength / 4;
+  const chunks = Math.ceil(encodedLength / 4);
   let bytes: Uint8Array;
-  if (encoded.endsWith("==")) {
-    bytes = new Uint8Array(chunks * 3 - 2);
-  } else if (encoded.endsWith("=")) {
-    bytes = new Uint8Array(chunks * 3 - 1);
-  } else {
-    bytes = new Uint8Array(chunks * 3);
+  switch (encodedLength % 4) {
+    case 0:
+      bytes = new Uint8Array(chunks * 3);
+      break;
+    case 2:
+      bytes = new Uint8Array(chunks * 3 - 2);
+      break;
+    case 3:
+      bytes = new Uint8Array(chunks * 3 - 1);
+      break;
+    default:
+      throw new Error(`Base64: decode: invalid length: ${encodedLength}`);
   }
   let byteIndex = 0;
   let codeIndex = 0;
   for (let chunk = 0; chunk < chunks; chunk++) {
-    const digit1 = base64DecodeDigit(encoded, codeIndex++);
-    const digit2 = base64DecodeDigit(encoded, codeIndex++);
+    const digit1 = base64DecodeDigit(base64, codeIndex++);
+    const digit2 = base64DecodeDigit(base64, codeIndex++);
     const byte1 = (digit1 << 2) | (digit2 >> 4);
     bytes[byteIndex++] = byte1;
     if (byteIndex === bytes.length) {
       break;
     }
-    const digit3 = base64DecodeDigit(encoded, codeIndex++);
+    const digit3 = base64DecodeDigit(base64, codeIndex++);
     const byte2 = ((digit2 & 0b00001111) << 4) | (digit3 >> 2);
     bytes[byteIndex++] = byte2;
     if (byteIndex === bytes.length) {
       break;
     }
-    const digit4 = base64DecodeDigit(encoded, codeIndex++);
+    const digit4 = base64DecodeDigit(base64, codeIndex++);
     const byte3 = ((digit3 & 0b00000011) << 6) | digit4;
     bytes[byteIndex++] = byte3;
   }
   return bytes;
 }
 
-function base64DecodeDigit(encoded: string, codeIndex: number): number {
-  const code = encoded.charCodeAt(codeIndex);
+function base64DecodeDigit(base64: string, codeIndex: number): number {
+  const code = base64.charCodeAt(codeIndex);
   const digit = codeToDigit[code] ?? -1;
   if (digit < 0) {
     throw new Error(
-      `Base64: decode: invalid character "${encoded[codeIndex]}" at index: ${codeIndex}`,
+      `Base64: decode: invalid character "${base64[codeIndex]}" at index: ${codeIndex}`,
     );
   }
   return digit;

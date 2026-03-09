@@ -61,7 +61,9 @@ export function idlProgramGuessAccount(
   const errors = [];
   for (const accountIdl of self.accounts.values()) {
     try {
-      idlAccountCheck(accountIdl, accountData);
+      withErrorContext(`Idl: account check: ${accountIdl.name}`, () =>
+        idlAccountCheck(accountIdl, accountData),
+      );
       return accountIdl;
     } catch (error) {
       errors.push(error);
@@ -85,14 +87,16 @@ export function idlProgramGuessInstruction(
   const errors = [];
   for (const instructionIdl of self.instructions.values()) {
     try {
-      idlInstructionAccountsCheck(
-        instructionIdl,
-        instructionRequest.instructionInputs,
-      );
-      idlInstructionArgsCheck(
-        instructionIdl,
-        instructionRequest.instructionData,
-      );
+      withErrorContext(`Idl: instruction check: ${instructionIdl.name}`, () => {
+        idlInstructionAccountsCheck(
+          instructionIdl,
+          instructionRequest.instructionInputs,
+        );
+        idlInstructionArgsCheck(
+          instructionIdl,
+          instructionRequest.instructionData,
+        );
+      });
       return instructionIdl;
     } catch (error) {
       errors.push(error);
@@ -116,7 +120,9 @@ export function idlProgramGuessEvent(
   const errors = [];
   for (const eventIdl of self.events.values()) {
     try {
-      idlEventCheck(eventIdl, eventData);
+      withErrorContext(`Idl: event check: ${eventIdl.name}`, () =>
+        idlEventCheck(eventIdl, eventData),
+      );
       return eventIdl;
     } catch (error) {
       errors.push(error);
@@ -143,7 +149,7 @@ export function idlProgramGuessError(
     }
     codes.push(errorIdl.code);
   }
-  throw new ErrorStack("Idl: Failed to guess error", codes);
+  throw new ErrorStack(`Idl: Failed to guess error: ${errorCode}`, codes);
 }
 
 // TODO - support CODAMA IDLs

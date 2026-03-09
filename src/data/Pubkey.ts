@@ -1,4 +1,4 @@
-import { base58Decode, base58Encode } from "./Base58";
+import { base58BytesLength, base58Decode, base58Encode } from "./Base58";
 import { sha256Hash } from "./Sha256";
 import { Signature, signatureToBytes } from "./Signature";
 import { TransactionMessage } from "./Transaction";
@@ -36,8 +36,7 @@ export function pubkeyNewDummy(): Pubkey {
  * @throws If the decoded bytes do not span exactly 32 bytes.
  */
 export function pubkeyFromBase58(base58: string): Pubkey {
-  const bytes = base58Decode(base58);
-  pubkeyBytesCheck(bytes);
+  pubkeyBytesLengthCheck(base58BytesLength(base58));
   return base58 as Pubkey;
 }
 
@@ -48,9 +47,8 @@ export function pubkeyFromBase58(base58: string): Pubkey {
  * @throws If `bytes` does not have a length of exactly 32.
  */
 export function pubkeyFromBytes(bytes: Uint8Array): Pubkey {
-  pubkeyBytesCheck(bytes);
-  const pubkey = base58Encode(bytes);
-  return pubkey as Pubkey;
+  pubkeyBytesLengthCheck(bytes.length);
+  return base58Encode(bytes) as Pubkey;
 }
 
 /**
@@ -60,9 +58,7 @@ export function pubkeyFromBytes(bytes: Uint8Array): Pubkey {
  * @throws If the decoded bytes do not span exactly 32 bytes.
  */
 export function pubkeyToBytes(self: Pubkey): Uint8Array {
-  const bytes = base58Decode(self as string);
-  pubkeyBytesCheck(bytes);
-  return bytes;
+  return base58Decode(self as string);
 }
 
 /**
@@ -251,11 +247,9 @@ function inv(value: bigint) {
   return pow(value, fieldModulusP - 2n);
 }
 
-function pubkeyBytesCheck(bytes: Uint8Array) {
-  if (bytes.length !== 32) {
-    throw new Error(
-      `Pubkey: Expected pubkey spanning 32 bytes (found: ${bytes.length})`,
-    );
+function pubkeyBytesLengthCheck(bytesLength: number) {
+  if (bytesLength !== 32) {
+    throw new Error(`Pubkey: Expected 32 bytes (found: ${bytesLength} bytes)`);
   }
 }
 
