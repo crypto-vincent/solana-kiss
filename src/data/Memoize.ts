@@ -29,7 +29,7 @@ export function memoize<CacheKey, In, Out>(
       },
     ) => Promise<boolean>;
   },
-): (input: In) => Promise<Out> {
+): (input: In) => Promise<Readonly<Out>> {
   const cacheUseApprover = options?.cacheUseApprover ?? (async () => true);
   const cacheSetApprover = options?.cacheSetApprover ?? (async () => true);
   const cacheMap = new Map<CacheKey, { result: Result<Out>; at: Date }>();

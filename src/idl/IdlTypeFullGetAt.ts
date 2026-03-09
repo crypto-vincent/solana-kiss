@@ -15,7 +15,7 @@ import {
   IdlTypeFullFieldUnnamed,
   IdlTypeFullLoop,
   IdlTypeFullOption,
-  IdlTypeFullPad,
+  IdlTypeFullPadded,
   IdlTypeFullString,
   IdlTypeFullStruct,
   IdlTypeFullTypedef,
@@ -68,7 +68,7 @@ function visitTypeFull(
   if (tokenIndex >= pointer.length) {
     return self;
   }
-  return self.traverse(visitorTypeFull, pointer, tokenIndex, undefined);
+  return self.traverse(visitorTypeFull, pointer, tokenIndex, null);
 }
 
 function visitTypeFullFields(
@@ -81,7 +81,7 @@ function visitTypeFullFields(
       `Idl: Expected path ${jsonPointerPreview(pointer, tokenIndex)} to point to a type (found fields)`,
     );
   }
-  return self.traverse(visitorTypeFullFields, pointer, tokenIndex, undefined);
+  return self.traverse(visitorTypeFullFields, pointer, tokenIndex, null);
 }
 
 const visitorTypeFull = {
@@ -163,8 +163,8 @@ const visitorTypeFull = {
       `Idl: Expected a struct/vec/array at path ${jsonPointerPreview(pointer, tokenIndex)} (found enum)`,
     );
   },
-  pad: (
-    self: IdlTypeFullPad,
+  padded: (
+    self: IdlTypeFullPadded,
     pointer: Array<number | string>,
     tokenIndex: number,
   ) => {

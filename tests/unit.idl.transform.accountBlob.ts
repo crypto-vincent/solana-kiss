@@ -13,7 +13,10 @@ it("run", () => {
       MyAccount: {
         discriminator: [22],
         fields: [
-          { name: "blob_before", bytes: { encode: { value: [1, 2, 3] } } },
+          {
+            name: "blob_before",
+            bytes: { encode: { type: ["u8", 3], value: [1, 2, 3] } },
+          },
           { name: "value", type: "u8" },
           { name: "blob_empty", bytes: { zeroes: 0 } },
           { name: "blob_after", bytes: { base16: "040506" } },
@@ -54,7 +57,6 @@ it("run", () => {
                     { name: "c", type: "u8" },
                   ],
                 },
-                prefixed: true,
               },
             },
           },

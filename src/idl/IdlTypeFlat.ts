@@ -14,12 +14,12 @@ export type IdlTypeFlatGeneric = {
 };
 /** An optional value whose presence is indicated by a length prefix. */
 export type IdlTypeFlatOption = {
-  prefix: IdlTypePrefix;
+  prefix: IdlTypePrefix | undefined;
   content: IdlTypeFlat;
 };
 /** A variable-length sequence of items encoded with a length prefix. */
 export type IdlTypeFlatVec = {
-  prefix: IdlTypePrefix;
+  prefix: IdlTypePrefix | undefined;
   items: IdlTypeFlat;
 };
 /** A sequence of items terminated by a sentinel value or the end of data. */
@@ -34,7 +34,7 @@ export type IdlTypeFlatArray = {
 };
 /** A UTF-8 string encoded with a length prefix. */
 export type IdlTypeFlatString = {
-  prefix: IdlTypePrefix;
+  prefix: IdlTypePrefix | undefined;
 };
 /** A struct type holding an ordered collection of fields. */
 export type IdlTypeFlatStruct = {
@@ -42,11 +42,11 @@ export type IdlTypeFlatStruct = {
 };
 /** An enum type encoded with a discriminant prefix and a set of variants. */
 export type IdlTypeFlatEnum = {
-  prefix: IdlTypePrefix;
+  prefix: IdlTypePrefix | undefined;
   variants: Array<IdlTypeFlatEnumVariant>;
 };
 /** A padding wrapper that skips bytes before and after an inner type. */
-export type IdlTypeFlatPad = {
+export type IdlTypeFlatPadded = {
   before: number;
   end: number;
   content: IdlTypeFlat;
@@ -70,7 +70,7 @@ type IdlTypeFlatDiscriminant =
   | "string"
   | "struct"
   | "enum"
-  | "pad"
+  | "padded"
   | "blob"
   | "const"
   | "primitive";
@@ -84,7 +84,7 @@ type IdlTypeFlatContent =
   | IdlTypeFlatString
   | IdlTypeFlatStruct
   | IdlTypeFlatEnum
-  | IdlTypeFlatPad
+  | IdlTypeFlatPadded
   | IdlTypeFlatBlob
   | IdlTypeFlatConst
   | IdlTypePrimitive;
@@ -142,9 +142,9 @@ export class IdlTypeFlat {
   public static enum(value: IdlTypeFlatEnum): IdlTypeFlat {
     return new IdlTypeFlat("enum", value);
   }
-  /** Creates a `pad` variant that wraps an inner type with byte padding. */
-  public static pad(value: IdlTypeFlatPad): IdlTypeFlat {
-    return new IdlTypeFlat("pad", value);
+  /** Creates a `padded` variant that wraps an inner type with byte padding. */
+  public static padded(value: IdlTypeFlatPadded): IdlTypeFlat {
+    return new IdlTypeFlat("padded", value);
   }
   /** Creates a `blob` variant for a raw byte sequence. */
   public static blob(value: IdlTypeFlatBlob): IdlTypeFlat {
@@ -184,7 +184,7 @@ export class IdlTypeFlat {
       string: (value: IdlTypeFlatString, p1: P1, p2: P2) => T;
       struct: (value: IdlTypeFlatStruct, p1: P1, p2: P2) => T;
       enum: (value: IdlTypeFlatEnum, p1: P1, p2: P2) => T;
-      pad: (value: IdlTypeFlatPad, p1: P1, p2: P2) => T;
+      padded: (value: IdlTypeFlatPadded, p1: P1, p2: P2) => T;
       blob: (value: IdlTypeFlatBlob, p1: P1, p2: P2) => T;
       const: (value: IdlTypeFlatConst, p1: P1, p2: P2) => T;
       primitive: (value: IdlTypePrimitive, p1: P1, p2: P2) => T;
@@ -260,6 +260,7 @@ export class IdlTypeFlatFields {
     p1: P1,
     p2: P2,
   ) {
+    // TODO - could this be simplified ?
     switch (this.discriminant) {
       case "nothing":
         return visitor.nothing(this.content as null, p1, p2);

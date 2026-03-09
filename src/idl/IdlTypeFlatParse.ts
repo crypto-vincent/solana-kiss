@@ -100,15 +100,9 @@ const arrayJsonDecoder = jsonDecoderWrapped(
   }),
   (array) => {
     if (array.length === null) {
-      return IdlTypeFlat.vec({
-        prefix: IdlTypePrefix.u32,
-        items: array.items,
-      });
+      return IdlTypeFlat.vec({ prefix: undefined, items: array.items });
     }
-    return IdlTypeFlat.array({
-      items: array.items,
-      length: array.length,
-    });
+    return IdlTypeFlat.array({ items: array.items, length: array.length });
   },
 );
 
@@ -273,13 +267,13 @@ function objectGenericJsonDecoder(value: JsonValue): IdlTypeFlat {
   return IdlTypeFlat.generic({ symbol });
 }
 
-function objectOptionJsonDecoder(prefix: IdlTypePrefix) {
+function objectOptionJsonDecoder(prefix: IdlTypePrefix | undefined) {
   return jsonDecoderWrapped(idlTypeFlatParse, (content) =>
     IdlTypeFlat.option({ prefix, content }),
   );
 }
 
-function objectVecJsonDecoder(prefix: IdlTypePrefix) {
+function objectVecJsonDecoder(prefix: IdlTypePrefix | undefined) {
   return jsonDecoderWrapped(idlTypeFlatParse, (items) =>
     IdlTypeFlat.vec({ prefix, items }),
   );
@@ -301,7 +295,7 @@ function objectStructJsonDecoder(value: JsonValue): IdlTypeFlat {
   return IdlTypeFlat.struct({ fields });
 }
 
-function objectEnumJsonDecoder(prefix: IdlTypePrefix) {
+function objectEnumJsonDecoder(prefix: IdlTypePrefix | undefined) {
   return jsonDecoderWrapped(variantsJsonDecoder, (variants) => {
     return IdlTypeFlat.enum({ prefix, variants });
   });
@@ -313,7 +307,7 @@ const objectPadInfoJsonDecoder = jsonDecoderObjectToObject({
 });
 function objectPadJsonDecoder(value: JsonValue): IdlTypeFlat {
   const info = objectPadInfoJsonDecoder(value);
-  return IdlTypeFlat.pad({
+  return IdlTypeFlat.padded({
     before: info.before ?? 0,
     end: info.end ?? 0,
     content: idlTypeFlatParseIsPossible(value)
@@ -339,13 +333,15 @@ const objectJsonDecoderCases = {
   defined: objectDefinedJsonDecoder,
   generic: objectGenericJsonDecoder,
   coption: objectCOptionJsonDecoder,
-  option: objectOptionJsonDecoder(IdlTypePrefix.u8),
+  option: objectOptionJsonDecoder(undefined),
+  option0: objectOptionJsonDecoder(IdlTypePrefix.u0),
   option8: objectOptionJsonDecoder(IdlTypePrefix.u8),
   option16: objectOptionJsonDecoder(IdlTypePrefix.u16),
   option32: objectOptionJsonDecoder(IdlTypePrefix.u32),
   option64: objectOptionJsonDecoder(IdlTypePrefix.u64),
   option128: objectOptionJsonDecoder(IdlTypePrefix.u128),
-  vec: objectVecJsonDecoder(IdlTypePrefix.u32), // TODO (experiment) - support for svec and varint primitives ?
+  vec: objectVecJsonDecoder(undefined), // TODO (experiment) - support for svec and varint primitives/prefixes ?
+  vec0: objectVecJsonDecoder(IdlTypePrefix.u0),
   vec8: objectVecJsonDecoder(IdlTypePrefix.u8),
   vec16: objectVecJsonDecoder(IdlTypePrefix.u16),
   vec32: objectVecJsonDecoder(IdlTypePrefix.u32),
@@ -355,7 +351,8 @@ const objectJsonDecoderCases = {
   array: arrayJsonDecoder,
   fields: objectStructJsonDecoder, // TODO (experiment) - support for partial structs ?
   tuple: objectStructJsonDecoder,
-  variants: objectEnumJsonDecoder(IdlTypePrefix.u8),
+  variants: objectEnumJsonDecoder(undefined),
+  variants0: objectEnumJsonDecoder(IdlTypePrefix.u0),
   variants8: objectEnumJsonDecoder(IdlTypePrefix.u8),
   variants16: objectEnumJsonDecoder(IdlTypePrefix.u16),
   variants32: objectEnumJsonDecoder(IdlTypePrefix.u32),
@@ -370,21 +367,26 @@ const objectJsonDecoder: JsonDecoder<IdlTypeFlat> = jsonDecoderOneOfKeys(
   objectJsonDecoderCases,
 );
 
+function presetBytes(prefix: IdlTypePrefix | undefined): IdlTypeFlat {
+  const items = IdlTypeFlat.primitive(IdlTypePrimitive.u8);
+  return IdlTypeFlat.vec({ prefix, items });
+}
 const presetsByName = new Map<string, IdlTypeFlat>([
   ["publicKey", IdlTypeFlat.primitive(IdlTypePrimitive.pubkey)],
-  ["string", IdlTypeFlat.string({ prefix: IdlTypePrefix.u32 })],
+  ["string", IdlTypeFlat.string({ prefix: undefined })],
+  ["string0", IdlTypeFlat.string({ prefix: IdlTypePrefix.u0 })],
   ["string8", IdlTypeFlat.string({ prefix: IdlTypePrefix.u8 })],
   ["string16", IdlTypeFlat.string({ prefix: IdlTypePrefix.u16 })],
   ["string32", IdlTypeFlat.string({ prefix: IdlTypePrefix.u32 })],
   ["string64", IdlTypeFlat.string({ prefix: IdlTypePrefix.u64 })],
   ["string128", IdlTypeFlat.string({ prefix: IdlTypePrefix.u128 })],
-  [
-    "bytes",
-    IdlTypeFlat.vec({
-      prefix: IdlTypePrefix.u32,
-      items: IdlTypeFlat.primitive(IdlTypePrimitive.u8),
-    }),
-  ],
+  ["bytes", presetBytes(undefined)],
+  ["bytes0", presetBytes(IdlTypePrefix.u0)],
+  ["bytes8", presetBytes(IdlTypePrefix.u8)],
+  ["bytes16", presetBytes(IdlTypePrefix.u16)],
+  ["bytes32", presetBytes(IdlTypePrefix.u32)],
+  ["bytes64", presetBytes(IdlTypePrefix.u64)],
+  ["bytes128", presetBytes(IdlTypePrefix.u128)],
 ]);
 function stringJsonDecoder(string: string): IdlTypeFlat {
   const preset = presetsByName.get(string);
@@ -399,7 +401,6 @@ function stringJsonDecoder(string: string): IdlTypeFlat {
 }
 
 const valueJsonDecoder: JsonDecoder<IdlTypeFlat> = jsonDecoderByType({
-  null: () => IdlTypeFlat.structNothing(),
   number: (number) => IdlTypeFlat.const({ literal: number }),
   string: stringJsonDecoder,
   array: arrayJsonDecoder,

@@ -3,7 +3,6 @@ import {
   idlProgramParse,
   IdlTypeFull,
   IdlTypeFullFields,
-  IdlTypePrefix,
   IdlTypePrimitive,
 } from "../src";
 
@@ -60,7 +59,7 @@ it("run", () => {
   // Assert that the content is correct
   expect(programIdl1.accounts.get("MyEnum")!.typeFull).toStrictEqual(
     IdlTypeFull.enum({
-      prefix: IdlTypePrefix.u8,
+      prefix: undefined,
       mask: 3n,
       indexByName: new Map([
         ["Named", 0],
@@ -89,15 +88,13 @@ it("run", () => {
             {
               name: "f2",
               content: IdlTypeFull.vec({
-                prefix: IdlTypePrefix.u32,
+                prefix: undefined,
                 items: IdlTypeFull.primitive(IdlTypePrimitive.u8),
               }),
             },
             {
               name: "f3",
-              content: IdlTypeFull.string({
-                prefix: IdlTypePrefix.u32,
-              }),
+              content: IdlTypeFull.string({ prefix: undefined }),
             },
           ]),
         },
@@ -110,13 +107,13 @@ it("run", () => {
             },
             {
               content: IdlTypeFull.vec({
-                prefix: IdlTypePrefix.u32,
+                prefix: undefined,
                 items: IdlTypeFull.primitive(IdlTypePrimitive.u8),
               }),
             },
             {
               content: IdlTypeFull.vec({
-                prefix: IdlTypePrefix.u32,
+                prefix: undefined,
                 items: IdlTypeFull.primitive(IdlTypePrimitive.u8),
               }),
             },

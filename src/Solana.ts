@@ -70,7 +70,7 @@ import { rpcHttpSimulateTransaction } from "./rpc/RpcHttpSimulateTransaction";
  */
 export class Solana {
   readonly #rpcHttp: RpcHttp;
-  readonly #idlOverrides: Map<Pubkey, IdlProgram>;
+  readonly #idlOverrides: Map<Pubkey, Readonly<IdlProgram>>;
   readonly #idlLoader: IdlLoader;
 
   #recentBlockHashCacheDurationMs = 15_000;
@@ -96,7 +96,7 @@ export class Solana {
     rpcHttp: RpcHttp | UrlOrMoniker,
     options?: {
       idlLoader?: IdlLoader;
-      idlOverrides?: Map<Pubkey, IdlProgram>;
+      idlOverrides?: Map<Pubkey, Readonly<IdlProgram>>;
       recentBlockHashCacheDurationMs?: number;
     },
   ) {
@@ -135,7 +135,7 @@ export class Solana {
    */
   public setProgramIdlOverride(
     programAddress: Pubkey,
-    programIdl: IdlProgram | undefined,
+    programIdl: Readonly<IdlProgram> | undefined,
   ) {
     if (programIdl === undefined) {
       this.#idlOverrides.delete(programAddress);
@@ -182,8 +182,7 @@ export class Solana {
    * @param programAddress - The on-chain address of the program that owns the
    *   PDA.
    * @param pdaName - The name of the PDA as declared in the program's IDL.
-   * @param pdaInputs - Key/value pairs used to seed the PDA derivation.
-   *   Defaults to an empty object when omitted.
+   * @param pdaInputs - Optional input values for the PDA seeds
    * @returns The derived PDA {@link Pubkey}, as returned by {@link idlPdaFind}.
    * @throws If the program IDL cannot be loaded, or if no PDA named
    *   `pdaName` exists in the IDL.

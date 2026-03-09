@@ -8,7 +8,9 @@ import { IdlProgram, idlProgramParse } from "./IdlProgram";
 /**
  * A function that asynchronously loads an {@link IdlProgram} for a given Solana program address.
  */
-export type IdlLoader = (programAddress: Pubkey) => Promise<IdlProgram>;
+export type IdlLoader = (
+  programAddress: Pubkey,
+) => Promise<Readonly<IdlProgram>>;
 
 /**
  * Wraps an {@link IdlLoader} with memoization so that repeated calls for the

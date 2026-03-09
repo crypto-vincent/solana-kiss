@@ -10,12 +10,12 @@ export type IdlTypeFullTypedef = {
 };
 /** An optional value whose presence is indicated by a length prefix. */
 export type IdlTypeFullOption = {
-  prefix: IdlTypePrefix;
+  prefix: IdlTypePrefix | undefined;
   content: IdlTypeFull;
 };
 /** A variable-length sequence of items encoded with a length prefix. */
 export type IdlTypeFullVec = {
-  prefix: IdlTypePrefix;
+  prefix: IdlTypePrefix | undefined;
   items: IdlTypeFull;
 };
 /** A sequence of items terminated by a sentinel value or the end of data. */
@@ -30,7 +30,7 @@ export type IdlTypeFullArray = {
 };
 /** A UTF-8 string encoded with a length prefix. */
 export type IdlTypeFullString = {
-  prefix: IdlTypePrefix;
+  prefix: IdlTypePrefix | undefined;
 };
 /** A struct type holding an ordered collection of fully-resolved fields. */
 export type IdlTypeFullStruct = {
@@ -38,7 +38,7 @@ export type IdlTypeFullStruct = {
 };
 /** A fully-resolved enum type with precomputed index maps for fast variant lookup. */
 export type IdlTypeFullEnum = {
-  prefix: IdlTypePrefix;
+  prefix: IdlTypePrefix | undefined;
   mask: bigint;
   indexByName: Map<string, number>;
   indexByCodeBigInt: Map<bigint, number>;
@@ -46,7 +46,7 @@ export type IdlTypeFullEnum = {
   variants: Array<IdlTypeFullEnumVariant>;
 };
 /** A padding wrapper that skips bytes before and after an inner fully-resolved type. */
-export type IdlTypeFullPad = {
+export type IdlTypeFullPadded = {
   before: number; // TODO (repr) - can this be deprecated when transparent padding is supported ?
   end: number;
   content: IdlTypeFull;
@@ -65,7 +65,7 @@ type IdlTypeFullDiscriminant =
   | "string"
   | "struct"
   | "enum"
-  | "pad"
+  | "padded"
   | "blob"
   | "primitive";
 type IdlTypeFullContent =
@@ -77,7 +77,7 @@ type IdlTypeFullContent =
   | IdlTypeFullString
   | IdlTypeFullStruct
   | IdlTypeFullEnum
-  | IdlTypeFullPad
+  | IdlTypeFullPadded
   | IdlTypeFullBlob
   | IdlTypePrimitive;
 
@@ -130,9 +130,9 @@ export class IdlTypeFull {
   public static enum(value: IdlTypeFullEnum): IdlTypeFull {
     return new IdlTypeFull("enum", value);
   }
-  /** Creates a `pad` variant that wraps an inner type with byte padding. */
-  public static pad(value: IdlTypeFullPad): IdlTypeFull {
-    return new IdlTypeFull("pad", value);
+  /** Creates a `padded` variant that wraps an inner type with byte padding. */
+  public static padded(value: IdlTypeFullPadded): IdlTypeFull {
+    return new IdlTypeFull("padded", value);
   }
   /** Creates a `blob` variant for a raw byte sequence. */
   public static blob(value: IdlTypeFullBlob): IdlTypeFull {
@@ -162,7 +162,6 @@ export class IdlTypeFull {
    * @param visitor - An object with one handler per variant.
    * @param p1 - First context parameter forwarded to the visitor.
    * @param p2 - Second context parameter forwarded to the visitor.
-   * @param p3 - Third context parameter forwarded to the visitor.
    * @returns The value returned by the matched visitor branch.
    */
   public traverse<P1, P2, P3, T>(
@@ -175,7 +174,7 @@ export class IdlTypeFull {
       string: (value: IdlTypeFullString, p1: P1, p2: P2, p3: P3) => T;
       struct: (value: IdlTypeFullStruct, p1: P1, p2: P2, p3: P3) => T;
       enum: (value: IdlTypeFullEnum, p1: P1, p2: P2, p3: P3) => T;
-      pad: (value: IdlTypeFullPad, p1: P1, p2: P2, p3: P3) => T;
+      padded: (value: IdlTypeFullPadded, p1: P1, p2: P2, p3: P3) => T;
       blob: (value: IdlTypeFullBlob, p1: P1, p2: P2, p3: P3) => T;
       primitive: (value: IdlTypePrimitive, p1: P1, p2: P2, p3: P3) => T;
     },

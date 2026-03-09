@@ -1,4 +1,5 @@
 import {
+  JsonArray,
   jsonAsArray,
   jsonAsObject,
   jsonAsString,
@@ -8,6 +9,7 @@ import {
   jsonCodecBase64ToBytes,
   jsonCodecBoolean,
   jsonCodecNumber,
+  jsonCodecString,
   jsonCodecUtf8ToBytes,
   jsonCodecValue,
   jsonDecoderByType,
@@ -15,11 +17,12 @@ import {
   jsonDecoderObjectToObject,
   jsonDecoderOneOfKeys,
   jsonDecoderWrapped,
-  jsonPreview,
+  jsonParse,
   JsonValue,
 } from "../data/Json";
 import { sha256Hash } from "../data/Sha256";
 import { utf8Encode } from "../data/Utf8";
+import { IdlTypedef } from "./IdlTypedef";
 import { IdlTypeFlat } from "./IdlTypeFlat";
 import { idlTypeFlatHydrate } from "./IdlTypeFlatHydrate";
 import { idlTypeFlatParse } from "./IdlTypeFlatParse";
@@ -46,40 +49,17 @@ export const idlUtilsBytesJsonDecoder = jsonDecoderByType({
     ),
     encode: jsonDecoderWrapped(
       jsonDecoderObjectToObject({
+        type: idlTypeFlatParse,
         value: jsonCodecValue.decoder,
-        type: jsonDecoderNullable(idlTypeFlatParse),
         prefixed: jsonDecoderNullable(jsonCodecBoolean.decoder),
       }),
       (info) => {
-        const typeFlat = info.type ?? idlUtilsInferValueTypeFlat(info.value);
-        const typeFull = idlTypeFlatHydrate(typeFlat, new Map(), null);
-        return idlTypeFullEncode(typeFull, info.value, info.prefixed === true);
+        const typeFull = idlTypeFlatHydrate(info.type, new Map(), null);
+        return idlTypeFullEncode(typeFull, info.value, info.prefixed ?? true);
       },
     ),
   }),
 });
-
-/**
- * Infers a flat IDL type for a JSON value that is expected to represent raw
- * bytes. Strings are treated as public keys (`pubkey`); arrays and objects are
- * treated as byte arrays (`bytes`). Throws for unsupported value shapes.
- *
- * @param value - The JSON value whose flat IDL type should be inferred.
- * @returns The inferred {@link IdlTypeFlat}.
- */
-export function idlUtilsInferValueTypeFlat(value: JsonValue): IdlTypeFlat {
-  if (jsonAsString(value) !== undefined) {
-    return idlTypeFlatParse("pubkey");
-  } else if (jsonAsArray(value) !== undefined) {
-    return idlTypeFlatParse("bytes");
-  } else if (jsonAsObject(value) !== undefined) {
-    return idlTypeFlatParse("bytes");
-  } else {
-    throw new Error(
-      `Idl: Unable to infer type of bytes value: ${jsonPreview(value)}`,
-    );
-  }
-}
 
 /**
  * Asserts that a specific byte sequence (`blobBytes`) is present in `data`
@@ -122,7 +102,7 @@ export function idlUtilsExpectBlobAt(
  * @returns The parsed {@link JsonValue}.
  */
 export function idlUtilsJsonRustedParse(jsonRusted: string): JsonValue {
-  return JSON.parse(
+  return jsonParse(
     jsonRusted.replace(
       /"(?:\\.|[^"\\])*"|(-?(?:0|[1-9][0-9_]*)(?:\.[0-9_]+)?(?:[eE][+-]?[0-9_]+)?)/g,
       (match, num) => {
@@ -146,3 +126,92 @@ export function idlUtilsJsonRustedParse(jsonRusted: string): JsonValue {
 export function idlUtilsAnchorDiscriminator(name: string): Uint8Array {
   return sha256Hash([utf8Encode(name)]).slice(0, 8);
 }
+
+/**
+ * Parses a blob value into a structured format with type information.
+ *
+ * @param blobValue - The JSON value representing the blob.
+ * @param typedefsIdls - A map of typedefs for resolving type information.
+ * @returns An object containing the parsed blob information.
+ */
+export function idlUtilsBlobParse(
+  blobValue: JsonValue,
+  typedefsIdls: Map<string, IdlTypedef>,
+) {
+  let decoded = blobJsonDecoder(blobValue);
+  if (
+    decoded.kind === null &&
+    decoded.path === null &&
+    decoded.input === null &&
+    decoded.value === null &&
+    decoded.type === null
+  ) {
+    decoded = {
+      kind: null,
+      path: null,
+      input: null,
+      value: blobValue,
+      type: null,
+      prefixed: null,
+    };
+  }
+  function inferTypeFromValue(value: JsonValue): IdlTypeFlat | null {
+    if (jsonAsString(value) !== undefined) {
+      return idlTypeFlatParse("pubkey");
+    } else if (jsonAsArray(value) !== undefined) {
+      return idlTypeFlatParse("bytes");
+    } else if (jsonAsObject(value) !== undefined) {
+      return idlTypeFlatParse("bytes");
+    } else {
+      return null;
+    }
+  }
+  const typeFlat =
+    decoded.type ??
+    (decoded.value === null ? null : inferTypeFromValue(decoded.value));
+  const typeFull = typeFlat
+    ? idlTypeFlatHydrate(typeFlat, new Map(), typedefsIdls)
+    : null;
+  return {
+    kind: decoded.kind,
+    path: decoded.path,
+    input: decoded.input,
+    value: decoded.value,
+    typeFull: typeFull,
+    prefixed: decoded.prefixed ?? false,
+  };
+}
+
+const blobJsonDecoder = jsonDecoderByType<{
+  kind: string | null;
+  path: string | null;
+  input: string | null;
+  value: JsonValue;
+  type: IdlTypeFlat | null;
+  prefixed: boolean | null;
+}>({
+  object: jsonDecoderObjectToObject({
+    kind: jsonDecoderNullable(jsonCodecString.decoder),
+    path: jsonDecoderNullable(jsonCodecString.decoder),
+    input: jsonDecoderNullable(jsonCodecString.decoder),
+    value: jsonCodecValue.decoder,
+    type: jsonDecoderNullable(idlTypeFlatParse),
+    prefixed: jsonDecoderNullable(jsonCodecBoolean.decoder),
+  }),
+  string: (string: string) => ({
+    kind: null,
+    path: null,
+    input: null,
+    value: string,
+    type: null,
+    prefixed: null,
+  }),
+  array: (array: JsonArray) => ({
+    kind: null,
+    path: null,
+    input: null,
+    value: array,
+    type: null,
+    prefixed: null,
+  }),
+});

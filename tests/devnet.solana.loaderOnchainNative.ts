@@ -19,10 +19,13 @@ it("run", async () => {
   };
 
   // Check that we can fetch a canonical metadata IDL
-  const programIdl = await idlLoaderFromOnchainNative(onchainDataFetcher)(
-    pubkeyFromBase58("ProgM6JCCvbYkfKqJYHePx4xxSUSqJp7rh8Lyv7nk7S"),
+  const idlLoader = idlLoaderFromOnchainNative(onchainDataFetcher);
+  const programAddress = pubkeyFromBase58(
+    "ProgM6JCCvbYkfKqJYHePx4xxSUSqJp7rh8Lyv7nk7S",
   );
+  const programIdl = await idlLoader(programAddress);
   expect(programIdl.metadata.version).toStrictEqual("1.0.0");
+  expect(programIdl.metadata.address).toStrictEqual(programAddress);
   expect(programIdl.metadata.source?.toString()).toStrictEqual(
     "onchain://solana-program-metadata/canonical",
   );
@@ -32,12 +35,14 @@ it("run", async () => {
     const idlLoader = idlLoaderFromOnchainNative(onchainDataFetcher, {
       nonCanonicalAuthorityAddress: authorityAddress,
     });
-    const programIdl = await idlLoader(
-      pubkeyFromBase58("TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA"),
+    const programAddress = pubkeyFromBase58(
+      "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA",
     );
+    const programIdl = await idlLoader(programAddress);
     expect(programIdl.metadata.name).toBeDefined();
     expect(programIdl.accounts.size).toBeGreaterThan(0);
     expect(programIdl.instructions.size).toBeGreaterThan(0);
+    expect(programIdl.metadata.address).toStrictEqual(programAddress);
     expect(programIdl.metadata.source?.toString()).toStrictEqual(
       `onchain://solana-program-metadata/authority/${authorityAddress}`,
     );

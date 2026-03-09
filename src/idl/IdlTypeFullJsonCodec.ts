@@ -8,7 +8,7 @@ import {
   IdlTypeFullFieldUnnamed,
   IdlTypeFullLoop,
   IdlTypeFullOption,
-  IdlTypeFullPad,
+  IdlTypeFullPadded,
   IdlTypeFullString,
   IdlTypeFullStruct,
   IdlTypeFullTypedef,
@@ -65,14 +65,14 @@ export function idlTypeFullJsonCodecExpression(
 type CodecContext = { dependencies: Set<string> | undefined };
 
 function codec(context: CodecContext, typeFull: IdlTypeFull): string {
-  return typeFull.traverse(visitor, context, undefined, undefined);
+  return typeFull.traverse(visitor, context, null, null);
 }
 
 function codecFields(
   context: CodecContext,
   typeFullFields: IdlTypeFullFields,
 ): string {
-  return typeFullFields.traverse(visitorFields, context, undefined, undefined);
+  return typeFullFields.traverse(visitorFields, context, null, null);
 }
 
 function codecArray(items: IdlTypeFull, context: CodecContext): string {
@@ -132,7 +132,7 @@ const visitor = {
       stringObject(entries),
     ]);
   },
-  pad: (self: IdlTypeFullPad, context: CodecContext) => {
+  padded: (self: IdlTypeFullPadded, context: CodecContext) => {
     return codec(context, self.content);
   },
   blob: (_self: IdlTypeFullBlob, context: CodecContext) => {

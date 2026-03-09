@@ -16,13 +16,19 @@ import {
   IdlTypeFullFieldUnnamed,
   IdlTypeFullLoop,
   IdlTypeFullOption,
-  IdlTypeFullPad,
+  IdlTypeFullPadded,
   IdlTypeFullString,
   IdlTypeFullStruct,
   IdlTypeFullTypedef,
   IdlTypeFullVec,
 } from "./IdlTypeFull";
-import { idlTypePrefixDecode } from "./IdlTypePrefix";
+import {
+  idlTypePrefixDecode,
+  idlTypePrefixDefaultEnum,
+  idlTypePrefixDefaultOption,
+  idlTypePrefixDefaultString,
+  idlTypePrefixDefaultVec,
+} from "./IdlTypePrefix";
 import { IdlTypePrimitive, idlTypePrimitiveDecode } from "./IdlTypePrimitive";
 
 /**
@@ -39,7 +45,7 @@ export function idlTypeFullDecode(
   data: DataView,
   dataOffset: number,
 ): [number, JsonValue] {
-  return self.traverse(visitorDecode, data, dataOffset, undefined);
+  return self.traverse(visitorDecode, data, dataOffset, null);
 }
 
 /**
@@ -56,7 +62,7 @@ export function idlTypeFullFieldsDecode(
   data: DataView,
   dataOffset: number,
 ): [number, JsonValue] {
-  return self.traverse(visitorFieldsDecode, data, dataOffset, undefined);
+  return self.traverse(visitorFieldsDecode, data, dataOffset, null);
 }
 
 const visitorDecode = {
@@ -76,7 +82,7 @@ const visitorDecode = {
     dataOffset: number,
   ): [number, JsonValue] => {
     let [dataSize, dataPrefix] = idlTypePrefixDecode(
-      self.prefix,
+      self.prefix ?? idlTypePrefixDefaultOption,
       data,
       dataOffset,
     );
@@ -98,7 +104,7 @@ const visitorDecode = {
     dataOffset: number,
   ): [number, JsonValue] => {
     let [dataSize, dataPrefix] = idlTypePrefixDecode(
-      self.prefix,
+      self.prefix ?? idlTypePrefixDefaultVec,
       data,
       dataOffset,
     );
@@ -167,7 +173,7 @@ const visitorDecode = {
     dataOffset: number,
   ): [number, JsonValue] => {
     let [dataSize, dataPrefix] = idlTypePrefixDecode(
-      self.prefix,
+      self.prefix ?? idlTypePrefixDefaultString,
       data,
       dataOffset,
     );
@@ -194,7 +200,7 @@ const visitorDecode = {
       return [0, null];
     }
     let [dataSize, dataPrefix] = idlTypePrefixDecode(
-      self.prefix,
+      self.prefix ?? idlTypePrefixDefaultEnum,
       data,
       dataOffset,
     );
@@ -218,8 +224,8 @@ const visitorDecode = {
       return [dataSize, { [variant.name]: dataVariant }];
     }
   },
-  pad: (
-    self: IdlTypeFullPad,
+  padded: (
+    self: IdlTypeFullPadded,
     data: DataView,
     dataOffset: number,
   ): [number, JsonValue] => {

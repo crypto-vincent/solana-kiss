@@ -11,6 +11,7 @@ import {
   jsonCodecString,
   JsonFetcher,
   jsonFetcherDefault,
+  jsonParse,
   JsonValue,
 } from "../data/Json";
 import {
@@ -97,7 +98,7 @@ async function resolveIdlJson(
   if (idlContent.dataSource === "Direct") {
     const idlBytes = decompressIfNeeded(idlContent.compression, directData);
     const idlString = utf8Decode(idlBytes);
-    return JSON.parse(idlString) as JsonValue;
+    return jsonParse(idlString);
   }
   if (idlContent.dataSource === "External") {
     const externalAddress = pubkeyFromBytes(directData.slice(0, 32));
@@ -111,7 +112,7 @@ async function resolveIdlJson(
     );
     const idlBytes = decompressIfNeeded(idlContent.compression, externalBytes);
     const idlString = utf8Decode(idlBytes);
-    return JSON.parse(idlString) as JsonValue;
+    return jsonParse(idlString);
   }
   if (idlContent.dataSource == "Url") {
     const urlBytes = decompressIfNeeded(idlContent.compression, directData);

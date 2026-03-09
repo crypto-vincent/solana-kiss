@@ -88,21 +88,19 @@ it("run", async () => {
         },
         {
           docs: undefined,
-          content: IdlTypeFlat.string({
-            prefix: IdlTypePrefix.u32,
-          }),
+          content: IdlTypeFlat.string({ prefix: undefined }),
         },
         {
           docs: undefined,
           content: IdlTypeFlat.vec({
-            prefix: IdlTypePrefix.u32,
+            prefix: undefined,
             items: IdlTypeFlat.primitive(IdlTypePrimitive.u8),
           }),
         },
         {
           docs: undefined,
           content: IdlTypeFlat.vec({
-            prefix: IdlTypePrefix.u32,
+            prefix: undefined,
             items: IdlTypeFlat.primitive(IdlTypePrimitive.u8),
           }),
         },
@@ -126,42 +124,28 @@ it("run", async () => {
         },
         {
           docs: undefined,
-          content: IdlTypeFlat.enum({
-            prefix: IdlTypePrefix.u8,
-            variants: [],
-          }),
+          content: IdlTypeFlat.enum({ prefix: undefined, variants: [] }),
         },
         {
           docs: undefined,
-          content: IdlTypeFlat.defined({
-            name: "Other",
-            generics: [],
-          }),
+          content: IdlTypeFlat.defined({ name: "Other", generics: [] }),
         },
         {
           docs: undefined,
-          content: IdlTypeFlat.defined({
-            name: "Other",
-            generics: [],
-          }),
+          content: IdlTypeFlat.defined({ name: "Other", generics: [] }),
         },
         {
           docs: undefined,
-          content: IdlTypeFlat.defined({
-            name: "Other",
-            generics: [],
-          }),
+          content: IdlTypeFlat.defined({ name: "Other", generics: [] }),
         },
         {
           docs: undefined,
-          content: IdlTypeFlat.generic({
-            symbol: "G",
-          }),
+          content: IdlTypeFlat.generic({ symbol: "G" }),
         },
         {
           docs: undefined,
           content: IdlTypeFlat.option({
-            prefix: IdlTypePrefix.u8,
+            prefix: undefined,
             content: IdlTypeFlat.primitive(IdlTypePrimitive.u8),
           }),
         },

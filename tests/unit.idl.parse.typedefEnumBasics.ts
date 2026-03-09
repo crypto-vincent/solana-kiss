@@ -1,5 +1,5 @@
 import { expect, it } from "@jest/globals";
-import { idlProgramParse, IdlTypeFlat, IdlTypePrefix } from "../src";
+import { idlProgramParse, IdlTypeFlat } from "../src";
 
 it("run", () => {
   // Create IDLs using different shortened formats
@@ -49,7 +49,7 @@ it("run", () => {
     repr: undefined,
     generics: [],
     typeFlat: IdlTypeFlat.enum({
-      prefix: IdlTypePrefix.u8,
+      prefix: undefined,
       variants: [],
     }),
   });

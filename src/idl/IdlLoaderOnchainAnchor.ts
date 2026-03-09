@@ -4,7 +4,7 @@ import {
   jsonCodecArrayToBytes,
   jsonCodecObjectToObject,
   jsonCodecPubkey,
-  JsonValue,
+  jsonParse,
 } from "../data/Json";
 import {
   Pubkey,
@@ -44,7 +44,7 @@ export function idlLoaderFromOnchainAnchor(
     const idlContent = anchorIdlJsonCodec.decoder(idlState);
     const idlBytes = inflate(idlContent.deflatedJson, null);
     const idlString = utf8Decode(idlBytes);
-    const idlJson = JSON.parse(idlString) as JsonValue;
+    const idlJson = jsonParse(idlString);
     const programIdl = idlProgramParse(idlJson);
     programIdl.metadata.address = programAddress;
     programIdl.metadata.source = new URL(`onchain://anchor-program`);

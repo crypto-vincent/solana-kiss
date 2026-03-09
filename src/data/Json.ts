@@ -1025,7 +1025,7 @@ export function jsonEncoderObjectToEnum<
     const key = Object.keys(decoded)[0]!;
     const valueDecoded = objectGetOwnProperty(decoded, key);
     const valueEncoded = shape[key]!(valueDecoded);
-    return { [key]: valueEncoded } as JsonValue;
+    return { [key]: valueEncoded };
   };
 }
 /**

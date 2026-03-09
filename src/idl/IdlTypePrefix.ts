@@ -81,6 +81,15 @@ export function idlTypePrefixDecode(
   return [self.size, self.traverse(visitorDecode, data, dataOffset)];
 }
 
+/** Default prefix for `option` types. */
+export const idlTypePrefixDefaultOption = IdlTypePrefix.u8;
+/** Default prefix for `vec` types. */
+export const idlTypePrefixDefaultVec = IdlTypePrefix.u32;
+/** Default prefix for `string` types. */
+export const idlTypePrefixDefaultString = IdlTypePrefix.u32;
+/** Default prefix for `enum` types. */
+export const idlTypePrefixDefaultEnum = IdlTypePrefix.u8;
+
 const visitorEncode = {
   u0: (_blob: Uint8Array, _value: bigint) => {},
   u8: (blob: Uint8Array, value: bigint) => {

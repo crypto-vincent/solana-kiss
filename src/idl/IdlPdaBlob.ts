@@ -1,21 +1,8 @@
-import {
-  JsonArray,
-  jsonCodecBoolean,
-  jsonCodecString,
-  jsonCodecValue,
-  jsonDecoderByType,
-  jsonDecoderNullable,
-  jsonDecoderObjectToObject,
-  JsonValue,
-} from "../data/Json";
-import { IdlPdaInputs } from "./IdlPda";
+import { JsonValue } from "../data/Json";
 import { IdlTypedef } from "./IdlTypedef";
-import { IdlTypeFlat } from "./IdlTypeFlat";
-import { idlTypeFlatHydrate } from "./IdlTypeFlatHydrate";
-import { idlTypeFlatParse } from "./IdlTypeFlatParse";
 import { IdlTypeFull } from "./IdlTypeFull";
 import { idlTypeFullEncode } from "./IdlTypeFullEncode";
-import { idlUtilsInferValueTypeFlat } from "./IdlUtils";
+import { idlUtilsBlobParse } from "./IdlUtils";
 
 /** A PDA seed variant that holds a pre-encoded constant byte array. */
 export type IdlPdaBlobConst = {
@@ -61,27 +48,16 @@ export class IdlPdaBlob {
    * Dispatches to the appropriate visitor branch based on the seed's variant,
    * forwarding up to three extra parameters and returning the visitor's result.
    */
-  public traverse<P1, P2, P3, T>(
+  public traverse<P1, P2, T>(
     visitor: {
-      const: (value: IdlPdaBlobConst, p1: P1, p2: P2, p3: P3) => T;
-      input: (value: IdlPdaBlobInput, p1: P1, p2: P2, p3: P3) => T;
+      const: (value: IdlPdaBlobConst, p1: P1, p2: P2) => T;
+      input: (value: IdlPdaBlobInput, p1: P1, p2: P2) => T;
     },
     p1: P1,
     p2: P2,
-    p3: P3,
   ): T {
-    return visitor[this.discriminant](this.content as any, p1, p2, p3);
+    return visitor[this.discriminant](this.content as any, p1, p2);
   }
-}
-
-/**
- * Computes the raw byte representation of a PDA seed by resolving it against the given named inputs.
- * @param self - The {@link IdlPdaBlob} seed to compute.
- * @param inputs - Named input values used when the seed is an `input` variant.
- * @returns The computed seed bytes.
- */
-export function idlPdaBlobCompute(self: IdlPdaBlob, inputs: IdlPdaInputs) {
-  return self.traverse(computeVisitor, inputs, undefined, undefined);
 }
 
 /**
@@ -94,101 +70,51 @@ export function idlPdaBlobParse(
   pdaBlobValue: JsonValue,
   typedefsIdls: Map<string, IdlTypedef>,
 ): IdlPdaBlob {
-  const decoded = jsonDecoder(pdaBlobValue);
-  if (decoded.input === null) {
-    if (decoded.value !== null) {
-      return parseConst(
-        decoded.value,
-        decoded.type,
-        decoded.prefixed,
-        typedefsIdls,
-      );
-    }
-    return parseConst(pdaBlobValue, null, null, typedefsIdls);
+  const decoded = idlUtilsBlobParse(pdaBlobValue, typedefsIdls);
+  if (decoded.typeFull === null) {
+    throw new Error(
+      `Idl: Invalid PDA blob with no type information: ${decoded.path ?? decoded.value}`,
+    );
   }
-  return parseInput(
-    decoded.input,
-    decoded.value,
-    decoded.type,
-    decoded.prefixed,
-    typedefsIdls,
-  );
-}
-
-function parseConst(
-  pdaBlobValue: JsonValue,
-  pdaBlobType: IdlTypeFlat | null,
-  pdaBlobPrefixed: boolean | null,
-  typedefsIdls: Map<string, IdlTypedef>,
-): IdlPdaBlob {
-  const typeFull = idlTypeFlatHydrate(
-    pdaBlobType ?? idlUtilsInferValueTypeFlat(pdaBlobValue),
-    new Map(),
-    typedefsIdls,
-  );
-  const bytes = idlTypeFullEncode(
-    typeFull,
-    pdaBlobValue,
-    pdaBlobPrefixed === true,
-  );
-  return IdlPdaBlob.const({ bytes });
-}
-
-function parseInput(
-  pdaBlobInput: string,
-  pdaBlobValue: JsonValue,
-  pdaBlobType: IdlTypeFlat | null,
-  pdaBlobPrefixed: boolean | null,
-  typedefsIdls: Map<string, IdlTypedef>,
-): IdlPdaBlob {
-  const typeFull = idlTypeFlatHydrate(
-    pdaBlobType ?? idlUtilsInferValueTypeFlat(pdaBlobValue),
-    new Map(),
-    typedefsIdls,
-  );
+  if (decoded.input === null) {
+    return IdlPdaBlob.const({
+      bytes: idlTypeFullEncode(
+        decoded.typeFull,
+        decoded.value,
+        decoded.prefixed,
+      ),
+    });
+  }
   return IdlPdaBlob.input({
-    name: pdaBlobInput,
-    value: pdaBlobValue,
-    typeFull,
-    prefixed: pdaBlobPrefixed === true,
+    name: decoded.input,
+    value: decoded.value,
+    typeFull: decoded.typeFull,
+    prefixed: decoded.prefixed,
   });
 }
 
-const jsonDecoder = jsonDecoderByType<{
-  value: JsonValue;
-  input: string | null;
-  type: IdlTypeFlat | null;
-  prefixed: boolean | null;
-}>({
-  object: jsonDecoderObjectToObject({
-    value: jsonCodecValue.decoder,
-    input: jsonDecoderNullable(jsonCodecString.decoder),
-    type: jsonDecoderNullable(idlTypeFlatParse),
-    prefixed: jsonDecoderNullable(jsonCodecBoolean.decoder),
-  }),
-  string: (string: string) => ({
-    value: string,
-    input: null,
-    type: null,
-    prefixed: null,
-  }),
-  array: (array: JsonArray) => ({
-    value: array,
-    input: null,
-    type: null,
-    prefixed: null,
-  }),
-});
+/**
+ * Computes the raw byte representation of a PDA seed by resolving it against the given named inputs.
+ * @param self - The {@link IdlPdaBlob} seed to compute.
+ * @param inputs - Named input values used when the seed is an `input` variant.
+ * @returns The computed seed bytes.
+ */
+export function idlPdaBlobCompute(
+  self: IdlPdaBlob,
+  inputs: Record<string, JsonValue>,
+) {
+  return self.traverse(computeVisitor, inputs, undefined);
+}
 
 const computeVisitor = {
   const: (self: IdlPdaBlobConst) => {
     return self.bytes;
   },
-  input: (self: IdlPdaBlobInput, inputs: IdlPdaInputs) => {
-    const input = inputs[self.name];
-    if (input === undefined) {
-      return idlTypeFullEncode(self.typeFull, self.value, self.prefixed);
+  input: (self: IdlPdaBlobInput, inputs: Record<string, JsonValue>) => {
+    const value = inputs[self.name];
+    if (value !== undefined) {
+      return idlTypeFullEncode(self.typeFull, value, self.prefixed);
     }
-    return idlTypeFullEncode(self.typeFull, input, self.prefixed);
+    return idlTypeFullEncode(self.typeFull, self.value, self.prefixed);
   },
 };

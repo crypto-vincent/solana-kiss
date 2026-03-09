@@ -9,13 +9,17 @@ import {
   IdlTypeFullFieldUnnamed,
   IdlTypeFullLoop,
   IdlTypeFullOption,
-  IdlTypeFullPad,
+  IdlTypeFullPadded,
   IdlTypeFullString,
   IdlTypeFullStruct,
   IdlTypeFullTypedef,
   IdlTypeFullVec,
 } from "./IdlTypeFull";
-import { IdlTypePrefix } from "./IdlTypePrefix";
+import {
+  IdlTypePrefix,
+  idlTypePrefixDefaultEnum,
+  idlTypePrefixDefaultOption,
+} from "./IdlTypePrefix";
 import { IdlTypePrimitive } from "./IdlTypePrimitive";
 
 /**
@@ -76,11 +80,11 @@ export function idlTypeFullTypedefBytemuck(
 }
 
 function bytemuckC(self: IdlTypeFull): IdlTypeFullBytemuck {
-  return self.traverse(visitorBytemuckC, undefined, undefined, undefined);
+  return self.traverse(visitorBytemuckC, null, null, null);
 }
 
 function bytemuckRust(self: IdlTypeFull): IdlTypeFullBytemuck {
-  return self.traverse(visitorBytemuckRust, undefined, undefined, undefined);
+  return self.traverse(visitorBytemuckRust, null, null, null);
 }
 
 function bytemuckFields(
@@ -88,12 +92,7 @@ function bytemuckFields(
   prefixSize: number,
   rustReorder: boolean,
 ): IdlTypeFullFieldsBytemuck {
-  return self.traverse(
-    visitorBytemuckFields,
-    prefixSize,
-    rustReorder,
-    undefined,
-  );
+  return self.traverse(visitorBytemuckFields, prefixSize, rustReorder, null);
 }
 
 const visitorBytemuckC = {
@@ -102,12 +101,13 @@ const visitorBytemuckC = {
   },
   option: (self: IdlTypeFullOption): IdlTypeFullBytemuck => {
     const contentPod = bytemuckC(self.content);
-    const alignment = Math.max(self.prefix.size, contentPod.alignment);
+    const prefix = self.prefix ?? idlTypePrefixDefaultOption;
+    const alignment = Math.max(prefix.size, contentPod.alignment);
     const size = alignment + contentPod.size;
     return {
       alignment,
       size,
-      value: IdlTypeFull.pad({
+      value: IdlTypeFull.padded({
         before: 0,
         end: size,
         content: IdlTypeFull.option({
@@ -157,7 +157,8 @@ const visitorBytemuckC = {
         value: IdlTypeFull.enum(self),
       };
     }
-    let alignment = Math.max(4, self.prefix.size);
+    const prefix = self.prefix ?? idlTypePrefixDefaultEnum;
+    let alignment = Math.max(4, prefix.size);
     let size = 0;
     const variantsReprC = [];
     for (const variant of self.variants) {
@@ -177,7 +178,7 @@ const visitorBytemuckC = {
     return {
       alignment,
       size,
-      value: IdlTypeFull.pad({
+      value: IdlTypeFull.padded({
         before: 0,
         end: size,
         content: IdlTypeFull.enum({
@@ -191,24 +192,20 @@ const visitorBytemuckC = {
       }),
     };
   },
-  pad: (self: IdlTypeFullPad): IdlTypeFullBytemuck => {
+  padded: (self: IdlTypeFullPadded): IdlTypeFullBytemuck => {
     const contentPod = bytemuckC(self.content);
     return {
       alignment: 1,
       size: self.before + Math.max(contentPod.size, self.end),
-      value: IdlTypeFull.pad({
+      value: IdlTypeFull.padded({
         before: self.before,
         end: self.end,
         content: contentPod.value,
       }),
     };
   },
-  blob: (self: IdlTypeFullBlob): IdlTypeFullBytemuck => {
-    return {
-      alignment: 1,
-      size: self.bytes.length,
-      value: IdlTypeFull.blob({ bytes: self.bytes }),
-    };
+  blob: (_self: IdlTypeFullBlob): IdlTypeFullBytemuck => {
+    throw new Error("Bytemuck: Repr(C): Blob is not supported");
   },
   primitive: (self: IdlTypePrimitive): IdlTypeFullBytemuck => {
     return {
@@ -225,12 +222,13 @@ const visitorBytemuckRust = {
   },
   option: (self: IdlTypeFullOption): IdlTypeFullBytemuck => {
     const contentPod = bytemuckRust(self.content);
-    const alignment = Math.max(self.prefix.size, contentPod.alignment);
+    const prefix = self.prefix ?? idlTypePrefixDefaultOption;
+    const alignment = Math.max(prefix.size, contentPod.alignment);
     const size = alignment + contentPod.size;
     return {
       alignment,
       size,
-      value: IdlTypeFull.pad({
+      value: IdlTypeFull.padded({
         before: 0,
         end: size,
         content: IdlTypeFull.option({
@@ -280,13 +278,14 @@ const visitorBytemuckRust = {
         value: IdlTypeFull.enum(self),
       };
     }
-    let alignment = self.prefix.size;
-    let size = self.prefix.size;
+    const prefix = self.prefix ?? idlTypePrefixDefaultEnum;
+    let alignment = prefix.size;
+    let size = prefix.size;
     const variantsReprRust = [];
     for (const variant of self.variants) {
       const variantFieldsPod = withErrorContext(
         `Bytemuck: Repr(Rust): Enum Variant: ${variant.name}`,
-        () => bytemuckFields(variant.fields, self.prefix.size, true),
+        () => bytemuckFields(variant.fields, prefix.size, true),
       );
       alignment = Math.max(alignment, variantFieldsPod.alignment);
       size = Math.max(size, variantFieldsPod.size);
@@ -300,7 +299,7 @@ const visitorBytemuckRust = {
     return {
       alignment,
       size,
-      value: IdlTypeFull.pad({
+      value: IdlTypeFull.padded({
         before: 0,
         end: size,
         content: IdlTypeFull.enum({
@@ -314,24 +313,20 @@ const visitorBytemuckRust = {
       }),
     };
   },
-  pad: (self: IdlTypeFullPad): IdlTypeFullBytemuck => {
+  padded: (self: IdlTypeFullPadded): IdlTypeFullBytemuck => {
     const contentPod = bytemuckRust(self.content);
     return {
       alignment: 1,
       size: self.before + Math.max(contentPod.size, self.end),
-      value: IdlTypeFull.pad({
+      value: IdlTypeFull.padded({
         before: self.before,
         end: self.end,
         content: contentPod.value,
       }),
     };
   },
-  blob: (self: IdlTypeFullBlob): IdlTypeFullBytemuck => {
-    return {
-      alignment: 1,
-      size: self.bytes.length,
-      value: IdlTypeFull.blob({ bytes: self.bytes }),
-    };
+  blob: (_self: IdlTypeFullBlob): IdlTypeFullBytemuck => {
+    throw new Error("Bytemuck: Repr(Rust): Blob is not supported");
   },
   primitive: (self: IdlTypePrimitive): IdlTypeFullBytemuck => {
     return {
@@ -462,7 +457,7 @@ function internalFieldsInfoAligned<T>(
     } else {
       fieldsInfoPadded.push({
         meta: fieldMeta,
-        type: IdlTypeFull.pad({
+        type: IdlTypeFull.padded({
           before: paddingBefore,
           end: fieldSize + paddingAfter,
           content: fieldType,

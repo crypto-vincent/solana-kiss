@@ -129,7 +129,7 @@ function makeCreateInstructionRequest(
 const instructionIdl = idlInstructionParse(
   "create",
   {
-    discriminator: { encode: { value: 0, type: "u32" } },
+    discriminator: { encode: { type: "u32", value: 0 } },
     accounts: [
       { name: "payer", signer: true, writable: true },
       { name: "owned", signer: true, writable: true },
