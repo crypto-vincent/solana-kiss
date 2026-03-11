@@ -44,8 +44,10 @@ import { RpcHttp, rpcHttpFromUrl } from "./rpc/RpcHttp";
 import { rpcHttpFindProgramOwnedAccounts } from "./rpc/RpcHttpFindProgramOwnedAccounts";
 import { rpcHttpGetAccountWithData } from "./rpc/RpcHttpGetAccountWithData";
 import { rpcHttpGetLatestBlockHash } from "./rpc/RpcHttpGetLatestBlockHash";
+import { rpcHttpIsBlockHashValid } from "./rpc/RpcHttpIsBlockHashValid";
 import { rpcHttpSendTransaction } from "./rpc/RpcHttpSendTransaction";
 import { rpcHttpSimulateTransaction } from "./rpc/RpcHttpSimulateTransaction";
+import { rpcHttpWaitForTransaction } from "./rpc/RpcHttpWaitForTransaction";
 
 // TODO - add documentation website
 // TODO - add versioning for slots and IDLs upgrades
@@ -316,7 +318,7 @@ export class Solana {
    * @param options.accountsContext - Optional context blob used to resolve
    *   accounts that require on-chain state (e.g. associated-token accounts).
    * @returns An object containing the encoded {@link InstructionRequest} ready
-   *   to be passed to {@link prepareAndSendTransaction} or
+   *   to be passed to {@link prepareAndExecuteTransaction} or
    *   {@link prepareAndSimulateTransaction}.
    * @throws If the program IDL cannot be loaded, if the instruction does not
    *   exist, or if a required account address cannot be resolved.
@@ -347,13 +349,12 @@ export class Solana {
       instructionIdl,
       options.instructionPayload,
     );
-    return {
-      instructionRequest: {
-        programAddress,
-        instructionInputs,
-        instructionData,
-      },
+    const instructionRequest = {
+      programAddress,
+      instructionInputs,
+      instructionData,
     };
+    return { instructionRequest };
   }
 
   /**
@@ -514,11 +515,15 @@ export class Solana {
    *   to the versioned transaction for account index compression.
    * @param options.skipPreflight - When `true`, skips the preflight simulation
    *   performed by the RPC node before broadcasting. Defaults to `false`.
+   * @param options.skipExecutionFlowParsing - When `true`, skips parsing the
+   *   transaction execution flow from logs in the confirmation step, which is
+   *   required to produce a detailed `executionFlow` report but adds overhead.
+   *   Defaults to `false`.
    * @returns An object containing the `transactionHandle` (transaction
    *   signature string) that can be used to confirm the transaction.
    * @throws If signing fails, or if the RPC rejects the transaction.
    */
-  public async prepareAndSendTransaction(
+  public async prepareAndExecuteTransaction(
     payerSigner:
       | Signer
       | WalletAccount
@@ -528,6 +533,7 @@ export class Solana {
       extraSigners?: Array<Signer | WalletAccount | TransactionProcessor>;
       transactionLookupTables?: Array<TransactionAddressLookupTable>;
       skipPreflight?: boolean;
+      skipExecutionFlowParsing?: boolean;
     },
   ) {
     const payerAddress = payerSigner.address;
@@ -551,8 +557,20 @@ export class Solana {
       transactionPacket,
       options,
     );
-    // TODO - add a feature to wait for the result also, maybe a separate API
-    return { transactionHandle };
+    const { transactionRequest, executionReport, executionFlow } =
+      await rpcHttpWaitForTransaction(
+        this.#rpcHttp,
+        transactionHandle,
+        () => rpcHttpIsBlockHashValid(this.#rpcHttp, recentBlockHash),
+        options,
+      );
+    return {
+      transactionRequest,
+      transactionHandle,
+      transactionPacket,
+      executionReport,
+      executionFlow,
+    };
   }
 
   /**
@@ -588,7 +606,7 @@ export class Solana {
     options?: {
       extraSigners?: Array<Signer | WalletAccount | TransactionProcessor>;
       transactionLookupTables?: Array<TransactionAddressLookupTable>;
-      verifySignaturesAndBlockHash?: boolean; // TODO - can separate this ?
+      verifySignaturesAndBlockHash?: boolean;
       simulatedAccountsAddresses?: Set<Pubkey>;
     },
   ) {

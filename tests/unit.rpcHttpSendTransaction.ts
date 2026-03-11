@@ -1,8 +1,11 @@
 import { expect, it } from "@jest/globals";
 import { rpcHttpSendTransaction } from "../src";
 
-function rpcHttp() {
-  return require("./fixtures/RpcHttpSendTransaction.json");
+function rpcHttp(method: string) {
+  if (method === "sendTransaction") {
+    return require("./fixtures/solana.sendTransaction.json");
+  }
+  throw new Error(`Unexpected method ${method}`);
 }
 
 it("run", async () => {

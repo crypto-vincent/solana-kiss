@@ -7,7 +7,6 @@ import {
   pubkeyNewDummy,
   pubkeyToBase58,
   rpcHttpSendTransaction,
-  rpcHttpWaitForTransaction,
   Signer,
   signerFromSecret,
   signerGenerate,
@@ -54,23 +53,12 @@ it("run", async () => {
       return signed;
     },
   };
-  const { transactionHandle } = await solana.prepareAndSendTransaction(
+  const { executionReport } = await solana.prepareAndExecuteTransaction(
     payerSigner,
     instructionsRequests,
     {
       extraSigners: [owned1FakePhantomWalletWithAutoSend, owned2Signer],
       skipPreflight: true,
-    },
-  );
-  const { executionReport } = await rpcHttpWaitForTransaction(
-    solana.getRpcHttp(),
-    transactionHandle,
-    async (context) => {
-      if (context.totalDurationMs > 5000) {
-        throw new Error("Transaction confirmation timed out");
-      }
-      await timeoutMs(1000);
-      return true;
     },
   );
   expect(executionReport.chargedFeesLamports).toStrictEqual(

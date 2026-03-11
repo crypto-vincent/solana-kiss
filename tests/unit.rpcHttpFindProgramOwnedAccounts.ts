@@ -1,8 +1,11 @@
 import { expect, it } from "@jest/globals";
 import { pubkeyNewDummy, rpcHttpFindProgramOwnedAccounts } from "../src";
 
-function rpcHttp() {
-  return require("./fixtures/RpcHttpGetProgramAccounts.json");
+function rpcHttp(method: string) {
+  if (method === "getProgramAccounts") {
+    return require("./fixtures/solana.getProgramAccounts.json");
+  }
+  throw new Error(`Unexpected method ${method}`);
 }
 
 it("run", async () => {

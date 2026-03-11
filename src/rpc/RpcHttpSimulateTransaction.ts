@@ -43,7 +43,7 @@ export async function rpcHttpSimulateTransaction(
   self: RpcHttp,
   transactionPacket: TransactionPacket,
   options?: {
-    verifySignaturesAndBlockHash?: boolean; // TODO - this could be split into 2 flags ?
+    verifySignaturesAndBlockHash?: boolean;
     simulatedAccountsAddresses?: Set<Pubkey>;
   },
 ): Promise<{

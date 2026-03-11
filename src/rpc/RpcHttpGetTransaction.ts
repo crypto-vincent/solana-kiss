@@ -34,7 +34,7 @@ import { RpcHttp } from "./RpcHttp";
  * @param self - The {@link RpcHttp} client to use.
  * @param transactionHandle - The {@link TransactionHandle} (transaction signature) to look up.
  * @param options - Optional fetch options.
- * @param options.skipExecutionFlow - When `true`, skips parsing the program invocation call-stack
+ * @param options.skipExecutionFlowParsing - When `true`, skips parsing the program invocation call-stack
  *   from the transaction logs, leaving `executionFlow` as `undefined`.
  * @returns An object containing `transactionRequest` ({@link TransactionRequest}),
  *   `executionReport` ({@link ExecutionReport}), and `executionFlow` ({@link ExecutionFlow}),
@@ -43,7 +43,7 @@ import { RpcHttp } from "./RpcHttp";
 export async function rpcHttpGetTransaction(
   self: RpcHttp,
   transactionHandle: TransactionHandle,
-  options?: { skipExecutionFlow?: boolean },
+  options?: { skipExecutionFlowParsing?: boolean },
 ): Promise<
   | {
       transactionRequest: TransactionRequest;
@@ -96,7 +96,7 @@ export async function rpcHttpGetTransaction(
     chargedFeesLamports: meta.fee ? BigInt(meta.fee) : undefined,
   };
   if (
-    options?.skipExecutionFlow ||
+    options?.skipExecutionFlowParsing ||
     meta.innerInstructions === null ||
     meta.logMessages === null
   ) {

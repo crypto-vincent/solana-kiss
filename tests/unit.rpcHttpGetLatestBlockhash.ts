@@ -1,8 +1,11 @@
 import { expect, it } from "@jest/globals";
 import { rpcHttpGetLatestBlockHash } from "../src";
 
-function rpcHttp() {
-  return require("./fixtures/RpcHttpGetLatestBlockhash.json");
+function rpcHttp(method: string) {
+  if (method === "getLatestBlockhash") {
+    return require("./fixtures/solana.getLatestBlockhash.json");
+  }
+  throw new Error(`Unexpected method ${method}`);
 }
 
 it("run", async () => {

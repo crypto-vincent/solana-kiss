@@ -62,6 +62,7 @@ export * from "./rpc/RpcHttpGetBlockTimeOnly";
 export * from "./rpc/RpcHttpGetBlockWithTransactions";
 export * from "./rpc/RpcHttpGetLatestBlockHash";
 export * from "./rpc/RpcHttpGetTransaction";
+export * from "./rpc/RpcHttpIsBlockHashValid";
 export * from "./rpc/RpcHttpSendTransaction";
 export * from "./rpc/RpcHttpSimulateTransaction";
 export * from "./rpc/RpcHttpWaitForTransaction";

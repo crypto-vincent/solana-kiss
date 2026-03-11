@@ -9,8 +9,11 @@ import {
   rpcHttpGetTransaction,
 } from "../src";
 
-function rpcHttp() {
-  return require("./fixtures/RpcHttpGetTransaction.json");
+function rpcHttp(method: string) {
+  if (method === "getTransaction") {
+    return require("./fixtures/solana.getTransaction.json");
+  }
+  throw new Error(`Unexpected method ${method}`);
 }
 
 it("run", async () => {

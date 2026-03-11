@@ -5,8 +5,11 @@ import {
   rpcHttpSimulateTransaction,
 } from "../src";
 
-function rpcHttp() {
-  return require("./fixtures/RpcHttpSimulateTransaction.json");
+function rpcHttp(method: string) {
+  if (method === "simulateTransaction") {
+    return require("./fixtures/solana.simulateTransaction.json");
+  }
+  throw new Error(`Unexpected method ${method}`);
 }
 
 it("run", async () => {

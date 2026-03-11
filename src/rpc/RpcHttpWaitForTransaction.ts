@@ -14,7 +14,7 @@ import { rpcHttpGetTransaction } from "./RpcHttpGetTransaction";
  * @param retryApprover - Async callback invoked when the transaction is not yet found, receiving context about
  *   the current wait. Return `true` to keep polling or `false` to abort with an error.
  * @param options - Optional options forwarded to {@link rpcHttpGetTransaction}.
- * @param options.skipExecutionFlow - When `true`, skips parsing the program invocation call-stack.
+ * @param options.skipExecutionFlowParsing - When `true`, skips parsing the program invocation call-stack.
  * @returns An object containing `transactionRequest` ({@link TransactionRequest}),
  *   `executionReport` ({@link ExecutionReport}), and `executionFlow` ({@link ExecutionFlow} or `undefined`)
  *   once the transaction is confirmed.
@@ -28,7 +28,7 @@ export async function rpcHttpWaitForTransaction(
     retriedCounter: number;
     totalDurationMs: number;
   }) => Promise<boolean>,
-  options?: { skipExecutionFlow?: boolean },
+  options?: { skipExecutionFlowParsing?: boolean },
 ): Promise<{
   transactionRequest: TransactionRequest;
   executionReport: ExecutionReport;
