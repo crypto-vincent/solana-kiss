@@ -32,8 +32,7 @@ import {
 import { IdlTypePrimitive, idlTypePrimitiveDecode } from "./IdlTypePrimitive";
 
 /**
- * Decodes binary Solana account data into a JSON-compatible value using the
- * given fully-resolved IDL type.
+ * Decodes a byte array into a JSON-compatible value.
  *
  * @param self - The full IDL type describing the binary layout.
  * @param data - The `DataView` over the raw binary buffer.
@@ -49,8 +48,7 @@ export function idlTypeFullDecode(
 }
 
 /**
- * Decodes binary Solana account data into a JSON-compatible value using the
- * given fully-resolved IDL fields (named, unnamed, or nothing).
+ * Decodes a byte array into a JSON-compatible value.
  *
  * @param self - The full IDL fields describing the binary layout.
  * @param data - The `DataView` over the raw binary buffer.

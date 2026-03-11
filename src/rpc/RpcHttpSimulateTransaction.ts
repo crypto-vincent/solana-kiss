@@ -30,8 +30,8 @@ import { RpcHttp } from "./RpcHttp";
  * @param self - The {@link RpcHttp} client to use.
  * @param transactionPacket - The {@link TransactionPacket} to simulate.
  * @param options - Optional simulation options.
- * @param options.verifySignaturesAndBlockHash - When `true` (default), verifies signatures and the blockhash before simulation.
- *   When `false`, the blockhash is replaced with a recent one and signature verification is skipped.
+ * @param options.verifySignaturesAndBlockHash - When `true` (default), verifies signatures and the block hash before simulation.
+ *   When `false`, the block hash is replaced with a recent one and signature verification is skipped.
  * @param options.simulatedAccountsAddresses - An optional set of up to 3 {@link Pubkey} account addresses whose post-simulation
  *   state should be returned.
  * @returns An object containing:

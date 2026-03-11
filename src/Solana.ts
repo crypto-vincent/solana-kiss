@@ -13,6 +13,7 @@ import { mapGuessIntendedKey } from "./data/Utils";
 import { WalletAccount } from "./data/Wallet";
 import { idlAccountDecode } from "./idl/IdlAccount";
 import {
+  IdlInstruction,
   idlInstructionAccountsDecode,
   idlInstructionAccountsEncode,
   idlInstructionAccountsFind,
@@ -162,7 +163,7 @@ export class Solana {
   public async getOrLoadProgramIdl(
     programAddress: Pubkey,
     options?: { fallbackOnUnknown?: boolean },
-  ) {
+  ): Promise<{ programIdl: Readonly<IdlProgram> }> {
     const programIdl = this.#idlOverrides.get(programAddress);
     if (programIdl) {
       return { programIdl: programIdl };
@@ -193,7 +194,7 @@ export class Solana {
     programAddress: Pubkey,
     pdaName: string,
     pdaInputs?: Record<string, JsonValue>,
-  ) {
+  ): Promise<Pubkey> {
     const { programIdl } = await this.getOrLoadProgramIdl(programAddress);
     const pdaIdl = getFromMap("PDA", programIdl.pdas, pdaName, programAddress);
     return idlPdaFind(pdaIdl, pdaInputs ?? {}, programAddress);
@@ -212,7 +213,7 @@ export class Solana {
   public async getOrLoadInstructionIdl(
     programAddress: Pubkey,
     instructionName: string,
-  ) {
+  ): Promise<{ instructionIdl: Readonly<IdlInstruction> }> {
     const { programIdl } = await this.getOrLoadProgramIdl(programAddress);
     const instructionIdl = getFromMap(
       "Instruction",
@@ -349,12 +350,13 @@ export class Solana {
       instructionIdl,
       options.instructionPayload,
     );
-    const instructionRequest = {
-      programAddress,
-      instructionInputs,
-      instructionData,
+    return {
+      instructionRequest: {
+        programAddress,
+        instructionInputs,
+        instructionData,
+      },
     };
-    return { instructionRequest };
   }
 
   /**
@@ -392,7 +394,7 @@ export class Solana {
       instructionPayload?: JsonValue;
       accountsContext?: IdlInstructionBlobAccountsContext;
     },
-  ) {
+  ): Promise<{ instructionAddresses: IdlInstructionAddresses }> {
     const { instructionIdl } = await this.getOrLoadInstructionIdl(
       programAddress,
       instructionName,
@@ -443,7 +445,7 @@ export class Solana {
       instructionPayload?: JsonValue;
       accountsContext?: IdlInstructionBlobAccountsContext;
     },
-  ) {
+  ): Promise<Pubkey> {
     const { instructionAddresses } = await this.hydrateInstructionAddresses(
       programAddress,
       instructionName,
@@ -482,7 +484,7 @@ export class Solana {
    * @returns The latest {@link BlockHash} string.
    * @throws If the RPC call fails.
    */
-  public async getRecentBlockHash() {
+  public async getRecentBlockHash(): Promise<BlockHash> {
     const nowTimeMs = Date.now();
     if (this.#recentBlockHashCacheValue) {
       const cachedDurationMs =

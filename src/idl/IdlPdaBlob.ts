@@ -107,7 +107,7 @@ export function idlPdaBlobParse(
   }
   if (input === null) {
     return IdlPdaBlob.const({
-      bytes: idlTypeFullEncode(typeFull, value, false),
+      bytes: idlTypeFullEncode(typeFull, value, { blobMode: true }),
     });
   }
   return IdlPdaBlob.input({
@@ -125,9 +125,9 @@ const computeVisitor = {
     return withErrorContext(`Idl: PDA Blob: Input: ${self.name}`, () => {
       const value = inputs[self.name];
       if (value !== undefined) {
-        return idlTypeFullEncode(self.typeFull, value, false);
+        return idlTypeFullEncode(self.typeFull, value, { blobMode: true });
       }
-      return idlTypeFullEncode(self.typeFull, self.value, false);
+      return idlTypeFullEncode(self.typeFull, self.value, { blobMode: true });
     });
   },
 };

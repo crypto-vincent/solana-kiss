@@ -41,12 +41,9 @@ export type IdlEvent = {
  */
 export function idlEventEncode(self: IdlEvent, eventPayload: JsonValue) {
   return {
-    eventData: idlTypeFullEncode(
-      self.typeFull,
-      eventPayload,
-      true,
-      self.discriminator,
-    ),
+    eventData: idlTypeFullEncode(self.typeFull, eventPayload, {
+      discriminator: self.discriminator,
+    }),
   };
 }
 

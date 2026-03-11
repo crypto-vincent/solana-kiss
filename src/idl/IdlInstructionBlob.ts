@@ -148,7 +148,7 @@ export function idlInstructionBlobParse(
       );
     }
     return IdlInstructionBlob.const({
-      bytes: idlTypeFullEncode(typeFull, value, false),
+      bytes: idlTypeFullEncode(typeFull, value, { blobMode: true }),
     });
   }
   if (kind === "arg") {
@@ -187,7 +187,7 @@ const computeVisitor = {
           throw new Error(`Idl: Arg: ${pointerPreview}: Missing IX payload`);
         }
         const value = jsonGetAt(instructionPayload, self.pointer);
-        return idlTypeFullEncode(self.typeFull, value, false);
+        return idlTypeFullEncode(self.typeFull, value, { blobMode: true });
       },
     );
   },
@@ -256,7 +256,7 @@ function encodeExtractedAccountState(
     const statePointer = jsonPointerParse(statePath);
     const stateValue = jsonGetAt(accountContent.accountState, statePointer);
     if (typeFull !== undefined) {
-      return idlTypeFullEncode(typeFull, stateValue, false);
+      return idlTypeFullEncode(typeFull, stateValue, { blobMode: true });
     }
     if (accountContent.accountTypeFull === undefined) {
       throw new Error(
@@ -264,7 +264,7 @@ function encodeExtractedAccountState(
       );
     }
     typeFull = idlTypeFullGetAt(accountContent.accountTypeFull, statePointer);
-    return idlTypeFullEncode(typeFull, stateValue, false);
+    return idlTypeFullEncode(typeFull, stateValue, { blobMode: true });
   });
 }
 

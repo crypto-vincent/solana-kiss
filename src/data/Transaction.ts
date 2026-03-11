@@ -15,7 +15,7 @@ import { WalletAccount } from "./Wallet";
 
 /**
  * The inputs required to build a Solana transaction.
- * Contains the fee payer, a recent blockhash for expiry, and the list of
+ * Contains the fee payer, a recent block hash for expiry, and the list of
  * instructions to execute.
  */
 export type TransactionRequest = {
@@ -42,7 +42,7 @@ export type TransactionVersion = "legacy" | number;
 
 /**
  * The serialized body of a transaction, containing the header, account keys,
- * recent blockhash, and compiled instructions.
+ * recent block hash, and compiled instructions.
  * Represented as a branded `Uint8Array` to prevent accidental misuse.
  */
 export type TransactionMessage = Branded<Uint8Array, "TransactionMessage"> & {
@@ -128,7 +128,7 @@ export function transactionPacketToBytes(
  *
  * @param signers - One or more {@link Signer}, {@link WalletAccount}, or {@link TransactionProcessor}
  *   that will sign the transaction.
- * @param transactionRequest - The fee payer, recent blockhash, and
+ * @param transactionRequest - The fee payer, recent block hash, and
  *   instructions to compile.
  * @param transactionAddressLookupTables - Optional address lookup tables used
  *   to compress account references in versioned transactions.
@@ -150,7 +150,7 @@ export async function transactionCompileAndSign(
  * Compiles a {@link TransactionRequest} into an unsigned
  * {@link TransactionPacket} with zeroed-out signature slots.
  *
- * @param transactionRequest - The fee payer, recent blockhash, and
+ * @param transactionRequest - The fee payer, recent block hash, and
  *   instructions to compile.
  * @param transactionAddressLookupTables - Optional address lookup tables used
  *   to compress account references in versioned transactions.

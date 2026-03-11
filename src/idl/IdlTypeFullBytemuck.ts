@@ -42,6 +42,7 @@ type IdlTypeFullFieldsBytemuck = {
 // TODO (repr) - figure out how to handle discriminator alignment/offset
 // TODO (repr) - support Repr modifiers (packed, align(N))
 // TODO (repr) - support for transparent/custom
+
 /**
  * Computes the bytemuck (C-like or Rust memory layout) information for a
  * typedef, applying the `repr` attribute from the typedef to choose between

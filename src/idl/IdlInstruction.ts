@@ -252,8 +252,7 @@ export function idlInstructionArgsEncode(
     instructionData: idlTypeFullFieldsEncode(
       self.args.typeFullFields,
       instructionPayload,
-      true,
-      self.discriminator,
+      { discriminator: self.discriminator },
     ),
   };
 }
@@ -305,7 +304,6 @@ export function idlInstructionReturnEncode(
     instructionReturned: idlTypeFullEncode(
       self.return.typeFull,
       instructionResult,
-      true,
     ),
   };
 }

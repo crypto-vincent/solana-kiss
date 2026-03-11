@@ -53,7 +53,7 @@ export const idlUtilsBytesJsonDecoder = jsonDecoderByType({
       }),
       (info) => {
         const typeFull = idlTypeFlatHydrate(info.type, new Map(), null);
-        return idlTypeFullEncode(typeFull, info.value, false);
+        return idlTypeFullEncode(typeFull, info.value, { blobMode: true });
       },
     ),
   }),

@@ -45,12 +45,9 @@ export type IdlAccount = {
  */
 export function idlAccountEncode(self: IdlAccount, accountState: JsonValue) {
   return {
-    accountData: idlTypeFullEncode(
-      self.typeFull,
-      accountState,
-      true,
-      self.discriminator,
-    ),
+    accountData: idlTypeFullEncode(self.typeFull, accountState, {
+      discriminator: self.discriminator,
+    }),
   };
 }
 

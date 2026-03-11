@@ -40,50 +40,50 @@ import { IdlTypePrimitive, idlTypePrimitiveEncode } from "./IdlTypePrimitive";
 import { idlUtilsBytesJsonDecoder } from "./IdlUtils";
 
 /**
- * Encodes a JSON-compatible value into a binary `Uint8Array` using the given
- * fully-resolved IDL type. An optional discriminator prefix (e.g., an Anchor
- * account discriminator) can be prepended to the output.
+ * Encodes a JSON-compatible value into a binary `Uint8Array`.
+ * An optional discriminator can be prepended to the output.
  *
  * @param self - The full IDL type describing the binary layout.
  * @param value - The JSON-compatible value to encode.
- * @param discriminator - Optional byte sequence to prepend before the encoded data.
+ * @param options - Optional encoding options, including:
+ * @param options.discriminator - An optional byte sequence to prepend before the encoded data.
+ * @param options.blobMode - If true, default to zero length prefix for option, vec, enum and string (default: false).
  * @returns The encoded binary representation.
  */
 export function idlTypeFullEncode(
   self: IdlTypeFull,
   value: JsonValue,
-  prefixed: boolean,
-  discriminator?: Uint8Array,
+  options?: { discriminator?: Uint8Array; blobMode?: boolean },
 ): Uint8Array {
   const blobs = new Array<Uint8Array>();
-  if (discriminator !== undefined) {
-    blobs.push(discriminator);
+  if (options?.discriminator !== undefined) {
+    blobs.push(options.discriminator);
   }
-  typeFullEncode(self, value, blobs, prefixed);
+  typeFullEncode(self, value, blobs, !options?.blobMode);
   return blobsFlatten(blobs);
 }
 
 /**
- * Encodes a JSON-compatible value into a binary `Uint8Array` using the given
- * fully-resolved IDL fields (named, unnamed, or nothing). An optional
- * discriminator prefix can be prepended to the output.
+ * Encodes a JSON-compatible value into a binary `Uint8Array`.
+ * An optional discriminator can be prepended to the output.
  *
  * @param self - The full IDL fields describing the binary layout.
  * @param value - The JSON-compatible value to encode.
- * @param discriminator - Optional byte sequence to prepend before the encoded data.
+ * @param options - Optional encoding options, including:
+ * @param options.discriminator - An optional byte sequence to prepend before the encoded data.
+ * @param options.blobMode - If true, default to zero length prefix for option, vec, enum and string (default: false).
  * @returns The encoded binary representation.
  */
 export function idlTypeFullFieldsEncode(
   self: IdlTypeFullFields,
   value: JsonValue,
-  prefixed: boolean,
-  discriminator?: Uint8Array,
+  options?: { discriminator?: Uint8Array; blobMode?: boolean },
 ): Uint8Array {
   const blobs = new Array<Uint8Array>();
-  if (discriminator !== undefined) {
-    blobs.push(discriminator);
+  if (options?.discriminator !== undefined) {
+    blobs.push(options.discriminator);
   }
-  typeFullFieldsEncode(self, value, blobs, prefixed);
+  typeFullFieldsEncode(self, value, blobs, !options?.blobMode);
   return blobsFlatten(blobs);
 }
 
