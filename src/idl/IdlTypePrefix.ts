@@ -91,7 +91,11 @@ export const idlTypePrefixDefaultString = IdlTypePrefix.u32;
 export const idlTypePrefixDefaultEnum = IdlTypePrefix.u8;
 
 const visitorEncode = {
-  u0: (_blob: Uint8Array, _value: bigint) => {},
+  u0: (_blob: Uint8Array, value: bigint) => {
+    if (value < 0n) {
+      throw new Error(`Value out of bounds for u0: ${value}`);
+    }
+  },
   u8: (blob: Uint8Array, value: bigint) => {
     if (value < 0n || value > 0xffn) {
       throw new Error(`Value out of bounds for u8: ${value}`);
@@ -130,8 +134,8 @@ const visitorEncode = {
 };
 
 const visitorDecode = {
-  u0: (_data: DataView, _dataOffset: number) => {
-    throw new Error("Cannot decode nonexistent u0 prefix");
+  u0: () => {
+    throw new Error("Cannot decode u0 prefix");
   },
   u8: (data: DataView, dataOffset: number) => {
     return BigInt(data.getUint8(dataOffset));

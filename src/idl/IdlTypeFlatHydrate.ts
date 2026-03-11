@@ -245,6 +245,7 @@ const visitorHydrateOrConstLiteral = {
     const indexByName = new Map<string, number>();
     const indexByCodeBigInt = new Map<bigint, number>();
     const indexByCodeString = new Map<string, number>();
+    let fieldless = true;
     for (let variantIndex = 0; variantIndex < variants.length; variantIndex++) {
       const variant = variants[variantIndex]!;
       if (indexByName.has(variant.name)) {
@@ -259,6 +260,9 @@ const visitorHydrateOrConstLiteral = {
       indexByName.set(variant.name, variantIndex);
       indexByCodeBigInt.set(variant.code, variantIndex);
       indexByCodeString.set(variant.code.toString(), variantIndex);
+      if (!variant.fields.isNothing()) {
+        fieldless = false;
+      }
     }
     return IdlTypeFull.enum({
       prefix: self.prefix,
@@ -266,6 +270,7 @@ const visitorHydrateOrConstLiteral = {
       indexByName,
       indexByCodeBigInt,
       indexByCodeString,
+      fieldless,
       variants,
     });
   },

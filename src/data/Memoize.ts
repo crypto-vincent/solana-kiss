@@ -62,9 +62,9 @@ export function memoize<CacheKey, In, Out>(
         cacheMap.set(cacheKey, cacheValue);
       }
     }
-    if (cacheValue.result.error) {
+    if ("error" in cacheValue.result) {
       throw cacheValue.result.error;
     }
-    return cacheValue.result.value!;
+    return cacheValue.result.value;
   };
 }

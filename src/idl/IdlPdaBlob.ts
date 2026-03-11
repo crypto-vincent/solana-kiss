@@ -80,7 +80,7 @@ export function idlPdaBlobCompute(
   self: IdlPdaBlob,
   inputs: Record<string, JsonValue>,
 ) {
-  return self.traverse(computeVisitor, inputs, undefined);
+  return self.traverse(computeVisitor, inputs, null);
 }
 
 /**

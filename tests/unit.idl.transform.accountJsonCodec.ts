@@ -46,7 +46,7 @@ it("run", async () => {
   const accountIdl = programIdl.accounts.get("DummyAccount")!;
 
   const dependencies = new Set<string>();
-  const codec = idlTypeFullJsonCodecExpression(
+  const codecExpression = idlTypeFullJsonCodecExpression(
     accountIdl.typeFull,
     dependencies,
   );
@@ -66,7 +66,7 @@ it("run", async () => {
       "jsonCodecObjectToObject",
     ]),
   );
-  expect(codec.replace(/\s/g, "")).toStrictEqual(
+  expect(codecExpression.replace(/\s/g, "")).toStrictEqual(
     stringCall(
       "jsonCodecObjectToObject",
       stringObject({
@@ -105,12 +105,11 @@ it("run", async () => {
   );
 
   const moduleName = "jsonCodecAccountDummy";
-  const modulePath = `./tests/fixtures/${moduleName}.ts`;
   const moduleCode = idlTypeFullJsonCodecModule(
     accountIdl.typeFull,
     "../../src",
   );
-  await fsp.writeFile(modulePath, moduleCode);
+  await fsp.writeFile(`./tests/fixtures/${moduleName}.ts`, moduleCode);
   const requirePath = `./fixtures/${moduleName}.ts`;
   delete require.cache[require.resolve(requirePath)];
   const { jsonCodec } = require(requirePath);

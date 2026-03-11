@@ -43,6 +43,7 @@ export type IdlTypeFullEnum = {
   indexByName: Map<string, number>;
   indexByCodeBigInt: Map<bigint, number>;
   indexByCodeString: Map<string, number>;
+  fieldless: boolean;
   variants: Array<IdlTypeFullEnumVariant>;
 };
 /** A padding wrapper that skips bytes before and after an inner fully-resolved type. */
@@ -198,7 +199,7 @@ export type IdlTypeFullFieldUnnamed = {
 
 type IdlTypeFullFieldsDiscriminant = "nothing" | "named" | "unnamed";
 type IdlTypeFullFieldsContent =
-  | {}
+  | Array<never>
   | Array<IdlTypeFullFieldNamed>
   | Array<IdlTypeFullFieldUnnamed>;
 
@@ -220,7 +221,7 @@ export class IdlTypeFullFields {
 
   /** Creates a `nothing` variant representing a unit (no fields). */
   public static nothing(): IdlTypeFullFields {
-    return new IdlTypeFullFields("nothing", {});
+    return new IdlTypeFullFields("nothing", []);
   }
   /** Creates a `named` variant wrapping a list of named fields. */
   public static named(value: Array<IdlTypeFullFieldNamed>): IdlTypeFullFields {
@@ -247,7 +248,7 @@ export class IdlTypeFullFields {
    */
   public traverse<P1, P2, P3, T>(
     visitor: {
-      nothing: (value: {}, p1: P1, p2: P2, p3: P3) => T;
+      nothing: (value: Array<never>, p1: P1, p2: P2, p3: P3) => T;
       named: (value: Array<IdlTypeFullFieldNamed>, p1: P1, p2: P2, p3: P3) => T;
       unnamed: (
         value: Array<IdlTypeFullFieldUnnamed>,

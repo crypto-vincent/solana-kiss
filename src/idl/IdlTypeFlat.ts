@@ -210,7 +210,7 @@ export type IdlTypeFlatFieldUnnamed = {
 
 type IdlTypeFlatFieldsDiscriminant = "nothing" | "named" | "unnamed";
 type IdlTypeFlatFieldsContent =
-  | {}
+  | Array<never>
   | Array<IdlTypeFlatFieldNamed>
   | Array<IdlTypeFlatFieldUnnamed>;
 
@@ -232,7 +232,7 @@ export class IdlTypeFlatFields {
 
   /** Creates a `nothing` variant representing a unit (no fields). */
   public static nothing(): IdlTypeFlatFields {
-    return new IdlTypeFlatFields("nothing", {});
+    return new IdlTypeFlatFields("nothing", []);
   }
   /** Creates a `named` variant wrapping a list of named fields. */
   public static named(value: Array<IdlTypeFlatFieldNamed>): IdlTypeFlatFields {
@@ -253,7 +253,7 @@ export class IdlTypeFlatFields {
    */
   public traverse<P1, P2, T>(
     visitor: {
-      nothing: (value: {}, p1: P1, p2: P2) => T;
+      nothing: (value: Array<never>, p1: P1, p2: P2) => T;
       named: (value: Array<IdlTypeFlatFieldNamed>, p1: P1, p2: P2) => T;
       unnamed: (value: Array<IdlTypeFlatFieldUnnamed>, p1: P1, p2: P2) => T;
     },

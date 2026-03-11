@@ -119,7 +119,7 @@ export async function idlInstructionBlobCompute(
   self: IdlInstructionBlob,
   findContext: IdlInstructionAccountFindContext,
 ) {
-  return self.traverse(computeVisitor, findContext, undefined);
+  return self.traverse(computeVisitor, findContext, null);
 }
 
 /**

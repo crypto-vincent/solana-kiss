@@ -76,6 +76,7 @@ it("run", () => {
         ["1", 1],
         ["2", 2],
       ]),
+      fieldless: false,
       variants: [
         {
           name: "Named",

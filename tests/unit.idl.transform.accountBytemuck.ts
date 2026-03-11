@@ -131,8 +131,8 @@ it("run", () => {
       ]),
       state: {
         bytemuckStructC: bytemuckStructC,
-        bytemuckEnumC: "Case0",
-        bytemuckEnumU8: "Case0",
+        bytemuckEnumC: { Case0: null },
+        bytemuckEnumU8: { Case0: null },
         bytemuckDiscriminantC: "CaseA",
         bytemuckDiscriminantU8: "CaseA",
         bytemuckNever: null,

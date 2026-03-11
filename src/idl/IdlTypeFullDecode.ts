@@ -218,7 +218,7 @@ const visitorDecode = {
       () => idlTypeFullFieldsDecode(variant.fields, data, dataVariantOffset),
     );
     dataSize += dataVariantSize;
-    if (dataVariant === null) {
+    if (self.fieldless) {
       return [dataSize, variant.name];
     } else {
       return [dataSize, { [variant.name]: dataVariant }];

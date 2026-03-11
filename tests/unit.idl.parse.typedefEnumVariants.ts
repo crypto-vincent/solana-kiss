@@ -121,6 +121,7 @@ it("run", () => {
         ["42", 4],
         ["77", 5],
       ]),
+      fieldless: true,
       variants: [
         {
           name: "0",

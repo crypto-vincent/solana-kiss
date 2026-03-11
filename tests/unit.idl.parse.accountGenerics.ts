@@ -133,6 +133,7 @@ it("run", () => {
                   ["0", 0],
                   ["1", 1],
                 ]),
+                fieldless: false,
                 variants: [
                   {
                     name: "CaseA",

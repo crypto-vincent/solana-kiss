@@ -42,11 +42,11 @@ it("run", () => {
   // MyAccount info
   const accountIdl = expectDefined(programIdl.accounts.get("MyAccount"));
   const accountState1 = [
-    "Empty",
+    { Empty: null },
     { Named: { field1: 42 } },
     { Unnamed: [22, 23] },
-    "Shortened",
-    "BigCode",
+    { Shortened: null },
+    { BigCode: null },
   ];
   const accountState2 = [
     2,

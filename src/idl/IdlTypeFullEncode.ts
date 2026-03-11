@@ -223,13 +223,14 @@ const visitorEncode = {
       }
       return;
     }
-    const prefix =
-      self.prefix ?? (prefixed ? idlTypePrefixDefaultEnum : IdlTypePrefix.u0);
     function enumVariantEncode(
       variant: IdlTypeFullEnumVariant,
       value: JsonValue,
     ) {
       withErrorContext(`Encode: Enum Variant: ${variant.name}`, () => {
+        const prefix =
+          self.prefix ??
+          (prefixed ? idlTypePrefixDefaultEnum : IdlTypePrefix.u0);
         idlTypePrefixEncode(prefix, variant.code, blobs);
         typeFullFieldsEncode(variant.fields, value, blobs, prefixed);
       });

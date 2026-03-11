@@ -150,6 +150,7 @@ function makeTypeFullGenericEnum(
         ["2", 2],
         ["3", 3],
       ]),
+      fieldless: false,
       variants: [
         {
           name: "Unnamed",

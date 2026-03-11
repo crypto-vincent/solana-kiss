@@ -25,12 +25,11 @@ it("run", async () => {
   ).toStrictEqual(24);
 
   const moduleName = "jsonCodecAccountBytemuck";
-  const modulePath = `./tests/fixtures/${moduleName}.ts`;
   const moduleCode = idlTypeFullJsonCodecModule(
     accountIdl.typeFull,
     "../../src",
   );
-  await fsp.writeFile(modulePath, moduleCode);
+  await fsp.writeFile(`./tests/fixtures/${moduleName}.ts`, moduleCode);
   const requirePath = `./fixtures/${moduleName}.ts`;
   delete require.cache[require.resolve(requirePath)];
   const { jsonCodec } = require(requirePath);
