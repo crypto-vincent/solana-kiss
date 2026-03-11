@@ -59,20 +59,20 @@ export function idlTypeFullJsonCodecExpression(
   self: IdlTypeFull,
   dependencies?: Set<string>,
 ): string {
-  return codec({ dependencies }, self);
+  return expression({ dependencies }, self);
 }
 
 type CodecContext = { dependencies: Set<string> | undefined };
 
-function codec(context: CodecContext, typeFull: IdlTypeFull): string {
-  return typeFull.traverse(visitor, context, null, null);
+function expression(context: CodecContext, typeFull: IdlTypeFull): string {
+  return typeFull.traverse(visitorExpression, context, null, null);
 }
 
-function codecFields(
+function expressionFields(
   context: CodecContext,
   typeFullFields: IdlTypeFullFields,
 ): string {
-  return typeFullFields.traverse(visitorFields, context, null, null);
+  return typeFullFields.traverse(visitorExpressionFields, context, null, null);
 }
 
 function codecArray(items: IdlTypeFull, context: CodecContext): string {
@@ -80,17 +80,17 @@ function codecArray(items: IdlTypeFull, context: CodecContext): string {
     return stringFunctionCall(context, "jsonCodecArrayToBytes");
   }
   return stringFunctionCall(context, "jsonCodecArrayToArray", [
-    codec(context, items),
+    expression(context, items),
   ]);
 }
 
-const visitor = {
+const visitorExpression = {
   typedef: (self: IdlTypeFullTypedef, context: CodecContext) => {
-    return codec(context, self.content);
+    return expression(context, self.content);
   },
   option: (self: IdlTypeFullOption, context: CodecContext) => {
     return stringFunctionCall(context, "jsonCodecNullable", [
-      codec(context, self.content),
+      expression(context, self.content),
     ]);
   },
   vec: (self: IdlTypeFullVec, context: CodecContext) => {
@@ -106,7 +106,7 @@ const visitor = {
     return stringFunctionCall(context, "jsonCodecString");
   },
   struct: (self: IdlTypeFullStruct, context: CodecContext) => {
-    return codecFields(context, self.fields);
+    return expressionFields(context, self.fields);
   },
   enum: (self: IdlTypeFullEnum, context: CodecContext) => {
     if (self.variants.length === 0) {
@@ -125,7 +125,7 @@ const visitor = {
     }
     const entries = [];
     for (const variant of self.variants) {
-      const variantFields = codecFields(context, variant.fields);
+      const variantFields = expressionFields(context, variant.fields);
       entries.push({ key: variant.name, value: variantFields });
     }
     return stringFunctionCall(context, "jsonCodecObjectToEnum", [
@@ -133,7 +133,7 @@ const visitor = {
     ]);
   },
   padded: (self: IdlTypeFullPadded, context: CodecContext) => {
-    return codec(context, self.content);
+    return expression(context, self.content);
   },
   blob: (_self: IdlTypeFullBlob, context: CodecContext) => {
     return stringFunctionCall(context, "jsonCodecConst", ["null"]);
@@ -141,19 +141,19 @@ const visitor = {
   primitive: (self: IdlTypePrimitive, context: CodecContext) => {
     return stringFunctionCall(
       context,
-      self.traverse(visitorPrimitive, undefined, undefined),
+      self.traverse(visitorExpressionPrimitive, undefined, undefined),
     );
   },
 };
 
-const visitorFields = {
-  nothing: (_self: null, context: CodecContext) => {
+const visitorExpressionFields = {
+  nothing: (_self: {}, context: CodecContext) => {
     return stringFunctionCall(context, "jsonCodecConst", ["null"]);
   },
   named: (self: Array<IdlTypeFullFieldNamed>, context: CodecContext) => {
     const entries = [];
     for (const field of self) {
-      const fieldContent = codec(context, field.content);
+      const fieldContent = expression(context, field.content);
       if (fieldContent === "jsonCodecConst(null)") {
         continue;
       }
@@ -165,12 +165,12 @@ const visitorFields = {
   },
   unnamed: (self: Array<IdlTypeFullFieldUnnamed>, context: CodecContext) => {
     return stringFunctionCall(context, "jsonCodecArrayToTuple", [
-      stringArray(self.map((field) => codec(context, field.content))),
+      stringArray(self.map((field) => expression(context, field.content))),
     ]);
   },
 };
 
-const visitorPrimitive = {
+const visitorExpressionPrimitive = {
   u8: () => `jsonCodecNumber`,
   u16: () => `jsonCodecNumber`,
   u32: () => `jsonCodecNumber`,

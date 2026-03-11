@@ -2,10 +2,14 @@ import {
   casingLosslessConvertToCamel,
   casingLosslessConvertToSnake,
 } from "../data/Casing";
-import { ErrorStack } from "../data/Error";
+import { ErrorStack, withErrorContext } from "../data/Error";
 import {
   JsonPointer,
   JsonValue,
+  jsonCodecString,
+  jsonDecoderByType,
+  jsonDecoderNullable,
+  jsonDecoderObjectToObject,
   jsonGetAt,
   jsonPointerParse,
   jsonPointerPreview,
@@ -18,7 +22,10 @@ import { IdlTypeFull, IdlTypeFullFields } from "./IdlTypeFull";
 import { idlTypeFullEncode } from "./IdlTypeFullEncode";
 import { idlTypeFullFieldsGetAt, idlTypeFullGetAt } from "./IdlTypeFullGetAt";
 import { IdlTypePrimitive } from "./IdlTypePrimitive";
-import { idlUtilsBlobParse } from "./IdlUtils";
+import {
+  idlUtilsBlobTypeValueParse,
+  idlUtilsBlobValueGuessType,
+} from "./IdlUtils";
 
 /** A pre-fetched map of account content keyed by instruction account name, used to avoid redundant on-chain fetches. */
 export type IdlInstructionBlobAccountsContext = {
@@ -43,13 +50,11 @@ export type IdlInstructionBlobConst = {
 export type IdlInstructionBlobArg = {
   pointer: JsonPointer;
   typeFull: IdlTypeFull;
-  prefixed: boolean;
 };
 /** A blob variant that references a path into a resolved account's on-chain state. */
 export type IdlInstructionBlobAccount = {
   paths: Array<string>;
   typeFull: IdlTypeFull | undefined;
-  prefixed: boolean;
 };
 
 type IdlInstructionBlobDiscriminant = "const" | "arg" | "account";
@@ -129,41 +134,40 @@ export function idlInstructionBlobParse(
   instructionArgsTypeFullFields: IdlTypeFullFields,
   typedefsIdls: Map<string, IdlTypedef>,
 ): IdlInstructionBlob {
-  const decoded = idlUtilsBlobParse(instructionBlobValue, typedefsIdls);
-  if (decoded.path === null) {
-    if (decoded.typeFull === null) {
+  const { kind, path } = jsonDecoder(instructionBlobValue);
+  const { value, typeFull: baseTypeFull } = idlUtilsBlobTypeValueParse(
+    instructionBlobValue,
+    typedefsIdls,
+  );
+  if (path === null) {
+    const typeFull = baseTypeFull ?? idlUtilsBlobValueGuessType(value);
+    if (typeFull === null) {
       throw new ErrorStack(
-        `Idl: Invalid instruction blob with no path and no type`,
-        jsonPreview(instructionBlobValue),
+        `Idl: Instruction Blob: Unknown const value type`,
+        jsonPreview(value),
       );
     }
     return IdlInstructionBlob.const({
-      bytes: idlTypeFullEncode(
-        decoded.typeFull,
-        decoded.value,
-        decoded.prefixed,
-      ),
+      bytes: idlTypeFullEncode(typeFull, value, false),
     });
   }
-  const prefixed = decoded.prefixed ?? false;
-  // TODO - support default values ?
-  if (decoded.kind === "arg") {
-    const pointer = jsonPointerParse(decoded.path);
+  if (kind === "arg") {
+    const pointer = jsonPointerParse(path);
     const typeFull =
-      decoded.typeFull ??
+      baseTypeFull ??
       idlTypeFullFieldsGetAt(instructionArgsTypeFullFields, pointer);
-    return IdlInstructionBlob.arg({ pointer, typeFull, prefixed });
+    return IdlInstructionBlob.arg({ pointer, typeFull });
   }
-  if (decoded.kind === null || decoded.kind === "account") {
+  if (kind === null || kind === "account") {
     const paths = [
-      decoded.path,
-      casingLosslessConvertToCamel(decoded.path),
-      casingLosslessConvertToSnake(decoded.path),
+      path,
+      casingLosslessConvertToCamel(path),
+      casingLosslessConvertToSnake(path),
     ];
-    const typeFull = decoded.typeFull ?? undefined;
-    return IdlInstructionBlob.account({ paths, typeFull, prefixed });
+    const typeFull = baseTypeFull ?? undefined;
+    return IdlInstructionBlob.account({ paths, typeFull });
   }
-  throw new Error(`Idl: Invalid instruction blob kind: ${decoded.kind}`);
+  throw new Error(`Idl: Invalid instruction blob kind: ${kind}`);
 }
 
 const computeVisitor = {
@@ -174,15 +178,18 @@ const computeVisitor = {
     self: IdlInstructionBlobArg,
     findContext: IdlInstructionAccountFindContext,
   ) => {
-    const instructionPayload = findContext.instructionPayload;
-    if (instructionPayload === undefined) {
-      const pointerPreview = jsonPointerPreview(self.pointer);
-      throw new Error(
-        `Idl: Cannot compute instruction blob arg at path: ${pointerPreview} without instruction payload`,
-      );
-    }
-    const value = jsonGetAt(instructionPayload, self.pointer);
-    return idlTypeFullEncode(self.typeFull, value, self.prefixed);
+    const pointerPreview = jsonPointerPreview(self.pointer);
+    return withErrorContext(
+      `Idl: Instruction Blob: Arg: ${pointerPreview}`,
+      () => {
+        const instructionPayload = findContext.instructionPayload;
+        if (instructionPayload === undefined) {
+          throw new Error(`Idl: Arg: ${pointerPreview}: Missing IX payload`);
+        }
+        const value = jsonGetAt(instructionPayload, self.pointer);
+        return idlTypeFullEncode(self.typeFull, value, false);
+      },
+    );
   },
   account: async (
     self: IdlInstructionBlobAccount,
@@ -211,7 +218,6 @@ const computeVisitor = {
             return encodeExtractedAccountState(
               path,
               self.typeFull,
-              self.prefixed,
               accountField,
               accountContent,
             );
@@ -228,7 +234,6 @@ const computeVisitor = {
             return encodeExtractedAccountState(
               path,
               self.typeFull,
-              self.prefixed,
               accountField,
               await findContext.accountFetcher(instructionAddress),
             );
@@ -236,30 +241,41 @@ const computeVisitor = {
         }
       }
     }
-    throw new Error(
-      `Idl: Could not resolve blob account content for path: ${self.paths[0]}`,
-    );
+    throw new Error(`Idl: Instruction Blob: Account: failed: ${self.paths[0]}`);
   },
 };
 
 function encodeExtractedAccountState(
   path: string,
   typeFull: IdlTypeFull | undefined,
-  prefixed: boolean,
   accountField: string,
   accountContent: IdlInstructionBlobAccountContent,
 ) {
-  const statePath = path.slice(accountField.length);
-  const statePointer = jsonPointerParse(statePath);
-  const stateValue = jsonGetAt(accountContent.accountState, statePointer);
-  if (typeFull !== undefined) {
-    return idlTypeFullEncode(typeFull, stateValue, prefixed);
-  }
-  if (accountContent.accountTypeFull === undefined) {
-    throw new Error(
-      `Idl: Cannot compute account blob at path: ${statePath} with just the state and no type information`,
-    );
-  }
-  typeFull = idlTypeFullGetAt(accountContent.accountTypeFull, statePointer);
-  return idlTypeFullEncode(typeFull, stateValue, prefixed);
+  return withErrorContext(`Idl: Instruction Blob: Account: ${path}`, () => {
+    const statePath = path.slice(accountField.length);
+    const statePointer = jsonPointerParse(statePath);
+    const stateValue = jsonGetAt(accountContent.accountState, statePointer);
+    if (typeFull !== undefined) {
+      return idlTypeFullEncode(typeFull, stateValue, false);
+    }
+    if (accountContent.accountTypeFull === undefined) {
+      throw new Error(
+        `Idl: Cannot compute account blob at path: ${statePath} with just the state and no type information`,
+      );
+    }
+    typeFull = idlTypeFullGetAt(accountContent.accountTypeFull, statePointer);
+    return idlTypeFullEncode(typeFull, stateValue, false);
+  });
 }
+
+const jsonDecoder = jsonDecoderByType({
+  null: () => ({ kind: null, path: null }),
+  boolean: () => ({ kind: null, path: null }),
+  number: () => ({ kind: null, path: null }),
+  string: () => ({ kind: null, path: null }),
+  array: () => ({ kind: null, path: null }),
+  object: jsonDecoderObjectToObject({
+    kind: jsonDecoderNullable(jsonCodecString.decoder),
+    path: jsonDecoderNullable(jsonCodecString.decoder),
+  }),
+});

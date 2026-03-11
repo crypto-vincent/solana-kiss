@@ -310,7 +310,7 @@ const visitorEncode = {
 };
 
 const visitorFieldsEncode = {
-  nothing: (_self: null, value: JsonValue, _blobs: Array<Uint8Array>) => {
+  nothing: (_self: {}, value: JsonValue, _blobs: Array<Uint8Array>) => {
     if (value !== null) {
       throw new Error("Expected value to be null for empty fields");
     }

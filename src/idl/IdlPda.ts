@@ -1,3 +1,4 @@
+import { withErrorContext } from "../data/Error";
 import {
   jsonCodecValue,
   jsonDecoderArrayToArray,
@@ -17,31 +18,6 @@ export type IdlPda = {
   seeds: Array<IdlPdaBlob>;
   program: IdlPdaBlob | undefined;
 };
-
-/**
- * Parses a raw IDL PDA JSON value into an {@link IdlPda}, resolving all seed blobs and the optional program override.
- * @param pdaName - The name of the PDA.
- * @param pdaValue - The raw JSON value describing the PDA.
- * @param typedefsIdls - A map of known typedef definitions for type resolution.
- * @returns The parsed {@link IdlPda}.
- */
-export function idlPdaParse(
-  pdaName: string,
-  pdaValue: JsonValue,
-  typedefsIdls: Map<string, IdlTypedef>,
-): IdlPda {
-  const decoded = jsonDecoder(pdaValue);
-  return {
-    name: pdaName,
-    docs: decoded.docs,
-    seeds: decoded.seeds.map((seedValue) =>
-      idlPdaBlobParse(seedValue, typedefsIdls),
-    ),
-    program: decoded.program
-      ? idlPdaBlobParse(decoded.program, typedefsIdls)
-      : undefined,
-  };
-}
 
 /**
  * Derives the PDA public key from the given inputs, using the PDA's seeds and the provided (or embedded) program address.
@@ -67,6 +43,35 @@ export function idlPdaFind(
     throw new Error("Idl: Program address must be provided");
   }
   return pubkeyFindPdaAddress(programAddress, seedsBytes);
+}
+
+/**
+ * Parses a raw IDL PDA JSON value into an {@link IdlPda}, resolving all seed blobs and the optional program override.
+ * @param pdaName - The name of the PDA.
+ * @param pdaValue - The raw JSON value describing the PDA.
+ * @param typedefsIdls - A map of known typedef definitions for type resolution.
+ * @returns The parsed {@link IdlPda}.
+ */
+export function idlPdaParse(
+  pdaName: string,
+  pdaValue: JsonValue,
+  typedefsIdls: Map<string, IdlTypedef>,
+): IdlPda {
+  const decoded = jsonDecoder(pdaValue);
+  return {
+    name: pdaName,
+    docs: decoded.docs,
+    seeds: decoded.seeds.map((seedValue, seedIndex) =>
+      withErrorContext(`Idl: PDA: Seed: ${seedIndex}`, () =>
+        idlPdaBlobParse(seedValue, typedefsIdls),
+      ),
+    ),
+    program: decoded.program
+      ? withErrorContext(`Idl: PDA: Program`, () =>
+          idlPdaBlobParse(decoded.program, typedefsIdls),
+        )
+      : undefined,
+  };
 }
 
 const jsonDecoder = jsonDecoderObjectToObject({

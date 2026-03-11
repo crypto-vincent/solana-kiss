@@ -339,7 +339,7 @@ const visitorBytemuckRust = {
 
 const visitorBytemuckFields = {
   nothing: (
-    _self: null,
+    _self: {},
     _prefixSize: number,
     _rustReorder: boolean,
   ): IdlTypeFullFieldsBytemuck => {

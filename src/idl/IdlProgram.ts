@@ -43,6 +43,7 @@ export type IdlProgram = {
   errors: Map<string, IdlError>;
   pdas: Map<string, IdlPda>;
   constants: Map<string, IdlConstant>;
+  original: IdlProgramOriginal;
 };
 
 /**
@@ -221,6 +222,7 @@ export function idlProgramParse(programValue: JsonValue): IdlProgram {
     errors,
     pdas,
     constants,
+    original: new IdlProgramOriginal(programValue),
   };
 }
 
@@ -239,6 +241,19 @@ export const idlProgramUnknown = memoize(
     });
   },
 );
+
+/**
+ * Program original JSON
+ */
+class IdlProgramOriginal {
+  #json: JsonValue;
+  constructor(json: JsonValue) {
+    this.#json = json;
+  }
+  getJson() {
+    return this.#json;
+  }
+}
 
 function parseScopedNamedValues<Content, Param>(
   programObject: JsonObject,

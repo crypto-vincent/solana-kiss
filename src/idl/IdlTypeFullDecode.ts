@@ -271,7 +271,7 @@ const visitorDecode = {
 
 const visitorFieldsDecode = {
   nothing: (
-    _self: null,
+    _self: {},
     _data: DataView,
     _dataOffset: number,
   ): [number, JsonValue] => {

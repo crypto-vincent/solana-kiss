@@ -210,7 +210,7 @@ export type IdlTypeFlatFieldUnnamed = {
 
 type IdlTypeFlatFieldsDiscriminant = "nothing" | "named" | "unnamed";
 type IdlTypeFlatFieldsContent =
-  | null
+  | {}
   | Array<IdlTypeFlatFieldNamed>
   | Array<IdlTypeFlatFieldUnnamed>;
 
@@ -232,7 +232,7 @@ export class IdlTypeFlatFields {
 
   /** Creates a `nothing` variant representing a unit (no fields). */
   public static nothing(): IdlTypeFlatFields {
-    return new IdlTypeFlatFields("nothing", null);
+    return new IdlTypeFlatFields("nothing", {});
   }
   /** Creates a `named` variant wrapping a list of named fields. */
   public static named(value: Array<IdlTypeFlatFieldNamed>): IdlTypeFlatFields {
@@ -253,30 +253,14 @@ export class IdlTypeFlatFields {
    */
   public traverse<P1, P2, T>(
     visitor: {
-      nothing: (value: null, p1: P1, p2: P2) => T;
+      nothing: (value: {}, p1: P1, p2: P2) => T;
       named: (value: Array<IdlTypeFlatFieldNamed>, p1: P1, p2: P2) => T;
       unnamed: (value: Array<IdlTypeFlatFieldUnnamed>, p1: P1, p2: P2) => T;
     },
     p1: P1,
     p2: P2,
   ) {
-    // TODO - could this be simplified ?
-    switch (this.discriminant) {
-      case "nothing":
-        return visitor.nothing(this.content as null, p1, p2);
-      case "named":
-        return visitor.named(
-          this.content as Array<IdlTypeFlatFieldNamed>,
-          p1,
-          p2,
-        );
-      case "unnamed":
-        return visitor.unnamed(
-          this.content as Array<IdlTypeFlatFieldUnnamed>,
-          p1,
-          p2,
-        );
-    }
+    return visitor[this.discriminant](this.content as any, p1, p2);
   }
 }
 

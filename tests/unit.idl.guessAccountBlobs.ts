@@ -37,7 +37,7 @@ it("run", () => {
   const programIdl2 = idlProgramParse({
     accounts: {
       MyAccount1_x3: {
-        blobs: [{ offset: 1, bytes: { encode: { type: "u16", value: 770 } } }],
+        blobs: [{ offset: 1, bytes: { encoded: { type: "u16", value: 770 } } }],
         discriminator: { base16: "01" },
         fields: [],
       },
@@ -49,9 +49,9 @@ it("run", () => {
       MyAccount2_x6: {
         blobs: [
           { offset: 1, bytes: { base58: "g7j" } },
-          { offset: 5, bytes: { encode: { type: "u8", value: 2 } } },
+          { offset: 5, bytes: { encoded: { type: "u8", value: 2 } } },
         ],
-        discriminator: { encode: { type: "u8", value: 2 } },
+        discriminator: { encoded: { type: "u8", value: 2 } },
       },
     },
     types: {

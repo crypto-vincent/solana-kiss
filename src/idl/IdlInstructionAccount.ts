@@ -76,9 +76,9 @@ export async function idlInstructionAccountFind(
   // TODO (experiment) - support from seed with a base address, or something more generic ?
   if (self.pda !== undefined) {
     const seedsBytes = new Array<Uint8Array>();
-    for (const instructionBlobIdl of self.pda.seeds) {
+    for (const pdaSeedBlob of self.pda.seeds) {
       seedsBytes.push(
-        await idlInstructionBlobCompute(instructionBlobIdl, findContext),
+        await idlInstructionBlobCompute(pdaSeedBlob, findContext),
       );
     }
     let pdaProgramAddress = programAddress;
@@ -138,30 +138,34 @@ export function idlInstructionAccountParse(
     }
     return nestedAccounts;
   }
-  const pda = withErrorContext(
-    `Idl: Instruction Account: Pda: ${decoded.name}`,
-    () => {
-      if (decoded.pda === null) {
-        return undefined;
-      }
-      const seeds = decoded.pda.seeds.map((seedValue) =>
-        idlInstructionBlobParse(
-          seedValue,
-          instructionArgsTypeFullFields,
-          typedefsIdls,
-        ),
+  let instructionAccountPda = undefined;
+  if (decoded.pda !== null) {
+    const seeds = decoded.pda.seeds.map((seedValue, seedIndex) =>
+      withErrorContext(
+        `Idl: Instruction Account: ${decoded.name}: Pda: Seed: ${seedIndex}`,
+        () =>
+          idlInstructionBlobParse(
+            seedValue,
+            instructionArgsTypeFullFields,
+            typedefsIdls,
+          ),
+      ),
+    );
+    let program: IdlInstructionBlob | undefined = undefined;
+    const decodedPdaProgram = decoded.pda.program;
+    if (decodedPdaProgram !== null) {
+      program = withErrorContext(
+        `Idl: Instruction Account: ${decoded.name}: Pda: Program`,
+        () =>
+          idlInstructionBlobParse(
+            decodedPdaProgram,
+            instructionArgsTypeFullFields,
+            typedefsIdls,
+          ),
       );
-      let program: IdlInstructionBlob | undefined = undefined;
-      if (decoded.pda.program !== null) {
-        program = idlInstructionBlobParse(
-          decoded.pda.program,
-          instructionArgsTypeFullFields,
-          typedefsIdls,
-        );
-      }
-      return { seeds, program };
-    },
-  );
+    }
+    instructionAccountPda = { seeds, program };
+  }
   return [
     {
       name: [...instructionAccountGroups, decoded.name]
@@ -172,7 +176,7 @@ export function idlInstructionAccountParse(
       signer: decoded.signer ?? decoded.isSigner ?? false,
       optional: decoded.optional ?? decoded.isOptional ?? false,
       address: decoded.address ?? undefined,
-      pda,
+      pda: instructionAccountPda,
     },
   ];
 }

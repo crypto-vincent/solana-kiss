@@ -198,7 +198,7 @@ export type IdlTypeFullFieldUnnamed = {
 
 type IdlTypeFullFieldsDiscriminant = "nothing" | "named" | "unnamed";
 type IdlTypeFullFieldsContent =
-  | null
+  | {}
   | Array<IdlTypeFullFieldNamed>
   | Array<IdlTypeFullFieldUnnamed>;
 
@@ -220,7 +220,7 @@ export class IdlTypeFullFields {
 
   /** Creates a `nothing` variant representing a unit (no fields). */
   public static nothing(): IdlTypeFullFields {
-    return new IdlTypeFullFields("nothing", null);
+    return new IdlTypeFullFields("nothing", {});
   }
   /** Creates a `named` variant wrapping a list of named fields. */
   public static named(value: Array<IdlTypeFullFieldNamed>): IdlTypeFullFields {
@@ -247,7 +247,7 @@ export class IdlTypeFullFields {
    */
   public traverse<P1, P2, P3, T>(
     visitor: {
-      nothing: (value: null, p1: P1, p2: P2, p3: P3) => T;
+      nothing: (value: {}, p1: P1, p2: P2, p3: P3) => T;
       named: (value: Array<IdlTypeFullFieldNamed>, p1: P1, p2: P2, p3: P3) => T;
       unnamed: (
         value: Array<IdlTypeFullFieldUnnamed>,
@@ -260,24 +260,7 @@ export class IdlTypeFullFields {
     p2: P2,
     p3: P3,
   ) {
-    switch (this.discriminant) {
-      case "nothing":
-        return visitor.nothing(this.content as null, p1, p2, p3);
-      case "named":
-        return visitor.named(
-          this.content as Array<IdlTypeFullFieldNamed>,
-          p1,
-          p2,
-          p3,
-        );
-      case "unnamed":
-        return visitor.unnamed(
-          this.content as Array<IdlTypeFullFieldUnnamed>,
-          p1,
-          p2,
-          p3,
-        );
-    }
+    return visitor[this.discriminant](this.content as any, p1, p2, p3);
   }
 }
 
