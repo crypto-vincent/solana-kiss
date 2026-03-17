@@ -8,7 +8,7 @@ import {
   transactionCompileAndSign,
   TransactionProcessor,
 } from "./data/Transaction";
-import { UrlOrMoniker, urlRpcFromUrlOrMoniker } from "./data/Url";
+import { urlRpcFromUrlOrMoniker } from "./data/Url";
 import { mapGuessIntendedKey } from "./data/Utils";
 import { WalletAccount } from "./data/Wallet";
 import { idlAccountDecode } from "./idl/IdlAccount";
@@ -96,7 +96,7 @@ export class Solana {
    *   to cache the most-recently fetched block hash. Defaults to `15_000` ms.
    */
   constructor(
-    rpcHttp: RpcHttp | UrlOrMoniker,
+    rpcHttp: RpcHttp | URL | Parameters<typeof urlRpcFromUrlOrMoniker>[0],
     options?: {
       idlLoader?: IdlLoader;
       idlOverrides?: Map<Pubkey, Readonly<IdlProgram>>;

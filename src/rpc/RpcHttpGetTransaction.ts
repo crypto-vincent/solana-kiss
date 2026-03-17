@@ -13,10 +13,12 @@ import {
   jsonCodecPubkey,
   jsonCodecSignature,
   jsonCodecString,
+  JsonDecoder,
   jsonDecoderArrayToArray,
   jsonDecoderByType,
   jsonDecoderNullable,
   jsonDecoderObjectToObject,
+  jsonDecoderWrapped,
   JsonObject,
 } from "../data/Json";
 import { Pubkey, pubkeyFromBase58 } from "../data/Pubkey";
@@ -389,24 +391,25 @@ function parseTransactionInvocations(
   return { logIndex };
 }
 
-const compiledInstructionsJsonDecoder = jsonDecoderArrayToArray(
-  jsonDecoderObjectToObject(
-    {
-      stackHeight: jsonCodecNumber.decoder,
-      programIndex: jsonCodecNumber.decoder,
-      accountsIndexes: jsonDecoderArrayToArray(jsonCodecNumber.decoder),
-      dataBase58: jsonCodecString.decoder,
-    },
-    {
-      keysEncoding: {
-        stackHeight: "stackHeight",
-        programIndex: "programIdIndex",
-        accountsIndexes: "accounts",
-        dataBase58: "data",
+const compiledInstructionsJsonDecoder: JsonDecoder<Array<InstructionCompiled>> =
+  jsonDecoderArrayToArray(
+    jsonDecoderWrapped(
+      jsonDecoderObjectToObject({
+        stackHeight: jsonCodecNumber.decoder,
+        programIdIndex: jsonCodecNumber.decoder,
+        accounts: jsonDecoderArrayToArray(jsonCodecNumber.decoder),
+        data: jsonCodecString.decoder,
+      }),
+      (value) => {
+        return {
+          stackHeight: value.stackHeight,
+          programIndex: value.programIdIndex,
+          accountsIndexes: value.accounts,
+          dataBase58: value.data,
+        };
       },
-    },
-  ),
-);
+    ),
+  );
 
 const resultJsonDecoder = jsonDecoderNullable(
   jsonDecoderObjectToObject({

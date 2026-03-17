@@ -10,9 +10,6 @@ import {
   TransactionPacket,
 } from "./Transaction";
 
-/** A union type representing either a public cluster moniker or a full RPC URL. */
-export type UrlOrMoniker = URL | "mainnet" | "devnet" | "testnet";
-
 /** Public JSON-RPC endpoint for the Solana mainnet cluster. */
 export const urlRpcPublicMainnet = new URL(
   "https://api.mainnet-beta.solana.com",
@@ -32,14 +29,13 @@ export const urlRpcPublicTestnet = new URL("https://api.testnet.solana.com");
  * - `"devnet"` → {@link urlRpcPublicDevnet}
  * - `"testnet"` → {@link urlRpcPublicTestnet}
  *
- * Any other value is returned unchanged, allowing callers to pass a raw URL
- * directly.
+ * Any other value is returned unchanged, allowing callers to pass a raw URL directly.
  *
- * @param rpcUrlOrMoniker - A well-known moniker or a full RPC URL.
- * @returns The resolved RPC endpoint URL string.
+ * @param rawUrlOrMoniker - A value representing a RPC endpoint's URL or a well-known moniker.
+ * @returns The resolved RPC endpoint URL.
  */
-export function urlRpcFromUrlOrMoniker(rpcUrlOrMoniker: UrlOrMoniker): URL {
-  switch (rpcUrlOrMoniker) {
+export function urlRpcFromUrlOrMoniker(rawUrlOrMoniker: URL | string): URL {
+  switch (rawUrlOrMoniker) {
     case "mainnet":
       return urlRpcPublicMainnet;
     case "devnet":
@@ -47,54 +43,46 @@ export function urlRpcFromUrlOrMoniker(rpcUrlOrMoniker: UrlOrMoniker): URL {
     case "testnet":
       return urlRpcPublicTestnet;
     default:
-      return rpcUrlOrMoniker;
+      return rawUrlOrMoniker instanceof URL
+        ? rawUrlOrMoniker
+        : new URL(rawUrlOrMoniker);
   }
 }
 
 /**
  * Builds a Solana Explorer URL for an account (address) page.
  *
- * @param rpc - An RPC URL or moniker (see {@link urlRpcFromUrlOrMoniker}) used
- *   to select the correct cluster query parameter.
+ * @param urlRpc - An RPC URL (see {@link urlRpcFromUrlOrMoniker})
  * @param accountAddress - The public key of the account to inspect.
- * @returns The full Explorer URL string.
+ * @returns The full Explorer URL.
  */
-export function urlExplorerAccount(
-  rpcUrlOrMoniker: UrlOrMoniker,
-  accountAddress: Pubkey,
-) {
-  return urlExplorer(rpcUrlOrMoniker, "address", accountAddress.toString());
+export function urlExplorerAccount(urlRpc: URL, accountAddress: Pubkey) {
+  return urlExplorer(urlRpc, "address", accountAddress.toString());
 }
 
 /**
  * Builds a Solana Explorer URL for a block page.
  *
- * @param rpc - An RPC URL or moniker (see {@link urlRpcFromUrlOrMoniker}) used
- *   to select the correct cluster query parameter.
+ * @param urlRpc - An RPC URL (see {@link urlRpcFromUrlOrMoniker})
  * @param blockSlot - The slot number of the block to inspect.
- * @returns The full Explorer URL string.
+ * @returns The full Explorer URL.
  */
-export function urlExplorerBlock(
-  rpcUrlOrMoniker: UrlOrMoniker,
-  blockSlot: BlockSlot,
-) {
-  return urlExplorer(rpcUrlOrMoniker, "block", blockSlot.toString());
+export function urlExplorerBlock(urlRpc: URL, blockSlot: BlockSlot) {
+  return urlExplorer(urlRpc, "block", blockSlot.toString());
 }
 
 /**
  * Builds a Solana Explorer URL for a confirmed transaction page.
  *
- * @param rpc - An RPC URL or moniker (see {@link urlRpcFromUrlOrMoniker}) used
- *   to select the correct cluster query parameter.
- * @param transactionHandle - The {@link TransactionHandle} (signature) of the
- *   confirmed transaction.
- * @returns The full Explorer URL string.
+ * @param urlRpc - An RPC URL (see {@link urlRpcFromUrlOrMoniker})
+ * @param transactionHandle - The {@link TransactionHandle} of the transaction to inspect.
+ * @returns The full Explorer URL.
  */
 export function urlExplorerTransaction(
-  rpcUrlOrMoniker: UrlOrMoniker,
+  urlRpc: URL,
   transactionHandle: TransactionHandle,
 ) {
-  return urlExplorer(rpcUrlOrMoniker, "tx", transactionHandle.toString());
+  return urlExplorer(urlRpc, "tx", transactionHandle.toString());
 }
 
 /**
@@ -102,19 +90,17 @@ export function urlExplorerTransaction(
  * encoded message and signatures so the transaction can be simulated without
  * being broadcast.
  *
- * @param rpc - An RPC URL or moniker (see {@link urlRpcFromUrlOrMoniker}) used
- *   to select the correct cluster query parameter.
+ * @param urlRpc - An RPC URL (see {@link urlRpcFromUrlOrMoniker})
  * @param transactionPacket - The signed (or unsigned) {@link TransactionPacket}
- *   whose message and signatures will be embedded in the URL.
- * @returns The full Explorer inspector URL string.
+ * @returns The full Explorer inspector URL.
  */
 export function urlExplorerSimulation(
-  rpcUrlOrMoniker: UrlOrMoniker,
+  urlRpc: URL,
   transactionPacket: TransactionPacket,
 ) {
   const message = transactionExtractMessage(transactionPacket);
   const signing = transactionExtractSigning(transactionPacket);
-  return urlExplorer(rpcUrlOrMoniker, "tx", "inspector", {
+  return urlExplorer(urlRpc, "tx", "inspector", {
     message: base64Encode(message as Uint8Array),
     signatures: JSON.stringify(
       signing.map(({ signature }) => base58Encode(signatureToBytes(signature))),
@@ -123,7 +109,7 @@ export function urlExplorerSimulation(
 }
 
 function urlExplorer(
-  rpcUrlOrMoniker: UrlOrMoniker,
+  urlRpc: URL,
   category: string,
   payload: string,
   params?: Record<string, string>,
@@ -134,12 +120,13 @@ function urlExplorer(
       args.push(`${encodeURIComponent(key)}=${encodeURIComponent(value)}`);
     }
   }
-  args.push(urlExplorerArgCluster(rpcUrlOrMoniker));
-  return `https://explorer.solana.com/${category}/${payload}?${args.join("&")}`;
+  args.push(urlExplorerArgCluster(urlRpc));
+  return new URL(
+    `https://explorer.solana.com/${category}/${payload}?${args.join("&")}`,
+  );
 }
 
-function urlExplorerArgCluster(rpcUrlOrMoniker: UrlOrMoniker) {
-  const urlRpc = urlRpcFromUrlOrMoniker(rpcUrlOrMoniker);
+function urlExplorerArgCluster(urlRpc: URL) {
   switch (urlRpc) {
     case urlRpcPublicMainnet:
       return "cluster=mainnet-beta";

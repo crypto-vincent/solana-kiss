@@ -3,8 +3,6 @@ import {
   base58Encode,
   blockHashFromBytes,
   blockSlotFromNumber,
-  casingLosslessConvertToCamel,
-  casingLosslessConvertToSnake,
   JsonCodec,
   jsonCodecArrayToArray,
   jsonCodecArrayToObject,
@@ -43,35 +41,6 @@ it("run", async () => {
       encoded: { helloWorld: 1 },
       codec: jsonCodecObjectToObject({ helloWorld: jsonCodecNumber }),
       decoded: { helloWorld: 1 },
-    },
-    {
-      encoded: { helloWorld: 2 },
-      codec: jsonCodecObjectToObject({ helloWorld: jsonCodecNumber }, {}),
-      decoded: { helloWorld: 2 },
-    },
-    {
-      encoded: { hello_world: 3 },
-      codec: jsonCodecObjectToObject(
-        { helloWorld: jsonCodecNumber },
-        { keysEncoding: casingLosslessConvertToSnake },
-      ),
-      decoded: { helloWorld: 3 },
-    },
-    {
-      encoded: { helloWorld: 4 },
-      codec: jsonCodecObjectToObject(
-        { hello_world: jsonCodecNumber },
-        { keysEncoding: casingLosslessConvertToCamel },
-      ),
-      decoded: { hello_world: 4 },
-    },
-    {
-      encoded: { encoded_key: 5 },
-      codec: jsonCodecObjectToObject(
-        { decodedKey: jsonCodecNumber },
-        { keysEncoding: { decodedKey: "encoded_key" } },
-      ),
-      decoded: { decodedKey: 5 },
     },
     {
       encoded: [6, 7],

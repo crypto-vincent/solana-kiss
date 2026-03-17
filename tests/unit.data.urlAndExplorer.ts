@@ -10,38 +10,52 @@ import {
   urlExplorerBlock,
   urlExplorerSimulation,
   urlExplorerTransaction,
+  urlRpcFromUrlOrMoniker,
   urlRpcPublicDevnet,
   urlRpcPublicMainnet,
+  urlRpcPublicTestnet,
 } from "../src";
 
 it("run", async () => {
+  expect(urlRpcFromUrlOrMoniker("mainnet")).toStrictEqual(urlRpcPublicMainnet);
+  expect(urlRpcFromUrlOrMoniker("devnet")).toStrictEqual(urlRpcPublicDevnet);
+  expect(urlRpcFromUrlOrMoniker("testnet")).toStrictEqual(urlRpcPublicTestnet);
+
   expect(
     urlExplorerBlock(urlRpcPublicMainnet, blockSlotFromNumber(377349811)),
   ).toStrictEqual(
-    "https://explorer.solana.com/block/377349811?cluster=mainnet-beta",
+    new URL("https://explorer.solana.com/block/377349811?cluster=mainnet-beta"),
   );
   expect(
-    urlExplorerBlock("devnet", blockSlotFromNumber(377349811)),
-  ).toStrictEqual("https://explorer.solana.com/block/377349811?cluster=devnet");
+    urlExplorerBlock(urlRpcPublicDevnet, blockSlotFromNumber(377349811)),
+  ).toStrictEqual(
+    new URL("https://explorer.solana.com/block/377349811?cluster=devnet"),
+  );
   expect(
     urlExplorerBlock(
       new URL("https://custom.rpc.url"),
       blockSlotFromNumber(987654321),
     ),
   ).toStrictEqual(
-    "https://explorer.solana.com/block/987654321?customUrl=https%3A%2F%2Fcustom.rpc.url%2F",
+    new URL(
+      "https://explorer.solana.com/block/987654321?customUrl=https%3A%2F%2Fcustom.rpc.url%2F",
+    ),
   );
 
   expect(
     urlExplorerBlock(urlRpcPublicDevnet, blockSlotFromNumber(418711690)),
-  ).toStrictEqual("https://explorer.solana.com/block/418711690?cluster=devnet");
+  ).toStrictEqual(
+    new URL("https://explorer.solana.com/block/418711690?cluster=devnet"),
+  );
   expect(
     urlExplorerAccount(
       urlRpcPublicDevnet,
       pubkeyFromBase58("4Nd1mY5Z6kR7q8U6z3v5X6ixkmKsg4xX6p6L7m3gH1oN"),
     ),
   ).toStrictEqual(
-    "https://explorer.solana.com/address/4Nd1mY5Z6kR7q8U6z3v5X6ixkmKsg4xX6p6L7m3gH1oN?cluster=devnet",
+    new URL(
+      "https://explorer.solana.com/address/4Nd1mY5Z6kR7q8U6z3v5X6ixkmKsg4xX6p6L7m3gH1oN?cluster=devnet",
+    ),
   );
   expect(
     urlExplorerTransaction(
@@ -51,7 +65,9 @@ it("run", async () => {
       ),
     ),
   ).toStrictEqual(
-    "https://explorer.solana.com/tx/5AVjDXZskdayztESDeaumG4E8s28Fn6ttEkM7oAVEcG62g8A6te4NMBuQtKNGg8dvxRatp8nw4tkh19AasLQZYFj?cluster=devnet",
+    new URL(
+      "https://explorer.solana.com/tx/5AVjDXZskdayztESDeaumG4E8s28Fn6ttEkM7oAVEcG62g8A6te4NMBuQtKNGg8dvxRatp8nw4tkh19AasLQZYFj?cluster=devnet",
+    ),
   );
   const payerSigner = await signerFromSecret(payerSecret);
   const programAddress = pubkeyFromBase58(
@@ -71,7 +87,9 @@ it("run", async () => {
   expect(
     urlExplorerSimulation(urlRpcPublicDevnet, transactionPacket),
   ).toStrictEqual(
-    "https://explorer.solana.com/tx/inspector?message=AQABAj457ZZiOmUrAI5j%2BXTNkEsnj5JmxVAS2pv6Zs7I5eStC7wPwLtHyi90xBEulKsTz6PGNOXcF%2BrLA80aI81%2BeHwBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAAEq&signatures=%5B%225Pk87GxZBwfk41CHdawMJWQNWQQhSUyjqVXzyLzKTXeg3mi3vh5Erq4UQBdmxXt2vimCRs2WDqFsUEaPYzTnXr8F%22%5D&cluster=devnet",
+    new URL(
+      "https://explorer.solana.com/tx/inspector?message=AQABAj457ZZiOmUrAI5j%2BXTNkEsnj5JmxVAS2pv6Zs7I5eStC7wPwLtHyi90xBEulKsTz6PGNOXcF%2BrLA80aI81%2BeHwBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAAEq&signatures=%5B%225Pk87GxZBwfk41CHdawMJWQNWQQhSUyjqVXzyLzKTXeg3mi3vh5Erq4UQBdmxXt2vimCRs2WDqFsUEaPYzTnXr8F%22%5D&cluster=devnet",
+    ),
   );
 });
 
