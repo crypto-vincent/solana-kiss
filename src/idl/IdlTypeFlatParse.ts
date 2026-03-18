@@ -406,3 +406,5 @@ const valueJsonDecoder: JsonDecoder<IdlTypeFlat> = jsonDecoderByType({
   array: arrayJsonDecoder,
   object: objectJsonDecoder,
 });
+
+// TODO - support stuff like { "defined": "COption<Pubkey>" }

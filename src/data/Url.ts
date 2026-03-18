@@ -34,7 +34,9 @@ export const urlRpcPublicTestnet = new URL("https://api.testnet.solana.com");
  * @param rawUrlOrMoniker - A value representing a RPC endpoint's URL or a well-known moniker.
  * @returns The resolved RPC endpoint URL.
  */
-export function urlRpcFromUrlOrMoniker(rawUrlOrMoniker: URL | string): URL {
+export function urlRpcFromUrlOrMoniker(
+  rawUrlOrMoniker: "mainnet" | "devnet" | "testnet" | string,
+): URL {
   switch (rawUrlOrMoniker) {
     case "mainnet":
       return urlRpcPublicMainnet;
@@ -43,9 +45,7 @@ export function urlRpcFromUrlOrMoniker(rawUrlOrMoniker: URL | string): URL {
     case "testnet":
       return urlRpcPublicTestnet;
     default:
-      return rawUrlOrMoniker instanceof URL
-        ? rawUrlOrMoniker
-        : new URL(rawUrlOrMoniker);
+      return new URL(rawUrlOrMoniker);
   }
 }
 

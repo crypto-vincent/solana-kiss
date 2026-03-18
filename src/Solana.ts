@@ -85,7 +85,7 @@ export class Solana {
   /**
    * Creates a new `Solana` instance.
    *
-   * @param rpcHttp - An existing {@link RpcHttp} client, or a public cluster moniker (`"mainnet"`, `"devnet"`, or `"testnet"`).
+   * @param rpcHttpOrUrl - An existing {@link RpcHttp}, URL, or moniker (`"mainnet"`, `"devnet"`, or `"testnet"`).
    *   When a moniker is provided, a `confirmed`-commitment {@link RpcHttp} client is created automatically.
    * @param options - Optional configuration.
    * @param options.idlLoader - Custom IDL loader to use instead of the built-in
@@ -96,19 +96,19 @@ export class Solana {
    *   to cache the most-recently fetched block hash. Defaults to `15_000` ms.
    */
   constructor(
-    rpcHttp: RpcHttp | URL | Parameters<typeof urlRpcFromUrlOrMoniker>[0],
+    rpcHttpOrUrl: RpcHttp | URL | Parameters<typeof urlRpcFromUrlOrMoniker>[0],
     options?: {
       idlLoader?: IdlLoader;
       idlOverrides?: Map<Pubkey, Readonly<IdlProgram>>;
       recentBlockHashCacheDurationMs?: number;
     },
   ) {
-    if (typeof rpcHttp === "string") {
-      this.#rpcHttp = rpcHttpFromUrl(urlRpcFromUrlOrMoniker(rpcHttp));
-    } else if (rpcHttp instanceof URL) {
-      this.#rpcHttp = rpcHttpFromUrl(rpcHttp);
+    if (typeof rpcHttpOrUrl === "string") {
+      this.#rpcHttp = rpcHttpFromUrl(urlRpcFromUrlOrMoniker(rpcHttpOrUrl));
+    } else if (rpcHttpOrUrl instanceof URL) {
+      this.#rpcHttp = rpcHttpFromUrl(rpcHttpOrUrl);
     } else {
-      this.#rpcHttp = rpcHttp;
+      this.#rpcHttp = rpcHttpOrUrl;
     }
     this.#idlOverrides = options?.idlOverrides ?? new Map();
     this.#idlLoader = options?.idlLoader ?? recommendedIdlLoader(this.#rpcHttp);
