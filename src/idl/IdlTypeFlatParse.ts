@@ -347,6 +347,7 @@ const objectJsonDecoderCases = {
   vec32: objectVecJsonDecoder(IdlTypePrefix.u32),
   vec64: objectVecJsonDecoder(IdlTypePrefix.u64),
   vec128: objectVecJsonDecoder(IdlTypePrefix.u128),
+  // TODO (experiment) - support for backup decoding ?
   loop: objectLoopJsonDecoder,
   array: arrayJsonDecoder,
   fields: objectStructJsonDecoder, // TODO (experiment) - support for partial structs ?
