@@ -16,11 +16,23 @@ import { idlTypeFlatParse } from "./IdlTypeFlatParse";
  * optional repr and serialization overrides, and generic parameters.
  */
 export type IdlTypedef = {
+  /** The camelCase name of the typedef as declared in the IDL. */
   name: string;
+  /** Human-readable documentation strings attached to this typedef, or `undefined`. */
   docs: IdlDocs;
+  /**
+   * The memory representation hint, or `undefined` if none.
+   * Common values are `"rust"` (Repr(Rust)) and `"c"` (Repr(C)), used by bytemuck-serialized types.
+   */
   repr: string | undefined;
+  /**
+   * The serialization format override, or `undefined` for the default Borsh encoding.
+   * Currently the only supported non-default value is `"bytemuck"`.
+   */
   serialization: string | undefined;
+  /** Ordered list of generic type parameter symbol names declared on this typedef. */
   generics: Array<string>;
+  /** The unresolved flat type representation of this typedef's layout. */
   typeFlat: IdlTypeFlat;
 };
 

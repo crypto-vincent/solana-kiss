@@ -17,10 +17,15 @@ import { idlUtilsJsonRustedParse } from "./IdlUtils";
  * value, and associated type information.
  */
 export type IdlConstant = {
+  /** The camelCase name of the constant as declared in the IDL. */
   name: string;
+  /** Human-readable documentation strings attached to this constant, or `undefined`. */
   docs: IdlDocs;
+  /** The resolved JSON-compatible value of the constant. */
   value: JsonValue;
+  /** The unresolved flat type representation of the constant's type. */
   typeFlat: IdlTypeFlat;
+  /** The fully-resolved type used for encoding and decoding. */
   typeFull: IdlTypeFull;
 };
 

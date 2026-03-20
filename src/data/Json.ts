@@ -610,7 +610,12 @@ export const jsonCodecTransactionHandle: JsonCodec<TransactionHandle> =
     encoder: transactionHandleToBase58,
   });
 
-/** Creates a {@link JsonDecoder} that only accepts the specified literal primitive `values`. */
+/**
+ * Creates a {@link JsonDecoder} that only accepts the specified literal primitive `values`.
+ * @param values - One or more literal primitive values to accept.
+ * @returns A decoder that passes through any value equal to one of `values`.
+ * @throws If the encoded value does not strictly equal any of the specified literals.
+ */
 export function jsonDecoderConst<Values extends Array<JsonPrimitive>>(
   ...values: Values
 ): JsonDecoder<Values[number]> {
@@ -677,6 +682,10 @@ export function jsonCodecArrayToArray<Item>(
 
 /**
  * Creates a {@link JsonDecoder} that decodes a positional JSON array into a named object.
+ * The keys of `valuesDecoders` determine the output property names; each entry at
+ * the corresponding array index is decoded by the matching decoder in insertion order.
+ * Missing array elements default to `null`.
+ * @param valuesDecoders - An object (in insertion order) mapping output keys to decoders.
  */
 export function jsonDecoderArrayToObject<
   Content extends { [key: string]: any },
@@ -700,6 +709,8 @@ export function jsonDecoderArrayToObject<
 }
 /**
  * Creates a {@link JsonEncoder} that encodes a named object into a positional JSON array.
+ * The insertion order of `valuesEncoders` determines which property maps to which array index.
+ * @param valuesEncoders - An object (in insertion order) mapping input keys to encoders.
  */
 export function jsonEncoderArrayToObject<
   Content extends { [key: string]: any },
@@ -718,6 +729,8 @@ export function jsonEncoderArrayToObject<
 }
 /**
  * Creates a {@link JsonCodec} for objects whose JSON representation is a positional array.
+ * Useful for encoding/decoding fixed-structure tuples stored as arrays in JSON.
+ * @param valuesCodecs - An object (in insertion order) mapping keys to their {@link JsonCodec}s.
  */
 export function jsonCodecArrayToObject<
   Content extends { [key: string]: any },
@@ -789,7 +802,11 @@ export function jsonCodecArrayToTuple<
 }
 
 /**
- * Creates a {@link JsonDecoder} that decodes a JSON object into a typed object
+ * Creates a {@link JsonDecoder} that decodes a JSON object into a typed object.
+ * Each key in `valuesDecoders` is looked up in the encoded object using fuzzy
+ * key matching (via {@link objectGuessIntendedKey}), allowing camelCase/snake_case
+ * variants to match transparently. Missing keys are treated as `null`.
+ * @param valuesDecoders - An object mapping output keys to their individual decoders.
  */
 export function jsonDecoderObjectToObject<
   Content extends { [keyDecoded: string]: any },
@@ -812,7 +829,10 @@ export function jsonDecoderObjectToObject<
   };
 }
 /**
- * Creates a {@link JsonEncoder} that encodes a typed object into a JSON object
+ * Creates a {@link JsonEncoder} that encodes a typed object into a JSON object.
+ * Each key in `valuesEncoders` is encoded using its corresponding encoder and
+ * written to the output object under the same key name.
+ * @param valuesEncoders - An object mapping input keys to their individual encoders.
  */
 export function jsonEncoderObjectToObject<
   Content extends { [keyDecoded: string]: any },
@@ -830,7 +850,10 @@ export function jsonEncoderObjectToObject<
   };
 }
 /**
- * Creates a {@link JsonCodec} for a typed object
+ * Creates a {@link JsonCodec} for a typed object.
+ * Combines a {@link JsonDecoder} and {@link JsonEncoder} built from `valuesCodecs`
+ * for round-trip encoding/decoding of structured JSON objects.
+ * @param valuesCodecs - An object mapping keys to their individual {@link JsonCodec}s.
  */
 export function jsonCodecObjectToObject<
   Content extends { [keyDecoded: string]: any },

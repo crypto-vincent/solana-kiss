@@ -17,12 +17,16 @@ import {
 
 /** A PDA seed variant that holds a pre-encoded constant byte array. */
 export type IdlPdaBlobConst = {
+  /** The pre-encoded bytes of this constant seed. */
   bytes: Uint8Array;
 };
 /** A PDA seed variant that references a named runtime input value with its type and optional default. */
 export type IdlPdaBlobInput = {
+  /** The name of the runtime input parameter that provides this seed's value. */
   name: string;
+  /** The default JSON-compatible value to use when the named input is not supplied. */
   value: JsonValue;
+  /** The fully-resolved IDL type used to encode the input value into seed bytes. */
   typeFull: IdlTypeFull;
 };
 
@@ -57,6 +61,10 @@ export class IdlPdaBlob {
   /**
    * Dispatches to the appropriate visitor branch based on the seed's variant,
    * forwarding up to three extra parameters and returning the visitor's result.
+   * @param visitor - An object with one handler per variant (`const`, `input`).
+   * @param p1 - First context parameter forwarded to the visitor.
+   * @param p2 - Second context parameter forwarded to the visitor.
+   * @returns The value returned by the matched visitor branch.
    */
   public traverse<P1, P2, T>(
     visitor: {

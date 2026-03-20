@@ -521,8 +521,12 @@ export class Solana {
    *   transaction execution flow from logs in the confirmation step, which is
    *   required to produce a detailed `executionFlow` report but adds overhead.
    *   Defaults to `false`.
-   * @returns An object containing the `transactionHandle` (transaction
-   *   signature string) that can be used to confirm the transaction.
+   * @returns An object containing:
+   *   - `transactionHandle` – the on-chain transaction signature
+   *   - `transactionRequest` – the decompiled instruction inputs
+   *   - `transactionPacket` – the raw signed wire packet
+   *   - `executionReport` – on-chain execution metadata (slot, fees, logs, error)
+   *   - `executionFlow` – structured call-stack trace (`undefined` when skipped)
    * @throws If signing fails, or if the RPC rejects the transaction.
    */
   public async prepareAndExecuteTransaction(

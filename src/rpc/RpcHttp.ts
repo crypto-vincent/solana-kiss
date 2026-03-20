@@ -214,11 +214,17 @@ export function rpcHttpWithRequestsPerSecondLimit(
 export function rpcHttpWithRetryOnError(
   self: RpcHttp,
   retryApprover: (context: {
+    /** Number of times the request has been retried so far (0 on first failure). */
     retriedCounter: number;
+    /** Total elapsed time in milliseconds since the first attempt. */
     totalDurationMs: number;
+    /** The JSON-RPC method name of the failing request. */
     requestMethod: string;
+    /** The positional parameters of the failing request. */
     requestParams: Readonly<JsonArray>;
+    /** The configuration object of the failing request. */
     requestConfig: Readonly<JsonObject> | "skip-configuration-object";
+    /** The last error thrown by the underlying client. */
     lastError: any;
   }) => Promise<boolean>,
 ): RpcHttp {

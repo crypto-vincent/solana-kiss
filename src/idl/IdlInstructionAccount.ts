@@ -27,26 +27,42 @@ import { IdlTypeFullFields } from "./IdlTypeFull";
 
 /** A single account entry in a Solana instruction's account list, including its constraints and optional PDA derivation. */
 export type IdlInstructionAccount = {
+  /** The snake_case dotted name of the account (e.g. `"mint"` or `"token.authority"`). */
   name: string;
+  /** Human-readable documentation strings attached to this account, or `undefined`. */
   docs: IdlDocs;
+  /** `true` if the instruction may write to this account. */
   writable: boolean;
+  /** `true` if this account must provide a signature in the transaction. */
   signer: boolean;
+  /** `true` if this account may be omitted from the instruction. */
   optional: boolean;
+  /** A fixed on-chain address for this account, or `undefined` if it must be supplied at call-time. */
   address: Pubkey | undefined;
+  /** PDA derivation rules for automatically resolving this account's address, or `undefined` if not a PDA. */
   pda: IdlInstructionAccountPda | undefined;
 };
 
 /** The PDA seeds and optional program override used to derive an instruction account's address. */
 export type IdlInstructionAccountPda = {
+  /** Ordered list of seed blobs used to derive the PDA address. */
   seeds: Array<IdlInstructionBlob>;
+  /**
+   * An optional blob whose bytes resolve to the owning program address for this PDA.
+   * When `undefined`, the instruction's own program address is used.
+   */
   program: IdlInstructionBlob | undefined;
 };
 
 /** The context available when searching for instruction account addresses, including already-resolved addresses and optional payload/account data. */
 export type IdlInstructionAccountFindContext = {
+  /** Map of already-resolved account addresses keyed by account name. */
   instructionAddresses: IdlInstructionAddresses;
+  /** Instruction arguments as a JSON value, used when account derivation depends on argument values. */
   instructionPayload?: JsonValue;
+  /** Pre-fetched map of on-chain account state for accounts that serve as PDA seeds. */
   accountsContext?: IdlInstructionBlobAccountsContext;
+  /** Optional async function to fetch on-chain account content by address when not already in `accountsContext`. */
   accountFetcher?: IdlInstructionBlobAccountFetcher;
 };
 

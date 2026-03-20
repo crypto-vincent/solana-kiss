@@ -19,7 +19,9 @@ import { RpcHttp } from "./RpcHttp";
  * @param filters - Optional filters to narrow down results.
  * @param filters.dataSpace - Only return accounts whose data length equals this value (in bytes).
  * @param filters.dataBlobs - Only return accounts that match all given byte patterns at the specified offsets.
- * @returns An object containing `accountsAddresses`, a set of matching account {@link Pubkey}s.
+ * @returns An array of objects describing each matching account, with
+ *   `accountAddress` (public key), `accountExecutable`, `accountLamports`,
+ *   and `accountSpace` (data length in bytes).
  * @throws If more than 4 filter entries are provided (Solana RPC limit).
  * @throws If any filter blob has a negative offset.
  */

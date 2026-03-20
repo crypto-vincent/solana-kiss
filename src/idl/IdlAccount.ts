@@ -27,12 +27,25 @@ import {
  * expected data layout, and associated type information.
  */
 export type IdlAccount = {
+  /** The camelCase name of the account as declared in the IDL (e.g. `"TokenAccount"`). */
   name: string;
+  /** Human-readable documentation strings attached to this account definition, or `undefined`. */
   docs: IdlDocs;
+  /**
+   * The byte sequence used to identify this account type at the start of its data.
+   * Defaults to the first 8 bytes of SHA-256(`"account:<name>"`).
+   */
   discriminator: Uint8Array;
+  /** The exact expected byte length of the account's data, or `undefined` if variable-length. */
   dataSpace: number | undefined;
+  /**
+   * A list of expected byte blobs at fixed offsets within the account data
+   * (e.g. the discriminator at offset 0 plus any additional sentinels).
+   */
   dataBlobs: Array<{ offset: number; bytes: Uint8Array }>;
+  /** The unresolved flat type representation of the account layout. */
   typeFlat: IdlTypeFlat;
+  /** The fully-resolved type representation used for encoding and decoding. */
   typeFull: IdlTypeFull;
 };
 

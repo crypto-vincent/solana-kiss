@@ -35,14 +35,23 @@ import { IdlTypedef, idlTypedefParse } from "./IdlTypedef";
  * metadata, typedefs, accounts, instructions, events, errors, PDAs, and constants.
  */
 export type IdlProgram = {
+  /** Program metadata including name, version, on-chain address, and source URL. */
   metadata: IdlMetadata;
+  /** Map of typedef definitions keyed by type name (camelCase). */
   typedefs: Map<string, IdlTypedef>;
+  /** Map of account type definitions keyed by account name (camelCase). */
   accounts: Map<string, IdlAccount>;
+  /** Map of instruction definitions keyed by instruction name (snake_case). */
   instructions: Map<string, IdlInstruction>;
+  /** Map of event type definitions keyed by event name (camelCase). */
   events: Map<string, IdlEvent>;
+  /** Map of error definitions keyed by error name (camelCase). */
   errors: Map<string, IdlError>;
+  /** Map of PDA definitions keyed by PDA name (camelCase). */
   pdas: Map<string, IdlPda>;
+  /** Map of program constant definitions keyed by constant name (camelCase). */
   constants: Map<string, IdlConstant>;
+  /** Accessor for the raw JSON value from which this IDL was originally parsed. */
   original: IdlProgramOriginal;
 };
 
@@ -228,7 +237,9 @@ export function idlProgramParse(programValue: JsonValue): IdlProgram {
 
 /**
  * Returns a minimal "unknown" {@link IdlProgram} stub memoized by program address.
- * Useful as a fallback when no IDL is available for a program.
+ * Useful as a fallback when no IDL is available for a program; the stub exposes
+ * generic `UnknownAccount`, `unknown_instruction`, and `UnknownEvent` definitions
+ * that accept arbitrary data without enforcing any schema constraints.
  */
 export const idlProgramUnknown = memoize(
   async (programAddress: Pubkey) => programAddress,
@@ -243,7 +254,8 @@ export const idlProgramUnknown = memoize(
 );
 
 /**
- * Program original JSON
+ * Opaque accessor for the raw JSON value from which an {@link IdlProgram} was originally parsed.
+ * Useful for forwarding the full original IDL JSON to downstream tools without re-serialisation.
  */
 class IdlProgramOriginal {
   #json: JsonValue;

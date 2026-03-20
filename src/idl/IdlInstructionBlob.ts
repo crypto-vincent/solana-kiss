@@ -38,22 +38,32 @@ export type IdlInstructionBlobAccountFetcher = (
 
 /** The on-chain state and optional full type information for a fetched account. */
 export type IdlInstructionBlobAccountContent = {
+  /** The decoded account state as a JSON-compatible value. */
   accountState: JsonValue;
+  /** The fully-resolved IDL type of the account, or `undefined` if not available. */
   accountTypeFull: IdlTypeFull | undefined;
 };
 
 /** A blob variant that holds a pre-encoded constant byte array. */
 export type IdlInstructionBlobConst = {
+  /** The pre-encoded bytes of this constant seed. */
   bytes: Uint8Array;
 };
 /** A blob variant that references a field in the instruction arguments via a JSON pointer. */
 export type IdlInstructionBlobArg = {
+  /** A JSON Pointer identifying the argument field within the instruction payload. */
   pointer: JsonPointer;
+  /** The fully-resolved type used to encode the argument value into bytes. */
   typeFull: IdlTypeFull;
 };
 /** A blob variant that references a path into a resolved account's on-chain state. */
 export type IdlInstructionBlobAccount = {
+  /**
+   * One or more candidate path strings (in camelCase, snake_case, and as-is) used to
+   * locate the value within a resolved account's state.
+   */
   paths: Array<string>;
+  /** The fully-resolved type used to encode the extracted state value, or `undefined` if to be inferred. */
   typeFull: IdlTypeFull | undefined;
 };
 
@@ -95,6 +105,10 @@ export class IdlInstructionBlob {
   /**
    * Dispatches to the appropriate visitor branch based on the blob's variant,
    * forwarding up to three extra parameters and returning the visitor's result.
+   * @param visitor - An object with one handler per variant (`const`, `arg`, `account`).
+   * @param p1 - First context parameter forwarded to the visitor.
+   * @param p2 - Second context parameter forwarded to the visitor.
+   * @returns The value returned by the matched visitor branch.
    */
   public traverse<P1, P2, T>(
     visitor: {

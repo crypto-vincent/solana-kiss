@@ -19,8 +19,11 @@ import { WalletAccount } from "./Wallet";
  * instructions to execute.
  */
 export type TransactionRequest = {
+  /** The public key of the account that pays the transaction fee. Must be a writable signer. */
   payerAddress: Pubkey;
+  /** A recent block hash used to set the transaction's expiry window (typically ~90 s). */
   recentBlockHash: BlockHash;
+  /** Ordered list of instructions to execute in this transaction. */
   instructionsRequests: Array<InstructionRequest>;
 };
 
@@ -29,7 +32,9 @@ export type TransactionRequest = {
  * referenced by a versioned transaction.
  */
 export type TransactionAddressLookupTable = {
+  /** The on-chain address of the address lookup table account. */
   tableAddress: Pubkey;
+  /** The ordered list of public keys from the lookup table that are referenced by the transaction. */
   lookupAddresses: Array<Pubkey>;
 };
 
