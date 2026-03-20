@@ -60,7 +60,7 @@ export class IdlPdaBlob {
 
   /**
    * Dispatches to the appropriate visitor branch based on the seed's variant,
-   * forwarding up to three extra parameters and returning the visitor's result.
+   * forwarding two extra parameters and returning the visitor's result.
    * @param visitor - An object with one handler per variant (`const`, `input`).
    * @param p1 - First context parameter forwarded to the visitor.
    * @param p2 - Second context parameter forwarded to the visitor.

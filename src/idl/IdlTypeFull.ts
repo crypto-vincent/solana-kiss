@@ -194,6 +194,7 @@ export class IdlTypeFull {
    * @param visitor - An object with one handler per variant.
    * @param p1 - First context parameter forwarded to the visitor.
    * @param p2 - Second context parameter forwarded to the visitor.
+   * @param p3 - Third context parameter forwarded to the visitor.
    * @returns The value returned by the matched visitor branch.
    */
   public traverse<P1, P2, P3, T>(
