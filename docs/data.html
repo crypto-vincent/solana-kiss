@@ -1,0 +1,539 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Data Module – solana-kiss Cookbook</title>
+  <link rel="stylesheet" href="styles.css" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-tomorrow.min.css" />
+</head>
+<body>
+<div class="layout">
+
+  <!-- ── Sidebar ─────────────────────────────────────────────────── -->
+  <aside class="sidebar">
+    <a class="sidebar-logo" href="index.html">
+      <div class="sidebar-logo-icon">◎</div>
+      <div class="sidebar-logo-text">
+        <span class="sidebar-logo-name">solana-kiss</span>
+        <span class="sidebar-logo-version">v0.2.x · Cookbook</span>
+      </div>
+    </a>
+    <nav class="sidebar-nav">
+      <div class="nav-section-title">Getting Started</div>
+      <a class="nav-link" href="index.html"><span class="nav-link-icon">🏠</span>Introduction</a>
+
+      <div class="nav-section-title">API Reference</div>
+      <a class="nav-link" href="solana-class.html"><span class="nav-link-icon">⚡</span>Solana Class</a>
+      <a class="nav-link" href="data.html"><span class="nav-link-icon">🔑</span>Data</a>
+      <a class="nav-link nav-sub-link" href="#pubkey">Pubkey</a>
+      <a class="nav-link nav-sub-link" href="#signer">Signer</a>
+      <a class="nav-link nav-sub-link" href="#wallet">Wallet</a>
+      <a class="nav-link nav-sub-link" href="#transaction">Transaction</a>
+      <a class="nav-link nav-sub-link" href="#instruction">Instruction</a>
+      <a class="nav-link nav-sub-link" href="#encoding">Encoding</a>
+      <a class="nav-link nav-sub-link" href="#crypto">Cryptography</a>
+      <a class="nav-link nav-sub-link" href="#primitives">Primitives</a>
+      <a class="nav-link nav-sub-link" href="#spl">SPL Constants</a>
+      <a class="nav-link" href="rpc.html"><span class="nav-link-icon">🌐</span>RPC</a>
+      <a class="nav-link" href="idl.html"><span class="nav-link-icon">📋</span>IDL</a>
+    </nav>
+  </aside>
+  <div class="sidebar-overlay"></div>
+
+  <!-- ── Main ────────────────────────────────────────────────────── -->
+  <div class="main">
+    <header class="topbar">
+      <button class="menu-toggle" aria-label="Toggle menu">☰</button>
+      <nav class="topbar-breadcrumb">
+        <a href="index.html">solana-kiss</a>
+        <span class="topbar-sep">/</span>
+        <span>Data</span>
+      </nav>
+      <div class="topbar-right">
+        <a href="https://github.com/crypto-vincent/solana-kiss" target="_blank" class="topbar-badge">GitHub ↗</a>
+      </div>
+    </header>
+
+    <main class="content">
+
+      <section class="hero">
+        <h1>Data Module</h1>
+        <p class="hero-subtitle">
+          Core primitives — public keys, signing keypairs, browser wallets,
+          transactions, instructions, and encoding utilities.
+        </p>
+      </section>
+
+      <div class="toc">
+        <div class="toc-title">On this page</div>
+        <ul>
+          <li><a href="#pubkey">Pubkey</a></li>
+          <li><a href="#signer">Signer</a></li>
+          <li><a href="#wallet">Wallet</a></li>
+          <li><a href="#transaction">Transaction</a></li>
+          <li><a href="#instruction">Instruction</a></li>
+          <li><a href="#encoding">Encoding (Base58 / Base64 / Base16)</a></li>
+          <li><a href="#crypto">Cryptography (SHA-256)</a></li>
+          <li><a href="#primitives">Primitives (Lamports, Block)</a></li>
+          <li><a href="#spl">SPL Program Addresses</a></li>
+          <li><a href="#explorer">Explorer URLs</a></li>
+        </ul>
+      </div>
+
+      <!-- ── Pubkey ──────────────────────────────────────────────── -->
+      <h2 id="pubkey">Pubkey</h2>
+      <p>
+        A <code>Pubkey</code> is a branded <code>string</code> — the Base58
+        representation of a 32-byte Ed25519 public key. Branding prevents
+        accidentally passing a raw string where a public key is expected.
+      </p>
+
+      <h3>Creating Pubkeys</h3>
+      <div class="code-wrapper">
+        <pre><code class="language-typescript">import {
+  pubkeyFromBase58,
+  pubkeyFromBytes,
+  pubkeyToBytes,
+  pubkeyToBase58,
+  pubkeyDefault,
+} from "solana-kiss";
+
+// From a Base58 string
+const pk = pubkeyFromBase58("So11111111111111111111111111111111111111112");
+
+// From raw bytes
+const bytes = new Uint8Array(32);
+bytes[31] = 1;
+const pk2 = pubkeyFromBytes(bytes);
+
+// Convert back to bytes
+const rawBytes = pubkeyToBytes(pk);
+
+// The "zero" / default public key (all bytes are 0)
+console.log(pubkeyDefault); // "11111111111111111111111111111111"</code></pre>
+        <button class="copy-btn">Copy</button>
+      </div>
+
+      <h3>PDA Derivation</h3>
+      <p>
+        Derive a Program Derived Address (PDA) from raw seeds without needing
+        the high-level <code>Solana</code> class.
+      </p>
+      <div class="code-wrapper">
+        <pre><code class="language-typescript">import {
+  pubkeyFindPdaAddress,
+  pubkeyFromSeed,
+  utf8Encode,
+  pubkeyToBytes,
+} from "solana-kiss";
+
+const programAddress = pubkeyFromBase58("myProgram...");
+
+// Find PDA from arbitrary seeds
+const { address: pdaAddress, bump } = pubkeyFindPdaAddress(
+  [
+    utf8Encode("user"),          // string seed
+    pubkeyToBytes(userAddress),  // pubkey seed
+  ],
+  programAddress
+);
+
+console.log("PDA:", pdaAddress, "bump:", bump);
+
+// Deterministic public key from a seed + program (no bump search)
+const derived = pubkeyFromSeed(utf8Encode("config"), programAddress);</code></pre>
+        <button class="copy-btn">Copy</button>
+      </div>
+
+      <div class="callout callout-info">
+        <div class="callout-title">ℹ️ Info</div>
+        <code>pubkeyFindPdaAddress</code> runs the bump search (0–255) in
+        pure TypeScript — no native module required. It uses the built-in
+        SHA-256 implementation.
+      </div>
+
+      <!-- ── Signer ──────────────────────────────────────────────── -->
+      <h2 id="signer">Signer</h2>
+      <p>
+        A <code>Signer</code> wraps an Ed25519 keypair. It exposes an
+        <code>address</code> (public key) and a <code>sign</code> method.
+        Everything is built in — no native add-ons or third-party libs.
+      </p>
+      <div class="code-wrapper">
+        <pre class="has-filename" data-filename="signer.ts"><code class="language-typescript">import { signerGenerate, signerFromSecret } from "solana-kiss";
+
+// ── Generate a random keypair ──────────────────────────────────────
+const keypair = await signerGenerate();
+console.log("Address:", keypair.address);
+
+// Sign a raw message (Uint8Array)
+const message = new TextEncoder().encode("hello solana");
+const sig = await keypair.sign(message);
+
+// ── Load a keypair from a 64-byte secret ──────────────────────────
+// Format: first 32 bytes = secret scalar, last 32 bytes = public key
+// (compatible with Solana CLI `solana-keygen new` output)
+const secretBytes = new Uint8Array(64); // load from secure storage
+const loaded = await signerFromSecret(secretBytes);
+
+// If you only have the 32-byte seed (not the full 64-byte secret):
+const seed = new Uint8Array(32);
+const fromSeed = await signerFromSecret(seed, { isSeed: true });</code></pre>
+        <button class="copy-btn">Copy</button>
+      </div>
+
+      <div class="callout callout-warning">
+        <div class="callout-title">⚠️ Warning</div>
+        Never hardcode secrets in source code. Load them from environment
+        variables or a secure key store.
+      </div>
+
+      <!-- ── Wallet ──────────────────────────────────────────────── -->
+      <h2 id="wallet">Wallet (Browser)</h2>
+      <p>
+        solana-kiss implements the
+        <a href="https://wallet-standard.github.io/wallet-standard/" target="_blank">Wallet Standard</a>
+        — a browser-native interface for discovering and interacting with wallet
+        extensions (Phantom, Backpack, Solflare, …).
+      </p>
+
+      <h3>Discover Wallet Providers</h3>
+      <div class="code-wrapper">
+        <pre class="has-filename" data-filename="wallet-browser.ts"><code class="language-typescript">import { walletProviders } from "solana-kiss";
+
+// walletProviders is an RxObservable — subscribe to get live updates
+const unsubscribe = walletProviders.subscribe((providers) => {
+  providers.forEach((p) => {
+    console.log(p.name, p.icon); // "Phantom", "data:image/png;base64,..."
+  });
+});
+
+// Later, stop listening
+unsubscribe();</code></pre>
+        <button class="copy-btn">Copy</button>
+      </div>
+
+      <h3>Connect and Sign</h3>
+      <div class="code-wrapper">
+        <pre><code class="language-typescript">import { walletProviders } from "solana-kiss";
+
+walletProviders.subscribe(async (providers) => {
+  const phantom = providers.find((p) => p.name === "Phantom");
+  if (!phantom) return;
+
+  // Connect (shows wallet popup)
+  const accounts = await phantom.connect();
+  const account = accounts[0];
+  console.log("Connected:", account.address);
+
+  // Sign a raw message
+  const msg = new TextEncoder().encode("Sign this message");
+  const sig = await account.signMessage(msg);
+
+  // Sign a transaction packet (returns updated packet with signature)
+  const signed = await account.signTransaction(unsignedPacket);
+
+  // Disconnect
+  await phantom.disconnect();
+});</code></pre>
+        <button class="copy-btn">Copy</button>
+      </div>
+
+      <h3>Silent Reconnect</h3>
+      <div class="code-wrapper">
+        <pre><code class="language-typescript">// Try to reconnect without showing a popup
+const accounts = await provider.connect({ silent: true });
+if (accounts.length === 0) {
+  // User has not previously authorized this site
+}</code></pre>
+        <button class="copy-btn">Copy</button>
+      </div>
+
+      <!-- ── Transaction ─────────────────────────────────────────── -->
+      <h2 id="transaction">Transaction</h2>
+      <p>
+        The transaction types represent the different stages of the transaction
+        life-cycle: request → compiled message → signed packet → on-chain handle.
+      </p>
+
+      <h3>Types at a Glance</h3>
+      <table class="params-table">
+        <thead><tr><th>Type</th><th>Description</th></tr></thead>
+        <tbody>
+          <tr><td class="param-name">TransactionRequest</td><td>Unsigned inputs: payer, block hash, and instructions.</td></tr>
+          <tr><td class="param-name">TransactionMessage</td><td>Compiled transaction body (branded <code>Uint8Array</code>).</td></tr>
+          <tr><td class="param-name">TransactionPacket</td><td>Fully signed wire-format bytes (branded <code>Uint8Array</code>).</td></tr>
+          <tr><td class="param-name">TransactionHandle</td><td>On-chain signature reference (branded Base58 string).</td></tr>
+          <tr><td class="param-name">TransactionAddressLookupTable</td><td>An ALT reference + the subset of addresses used.</td></tr>
+          <tr><td class="param-name">TransactionProcessor</td><td>Function <code>(packet) =&gt; Promise&lt;packet&gt;</code> for post-processing/co-signing.</td></tr>
+        </tbody>
+      </table>
+
+      <h3>Compile and Sign Manually</h3>
+      <p>
+        Usually you'll use the high-level <code>Solana</code> class. But if you
+        need full control, you can compile and sign a transaction yourself.
+      </p>
+      <div class="code-wrapper">
+        <pre class="has-filename" data-filename="transaction-manual.ts"><code class="language-typescript">import {
+  transactionCompileAndSign,
+  transactionHandleFromBase58,
+  transactionHandleToBase58,
+  transactionPacketFromBytes,
+  transactionPacketToBytes,
+} from "solana-kiss";
+
+// Build a TransactionRequest manually
+const txRequest = {
+  payerAddress: payer.address,
+  recentBlockHash: blockHash,
+  instructionsRequests: [instructionRequest1, instructionRequest2],
+};
+
+// Compile + sign
+const txPacket = await transactionCompileAndSign(
+  [payer],         // signers
+  txRequest,
+  []               // no lookup tables
+);
+
+// Serialize for transport
+const wireBytes = transactionPacketToBytes(txPacket);
+const packet2   = transactionPacketFromBytes(wireBytes); // round-trip
+
+// Work with handles (signatures)
+const handle = transactionHandleFromBase58("5xA2...");
+console.log(transactionHandleToBase58(handle));</code></pre>
+        <button class="copy-btn">Copy</button>
+      </div>
+
+      <!-- ── Instruction ─────────────────────────────────────────── -->
+      <h2 id="instruction">Instruction</h2>
+      <p>
+        An <code>InstructionRequest</code> is the raw wire representation of a
+        Solana instruction: program address, a list of account inputs, and
+        encoded data bytes.
+      </p>
+      <div class="code-wrapper">
+        <pre><code class="language-typescript">import type {
+  InstructionRequest,
+  InstructionInput,
+} from "solana-kiss";
+
+// Build an instruction manually (without IDL)
+const ix: InstructionRequest = {
+  programAddress: splSystemProgramAddress,
+  instructionInputs: [
+    { address: payer.address, signer: true,  writable: true  }, // from
+    { address: recipient,     signer: false, writable: true  }, // to
+  ],
+  instructionData: new Uint8Array([2, 0, 0, 0, /* transfer discriminator */ ...lamportBytes]),
+};</code></pre>
+        <button class="copy-btn">Copy</button>
+      </div>
+
+      <!-- ── Encoding ─────────────────────────────────────────────── -->
+      <h2 id="encoding">Encoding</h2>
+      <p>solana-kiss ships built-in, dependency-free encoding utilities.</p>
+
+      <h3>Base58</h3>
+      <div class="code-wrapper">
+        <pre><code class="language-typescript">import { base58Encode, base58Decode, base58BytesLength } from "solana-kiss";
+
+const bytes  = new Uint8Array([0, 1, 2, 255]);
+const str    = base58Encode(bytes);   // "12CAS"
+const back   = base58Decode(str);     // Uint8Array [0, 1, 2, 255]
+const len    = base58BytesLength(str);  // 4</code></pre>
+        <button class="copy-btn">Copy</button>
+      </div>
+
+      <h3>Base64</h3>
+      <div class="code-wrapper">
+        <pre><code class="language-typescript">import { base64Encode, base64Decode } from "solana-kiss";
+
+const bytes = new Uint8Array([72, 101, 108, 108, 111]);
+const str   = base64Encode(bytes);  // "SGVsbG8="
+const back  = base64Decode(str);    // Uint8Array [72, 101, 108, 108, 111]</code></pre>
+        <button class="copy-btn">Copy</button>
+      </div>
+
+      <h3>Base16 (Hex)</h3>
+      <div class="code-wrapper">
+        <pre><code class="language-typescript">import { base16Encode, base16Decode } from "solana-kiss";
+
+const bytes = new Uint8Array([0xde, 0xad, 0xbe, 0xef]);
+const hex   = base16Encode(bytes);  // "deadbeef"
+const back  = base16Decode(hex);    // Uint8Array [222, 173, 190, 239]</code></pre>
+        <button class="copy-btn">Copy</button>
+      </div>
+
+      <h3>UTF-8</h3>
+      <div class="code-wrapper">
+        <pre><code class="language-typescript">import { utf8Encode, utf8Decode } from "solana-kiss";
+
+const bytes = utf8Encode("hello");    // Uint8Array [104, 101, 108, 108, 111]
+const str   = utf8Decode(bytes);      // "hello"</code></pre>
+        <button class="copy-btn">Copy</button>
+      </div>
+
+      <!-- ── Cryptography ────────────────────────────────────────── -->
+      <h2 id="crypto">Cryptography</h2>
+
+      <h3>SHA-256</h3>
+      <p>
+        Pure-TypeScript SHA-256 (FIPS 180-4). No Web Crypto dependency, works
+        in any environment.
+      </p>
+      <div class="code-wrapper">
+        <pre><code class="language-typescript">import { sha256Hash } from "solana-kiss";
+
+// Hash one or more byte blobs — they are fed in order
+const digest = sha256Hash([
+  new TextEncoder().encode("hello"),
+  new TextEncoder().encode(" world"),
+]);
+console.log(digest); // 32-byte Uint8Array</code></pre>
+        <button class="copy-btn">Copy</button>
+      </div>
+
+      <h3>Signature</h3>
+      <p>
+        A <code>Signature</code> is a branded 64-byte <code>Uint8Array</code>
+        representing an Ed25519 signature.
+      </p>
+      <div class="code-wrapper">
+        <pre><code class="language-typescript">import { signatureFromBytes, signatureToBytes } from "solana-kiss";
+
+const raw  = new Uint8Array(64).fill(1);
+const sig  = signatureFromBytes(raw);   // throws if not 64 bytes
+const back = signatureToBytes(sig);     // Uint8Array (64 bytes)</code></pre>
+        <button class="copy-btn">Copy</button>
+      </div>
+
+      <!-- ── Primitives ─────────────────────────────────────────── -->
+      <h2 id="primitives">Primitives</h2>
+
+      <h3>Lamports</h3>
+      <div class="code-wrapper">
+        <pre><code class="language-typescript">import {
+  approximateSolsForLamports,
+  approximateLamportsForSols,
+  lamportsRentExemptionMinimumForSpace,
+  lamportsFeePerBytePerYear,
+  lamportsFeePerSignature,
+} from "solana-kiss";
+
+// Convert between SOL and lamports
+const sols = approximateSolsForLamports(1_000_000_000n); // 1.0
+const lamps = approximateLamportsForSols(0.5);           // 500000000n
+
+// Estimate rent-exemption minimum for an account
+const rentMin = lamportsRentExemptionMinimumForSpace(165); // ~2039280n
+
+// Constants
+console.log(lamportsFeePerSignature); // 5000n
+console.log(lamportsFeePerBytePerYear); // 3480n</code></pre>
+        <button class="copy-btn">Copy</button>
+      </div>
+
+      <h3>BlockHash and BlockSlot</h3>
+      <div class="code-wrapper">
+        <pre><code class="language-typescript">import {
+  blockHashFromBase58,
+  blockHashFromBytes,
+  blockHashToBytes,
+  blockHashDefault,
+  blockSlotFromNumber,
+  blockSlotToNumber,
+} from "solana-kiss";
+
+// Parse a block hash from Base58
+const bh = blockHashFromBase58("EkSnNWid2cvwEVnVx9aBqawnmiCNiDgp3gUdkDPTKN1N");
+
+// Zeroed block hash (used for simulation without verification)
+console.log(blockHashDefault);
+
+// Work with slots
+const slot = blockSlotFromNumber(123456789);
+console.log(blockSlotToNumber(slot)); // 123456789</code></pre>
+        <button class="copy-btn">Copy</button>
+      </div>
+
+      <!-- ── SPL Constants ──────────────────────────────────────── -->
+      <h2 id="spl">SPL Program Addresses</h2>
+      <p>
+        Commonly used well-known program addresses, ready to use as
+        <code>Pubkey</code>s.
+      </p>
+      <div class="code-wrapper">
+        <pre><code class="language-typescript">import {
+  splSystemProgramAddress,
+  splTokenProgramAddress,
+  splAssociatedTokenProgramAddress,
+  splComputeBudgetProgramAddress,
+  splAddressLookupProgramAddress,
+  splNameServiceProgramAddress,
+} from "solana-kiss";
+
+console.log(splSystemProgramAddress);
+// "11111111111111111111111111111111"
+
+console.log(splTokenProgramAddress);
+// "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA"
+
+console.log(splAssociatedTokenProgramAddress);
+// "ATokenGPvbdGVxr1b2hvZbsiqW5xWH25efTNsLJA8knL"</code></pre>
+        <button class="copy-btn">Copy</button>
+      </div>
+
+      <!-- ── Explorer URLs ──────────────────────────────────────── -->
+      <h2 id="explorer">Explorer URLs</h2>
+      <p>
+        Build Solana Explorer links for accounts, transactions, and blocks.
+      </p>
+      <div class="code-wrapper">
+        <pre><code class="language-typescript">import {
+  urlExplorerAccount,
+  urlExplorerTransaction,
+  urlRpcPublicMainnet,
+  urlRpcPublicDevnet,
+} from "solana-kiss";
+
+// Link to an account on Explorer (mainnet)
+const accountUrl = urlExplorerAccount(urlRpcPublicMainnet, myAddress);
+console.log(accountUrl.href);
+// https://explorer.solana.com/address/myAddress
+
+// Link to a transaction on Explorer (devnet)
+const txUrl = urlExplorerTransaction(urlRpcPublicDevnet, transactionHandle);
+console.log(txUrl.href);
+// https://explorer.solana.com/tx/...?cluster=devnet</code></pre>
+        <button class="copy-btn">Copy</button>
+      </div>
+
+      <div class="page-nav">
+        <a class="page-nav-link" href="solana-class.html">
+          <span class="page-nav-label">← Previous</span>
+          <span class="page-nav-title">Solana Class</span>
+        </a>
+        <a class="page-nav-link page-nav-next" href="rpc.html">
+          <span class="page-nav-label">Next →</span>
+          <span class="page-nav-title">RPC Module</span>
+        </a>
+      </div>
+
+    </main>
+
+    <footer class="footer">
+      <span>solana-kiss · MIT License</span>
+      <a href="https://github.com/crypto-vincent/solana-kiss" target="_blank">GitHub ↗</a>
+    </footer>
+  </div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-typescript.min.js"></script>
+<script src="script.js"></script>
+</body>
+</html>

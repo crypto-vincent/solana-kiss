@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>solana-kiss – Cookbook</title>
+  <link rel="stylesheet" href="styles.css" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-tomorrow.min.css" />
+</head>
+<body>
+<div class="layout">
+
+  <!-- ── Sidebar ─────────────────────────────────────────────────── -->
+  <aside class="sidebar">
+    <a class="sidebar-logo" href="index.html">
+      <div class="sidebar-logo-icon">◎</div>
+      <div class="sidebar-logo-text">
+        <span class="sidebar-logo-name">solana-kiss</span>
+        <span class="sidebar-logo-version">v0.2.x · Cookbook</span>
+      </div>
+    </a>
+    <nav class="sidebar-nav">
+      <div class="nav-section-title">Getting Started</div>
+      <a class="nav-link" href="index.html"><span class="nav-link-icon">🏠</span>Introduction</a>
+
+      <div class="nav-section-title">API Reference</div>
+      <a class="nav-link" href="solana-class.html"><span class="nav-link-icon">⚡</span>Solana Class</a>
+      <a class="nav-link" href="data.html"><span class="nav-link-icon">🔑</span>Data</a>
+      <a class="nav-link" href="rpc.html"><span class="nav-link-icon">🌐</span>RPC</a>
+      <a class="nav-link" href="idl.html"><span class="nav-link-icon">📋</span>IDL</a>
+    </nav>
+  </aside>
+  <div class="sidebar-overlay"></div>
+
+  <!-- ── Main ────────────────────────────────────────────────────── -->
+  <div class="main">
+    <header class="topbar">
+      <button class="menu-toggle" aria-label="Toggle menu">☰</button>
+      <nav class="topbar-breadcrumb">
+        <span>solana-kiss</span>
+        <span class="topbar-sep">/</span>
+        <span>Introduction</span>
+      </nav>
+      <div class="topbar-right">
+        <a href="https://github.com/crypto-vincent/solana-kiss" target="_blank" class="topbar-badge">GitHub ↗</a>
+      </div>
+    </header>
+
+    <main class="content">
+
+      <!-- ── Hero ──────────────────────────────────────────────── -->
+      <section class="hero">
+        <h1>solana-kiss Cookbook</h1>
+        <p class="hero-subtitle">
+          A practical guide to building on Solana with zero boilerplate —
+          <br>no dependencies, full-featured, fully typed.
+        </p>
+        <div class="hero-tags">
+          <span class="tag tag-purple">TypeScript</span>
+          <span class="tag tag-green">Zero Dependencies</span>
+          <span class="tag tag-blue">Ed25519 Built-in</span>
+          <span class="tag tag-orange">IDL Auto-decode</span>
+        </div>
+      </section>
+
+      <!-- ── Installation ───────────────────────────────────────── -->
+      <h2 id="installation">Installation</h2>
+      <div class="code-wrapper">
+        <pre><code class="language-bash">npm install solana-kiss</code></pre>
+        <button class="copy-btn">Copy</button>
+      </div>
+
+      <!-- ── Quick Start ──────────────────────────────────────── -->
+      <h2 id="quick-start">Quick Start</h2>
+      <p>
+        The fastest path to interacting with Solana. Import the high-level
+        <code>Solana</code> class and point it at a network moniker. That's it —
+        no wallet adapters, no big SDK to configure.
+      </p>
+      <div class="code-wrapper">
+        <pre class="has-filename" data-filename="quick-start.ts"><code class="language-typescript">import { Solana } from "solana-kiss";
+
+// Connect to devnet (also accepts "mainnet", "testnet", or a custom URL)
+const solana = new Solana("devnet");
+
+// Fetch and auto-decode any on-chain account
+const { accountState } = await solana.getAndInferAndDecodeAccount(
+  "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA" as any
+);
+console.log(accountState);</code></pre>
+        <button class="copy-btn">Copy</button>
+      </div>
+
+      <!-- ── Module Overview ──────────────────────────────────── -->
+      <h2 id="modules">Module Overview</h2>
+      <p>
+        solana-kiss ships four tightly-coupled modules. Click any card below to
+        jump to its dedicated cookbook page.
+      </p>
+      <div class="cards">
+        <a class="card" href="solana-class.html">
+          <span class="card-icon">⚡</span>
+          <div class="card-title">Solana Class</div>
+          <div class="card-desc">High-level entry point for all on-chain operations — accounts, instructions, transactions, PDAs.</div>
+        </a>
+        <a class="card" href="data.html">
+          <span class="card-icon">🔑</span>
+          <div class="card-title">Data</div>
+          <div class="card-desc">Core primitives — Pubkeys, Signers, Wallets, Transactions, encoding utilities, and cryptography.</div>
+        </a>
+        <a class="card" href="rpc.html">
+          <span class="card-icon">🌐</span>
+          <div class="card-title">RPC</div>
+          <div class="card-desc">JSON-RPC HTTP client plus helpers for account queries, block hashes, and transaction submission.</div>
+        </a>
+        <a class="card" href="idl.html">
+          <span class="card-icon">📋</span>
+          <div class="card-title">IDL</div>
+          <div class="card-desc">Load, parse and use Anchor / native on-chain IDLs to auto-encode and decode instructions and accounts.</div>
+        </a>
+      </div>
+
+      <!-- ── Key Features ──────────────────────────────────────── -->
+      <h2 id="features">Key Features</h2>
+      <ul>
+        <li><strong>Zero production dependencies</strong> — Ed25519, SHA-256, Base58 and zlib are bundled natively.</li>
+        <li><strong>Full TypeScript coverage</strong> — every exported type has JSDoc, generics, and strict null-safety.</li>
+        <li><strong>IDL-driven everything</strong> — accounts and instructions are automatically decoded using Anchor IDLs loaded on-chain, from a remote URL, or from a custom override.</li>
+        <li><strong>Wallet Standard integration</strong> — discover browser wallets and sign transactions without a framework.</li>
+        <li><strong>Composable RPC wrappers</strong> — timeout, retry, rate-limit, and concurrency-limit are standalone composable functions.</li>
+        <li><strong>Versioned transactions</strong> — address lookup tables are supported out of the box.</li>
+      </ul>
+
+      <!-- ── Full Example ──────────────────────────────────────── -->
+      <h2 id="full-example">Full Example — Send SOL</h2>
+      <p>
+        The following example shows how to generate a new keypair, build a SOL
+        transfer using the System Program, and execute it on devnet — in under
+        20 lines of code.
+      </p>
+      <div class="code-wrapper">
+        <pre class="has-filename" data-filename="send-sol.ts"><code class="language-typescript">import { Solana, signerGenerate } from "solana-kiss";
+
+const solana = new Solana("devnet");
+
+// 1. Generate an ephemeral payer (in prod, load from a stored secret)
+const payer = await signerGenerate();
+
+// 2. Build the transfer instruction via IDL
+const { instructionRequest } = await solana.hydrateAndEncodeInstruction(
+  "11111111111111111111111111111111",   // System Program
+  "transfer",
+  {
+    instructionAddresses: {
+      fundingAccount: payer.address,
+      recipientAccount: "recipient_pubkey_here" as any,
+    },
+    instructionPayload: { lamports: 500_000n },
+  }
+);
+
+// 3. Sign, send, and wait for confirmation in one call
+const { transactionHandle } = await solana.prepareAndExecuteTransaction(
+  payer,
+  [instructionRequest]
+);
+
+console.log("Confirmed:", transactionHandle);</code></pre>
+        <button class="copy-btn">Copy</button>
+      </div>
+
+      <!-- ── TypeScript Setup ──────────────────────────────────── -->
+      <h2 id="typescript-setup">TypeScript Setup</h2>
+      <p>
+        solana-kiss ships with declaration files. For best results set
+        <code>"moduleResolution": "bundler"</code> (or <code>"node16"</code>)
+        and <code>"strict": true</code> in your <code>tsconfig.json</code>.
+      </p>
+      <div class="code-wrapper">
+        <pre class="has-filename" data-filename="tsconfig.json"><code class="language-json">{
+  "compilerOptions": {
+    "target": "ES2020",
+    "module": "ESNext",
+    "moduleResolution": "bundler",
+    "strict": true,
+    "lib": ["ES2020", "DOM"]
+  }
+}</code></pre>
+        <button class="copy-btn">Copy</button>
+      </div>
+
+      <div class="page-nav">
+        <div></div>
+        <a class="page-nav-link page-nav-next" href="solana-class.html">
+          <span class="page-nav-label">Next →</span>
+          <span class="page-nav-title">Solana Class</span>
+        </a>
+      </div>
+
+    </main>
+
+    <footer class="footer">
+      <span>solana-kiss · MIT License</span>
+      <a href="https://github.com/crypto-vincent/solana-kiss" target="_blank">GitHub ↗</a>
+    </footer>
+  </div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-typescript.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-bash.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-json.min.js"></script>
+<script src="script.js"></script>
+</body>
+</html>

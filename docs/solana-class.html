@@ -1,0 +1,643 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Solana Class – solana-kiss Cookbook</title>
+  <link rel="stylesheet" href="styles.css" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-tomorrow.min.css" />
+</head>
+<body>
+<div class="layout">
+
+  <!-- ── Sidebar ─────────────────────────────────────────────────── -->
+  <aside class="sidebar">
+    <a class="sidebar-logo" href="index.html">
+      <div class="sidebar-logo-icon">◎</div>
+      <div class="sidebar-logo-text">
+        <span class="sidebar-logo-name">solana-kiss</span>
+        <span class="sidebar-logo-version">v0.2.x · Cookbook</span>
+      </div>
+    </a>
+    <nav class="sidebar-nav">
+      <div class="nav-section-title">Getting Started</div>
+      <a class="nav-link" href="index.html"><span class="nav-link-icon">🏠</span>Introduction</a>
+
+      <div class="nav-section-title">API Reference</div>
+      <a class="nav-link" href="solana-class.html"><span class="nav-link-icon">⚡</span>Solana Class</a>
+      <a class="nav-link nav-sub-link" href="#constructor">Constructor</a>
+      <a class="nav-link nav-sub-link" href="#idl-management">IDL Management</a>
+      <a class="nav-link nav-sub-link" href="#accounts">Account Decoding</a>
+      <a class="nav-link nav-sub-link" href="#instructions">Instructions</a>
+      <a class="nav-link nav-sub-link" href="#transactions">Transactions</a>
+      <a class="nav-link nav-sub-link" href="#pda">PDA Derivation</a>
+      <a class="nav-link nav-sub-link" href="#query-accounts">Query Accounts</a>
+      <a class="nav-link" href="data.html"><span class="nav-link-icon">🔑</span>Data</a>
+      <a class="nav-link" href="rpc.html"><span class="nav-link-icon">🌐</span>RPC</a>
+      <a class="nav-link" href="idl.html"><span class="nav-link-icon">📋</span>IDL</a>
+    </nav>
+  </aside>
+  <div class="sidebar-overlay"></div>
+
+  <!-- ── Main ────────────────────────────────────────────────────── -->
+  <div class="main">
+    <header class="topbar">
+      <button class="menu-toggle" aria-label="Toggle menu">☰</button>
+      <nav class="topbar-breadcrumb">
+        <a href="index.html">solana-kiss</a>
+        <span class="topbar-sep">/</span>
+        <span>Solana Class</span>
+      </nav>
+      <div class="topbar-right">
+        <a href="https://github.com/crypto-vincent/solana-kiss" target="_blank" class="topbar-badge">GitHub ↗</a>
+      </div>
+    </header>
+
+    <main class="content">
+
+      <section class="hero">
+        <h1>Solana Class</h1>
+        <p class="hero-subtitle">
+          The high-level entry point for all on-chain operations. One class,
+          everything you need.
+        </p>
+      </section>
+
+      <div class="toc">
+        <div class="toc-title">On this page</div>
+        <ul>
+          <li><a href="#constructor">Constructor</a></li>
+          <li><a href="#idl-management">IDL Management</a></li>
+          <li><a href="#accounts">Account Decoding</a></li>
+          <li><a href="#instructions">Building Instructions</a></li>
+          <li><a href="#transactions">Executing Transactions</a></li>
+          <li><a href="#simulate">Simulating Transactions</a></li>
+          <li><a href="#pda">PDA Derivation</a></li>
+          <li><a href="#query-accounts">Querying Program Accounts</a></li>
+          <li><a href="#rpc-access">Direct RPC Access</a></li>
+          <li><a href="#recipes">Recipes</a></li>
+        </ul>
+      </div>
+
+      <!-- ── Constructor ──────────────────────────────────────────── -->
+      <h2 id="constructor">Constructor</h2>
+      <p>
+        Create a <code>Solana</code> instance by passing either a network moniker,
+        a URL, or a pre-built <code>RpcHttp</code> client.
+      </p>
+      <div class="api-sig">new Solana(rpcHttpOrUrl, options?)</div>
+      <table class="params-table">
+        <thead><tr><th>Parameter</th><th>Type</th><th>Description</th></tr></thead>
+        <tbody>
+          <tr><td class="param-name">rpcHttpOrUrl</td><td class="param-type">RpcHttp | URL | string</td><td>A moniker (<code>"mainnet"</code>, <code>"devnet"</code>, <code>"testnet"</code>), a URL, or an existing RpcHttp client.</td></tr>
+          <tr><td class="param-name">options.idlLoader</td><td class="param-type param-opt">IdlLoader?</td><td>Custom IDL loader. Defaults to: native on-chain → Anchor on-chain → GitHub fallback.</td></tr>
+          <tr><td class="param-name">options.idlOverrides</td><td class="param-type param-opt">Map&lt;Pubkey, IdlProgram&gt;?</td><td>Hardcoded IDLs that bypass the loader entirely.</td></tr>
+          <tr><td class="param-name">options.recentBlockHashCacheDurationMs</td><td class="param-type param-opt">number?</td><td>How long to cache the recent block hash. Defaults to <code>15_000</code> ms.</td></tr>
+        </tbody>
+      </table>
+
+      <div class="code-wrapper">
+        <pre class="has-filename" data-filename="constructor-examples.ts"><code class="language-typescript">import { Solana, rpcHttpFromUrl, rpcHttpWithTimeout } from "solana-kiss";
+
+// 1. Moniker shorthand (easiest)
+const solana = new Solana("mainnet");
+
+// 2. Custom RPC URL
+const solana2 = new Solana(new URL("https://my-rpc.example.com"));
+
+// 3. Pre-built client — add a 5-second timeout
+const client = rpcHttpWithTimeout(
+  rpcHttpFromUrl(new URL("https://my-rpc.example.com")),
+  5_000
+);
+const solana3 = new Solana(client);
+
+// 4. With options
+const solana4 = new Solana("devnet", {
+  recentBlockHashCacheDurationMs: 30_000, // cache block hash for 30 s
+});</code></pre>
+        <button class="copy-btn">Copy</button>
+      </div>
+
+      <!-- ── IDL Management ──────────────────────────────────────── -->
+      <h2 id="idl-management">IDL Management</h2>
+      <p>
+        solana-kiss resolves program IDLs automatically. You can also override
+        them for local testing or unsupported programs.
+      </p>
+
+      <h3>Loading an IDL</h3>
+      <div class="api-sig">solana.getOrLoadProgramIdl(programAddress, options?)</div>
+      <p>Returns <code>&#123; programIdl: IdlProgram &#125;</code>. The result is cached per address.</p>
+      <div class="code-wrapper">
+        <pre><code class="language-typescript">const { programIdl } = await solana.getOrLoadProgramIdl(
+  "JUP6LkbZbjS1jKKwapdHNy74zcZ3tLUZoi5QNyVTaV4" as any // Jupiter v6
+);
+
+console.log(programIdl.metadata.name);     // "jupiter"
+console.log([...programIdl.instructions.keys()]); // ["route", "sharedAccountsRoute", ...]</code></pre>
+        <button class="copy-btn">Copy</button>
+      </div>
+
+      <h3>Registering an IDL Override</h3>
+      <p>
+        Useful when testing against a local validator or when the on-chain IDL
+        is not available.
+      </p>
+      <div class="code-wrapper">
+        <pre><code class="language-typescript">import { Solana, idlProgramParse } from "solana-kiss";
+import myIdlJson from "./my-program.json";
+
+const solana = new Solana("devnet");
+
+// Parse raw JSON into an IdlProgram and register it
+const myIdl = idlProgramParse(myIdlJson);
+solana.setProgramIdlOverride(
+  "MyProgram1111111111111111111111111111111111" as any,
+  myIdl
+);
+
+// Now all calls to the program will use myIdl instead of fetching on-chain
+const { instructionRequest } = await solana.hydrateAndEncodeInstruction(
+  "MyProgram1111111111111111111111111111111111" as any,
+  "initialize",
+  { instructionAddresses: { authority: payer.address }, instructionPayload: {} }
+);</code></pre>
+        <button class="copy-btn">Copy</button>
+      </div>
+
+      <h3>Getting a Single Instruction's IDL</h3>
+      <div class="api-sig">solana.getOrLoadInstructionIdl(programAddress, instructionName)</div>
+      <div class="code-wrapper">
+        <pre><code class="language-typescript">const { instructionIdl } = await solana.getOrLoadInstructionIdl(
+  "JUP6LkbZbjS1jKKwapdHNy74zcZ3tLUZoi5QNyVTaV4" as any,
+  "route"
+);
+
+// Inspect accounts and arguments
+instructionIdl.accounts.forEach(a =>
+  console.log(a.name, "writable:", a.writable, "signer:", a.signer)
+);</code></pre>
+        <button class="copy-btn">Copy</button>
+      </div>
+
+      <!-- ── Account Decoding ───────────────────────────────────── -->
+      <h2 id="accounts">Account Decoding</h2>
+      <p>
+        <code>getAndInferAndDecodeAccount</code> fetches raw account bytes,
+        identifies the owning program, loads its IDL, guesses the account type
+        by matching the discriminator, and returns the fully decoded state — all
+        in one call.
+      </p>
+      <div class="api-sig">solana.getAndInferAndDecodeAccount(accountAddress)</div>
+      <table class="params-table">
+        <thead><tr><th>Return field</th><th>Type</th><th>Description</th></tr></thead>
+        <tbody>
+          <tr><td class="param-name">programAddress</td><td class="param-type">Pubkey</td><td>Address of the owning program.</td></tr>
+          <tr><td class="param-name">programIdl</td><td class="param-type">IdlProgram</td><td>Resolved IDL of the owning program.</td></tr>
+          <tr><td class="param-name">accountAddress</td><td class="param-type">Pubkey</td><td>The queried address.</td></tr>
+          <tr><td class="param-name">accountIdl</td><td class="param-type">IdlAccount</td><td>The matched account type from the IDL.</td></tr>
+          <tr><td class="param-name">accountLamports</td><td class="param-type">bigint</td><td>Current lamport balance.</td></tr>
+          <tr><td class="param-name">accountExecutable</td><td class="param-type">boolean</td><td>Whether the account holds executable code.</td></tr>
+          <tr><td class="param-name">accountData</td><td class="param-type">Uint8Array</td><td>Raw account bytes.</td></tr>
+          <tr><td class="param-name">accountState</td><td class="param-type">JsonValue</td><td>Decoded account fields as a plain JSON object.</td></tr>
+        </tbody>
+      </table>
+      <div class="code-wrapper">
+        <pre class="has-filename" data-filename="decode-account.ts"><code class="language-typescript">import { Solana } from "solana-kiss";
+
+const solana = new Solana("mainnet");
+
+// Decode a Serum / OpenBook market account
+const result = await solana.getAndInferAndDecodeAccount(
+  "9wFFyRfZBsuAha4YcuxcXLKwMxJR43S7fPfQLusDBzvT" as any
+);
+
+console.log("Program:", result.programAddress);
+console.log("Account type:", result.accountIdl.name); // e.g. "market"
+console.log("Balance:", result.accountLamports, "lamports");
+console.log("State:", result.accountState);
+// {
+//   ownAddress: "9wFFy...",
+//   vaultSignerNonce: 0n,
+//   baseMint: "So11...",
+//   quoteMint: "EPjF...",
+//   baseVault: "...",
+//   ...
+// }</code></pre>
+        <button class="copy-btn">Copy</button>
+      </div>
+
+      <div class="callout callout-tip">
+        <div class="callout-title">💡 Tip</div>
+        This method does not throw when the account is uninitialized. It returns
+        zeroed defaults (<code>programAddress</code> is the default pubkey,
+        <code>accountLamports</code> is <code>0n</code>).
+      </div>
+
+      <!-- ── Instructions ──────────────────────────────────────── -->
+      <h2 id="instructions">Building Instructions</h2>
+
+      <h3>Encode a Full Instruction</h3>
+      <p>
+        <code>hydrateAndEncodeInstruction</code> resolves missing accounts
+        automatically (PDAs, ATAs, system accounts) then encodes the full
+        instruction ready for a transaction.
+      </p>
+      <div class="api-sig">solana.hydrateAndEncodeInstruction(programAddress, instructionName, options)</div>
+      <div class="code-wrapper">
+        <pre class="has-filename" data-filename="encode-instruction.ts"><code class="language-typescript">import { Solana, signerGenerate } from "solana-kiss";
+
+const solana = new Solana("devnet");
+const payer = await signerGenerate();
+
+// Build a "createAccount" instruction for the System Program
+const { instructionRequest } = await solana.hydrateAndEncodeInstruction(
+  "11111111111111111111111111111111" as any,  // System Program
+  "createAccount",
+  {
+    instructionAddresses: {
+      fundingAccount: payer.address,
+      newAccount: newKeypair.address,
+    },
+    instructionPayload: {
+      lamports: 1_000_000n,
+      space: 165n,
+      owner: "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA" as any,
+    },
+  }
+);
+
+// instructionRequest is ready to pass to prepareAndExecuteTransaction</code></pre>
+        <button class="copy-btn">Copy</button>
+      </div>
+
+      <h3>Decode a Raw Instruction</h3>
+      <p>
+        Given a raw <code>InstructionRequest</code> (e.g. from a parsed
+        transaction), reverse-engineer it into a human-readable form.
+      </p>
+      <div class="api-sig">solana.inferAndDecodeInstruction(instructionRequest)</div>
+      <div class="code-wrapper">
+        <pre><code class="language-typescript">const { programIdl, instructionIdl, instructionAddresses, instructionPayload }
+  = await solana.inferAndDecodeInstruction(rawInstructionRequest);
+
+console.log("Instruction:", instructionIdl.name);
+console.log("Args:", instructionPayload);
+console.log("Accounts:", instructionAddresses);</code></pre>
+        <button class="copy-btn">Copy</button>
+      </div>
+
+      <h3>Hydrate Missing Accounts Only</h3>
+      <p>
+        Use <code>hydrateInstructionAddresses</code> to fill in only the account
+        addresses without encoding the full instruction — useful for inspecting
+        resolved PDAs before calling.
+      </p>
+      <div class="code-wrapper">
+        <pre><code class="language-typescript">const { instructionAddresses } = await solana.hydrateInstructionAddresses(
+  myProgramAddress,
+  "mintTo",
+  {
+    instructionAddresses: { authority: payer.address, mint: mintAddress },
+    instructionPayload: { amount: 1000n },
+  }
+);
+
+// All derivable accounts are now filled in
+console.log("destination ATA:", instructionAddresses.destination);</code></pre>
+        <button class="copy-btn">Copy</button>
+      </div>
+
+      <h3>Resolve a Single Account Address</h3>
+      <div class="api-sig">solana.resolveInstructionAddress(programAddress, instructionName, accountName, options?)</div>
+      <div class="code-wrapper">
+        <pre><code class="language-typescript">// Find the exact PDA for a specific account in an instruction
+const metadataPda = await solana.resolveInstructionAddress(
+  metaplexProgramAddress,
+  "createMetadataAccountV3",
+  "metadata",
+  { instructionAddresses: { mint: mintAddress } }
+);
+
+console.log("Metadata PDA:", metadataPda);</code></pre>
+        <button class="copy-btn">Copy</button>
+      </div>
+
+      <!-- ── Transactions ───────────────────────────────────────── -->
+      <h2 id="transactions">Executing Transactions</h2>
+      <p>
+        <code>prepareAndExecuteTransaction</code> handles everything: fetches a
+        recent block hash (with caching), compiles a versioned transaction,
+        collects all signatures, submits to the network, and waits for
+        confirmation.
+      </p>
+      <div class="api-sig">solana.prepareAndExecuteTransaction(payerSigner, instructionsRequests, options?)</div>
+      <table class="params-table">
+        <thead><tr><th>Return field</th><th>Type</th><th>Description</th></tr></thead>
+        <tbody>
+          <tr><td class="param-name">transactionHandle</td><td class="param-type">TransactionHandle</td><td>The on-chain transaction signature.</td></tr>
+          <tr><td class="param-name">transactionRequest</td><td class="param-type">TransactionRequest</td><td>The decompiled instruction inputs.</td></tr>
+          <tr><td class="param-name">transactionPacket</td><td class="param-type">TransactionPacket</td><td>The raw signed wire bytes.</td></tr>
+          <tr><td class="param-name">executionReport</td><td class="param-type">ExecutionReport</td><td>On-chain metadata: slot, fees, logs, error.</td></tr>
+          <tr><td class="param-name">executionFlow</td><td class="param-type">ExecutionFlow | undefined</td><td>Structured call-stack trace parsed from logs.</td></tr>
+        </tbody>
+      </table>
+      <div class="code-wrapper">
+        <pre class="has-filename" data-filename="execute-transaction.ts"><code class="language-typescript">import { Solana, signerGenerate } from "solana-kiss";
+
+const solana = new Solana("devnet");
+const payer = await signerGenerate();
+
+// Assume we have two instruction requests already built
+const ix1 = await solana.hydrateAndEncodeInstruction(...);
+const ix2 = await solana.hydrateAndEncodeInstruction(...);
+
+const {
+  transactionHandle,
+  executionReport,
+  executionFlow,
+} = await solana.prepareAndExecuteTransaction(payer, [ix1, ix2], {
+  skipPreflight: false,
+  skipExecutionFlowParsing: false, // parse program logs into call tree
+});
+
+console.log("Tx signature:", transactionHandle);
+console.log("Slot:", executionReport.slot);
+console.log("Fee:", executionReport.fee, "lamports");
+console.log("Logs:", executionReport.logs);
+
+if (executionFlow) {
+  // Structured call-stack trace of all CPI calls
+  console.log("Call tree:", executionFlow);
+}</code></pre>
+        <button class="copy-btn">Copy</button>
+      </div>
+
+      <h3>Transaction with Multiple Signers</h3>
+      <div class="code-wrapper">
+        <pre><code class="language-typescript">const { transactionHandle } = await solana.prepareAndExecuteTransaction(
+  payer,                             // fee payer + first signer
+  [instructionRequest],
+  {
+    extraSigners: [coSigner, programSigner],  // additional keypairs
+  }
+);</code></pre>
+        <button class="copy-btn">Copy</button>
+      </div>
+
+      <h3>Transaction with Address Lookup Tables</h3>
+      <div class="code-wrapper">
+        <pre><code class="language-typescript">const { transactionHandle } = await solana.prepareAndExecuteTransaction(
+  payer,
+  [instructionRequest],
+  {
+    transactionLookupTables: [
+      {
+        tableAddress: "LookupTableAddress..." as any,
+        lookupAddresses: [addr1, addr2, addr3],
+      },
+    ],
+  }
+);</code></pre>
+        <button class="copy-btn">Copy</button>
+      </div>
+
+      <!-- ── Simulate ───────────────────────────────────────────── -->
+      <h2 id="simulate">Simulating Transactions</h2>
+      <p>
+        Simulate without broadcasting. Useful for gas estimation and dry-runs.
+      </p>
+      <div class="api-sig">solana.prepareAndSimulateTransaction(payer, instructionsRequests, options?)</div>
+      <div class="code-wrapper">
+        <pre class="has-filename" data-filename="simulate.ts"><code class="language-typescript">// Full simulation with signatures (most realistic)
+const result = await solana.prepareAndSimulateTransaction(
+  payer,  // Signer
+  [instructionRequest]
+);
+console.log("Compute units:", result.unitsConsumed);
+console.log("Logs:", result.logs);
+if (result.error) console.error("Sim error:", result.error);
+
+// Quick simulation without real signatures (no need for a Signer)
+const quick = await solana.prepareAndSimulateTransaction(
+  payer.address,  // Pubkey only
+  [instructionRequest],
+  { verifySignaturesAndBlockHash: false }
+);
+
+// Inspect post-simulation account state for specific addresses
+const withAccounts = await solana.prepareAndSimulateTransaction(
+  payer,
+  [instructionRequest],
+  {
+    simulatedAccountsAddresses: new Set([mintAddress, ataAddress]),
+  }
+);
+console.log("Post-sim mint state:", withAccounts.accounts);</code></pre>
+        <button class="copy-btn">Copy</button>
+      </div>
+
+      <!-- ── PDA ───────────────────────────────────────────────── -->
+      <h2 id="pda">PDA Derivation</h2>
+      <p>
+        Derive a Program Derived Address by name using the program's IDL PDA
+        definition — no need to know the raw seeds.
+      </p>
+      <div class="api-sig">solana.findPdaAddress(programAddress, pdaName, pdaInputs?)</div>
+      <div class="code-wrapper">
+        <pre class="has-filename" data-filename="pda.ts"><code class="language-typescript">// Derive the metadata PDA for a mint (Metaplex Token Metadata)
+const metadataPda = await solana.findPdaAddress(
+  "metaqbxxUerdq28cj1RbAWkYQm3ybzjb6a8bt518x1s" as any,
+  "metadata",
+  { mint: mintAddress }
+);
+
+console.log("Metadata PDA:", metadataPda);
+
+// Derive a user's escrow account PDA (if the program IDL defines one)
+const escrowPda = await solana.findPdaAddress(
+  myProgramAddress,
+  "userEscrow",
+  { user: userAddress, market: marketAddress }
+);</code></pre>
+        <button class="copy-btn">Copy</button>
+      </div>
+
+      <!-- ── Query Accounts ──────────────────────────────────── -->
+      <h2 id="query-accounts">Querying Program Accounts</h2>
+      <p>
+        Fetch all on-chain accounts of a specific type owned by a program.
+        Filters are derived automatically from the IDL (discriminator + data
+        size).
+      </p>
+      <div class="api-sig">solana.findProgramOwnedAccounts(programAddress, accountName)</div>
+      <div class="code-wrapper">
+        <pre class="has-filename" data-filename="find-accounts.ts"><code class="language-typescript">// Find all "Position" accounts for a perpetuals program
+const { accountsAddresses } = await solana.findProgramOwnedAccounts(
+  perpProgramAddress,
+  "position"
+);
+
+console.log(`Found ${accountsAddresses.size} positions`);
+
+// Then decode each one
+for (const address of accountsAddresses) {
+  const { accountState } = await solana.getAndInferAndDecodeAccount(address);
+  console.log(address, "→", accountState);
+}</code></pre>
+        <button class="copy-btn">Copy</button>
+      </div>
+
+      <!-- ── Direct RPC Access ──────────────────────────────────── -->
+      <h2 id="rpc-access">Direct RPC Access</h2>
+      <p>
+        Access the underlying <code>RpcHttp</code> client directly for any
+        low-level RPC calls not covered by the high-level API.
+      </p>
+      <div class="code-wrapper">
+        <pre><code class="language-typescript">import { rpcHttpGetAccountLamports } from "solana-kiss";
+
+const rpcHttp = solana.getRpcHttp();
+
+// Use any low-level RPC helper
+const { accountLamports } = await rpcHttpGetAccountLamports(
+  rpcHttp,
+  myAddress
+);
+
+// Or call the RPC directly
+const slot = await rpcHttp("getSlot", [], {});
+console.log("Current slot:", slot);</code></pre>
+        <button class="copy-btn">Copy</button>
+      </div>
+
+      <!-- ── Recipes ──────────────────────────────────────────── -->
+      <h2 id="recipes">Recipes</h2>
+
+      <div class="recipe">
+        <div class="recipe-header">
+          <span class="recipe-number">01</span>
+          <span class="recipe-title">Airdrop and check balance on devnet</span>
+        </div>
+        <p class="recipe-desc">Generate a keypair, request an airdrop, and confirm the lamport balance.</p>
+        <div class="code-wrapper">
+          <pre><code class="language-typescript">import { Solana, signerGenerate, rpcHttpGetAccountLamports } from "solana-kiss";
+
+const solana = new Solana("devnet");
+const keypair = await signerGenerate();
+console.log("Address:", keypair.address);
+
+// Request airdrop via raw RPC call
+const rpc = solana.getRpcHttp();
+await rpc("requestAirdrop", [keypair.address, 1_000_000_000], "skip-configuration-object");
+
+// Wait a moment then check the balance
+await new Promise(r => setTimeout(r, 3000));
+const { accountLamports } = await rpcHttpGetAccountLamports(rpc, keypair.address);
+console.log("Balance:", accountLamports, "lamports"); // 1000000000</code></pre>
+          <button class="copy-btn">Copy</button>
+        </div>
+      </div>
+
+      <div class="recipe">
+        <div class="recipe-header">
+          <span class="recipe-number">02</span>
+          <span class="recipe-title">Batch-decode multiple accounts</span>
+        </div>
+        <p class="recipe-desc">Decode many accounts in parallel using <code>Promise.all</code>.</p>
+        <div class="code-wrapper">
+          <pre><code class="language-typescript">const addresses = [addr1, addr2, addr3];
+
+const results = await Promise.all(
+  addresses.map(addr => solana.getAndInferAndDecodeAccount(addr))
+);
+
+results.forEach(({ accountIdl, accountState }, i) => {
+  console.log(addresses[i], "type:", accountIdl.name, "state:", accountState);
+});</code></pre>
+          <button class="copy-btn">Copy</button>
+        </div>
+      </div>
+
+      <div class="recipe">
+        <div class="recipe-header">
+          <span class="recipe-number">03</span>
+          <span class="recipe-title">Execute multiple instructions in one transaction</span>
+        </div>
+        <p class="recipe-desc">Compose several instructions into a single atomic transaction.</p>
+        <div class="code-wrapper">
+          <pre><code class="language-typescript">const [ix1, ix2, ix3] = await Promise.all([
+  solana.hydrateAndEncodeInstruction(programA, "instructionA", optionsA),
+  solana.hydrateAndEncodeInstruction(programB, "instructionB", optionsB),
+  solana.hydrateAndEncodeInstruction(programC, "instructionC", optionsC),
+].map(p => p.then(r => r.instructionRequest)));
+
+const { transactionHandle } = await solana.prepareAndExecuteTransaction(
+  payer,
+  [ix1, ix2, ix3]  // executed atomically
+);
+console.log("All 3 instructions in one tx:", transactionHandle);</code></pre>
+          <button class="copy-btn">Copy</button>
+        </div>
+      </div>
+
+      <div class="recipe">
+        <div class="recipe-header">
+          <span class="recipe-number">04</span>
+          <span class="recipe-title">Sign with a browser wallet</span>
+        </div>
+        <p class="recipe-desc">Use a browser wallet (Phantom, Backpack, …) as the transaction signer.</p>
+        <div class="code-wrapper">
+          <pre><code class="language-typescript">import { Solana, walletProviders } from "solana-kiss";
+
+// Subscribe to available wallet providers
+walletProviders.subscribe(async (providers) => {
+  const phantom = providers.find(p => p.name === "Phantom");
+  if (!phantom) return;
+
+  // Connect and get the active account
+  const [account] = await phantom.connect();
+
+  const solana = new Solana("mainnet");
+  const { instructionRequest } = await solana.hydrateAndEncodeInstruction(
+    programAddress, "myInstruction", options
+  );
+
+  // WalletAccount can be used directly as the payer/signer
+  const { transactionHandle } = await solana.prepareAndExecuteTransaction(
+    account,          // WalletAccount — signs via the wallet extension
+    [instructionRequest]
+  );
+  console.log("Tx:", transactionHandle);
+});</code></pre>
+          <button class="copy-btn">Copy</button>
+        </div>
+      </div>
+
+      <div class="page-nav">
+        <a class="page-nav-link" href="index.html">
+          <span class="page-nav-label">← Previous</span>
+          <span class="page-nav-title">Introduction</span>
+        </a>
+        <a class="page-nav-link page-nav-next" href="data.html">
+          <span class="page-nav-label">Next →</span>
+          <span class="page-nav-title">Data Module</span>
+        </a>
+      </div>
+
+    </main>
+
+    <footer class="footer">
+      <span>solana-kiss · MIT License</span>
+      <a href="https://github.com/crypto-vincent/solana-kiss" target="_blank">GitHub ↗</a>
+    </footer>
+  </div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-typescript.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-bash.min.js"></script>
+<script src="script.js"></script>
+</body>
+</html>
