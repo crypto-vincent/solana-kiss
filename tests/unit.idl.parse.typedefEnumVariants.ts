@@ -76,11 +76,11 @@ it("run", () => {
       MyEnum: {
         variants: {
           "77": "77",
-          Case2: 2,
+          "Case2": 2,
           "1": 1,
-          Case3: { code: 3, fields: [] },
+          "Case3": { code: 3, fields: [] },
           "0": { code: 0 },
-          Case42: 42,
+          "Case42": 42,
         },
       },
     },
