@@ -5,58 +5,82 @@ import { IdlTypePrimitive } from "./IdlTypePrimitive";
 
 /** A reference to a named typedef, optionally parameterised by generic arguments. */
 export type IdlTypeFlatDefined = {
+  /** The camelCase name of the typedef being referenced. */
   name: string;
+  /** Generic type arguments to substitute for the typedef's type parameters, in order. */
   generics: Array<IdlTypeFlat>;
 };
 /** A generic type parameter, referenced by its symbol name. */
 export type IdlTypeFlatGeneric = {
+  /** The symbol name of the generic parameter (e.g. `"T"`). */
   symbol: string;
 };
 /** An optional value whose presence is indicated by a length prefix. */
 export type IdlTypeFlatOption = {
-  prefix: IdlTypePrefix;
+  /** The prefix type encoding option presence (1 = some, 0 = none), or `undefined` for the default `u8`. */
+  prefix: IdlTypePrefix | undefined;
+  /** The inner type of the option when present. */
   content: IdlTypeFlat;
 };
 /** A variable-length sequence of items encoded with a length prefix. */
 export type IdlTypeFlatVec = {
-  prefix: IdlTypePrefix;
+  /** The prefix type encoding the element count, or `undefined` for the default `u32`. */
+  prefix: IdlTypePrefix | undefined;
+  /** The type of each element in the sequence. */
   items: IdlTypeFlat;
 };
 /** A sequence of items terminated by a sentinel value or the end of data. */
 export type IdlTypeFlatLoop = {
+  /** The type of each element in the sequence. */
   items: IdlTypeFlat;
+  /** The termination condition: a specific sentinel `{ value }` or `"end"` meaning end-of-buffer. */
   stop: { value: JsonValue } | "end";
 };
 /** A fixed-length array whose element count is given by another (flat) type expression. */
 export type IdlTypeFlatArray = {
+  /** The type of each element in the array. */
   items: IdlTypeFlat;
+  /** A flat type expression that resolves to the array's fixed element count (e.g. a const literal). */
   length: IdlTypeFlat;
 };
 /** A UTF-8 string encoded with a length prefix. */
 export type IdlTypeFlatString = {
-  prefix: IdlTypePrefix;
+  /** The prefix type encoding the byte length, or `undefined` for the default `u32`. */
+  prefix: IdlTypePrefix | undefined;
 };
 /** A struct type holding an ordered collection of fields. */
 export type IdlTypeFlatStruct = {
+  /** The fields of the struct (nothing/named/unnamed). */
   fields: IdlTypeFlatFields;
 };
 /** An enum type encoded with a discriminant prefix and a set of variants. */
 export type IdlTypeFlatEnum = {
-  prefix: IdlTypePrefix;
+  /** The prefix type encoding the discriminant, or `undefined` for the default `u8`. */
+  prefix: IdlTypePrefix | undefined;
+  /** Ordered list of enum variant definitions. */
   variants: Array<IdlTypeFlatEnumVariant>;
 };
 /** A padding wrapper that skips bytes before and after an inner type. */
-export type IdlTypeFlatPad = {
+export type IdlTypeFlatPadded = {
+  /** Number of bytes to skip before the inner type. */
   before: number;
-  end: number;
+  /**
+   * Minimum total byte size of the padded region (inner type + before padding).
+   * If the encoded inner type plus leading padding is smaller than this, trailing
+   * bytes are skipped until the minimum is reached.
+   */
+  minSize: number;
+  /** The inner type wrapped by this padding. */
   content: IdlTypeFlat;
 };
 /** A raw byte blob of fixed content used as a discriminator or sentinel. */
 export type IdlTypeFlatBlob = {
+  /** The fixed byte sequence to match or skip during encoding/decoding. */
   bytes: Uint8Array;
 };
 /** A compile-time constant numeric literal used as an array length or similar value. */
 export type IdlTypeFlatConst = {
+  /** The numeric value of this constant literal. */
   literal: number;
 };
 
@@ -70,7 +94,7 @@ type IdlTypeFlatDiscriminant =
   | "string"
   | "struct"
   | "enum"
-  | "pad"
+  | "padded"
   | "blob"
   | "const"
   | "primitive";
@@ -84,7 +108,7 @@ type IdlTypeFlatContent =
   | IdlTypeFlatString
   | IdlTypeFlatStruct
   | IdlTypeFlatEnum
-  | IdlTypeFlatPad
+  | IdlTypeFlatPadded
   | IdlTypeFlatBlob
   | IdlTypeFlatConst
   | IdlTypePrimitive;
@@ -142,9 +166,9 @@ export class IdlTypeFlat {
   public static enum(value: IdlTypeFlatEnum): IdlTypeFlat {
     return new IdlTypeFlat("enum", value);
   }
-  /** Creates a `pad` variant that wraps an inner type with byte padding. */
-  public static pad(value: IdlTypeFlatPad): IdlTypeFlat {
-    return new IdlTypeFlat("pad", value);
+  /** Creates a `padded` variant that wraps an inner type with byte padding. */
+  public static padded(value: IdlTypeFlatPadded): IdlTypeFlat {
+    return new IdlTypeFlat("padded", value);
   }
   /** Creates a `blob` variant for a raw byte sequence. */
   public static blob(value: IdlTypeFlatBlob): IdlTypeFlat {
@@ -184,7 +208,7 @@ export class IdlTypeFlat {
       string: (value: IdlTypeFlatString, p1: P1, p2: P2) => T;
       struct: (value: IdlTypeFlatStruct, p1: P1, p2: P2) => T;
       enum: (value: IdlTypeFlatEnum, p1: P1, p2: P2) => T;
-      pad: (value: IdlTypeFlatPad, p1: P1, p2: P2) => T;
+      padded: (value: IdlTypeFlatPadded, p1: P1, p2: P2) => T;
       blob: (value: IdlTypeFlatBlob, p1: P1, p2: P2) => T;
       const: (value: IdlTypeFlatConst, p1: P1, p2: P2) => T;
       primitive: (value: IdlTypePrimitive, p1: P1, p2: P2) => T;
@@ -198,19 +222,24 @@ export class IdlTypeFlat {
 
 /** A named field within a struct or enum variant, carrying a name, docs, and its flat type. */
 export type IdlTypeFlatFieldNamed = {
+  /** The camelCase name of the field. */
   name: string;
+  /** Human-readable documentation strings attached to this field, or `undefined`. */
   docs: IdlDocs;
+  /** The unresolved flat type of this field. */
   content: IdlTypeFlat;
 };
 /** An unnamed (tuple-style) field within a struct or enum variant, carrying docs and its flat type. */
 export type IdlTypeFlatFieldUnnamed = {
+  /** Human-readable documentation strings attached to this field, or `undefined`. */
   docs: IdlDocs;
+  /** The unresolved flat type of this positional field. */
   content: IdlTypeFlat;
 };
 
 type IdlTypeFlatFieldsDiscriminant = "nothing" | "named" | "unnamed";
 type IdlTypeFlatFieldsContent =
-  | null
+  | Array<never>
   | Array<IdlTypeFlatFieldNamed>
   | Array<IdlTypeFlatFieldUnnamed>;
 
@@ -232,7 +261,7 @@ export class IdlTypeFlatFields {
 
   /** Creates a `nothing` variant representing a unit (no fields). */
   public static nothing(): IdlTypeFlatFields {
-    return new IdlTypeFlatFields("nothing", null);
+    return new IdlTypeFlatFields("nothing", []);
   }
   /** Creates a `named` variant wrapping a list of named fields. */
   public static named(value: Array<IdlTypeFlatFieldNamed>): IdlTypeFlatFields {
@@ -250,39 +279,29 @@ export class IdlTypeFlatFields {
    * @param visitor - An object with one handler per variant (nothing/named/unnamed).
    * @param p1 - First context parameter forwarded to the visitor.
    * @param p2 - Second context parameter forwarded to the visitor.
+   * @returns The value returned by the matched visitor branch.
    */
   public traverse<P1, P2, T>(
     visitor: {
-      nothing: (value: null, p1: P1, p2: P2) => T;
+      nothing: (value: Array<never>, p1: P1, p2: P2) => T;
       named: (value: Array<IdlTypeFlatFieldNamed>, p1: P1, p2: P2) => T;
       unnamed: (value: Array<IdlTypeFlatFieldUnnamed>, p1: P1, p2: P2) => T;
     },
     p1: P1,
     p2: P2,
   ) {
-    switch (this.discriminant) {
-      case "nothing":
-        return visitor.nothing(this.content as null, p1, p2);
-      case "named":
-        return visitor.named(
-          this.content as Array<IdlTypeFlatFieldNamed>,
-          p1,
-          p2,
-        );
-      case "unnamed":
-        return visitor.unnamed(
-          this.content as Array<IdlTypeFlatFieldUnnamed>,
-          p1,
-          p2,
-        );
-    }
+    return visitor[this.discriminant](this.content as any, p1, p2);
   }
 }
 
 /** A single variant of a flat (unresolved) enum type, with an optional name, optional code, docs, and fields. */
 export type IdlTypeFlatEnumVariant = {
+  /** The name of this variant, or `undefined` for anonymous/indexed variants. */
   name: string | undefined;
+  /** The explicit numeric discriminant code for this variant, or `undefined` to use the positional index. */
   code: bigint | undefined;
+  /** Human-readable documentation strings attached to this variant, or `undefined`. */
   docs: IdlDocs;
+  /** The fields of this variant (unit, named, or unnamed). */
   fields: IdlTypeFlatFields;
 };

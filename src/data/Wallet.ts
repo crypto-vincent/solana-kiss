@@ -1,17 +1,26 @@
 import { Pubkey, pubkeyFromBase58 } from "./Pubkey";
 import { rxBehaviourSubject, RxObservable } from "./Rx";
 import { Signature, signatureFromBytes } from "./Signature";
-import { TransactionPacket } from "./Transaction";
+import { TransactionPacket, transactionPacketFromBytes } from "./Transaction";
 
 /**
  * Represents a Wallet Standard–compatible wallet provider plugin for Solana.
  * Exposes an observable list of connected accounts along with connect and disconnect methods.
  */
 export type WalletProvider = {
+  /** Human-readable display name of the wallet (e.g. `"Phantom"`). */
   name: string;
+  /** Data-URL icon image for the wallet, used for display in wallet-selection UIs. */
   icon: string;
+  /** Observable list of currently connected {@link WalletAccount}s. Updates whenever the wallet state changes. */
   accounts: RxObservable<Array<WalletAccount>>;
+  /**
+   * Requests the user to connect their wallet and grant access to one or more accounts.
+   * @param options.silent - When `true`, skips the approval dialog if the wallet is already connected.
+   * @returns A promise resolving to the list of approved {@link WalletAccount}s.
+   */
   connect: (options?: { silent?: boolean }) => Promise<Array<WalletAccount>>;
+  /** Disconnects the wallet and revokes account access. */
   disconnect: () => Promise<void>;
 };
 
@@ -20,8 +29,20 @@ export type WalletProvider = {
  * on behalf of its associated Solana address.
  */
 export type WalletAccount = {
+  /** The public key of this account on the Solana network. */
   address: Pubkey;
+  /**
+   * Signs an arbitrary message with the account's private key.
+   * @param message - The raw bytes to sign.
+   * @returns A promise resolving to the {@link Signature}.
+   */
   signMessage: (message: Uint8Array) => Promise<Signature>;
+  /**
+   * Signs a fully compiled transaction packet with the account's private key,
+   * filling in the appropriate signature slot.
+   * @param transactionPacket - The unsigned (or partially signed) transaction.
+   * @returns A promise resolving to the updated {@link TransactionPacket}.
+   */
   signTransaction: (
     transactionPacket: TransactionPacket,
   ) => Promise<TransactionPacket>;
@@ -246,6 +267,6 @@ function walletAccountSignTransactionFactory(
     if (!(signedTransactionBytes instanceof Uint8Array)) {
       throw new Error("Invalid transaction returned from wallet provider");
     }
-    return signedTransactionBytes as TransactionPacket;
+    return transactionPacketFromBytes(signedTransactionBytes);
   };
 }

@@ -16,7 +16,10 @@ import {
   JsonObject,
 } from "../data/Json";
 import { Pubkey, pubkeyDefault } from "../data/Pubkey";
-import { TransactionPacket } from "../data/Transaction";
+import {
+  TransactionPacket,
+  transactionPacketToBytes,
+} from "../data/Transaction";
 import { RpcHttp } from "./RpcHttp";
 
 /**
@@ -27,8 +30,8 @@ import { RpcHttp } from "./RpcHttp";
  * @param self - The {@link RpcHttp} client to use.
  * @param transactionPacket - The {@link TransactionPacket} to simulate.
  * @param options - Optional simulation options.
- * @param options.verifySignaturesAndBlockHash - When `true` (default), verifies signatures and the blockhash before simulation.
- *   When `false`, the blockhash is replaced with a recent one and signature verification is skipped.
+ * @param options.verifySignaturesAndBlockHash - When `true` (default), verifies signatures and the block hash before simulation.
+ *   When `false`, the block hash is replaced with a recent one and signature verification is skipped.
  * @param options.simulatedAccountsAddresses - An optional set of up to 3 {@link Pubkey} account addresses whose post-simulation
  *   state should be returned.
  * @returns An object containing:
@@ -40,7 +43,7 @@ export async function rpcHttpSimulateTransaction(
   self: RpcHttp,
   transactionPacket: TransactionPacket,
   options?: {
-    verifySignaturesAndBlockHash?: boolean; // TODO - this could be split into 2 flags ?
+    verifySignaturesAndBlockHash?: boolean;
     simulatedAccountsAddresses?: Set<Pubkey>;
   },
 ): Promise<{
@@ -66,7 +69,7 @@ export async function rpcHttpSimulateTransaction(
   const result = resultJsonDecoder(
     await self(
       "simulateTransaction",
-      [base64Encode(transactionPacket as Uint8Array)],
+      [base64Encode(transactionPacketToBytes(transactionPacket))],
       {
         encoding: "base64",
         accounts: {

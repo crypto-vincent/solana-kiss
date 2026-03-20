@@ -1,9 +1,8 @@
 import { expect, it } from "@jest/globals";
 import {
+  base58Encode,
   blockHashFromBytes,
   blockSlotFromNumber,
-  casingLosslessConvertToCamel,
-  casingLosslessConvertToSnake,
   JsonCodec,
   jsonCodecArrayToArray,
   jsonCodecArrayToObject,
@@ -23,11 +22,13 @@ import {
   jsonCodecPubkey,
   jsonCodecSignature,
   jsonCodecString,
+  jsonCodecTransactionHandle,
   JsonValue,
   pubkeyFromBase58,
   pubkeyNewDummy,
   pubkeyToBase58,
   signatureFromBytes,
+  transactionHandleFromBase58,
 } from "../src";
 
 it("run", async () => {
@@ -40,35 +41,6 @@ it("run", async () => {
       encoded: { helloWorld: 1 },
       codec: jsonCodecObjectToObject({ helloWorld: jsonCodecNumber }),
       decoded: { helloWorld: 1 },
-    },
-    {
-      encoded: { helloWorld: 2 },
-      codec: jsonCodecObjectToObject({ helloWorld: jsonCodecNumber }, {}),
-      decoded: { helloWorld: 2 },
-    },
-    {
-      encoded: { hello_world: 3 },
-      codec: jsonCodecObjectToObject(
-        { helloWorld: jsonCodecNumber },
-        { keysEncoding: casingLosslessConvertToSnake },
-      ),
-      decoded: { helloWorld: 3 },
-    },
-    {
-      encoded: { helloWorld: 4 },
-      codec: jsonCodecObjectToObject(
-        { hello_world: jsonCodecNumber },
-        { keysEncoding: casingLosslessConvertToCamel },
-      ),
-      decoded: { hello_world: 4 },
-    },
-    {
-      encoded: { encoded_key: 5 },
-      codec: jsonCodecObjectToObject(
-        { decodedKey: jsonCodecNumber },
-        { keysEncoding: { decodedKey: "encoded_key" } },
-      ),
-      decoded: { decodedKey: 5 },
     },
     {
       encoded: [6, 7],
@@ -90,25 +62,28 @@ it("run", async () => {
     },
     {
       encoded: {
-        datetime: now.toISOString(),
+        date: now.toISOString(),
         pubkey: address.toString(),
-        signature: signature.toString(),
+        signature: base58Encode(signature as Uint8Array),
         blockHash: blockHash.toString(),
         blockSlot: 9,
+        transactionHandle: transactionHandle.toString(),
       },
       codec: jsonCodecObjectToObject({
-        datetime: jsonCodecDateTime,
+        date: jsonCodecDateTime,
         pubkey: jsonCodecPubkey,
         signature: jsonCodecSignature,
         blockHash: jsonCodecBlockHash,
         blockSlot: jsonCodecBlockSlot,
+        transactionHandle: jsonCodecTransactionHandle,
       }),
       decoded: {
-        datetime: now,
+        date: now,
         pubkey: address,
         signature,
         blockHash,
         blockSlot: blockSlotFromNumber(9),
+        transactionHandle,
       },
     },
     {
@@ -227,3 +202,6 @@ const now = new Date();
 const address = pubkeyNewDummy();
 const signature = signatureFromBytes(new Uint8Array(64).fill(42));
 const blockHash = blockHashFromBytes(new Uint8Array(32).fill(24));
+const transactionHandle = transactionHandleFromBase58(
+  base58Encode(new Uint8Array(64).fill(77)),
+);

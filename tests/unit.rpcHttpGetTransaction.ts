@@ -7,16 +7,18 @@ import {
   InstructionRequest,
   pubkeyFromBase58,
   rpcHttpGetTransaction,
-  TransactionHandle,
 } from "../src";
 
-function rpcHttp() {
-  return require("./fixtures/RpcHttpGetTransaction.json");
+function rpcHttp(method: string) {
+  if (method === "getTransaction") {
+    return require("./fixtures/solana.getTransaction.json");
+  }
+  throw new Error(`Unexpected method ${method}`);
 }
 
 it("run", async () => {
   const { transactionRequest, executionReport, executionFlow } = expectDefined(
-    await rpcHttpGetTransaction(rpcHttp, "!" as TransactionHandle),
+    await rpcHttpGetTransaction(rpcHttp, null as any),
   );
   // Check basic stuff about the transaction
   expect(executionReport.blockTime?.toISOString()).toStrictEqual(

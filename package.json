@@ -1,6 +1,6 @@
 {
   "name": "solana-kiss",
-  "version": "0.2.17",
+  "version": "0.2.20",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "devDependencies": {
@@ -21,8 +21,8 @@
   },
   "scripts": {
     "format": "prettier --write src && prettier --write tests",
-    "check": "tsc --noEmit --skipLibCheck && prettier --check src && prettier --check tests/*.ts",
-    "tests": "jest",
+    "checks": "tsc --noEmit --skipLibCheck && prettier --check src && prettier --check tests/*.ts",
+    "tests": "jest --config jest.config.ts",
     "build": "tsup src/index.ts --dts --clean --minify --sourcemap --out-dir dist",
     "docs": "typedoc"
   }

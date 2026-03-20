@@ -14,15 +14,15 @@ it("run", () => {
         discriminator: [22],
         fields: [
           { name: "pad_before", padded: { before: 3, type: "u8" } },
-          { name: "pad_end_under", padded: { end: 3, type: ["u8", 2] } },
-          { name: "pad_end_over", padded: { end: 3, type: ["u8", 4] } },
+          { name: "pad_end_under", padded: { minSize: 3, type: ["u8", 2] } },
+          { name: "pad_end_over", padded: { minSize: 3, type: ["u8", 4] } },
           {
             name: "pad_combo_under",
-            padded: { before: 1, end: 3, type: ["u8", 2] },
+            padded: { before: 1, minSize: 3, type: ["u8", 2] },
           },
           {
             name: "pad_combo_over",
-            padded: { before: 1, end: 3, type: ["u8", 4] },
+            padded: { before: 1, minSize: 3, type: ["u8", 4] },
           },
         ],
       },
@@ -34,15 +34,15 @@ it("run", () => {
         discriminator: [22],
         fields: [
           { name: "pad_before", padded: { before: 3, type: "u8" } },
-          { name: "pad_end_under", padded: { end: 3, array: ["u8", 2] } },
-          { name: "pad_end_over", padded: { end: 3, array: ["u8", 4] } },
+          { name: "pad_end_under", padded: { minSize: 3, array: ["u8", 2] } },
+          { name: "pad_end_over", padded: { minSize: 3, array: ["u8", 4] } },
           {
             name: "pad_combo_under",
-            padded: { before: 1, end: 3, type: ["u8", 2] },
+            padded: { before: 1, minSize: 3, type: ["u8", 2] },
           },
           {
             name: "pad_combo_over",
-            padded: { before: 1, end: 3, type: ["u8", 4] },
+            padded: { before: 1, minSize: 3, type: ["u8", 4] },
           },
         ],
       },

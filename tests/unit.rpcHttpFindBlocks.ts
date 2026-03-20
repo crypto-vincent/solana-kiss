@@ -4,8 +4,11 @@ const highBlockSlot = blockSlotFromNumber(9);
 const lowBlockSlot = blockSlotFromNumber(3);
 const blockDistance = 4;
 
-function rpcHttp() {
-  return require("./fixtures/RpcHttpGetBlocks.json");
+function rpcHttp(method: string) {
+  if (method === "getBlocks") {
+    return require("./fixtures/solana.getBlocks.json");
+  }
+  throw new Error(`Unexpected method ${method}`);
 }
 
 it("run", async () => {

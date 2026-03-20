@@ -9,5 +9,6 @@
   "tabWidth": 2,
   "trailingComma": "all",
   "useTabs": false,
+  "quoteProps": "consistent",
   "plugins": ["prettier-plugin-organize-imports"]
 }

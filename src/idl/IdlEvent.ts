@@ -25,10 +25,18 @@ import {
  * and associated type information used for encoding and decoding event data.
  */
 export type IdlEvent = {
+  /** The camelCase name of the event as declared in the IDL. */
   name: string;
+  /** Human-readable documentation strings attached to this event, or `undefined`. */
   docs: IdlDocs;
+  /**
+   * The byte sequence used to identify this event type at the start of its data.
+   * Defaults to the first 8 bytes of SHA-256(`"event:<name>"`).
+   */
   discriminator: Uint8Array;
+  /** The unresolved flat type representation of the event's data layout. */
   typeFlat: IdlTypeFlat;
+  /** The fully-resolved type used for encoding and decoding. */
   typeFull: IdlTypeFull;
 };
 
@@ -41,12 +49,9 @@ export type IdlEvent = {
  */
 export function idlEventEncode(self: IdlEvent, eventPayload: JsonValue) {
   return {
-    eventData: idlTypeFullEncode(
-      self.typeFull,
-      eventPayload,
-      true,
-      self.discriminator,
-    ),
+    eventData: idlTypeFullEncode(self.typeFull, eventPayload, {
+      discriminator: self.discriminator,
+    }),
   };
 }
 

@@ -22,71 +22,76 @@ import {
   IdlTypeFullFieldUnnamed,
   IdlTypeFullLoop,
   IdlTypeFullOption,
-  IdlTypeFullPad,
+  IdlTypeFullPadded,
   IdlTypeFullString,
   IdlTypeFullStruct,
   IdlTypeFullTypedef,
   IdlTypeFullVec,
 } from "./IdlTypeFull";
-import { idlTypePrefixEncode } from "./IdlTypePrefix";
+import {
+  IdlTypePrefix,
+  idlTypePrefixDefaultEnum,
+  idlTypePrefixDefaultOption,
+  idlTypePrefixDefaultString,
+  idlTypePrefixDefaultVec,
+  idlTypePrefixEncode,
+} from "./IdlTypePrefix";
 import { IdlTypePrimitive, idlTypePrimitiveEncode } from "./IdlTypePrimitive";
 import { idlUtilsBytesJsonDecoder } from "./IdlUtils";
 
 /**
- * Encodes a JSON-compatible value into a binary `Uint8Array` using the given
- * fully-resolved IDL type. An optional discriminator prefix (e.g., an Anchor
- * account discriminator) can be prepended to the output.
+ * Encodes a JSON-compatible value into a binary `Uint8Array`.
+ * An optional discriminator can be prepended to the output.
  *
  * @param self - The full IDL type describing the binary layout.
  * @param value - The JSON-compatible value to encode.
- * @param prefixed - Whether length/discriminant prefixes should be written.
- * @param discriminator - Optional byte sequence to prepend before the encoded data.
+ * @param options - Optional encoding options, including:
+ * @param options.discriminator - An optional byte sequence to prepend before the encoded data.
+ * @param options.blobMode - If true, default to zero length prefix for option, vec, enum and string (default: false).
  * @returns The encoded binary representation.
  */
 export function idlTypeFullEncode(
   self: IdlTypeFull,
   value: JsonValue,
-  prefixed: boolean,
-  discriminator?: Uint8Array,
+  options?: { discriminator?: Uint8Array; blobMode?: boolean },
 ): Uint8Array {
   const blobs = new Array<Uint8Array>();
-  if (discriminator !== undefined) {
-    blobs.push(discriminator);
+  if (options?.discriminator !== undefined) {
+    blobs.push(options.discriminator);
   }
-  typeFullEncode(self, value, prefixed, blobs);
+  typeFullEncode(self, value, blobs, !options?.blobMode);
   return blobsFlatten(blobs);
 }
 
 /**
- * Encodes a JSON-compatible value into a binary `Uint8Array` using the given
- * fully-resolved IDL fields (named, unnamed, or nothing). An optional
- * discriminator prefix can be prepended to the output.
+ * Encodes a JSON-compatible value into a binary `Uint8Array`.
+ * An optional discriminator can be prepended to the output.
  *
  * @param self - The full IDL fields describing the binary layout.
  * @param value - The JSON-compatible value to encode.
- * @param prefixed - Whether length/discriminant prefixes should be written.
- * @param discriminator - Optional byte sequence to prepend before the encoded data.
+ * @param options - Optional encoding options, including:
+ * @param options.discriminator - An optional byte sequence to prepend before the encoded data.
+ * @param options.blobMode - If true, default to zero length prefix for option, vec, enum and string (default: false).
  * @returns The encoded binary representation.
  */
 export function idlTypeFullFieldsEncode(
   self: IdlTypeFullFields,
   value: JsonValue,
-  prefixed: boolean,
-  discriminator?: Uint8Array,
+  options?: { discriminator?: Uint8Array; blobMode?: boolean },
 ): Uint8Array {
   const blobs = new Array<Uint8Array>();
-  if (discriminator !== undefined) {
-    blobs.push(discriminator);
+  if (options?.discriminator !== undefined) {
+    blobs.push(options.discriminator);
   }
-  typeFullFieldsEncode(self, value, prefixed, blobs);
+  typeFullFieldsEncode(self, value, blobs, !options?.blobMode);
   return blobsFlatten(blobs);
 }
 
 function typeFullEncode(
   self: IdlTypeFull,
   value: JsonValue,
-  prefixed: boolean,
   blobs: Array<Uint8Array>,
+  prefixed: boolean,
 ) {
   self.traverse(visitorEncode, value, blobs, prefixed);
 }
@@ -94,8 +99,8 @@ function typeFullEncode(
 function typeFullFieldsEncode(
   self: IdlTypeFullFields,
   value: JsonValue,
-  prefixed: boolean,
   blobs: Array<Uint8Array>,
+  prefixed: boolean,
 ) {
   self.traverse(visitorFieldsEncode, value, blobs, prefixed);
 }
@@ -108,7 +113,7 @@ const visitorEncode = {
     prefixed: boolean,
   ) => {
     withErrorContext(`Encode: Typedef: ${self.name}`, () => {
-      return typeFullEncode(self.content, value, prefixed, blobs);
+      return typeFullEncode(self.content, value, blobs, prefixed);
     });
   },
   option: (
@@ -117,16 +122,14 @@ const visitorEncode = {
     blobs: Array<Uint8Array>,
     prefixed: boolean,
   ) => {
+    const prefix =
+      self.prefix ?? (prefixed ? idlTypePrefixDefaultOption : IdlTypePrefix.u0);
     if (value === null) {
-      if (prefixed) {
-        idlTypePrefixEncode(self.prefix, 0n, blobs);
-      }
+      idlTypePrefixEncode(prefix, 0n, blobs);
       return;
     }
-    if (prefixed) {
-      idlTypePrefixEncode(self.prefix, 1n, blobs);
-    }
-    typeFullEncode(self.content, value, prefixed, blobs);
+    idlTypePrefixEncode(prefix, 1n, blobs);
+    typeFullEncode(self.content, value, blobs, prefixed);
   },
   vec: (
     self: IdlTypeFullVec,
@@ -134,20 +137,18 @@ const visitorEncode = {
     blobs: Array<Uint8Array>,
     prefixed: boolean,
   ) => {
+    const prefix =
+      self.prefix ?? (prefixed ? idlTypePrefixDefaultVec : IdlTypePrefix.u0);
     if (self.items.isPrimitive(IdlTypePrimitive.u8)) {
       const bytes = idlUtilsBytesJsonDecoder(value);
-      if (prefixed) {
-        idlTypePrefixEncode(self.prefix, BigInt(bytes.length), blobs);
-      }
+      idlTypePrefixEncode(prefix, BigInt(bytes.length), blobs);
       blobs.push(bytes);
       return;
     }
     const array = jsonCodecArray.decoder(value);
-    if (prefixed) {
-      idlTypePrefixEncode(self.prefix, BigInt(array.length), blobs);
-    }
+    idlTypePrefixEncode(prefix, BigInt(array.length), blobs);
     for (const item of array) {
-      typeFullEncode(self.items, item, prefixed, blobs);
+      typeFullEncode(self.items, item, blobs, prefixed);
     }
   },
   loop: (
@@ -158,10 +159,10 @@ const visitorEncode = {
   ) => {
     const array = jsonCodecArray.decoder(value);
     for (const item of array) {
-      typeFullEncode(self.items, item, prefixed, blobs);
+      typeFullEncode(self.items, item, blobs, prefixed);
     }
     if (self.stop !== "end") {
-      typeFullEncode(self.items, self.stop.value, prefixed, blobs);
+      typeFullEncode(self.items, self.stop.value, blobs, prefixed);
     }
   },
   array: (
@@ -187,7 +188,7 @@ const visitorEncode = {
       );
     }
     for (const item of array) {
-      typeFullEncode(self.items, item, prefixed, blobs);
+      typeFullEncode(self.items, item, blobs, prefixed);
     }
   },
   string: (
@@ -196,10 +197,10 @@ const visitorEncode = {
     blobs: Array<Uint8Array>,
     prefixed: boolean,
   ) => {
+    const prefix =
+      self.prefix ?? (prefixed ? idlTypePrefixDefaultString : IdlTypePrefix.u0);
     const bytes = utf8Encode(jsonCodecString.decoder(value));
-    if (prefixed) {
-      idlTypePrefixEncode(self.prefix, BigInt(bytes.length), blobs);
-    }
+    idlTypePrefixEncode(prefix, BigInt(bytes.length), blobs);
     blobs.push(bytes);
   },
   struct: (
@@ -208,7 +209,7 @@ const visitorEncode = {
     blobs: Array<Uint8Array>,
     prefixed: boolean,
   ) => {
-    typeFullFieldsEncode(self.fields, value, prefixed, blobs);
+    typeFullFieldsEncode(self.fields, value, blobs, prefixed);
   },
   enum: (
     self: IdlTypeFullEnum,
@@ -227,8 +228,11 @@ const visitorEncode = {
       value: JsonValue,
     ) {
       withErrorContext(`Encode: Enum Variant: ${variant.name}`, () => {
-        idlTypePrefixEncode(self.prefix, variant.code, blobs);
-        typeFullFieldsEncode(variant.fields, value, prefixed, blobs);
+        const prefix =
+          self.prefix ??
+          (prefixed ? idlTypePrefixDefaultEnum : IdlTypePrefix.u0);
+        idlTypePrefixEncode(prefix, variant.code, blobs);
+        typeFullFieldsEncode(variant.fields, value, blobs, prefixed);
       });
     }
     const number = jsonAsNumber(value);
@@ -270,8 +274,8 @@ const visitorEncode = {
       `Expected enum value to be: number, string or object (found: ${jsonPreview(value)})`,
     );
   },
-  pad: (
-    self: IdlTypeFullPad,
+  padded: (
+    self: IdlTypeFullPadded,
     value: JsonValue,
     blobs: Array<Uint8Array>,
     prefixed: boolean,
@@ -281,21 +285,16 @@ const visitorEncode = {
     }
     let contentSize = 0;
     const contentBlobs = new Array<Uint8Array>();
-    typeFullEncode(self.content, value, prefixed, contentBlobs);
+    typeFullEncode(self.content, value, contentBlobs, prefixed);
     for (const contentBlob of contentBlobs) {
       blobs.push(contentBlob);
       contentSize += contentBlob.length;
     }
-    if (self.end > contentSize) {
-      blobs.push(new Uint8Array(self.end - contentSize));
+    if (self.minSize > contentSize) {
+      blobs.push(new Uint8Array(self.minSize - contentSize));
     }
   },
-  blob: (
-    self: IdlTypeFullBlob,
-    value: JsonValue,
-    blobs: Array<Uint8Array>,
-    _prefixed: boolean,
-  ) => {
+  blob: (self: IdlTypeFullBlob, value: JsonValue, blobs: Array<Uint8Array>) => {
     if (value !== null) {
       throw new Error("Expected value to be null for blob type");
     }
@@ -312,12 +311,7 @@ const visitorEncode = {
 };
 
 const visitorFieldsEncode = {
-  nothing: (
-    _self: null,
-    value: JsonValue,
-    _blobs: Array<Uint8Array>,
-    _prefixed: boolean,
-  ) => {
+  nothing: (_self: {}, value: JsonValue, _blobs: Array<Uint8Array>) => {
     if (value !== null) {
       throw new Error("Expected value to be null for empty fields");
     }
@@ -334,7 +328,7 @@ const visitorFieldsEncode = {
       const fieldName = objectGuessIntendedKey(object, field.name);
       const fieldValue = objectGetOwnProperty(object, fieldName);
       withErrorContext(`Encode: Field: ${fieldName}`, () => {
-        typeFullEncode(field.content, fieldValue ?? null, prefixed, blobs);
+        typeFullEncode(field.content, fieldValue ?? null, blobs, prefixed);
       });
     }
   },
@@ -348,7 +342,7 @@ const visitorFieldsEncode = {
     for (let index = 0; index < self.length; index++) {
       const field = self[index]!;
       withErrorContext(`Encode: Field: Unamed: ${index}`, () => {
-        typeFullEncode(field.content, array[index] ?? null, prefixed, blobs);
+        typeFullEncode(field.content, array[index] ?? null, blobs, prefixed);
       });
     }
   },

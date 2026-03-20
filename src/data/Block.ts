@@ -1,4 +1,4 @@
-import { base58Decode, base58Encode } from "./Base58";
+import { base58BytesLength, base58Decode, base58Encode } from "./Base58";
 import { Branded } from "./Utils";
 
 /** A branded number representing a Solana slot (block height). */
@@ -34,8 +34,7 @@ export const blockHashDefault = blockHashFromBytes(new Uint8Array(32));
  * @throws {Error} If the decoded bytes are not exactly 32 bytes.
  */
 export function blockHashFromBase58(base58: string): BlockHash {
-  const bytes = base58Decode(base58);
-  blockHashBytesCheck(bytes);
+  blockHashBytesLengthCheck(base58BytesLength(base58));
   return base58 as BlockHash;
 }
 
@@ -46,9 +45,8 @@ export function blockHashFromBase58(base58: string): BlockHash {
  * @throws {Error} If `bytes` is not exactly 32 bytes.
  */
 export function blockHashFromBytes(bytes: Uint8Array): BlockHash {
-  blockHashBytesCheck(bytes);
-  const blockHash = base58Encode(bytes);
-  return blockHash as BlockHash;
+  blockHashBytesLengthCheck(bytes.length);
+  return base58Encode(bytes) as BlockHash;
 }
 
 /**
@@ -58,9 +56,7 @@ export function blockHashFromBytes(bytes: Uint8Array): BlockHash {
  * @throws {Error} If the decoded bytes are not exactly 32 bytes.
  */
 export function blockHashToBytes(self: BlockHash): Uint8Array {
-  const bytes = base58Decode(self as string);
-  blockHashBytesCheck(bytes);
-  return bytes;
+  return base58Decode(self as string);
 }
 
 /**
@@ -72,10 +68,8 @@ export function blockHashToBase58(self: BlockHash): string {
   return self as string;
 }
 
-function blockHashBytesCheck(bytes: Uint8Array): void {
-  if (bytes.length !== 32) {
-    throw new Error(
-      `BlockHash: Expected block hash spanning 32 bytes (found: ${bytes.length})`,
-    );
+function blockHashBytesLengthCheck(bytesLength: number): void {
+  if (bytesLength !== 32) {
+    throw new Error(`BlockHash: Expected 32 bytes (found: ${bytesLength})`);
   }
 }

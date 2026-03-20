@@ -1,8 +1,11 @@
 import { expect, it } from "@jest/globals";
 import { pubkeyNewDummy, rpcHttpFindAccountTransactions } from "../src";
 
-function rpcHttp() {
-  return require("./fixtures/RpcHttpGetSignaturesForAddress.json");
+function rpcHttp(method: string) {
+  if (method === "getSignaturesForAddress") {
+    return require("./fixtures/solana.getSignaturesForAddress.json");
+  }
+  throw new Error(`Unexpected method ${method}`);
 }
 
 it("run", async () => {

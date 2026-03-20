@@ -3,6 +3,11 @@
  * @typeParam T - The type of values emitted by this observable.
  */
 export type RxObservable<T> = {
+  /**
+   * Registers a listener that will be called whenever a new value is emitted.
+   * @param listener - The callback to invoke on each emitted value.
+   * @returns An {@link RxUnsubscriber} function that removes the listener when called.
+   */
   subscribe: (listener: RxListener<T>) => RxUnsubscriber;
 };
 
@@ -11,6 +16,10 @@ export type RxObservable<T> = {
  * @typeParam T - The type of values this observer emits.
  */
 export type RxObserver<T> = {
+  /**
+   * Pushes a new value to all current subscribers.
+   * @param value - The new value to emit.
+   */
   notify(value: T): void;
 };
 
@@ -19,6 +28,10 @@ export type RxObserver<T> = {
  * @typeParam T - The type of the held value.
  */
 export type RxBehaviour<T> = {
+  /**
+   * Returns the current held value synchronously.
+   * @returns The latest value held by this behaviour subject.
+   */
   get(): T;
 };
 

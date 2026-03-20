@@ -6,7 +6,6 @@ import {
   jsonCodecBase16ToBytes,
   jsonCodecBase58ToBytes,
   jsonCodecBase64ToBytes,
-  jsonCodecBoolean,
   jsonCodecNumber,
   jsonCodecUtf8ToBytes,
   jsonCodecValue,
@@ -15,15 +14,18 @@ import {
   jsonDecoderObjectToObject,
   jsonDecoderOneOfKeys,
   jsonDecoderWrapped,
-  jsonPreview,
+  jsonParse,
   JsonValue,
 } from "../data/Json";
 import { sha256Hash } from "../data/Sha256";
 import { utf8Encode } from "../data/Utf8";
+import { IdlTypedef } from "./IdlTypedef";
 import { IdlTypeFlat } from "./IdlTypeFlat";
 import { idlTypeFlatHydrate } from "./IdlTypeFlatHydrate";
 import { idlTypeFlatParse } from "./IdlTypeFlatParse";
+import { IdlTypeFull } from "./IdlTypeFull";
 import { idlTypeFullEncode } from "./IdlTypeFullEncode";
+import { IdlTypePrimitive } from "./IdlTypePrimitive";
 
 /**
  * A JSON decoder that converts various byte-array representations into a
@@ -44,42 +46,18 @@ export const idlUtilsBytesJsonDecoder = jsonDecoderByType({
       jsonCodecNumber.decoder,
       (n) => new Uint8Array(n),
     ),
-    encode: jsonDecoderWrapped(
+    encoded: jsonDecoderWrapped(
       jsonDecoderObjectToObject({
+        type: idlTypeFlatParse,
         value: jsonCodecValue.decoder,
-        type: jsonDecoderNullable(idlTypeFlatParse),
-        prefixed: jsonDecoderNullable(jsonCodecBoolean.decoder),
       }),
       (info) => {
-        const typeFlat = info.type ?? idlUtilsInferValueTypeFlat(info.value);
-        const typeFull = idlTypeFlatHydrate(typeFlat, new Map(), null);
-        return idlTypeFullEncode(typeFull, info.value, info.prefixed === true);
+        const typeFull = idlTypeFlatHydrate(info.type, new Map(), null);
+        return idlTypeFullEncode(typeFull, info.value, { blobMode: true });
       },
     ),
   }),
 });
-
-/**
- * Infers a flat IDL type for a JSON value that is expected to represent raw
- * bytes. Strings are treated as public keys (`pubkey`); arrays and objects are
- * treated as byte arrays (`bytes`). Throws for unsupported value shapes.
- *
- * @param value - The JSON value whose flat IDL type should be inferred.
- * @returns The inferred {@link IdlTypeFlat}.
- */
-export function idlUtilsInferValueTypeFlat(value: JsonValue): IdlTypeFlat {
-  if (jsonAsString(value) !== undefined) {
-    return idlTypeFlatParse("pubkey");
-  } else if (jsonAsArray(value) !== undefined) {
-    return idlTypeFlatParse("bytes");
-  } else if (jsonAsObject(value) !== undefined) {
-    return idlTypeFlatParse("bytes");
-  } else {
-    throw new Error(
-      `Idl: Unable to infer type of bytes value: ${jsonPreview(value)}`,
-    );
-  }
-}
 
 /**
  * Asserts that a specific byte sequence (`blobBytes`) is present in `data`
@@ -122,7 +100,7 @@ export function idlUtilsExpectBlobAt(
  * @returns The parsed {@link JsonValue}.
  */
 export function idlUtilsJsonRustedParse(jsonRusted: string): JsonValue {
-  return JSON.parse(
+  return jsonParse(
     jsonRusted.replace(
       /"(?:\\.|[^"\\])*"|(-?(?:0|[1-9][0-9_]*)(?:\.[0-9_]+)?(?:[eE][+-]?[0-9_]+)?)/g,
       (match, num) => {
@@ -146,3 +124,63 @@ export function idlUtilsJsonRustedParse(jsonRusted: string): JsonValue {
 export function idlUtilsAnchorDiscriminator(name: string): Uint8Array {
   return sha256Hash([utf8Encode(name)]).slice(0, 8);
 }
+
+/**
+ * Parses a blob value into a structured format with type information.
+ *
+ * @param blobValue - The JSON value representing the blob's value.
+ * @param typedefsIdls - A map of typedefs for resolving type information.
+ * @returns An object containing the parsed blob information.
+ */
+export function idlUtilsBlobTypeValueParse(
+  blobValue: JsonValue,
+  typedefsIdls: Map<string, IdlTypedef>,
+) {
+  const decoded = blobJsonDecoder(blobValue);
+  if (decoded.value === null && decoded.type === null) {
+    return { value: blobValue, typeFull: null };
+  }
+  if (decoded.type === null) {
+    return { value: decoded.value, typeFull: null };
+  }
+  return {
+    value: decoded.value,
+    typeFull: idlTypeFlatHydrate(decoded.type, new Map(), typedefsIdls),
+  };
+}
+
+/**
+ * Infers the type of a blob value based on its structure.
+ * For example, if the value is a JSON array, it infers a vector of bytes.
+ *
+ * @param blobValue - The JSON value representing the blob's value.
+ * @returns The inferred {@link IdlTypeFull} or `null` if the type cannot be inferred.
+ */
+export function idlUtilsBlobValueGuessType(blobValue: JsonValue) {
+  if (jsonAsString(blobValue) !== undefined) {
+    return IdlTypeFull.primitive(IdlTypePrimitive.pubkey);
+  }
+  if (
+    jsonAsArray(blobValue) !== undefined ||
+    jsonAsObject(blobValue) !== undefined
+  ) {
+    const u8 = IdlTypeFull.primitive(IdlTypePrimitive.u8);
+    return IdlTypeFull.vec({ prefix: undefined, items: u8 });
+  }
+  return null;
+}
+
+const blobJsonDecoder = jsonDecoderByType<{
+  value: JsonValue;
+  type: IdlTypeFlat | null;
+}>({
+  null: () => ({ value: null, type: null }),
+  boolean: (boolean) => ({ value: boolean, type: null }),
+  number: (number) => ({ value: number, type: null }),
+  string: (string) => ({ value: string, type: null }),
+  array: (array) => ({ value: array, type: null }),
+  object: jsonDecoderObjectToObject({
+    value: jsonCodecValue.decoder,
+    type: jsonDecoderNullable(idlTypeFlatParse),
+  }),
+});

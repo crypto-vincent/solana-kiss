@@ -1,5 +1,5 @@
 import {
-  jsonCodecSignature,
+  jsonCodecTransactionHandle,
   jsonDecoderArrayToArray,
   jsonDecoderObjectToObject,
 } from "../data/Json";
@@ -65,5 +65,5 @@ export async function rpcHttpFindAccountTransactions(
 }
 
 const resultJsonDecoder = jsonDecoderArrayToArray(
-  jsonDecoderObjectToObject({ signature: jsonCodecSignature.decoder }),
+  jsonDecoderObjectToObject({ signature: jsonCodecTransactionHandle.decoder }),
 );

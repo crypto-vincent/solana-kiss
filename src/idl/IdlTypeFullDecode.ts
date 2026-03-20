@@ -16,18 +16,23 @@ import {
   IdlTypeFullFieldUnnamed,
   IdlTypeFullLoop,
   IdlTypeFullOption,
-  IdlTypeFullPad,
+  IdlTypeFullPadded,
   IdlTypeFullString,
   IdlTypeFullStruct,
   IdlTypeFullTypedef,
   IdlTypeFullVec,
 } from "./IdlTypeFull";
-import { idlTypePrefixDecode } from "./IdlTypePrefix";
+import {
+  idlTypePrefixDecode,
+  idlTypePrefixDefaultEnum,
+  idlTypePrefixDefaultOption,
+  idlTypePrefixDefaultString,
+  idlTypePrefixDefaultVec,
+} from "./IdlTypePrefix";
 import { IdlTypePrimitive, idlTypePrimitiveDecode } from "./IdlTypePrimitive";
 
 /**
- * Decodes binary Solana account data into a JSON-compatible value using the
- * given fully-resolved IDL type.
+ * Decodes a byte array into a JSON-compatible value.
  *
  * @param self - The full IDL type describing the binary layout.
  * @param data - The `DataView` over the raw binary buffer.
@@ -39,12 +44,11 @@ export function idlTypeFullDecode(
   data: DataView,
   dataOffset: number,
 ): [number, JsonValue] {
-  return self.traverse(visitorDecode, data, dataOffset, undefined);
+  return self.traverse(visitorDecode, data, dataOffset, null);
 }
 
 /**
- * Decodes binary Solana account data into a JSON-compatible value using the
- * given fully-resolved IDL fields (named, unnamed, or nothing).
+ * Decodes a byte array into a JSON-compatible value.
  *
  * @param self - The full IDL fields describing the binary layout.
  * @param data - The `DataView` over the raw binary buffer.
@@ -56,7 +60,7 @@ export function idlTypeFullFieldsDecode(
   data: DataView,
   dataOffset: number,
 ): [number, JsonValue] {
-  return self.traverse(visitorFieldsDecode, data, dataOffset, undefined);
+  return self.traverse(visitorFieldsDecode, data, dataOffset, null);
 }
 
 const visitorDecode = {
@@ -76,7 +80,7 @@ const visitorDecode = {
     dataOffset: number,
   ): [number, JsonValue] => {
     let [dataSize, dataPrefix] = idlTypePrefixDecode(
-      self.prefix,
+      self.prefix ?? idlTypePrefixDefaultOption,
       data,
       dataOffset,
     );
@@ -98,7 +102,7 @@ const visitorDecode = {
     dataOffset: number,
   ): [number, JsonValue] => {
     let [dataSize, dataPrefix] = idlTypePrefixDecode(
-      self.prefix,
+      self.prefix ?? idlTypePrefixDefaultVec,
       data,
       dataOffset,
     );
@@ -167,7 +171,7 @@ const visitorDecode = {
     dataOffset: number,
   ): [number, JsonValue] => {
     let [dataSize, dataPrefix] = idlTypePrefixDecode(
-      self.prefix,
+      self.prefix ?? idlTypePrefixDefaultString,
       data,
       dataOffset,
     );
@@ -194,7 +198,7 @@ const visitorDecode = {
       return [0, null];
     }
     let [dataSize, dataPrefix] = idlTypePrefixDecode(
-      self.prefix,
+      self.prefix ?? idlTypePrefixDefaultEnum,
       data,
       dataOffset,
     );
@@ -212,14 +216,14 @@ const visitorDecode = {
       () => idlTypeFullFieldsDecode(variant.fields, data, dataVariantOffset),
     );
     dataSize += dataVariantSize;
-    if (dataVariant === null) {
+    if (self.fieldless) {
       return [dataSize, variant.name];
     } else {
       return [dataSize, { [variant.name]: dataVariant }];
     }
   },
-  pad: (
-    self: IdlTypeFullPad,
+  padded: (
+    self: IdlTypeFullPadded,
     data: DataView,
     dataOffset: number,
   ): [number, JsonValue] => {
@@ -230,7 +234,7 @@ const visitorDecode = {
       data,
       dataContentOffset,
     );
-    dataSize += Math.max(dataContentSize, self.end);
+    dataSize += Math.max(dataContentSize, self.minSize);
     return [dataSize, dataContent];
   },
   blob: (
@@ -265,7 +269,7 @@ const visitorDecode = {
 
 const visitorFieldsDecode = {
   nothing: (
-    _self: null,
+    _self: {},
     _data: DataView,
     _dataOffset: number,
   ): [number, JsonValue] => {

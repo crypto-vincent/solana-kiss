@@ -5,7 +5,6 @@ import {
   IdlTypeFlatFields,
   IdlTypeFull,
   IdlTypeFullFields,
-  IdlTypePrefix,
   IdlTypePrimitive,
 } from "../src";
 
@@ -144,7 +143,7 @@ it("run", () => {
           name: "arg",
           docs: undefined,
           content: IdlTypeFlat.vec({
-            prefix: IdlTypePrefix.u32,
+            prefix: undefined,
             items: IdlTypeFlat.primitive(IdlTypePrimitive.u8),
           }),
         },
@@ -153,7 +152,7 @@ it("run", () => {
         {
           name: "arg",
           content: IdlTypeFull.vec({
-            prefix: IdlTypePrefix.u32,
+            prefix: undefined,
             items: IdlTypeFull.primitive(IdlTypePrimitive.u8),
           }),
         },

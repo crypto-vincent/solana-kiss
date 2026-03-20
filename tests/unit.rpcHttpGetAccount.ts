@@ -5,8 +5,11 @@ import {
   rpcHttpGetAccountWithData,
 } from "../src";
 
-function rpcHttp() {
-  return require("./fixtures/RpcHttpGetAccountInfo.json");
+function rpcHttp(method: string) {
+  if (method === "getAccountInfo") {
+    return require("./fixtures/solana.getAccountInfo.json");
+  }
+  throw new Error(`Unexpected method ${method}`);
 }
 
 it("run", async () => {

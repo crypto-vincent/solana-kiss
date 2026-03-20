@@ -1,9 +1,10 @@
 /**
  * Represents an unsigned integer prefix type used to encode the length or
  * discriminant of variable-size fields (e.g. vec, string, option).
- * The five singleton instances cover u8 through u128.
  */
 export class IdlTypePrefix {
+  /** No prefix case (u0). */
+  public static readonly u0 = new IdlTypePrefix("u0", 0);
   /** 1-byte unsigned prefix (u8). */
   public static readonly u8 = new IdlTypePrefix("u8", 1);
   /** 2-byte unsigned prefix (u16, little-endian). */
@@ -34,6 +35,7 @@ export class IdlTypePrefix {
    */
   public traverse<P1, P2, T>(
     visitor: {
+      u0: (p1: P1, p2: P2) => T;
       u8: (p1: P1, p2: P2) => T;
       u16: (p1: P1, p2: P2) => T;
       u32: (p1: P1, p2: P2) => T;
@@ -79,7 +81,21 @@ export function idlTypePrefixDecode(
   return [self.size, self.traverse(visitorDecode, data, dataOffset)];
 }
 
+/** Default prefix for `option` types. */
+export const idlTypePrefixDefaultOption = IdlTypePrefix.u8;
+/** Default prefix for `vec` types. */
+export const idlTypePrefixDefaultVec = IdlTypePrefix.u32;
+/** Default prefix for `string` types. */
+export const idlTypePrefixDefaultString = IdlTypePrefix.u32;
+/** Default prefix for `enum` types. */
+export const idlTypePrefixDefaultEnum = IdlTypePrefix.u8;
+
 const visitorEncode = {
+  u0: (_blob: Uint8Array, value: bigint) => {
+    if (value < 0n) {
+      throw new Error(`Value out of bounds for u0: ${value}`);
+    }
+  },
   u8: (blob: Uint8Array, value: bigint) => {
     if (value < 0n || value > 0xffn) {
       throw new Error(`Value out of bounds for u8: ${value}`);
@@ -118,6 +134,9 @@ const visitorEncode = {
 };
 
 const visitorDecode = {
+  u0: () => {
+    throw new Error("Cannot decode u0 prefix");
+  },
   u8: (data: DataView, dataOffset: number) => {
     return BigInt(data.getUint8(dataOffset));
   },

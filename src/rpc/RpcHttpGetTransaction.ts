@@ -13,14 +13,20 @@ import {
   jsonCodecPubkey,
   jsonCodecSignature,
   jsonCodecString,
+  JsonDecoder,
   jsonDecoderArrayToArray,
   jsonDecoderByType,
   jsonDecoderNullable,
   jsonDecoderObjectToObject,
+  jsonDecoderWrapped,
   JsonObject,
 } from "../data/Json";
 import { Pubkey, pubkeyFromBase58 } from "../data/Pubkey";
-import { TransactionHandle, TransactionRequest } from "../data/Transaction";
+import {
+  TransactionHandle,
+  transactionHandleToBase58,
+  TransactionRequest,
+} from "../data/Transaction";
 import { RpcHttp } from "./RpcHttp";
 
 /**
@@ -30,7 +36,7 @@ import { RpcHttp } from "./RpcHttp";
  * @param self - The {@link RpcHttp} client to use.
  * @param transactionHandle - The {@link TransactionHandle} (transaction signature) to look up.
  * @param options - Optional fetch options.
- * @param options.skipExecutionFlow - When `true`, skips parsing the program invocation call-stack
+ * @param options.skipExecutionFlowParsing - When `true`, skips parsing the program invocation call-stack
  *   from the transaction logs, leaving `executionFlow` as `undefined`.
  * @returns An object containing `transactionRequest` ({@link TransactionRequest}),
  *   `executionReport` ({@link ExecutionReport}), and `executionFlow` ({@link ExecutionFlow}),
@@ -39,7 +45,7 @@ import { RpcHttp } from "./RpcHttp";
 export async function rpcHttpGetTransaction(
   self: RpcHttp,
   transactionHandle: TransactionHandle,
-  options?: { skipExecutionFlow?: boolean },
+  options?: { skipExecutionFlowParsing?: boolean },
 ): Promise<
   | {
       transactionRequest: TransactionRequest;
@@ -49,10 +55,11 @@ export async function rpcHttpGetTransaction(
   | undefined
 > {
   const result = resultJsonDecoder(
-    await self("getTransaction", [transactionHandle], {
-      encoding: "json",
-      maxSupportedTransactionVersion: 0,
-    }),
+    await self(
+      "getTransaction",
+      [transactionHandleToBase58(transactionHandle)],
+      { encoding: "json", maxSupportedTransactionVersion: 0 },
+    ),
   );
   if (result === null) {
     return undefined;
@@ -91,7 +98,7 @@ export async function rpcHttpGetTransaction(
     chargedFeesLamports: meta.fee ? BigInt(meta.fee) : undefined,
   };
   if (
-    options?.skipExecutionFlow ||
+    options?.skipExecutionFlowParsing ||
     meta.innerInstructions === null ||
     meta.logMessages === null
   ) {
@@ -384,24 +391,25 @@ function parseTransactionInvocations(
   return { logIndex };
 }
 
-const compiledInstructionsJsonDecoder = jsonDecoderArrayToArray(
-  jsonDecoderObjectToObject(
-    {
-      stackHeight: jsonCodecNumber.decoder,
-      programIndex: jsonCodecNumber.decoder,
-      accountsIndexes: jsonDecoderArrayToArray(jsonCodecNumber.decoder),
-      dataBase58: jsonCodecString.decoder,
-    },
-    {
-      keysEncoding: {
-        stackHeight: "stackHeight",
-        programIndex: "programIdIndex",
-        accountsIndexes: "accounts",
-        dataBase58: "data",
+const compiledInstructionsJsonDecoder: JsonDecoder<Array<InstructionCompiled>> =
+  jsonDecoderArrayToArray(
+    jsonDecoderWrapped(
+      jsonDecoderObjectToObject({
+        stackHeight: jsonCodecNumber.decoder,
+        programIdIndex: jsonCodecNumber.decoder,
+        accounts: jsonDecoderArrayToArray(jsonCodecNumber.decoder),
+        data: jsonCodecString.decoder,
+      }),
+      (value) => {
+        return {
+          stackHeight: value.stackHeight,
+          programIndex: value.programIdIndex,
+          accountsIndexes: value.accounts,
+          dataBase58: value.data,
+        };
       },
-    },
-  ),
-);
+    ),
+  );
 
 const resultJsonDecoder = jsonDecoderNullable(
   jsonDecoderObjectToObject({

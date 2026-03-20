@@ -15,6 +15,7 @@ it("run", async () => {
   );
   const { accountIdl, accountData, accountState } =
     await solana.getAndInferAndDecodeAccount(accountAddress);
+
   expect(accountIdl.name).toStrictEqual("CoordinatorAccount");
   expect(jsonGetAt(accountState, "state.metadata.vocabSize")).toStrictEqual(
     "129280",
@@ -24,12 +25,11 @@ it("run", async () => {
   ).toStrictEqual(24);
 
   const moduleName = "jsonCodecAccountBytemuck";
-  const modulePath = `./tests/fixtures/${moduleName}.ts`;
   const moduleCode = idlTypeFullJsonCodecModule(
     accountIdl.typeFull,
     "../../src",
   );
-  await fsp.writeFile(modulePath, moduleCode);
+  await fsp.writeFile(`./tests/fixtures/${moduleName}.ts`, moduleCode);
   const requirePath = `./fixtures/${moduleName}.ts`;
   delete require.cache[require.resolve(requirePath)];
   const { jsonCodec } = require(requirePath);

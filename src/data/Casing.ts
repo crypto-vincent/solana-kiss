@@ -1,3 +1,12 @@
+const codeLowerA = "a".charCodeAt(0);
+const codeLowerZ = "z".charCodeAt(0);
+const codeUpperA = "A".charCodeAt(0);
+const codeUpperZ = "Z".charCodeAt(0);
+const codeUnderscore = "_".charCodeAt(0);
+const codeUpperToLower = codeLowerA - codeUpperA;
+
+const cacheCodes = new Array<number>();
+
 /**
  * Converts a camelCase string to snake_case without data loss (losslessly reversible).
  * Each uppercase letter is replaced with an underscore followed by its lowercase equivalent.
@@ -5,17 +14,17 @@
  * @returns The snake_case equivalent string.
  */
 export function casingLosslessConvertToSnake(string: string): string {
-  const codes = new Array<number>();
+  cacheCodes.length = 0;
   for (let index = 0; index < string.length; index++) {
     const code = string.charCodeAt(index);
-    if (codeIsUppercase(code)) {
-      codes.push(codeUnderscore);
-      codes.push(code + codeUpperToLower);
+    if (code >= codeUpperA && code <= codeUpperZ) {
+      cacheCodes.push(codeUnderscore);
+      cacheCodes.push(code + codeUpperToLower);
     } else {
-      codes.push(code);
+      cacheCodes.push(code);
     }
   }
-  return String.fromCharCode(...codes);
+  return String.fromCharCode(...cacheCodes);
 }
 
 /**
@@ -25,32 +34,18 @@ export function casingLosslessConvertToSnake(string: string): string {
  * @returns The camelCase equivalent string.
  */
 export function casingLosslessConvertToCamel(string: string): string {
-  const codes = new Array<number>();
+  cacheCodes.length = 0;
   for (let index = 0; index < string.length; index++) {
     const code = string.charCodeAt(index);
     if (
-      codeIsLowercase(code) &&
+      code >= codeLowerA &&
+      code <= codeLowerZ &&
       string.charCodeAt(index - 1) === codeUnderscore
     ) {
-      codes[codes.length - 1] = code - codeUpperToLower;
+      cacheCodes[cacheCodes.length - 1] = code - codeUpperToLower;
     } else {
-      codes.push(code);
+      cacheCodes.push(code);
     }
   }
-  return String.fromCharCode(...codes);
-}
-
-const codeLowerA = "a".charCodeAt(0);
-const codeLowerZ = "z".charCodeAt(0);
-const codeUpperA = "A".charCodeAt(0);
-const codeUpperZ = "Z".charCodeAt(0);
-const codeUnderscore = "_".charCodeAt(0);
-const codeUpperToLower = codeLowerA - codeUpperA;
-
-function codeIsLowercase(code: number): boolean {
-  return code >= codeLowerA && code <= codeLowerZ;
-}
-
-function codeIsUppercase(code: number): boolean {
-  return code >= codeUpperA && code <= codeUpperZ;
+  return String.fromCharCode(...cacheCodes);
 }

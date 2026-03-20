@@ -17,14 +17,14 @@ for (let digit = 0; digit < alphabetUpper.length; digit++) {
 
 /**
  * Encodes a byte array as an uppercase hexadecimal string.
- * @param decoded - The bytes to encode.
+ * @param bytes - The bytes to encode.
  * @returns The Base16 (hex) encoded string.
  */
-export function base16Encode(decoded: Uint8Array): string {
-  const codes = new Uint8Array(decoded.length * 2);
+export function base16Encode(bytes: Uint8Array): string {
+  const codes = new Uint8Array(bytes.length * 2);
   let codeIndex = 0;
-  for (let byteIndex = 0; byteIndex < decoded.length; byteIndex++) {
-    const byte = decoded[byteIndex]!;
+  for (let byteIndex = 0; byteIndex < bytes.length; byteIndex++) {
+    const byte = bytes[byteIndex]!;
     codes[codeIndex++] = digitToCode[byte >> 4]!;
     codes[codeIndex++] = digitToCode[byte & 0x0f]!;
   }
@@ -33,12 +33,12 @@ export function base16Encode(decoded: Uint8Array): string {
 
 /**
  * Decodes a Base16 (hex) string into a byte array.
- * @param encoded - The hex string to decode (case-insensitive).
+ * @param base16 - The hex string to decode (case-insensitive).
  * @returns The decoded bytes.
  * @throws {Error} If the string length is odd or contains non-hex characters.
  */
-export function base16Decode(encoded: string): Uint8Array {
-  const encodedLength = encoded.length;
+export function base16Decode(base16: string): Uint8Array {
+  const encodedLength = base16.length;
   if (encodedLength % 2 !== 0) {
     throw new Error(`Base16: decode: invalid encoded length: ${encodedLength}`);
   }
@@ -46,19 +46,19 @@ export function base16Decode(encoded: string): Uint8Array {
   for (let byteIndex = 0; byteIndex < decoded.length; byteIndex++) {
     const codeIndex1 = byteIndex * 2;
     const codeIndex2 = byteIndex * 2 + 1;
-    const digit1 = base16DecodeDigit(encoded, codeIndex1);
-    const digit2 = base16DecodeDigit(encoded, codeIndex2);
+    const digit1 = base16DecodeDigit(base16, codeIndex1);
+    const digit2 = base16DecodeDigit(base16, codeIndex2);
     decoded[byteIndex] = (digit1 << 4) | digit2;
   }
   return decoded;
 }
 
-function base16DecodeDigit(encoded: string, codeIndex: number): number {
-  const code = encoded.charCodeAt(codeIndex);
+function base16DecodeDigit(base16: string, codeIndex: number): number {
+  const code = base16.charCodeAt(codeIndex);
   const digit = codeToDigit[code] ?? -1;
   if (digit < 0) {
     throw new Error(
-      `Base16: decode: invalid character "${encoded[codeIndex]}" at index: ${codeIndex}`,
+      `Base16: decode: invalid character "${base16[codeIndex]}" at index: ${codeIndex}`,
     );
   }
   return digit;

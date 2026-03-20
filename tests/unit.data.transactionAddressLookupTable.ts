@@ -7,6 +7,7 @@ import {
 } from "@solana/web3.js";
 import {
   blockHashDefault,
+  blockHashToBase58,
   InstructionRequest,
   Pubkey,
   pubkeyDefault,
@@ -68,7 +69,7 @@ it("run", async () => {
 
   const referenceMessage = new TransactionMessage({
     payerKey: new PublicKey(payerSigner.address),
-    recentBlockhash: transactionRequest.recentBlockHash as string,
+    recentBlockhash: blockHashToBase58(transactionRequest.recentBlockHash),
     instructions: instructionsRequests.map((instructionRequest) => ({
       programId: new PublicKey(instructionRequest.programAddress),
       keys: instructionRequest.instructionInputs.map((instructionInput) => ({

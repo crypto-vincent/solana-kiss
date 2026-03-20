@@ -93,11 +93,11 @@ it("run", async () => {
     programAddress,
     {
       instructionAddresses: {
-        first: firstAddress,
+        "first": firstAddress,
         "nester.nested1": nested1Address,
       },
       accountsContext: {
-        first: {
+        "first": {
           accountTypeFull: expectDefined(programIdl.accounts.get("MyAccount"))
             .typeFull,
           accountState: {

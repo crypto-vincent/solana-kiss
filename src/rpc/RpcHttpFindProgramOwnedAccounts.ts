@@ -1,5 +1,7 @@
 import { base58Encode } from "../data/Base58";
 import {
+  jsonCodecBoolean,
+  jsonCodecNumber,
   jsonCodecPubkey,
   jsonDecoderArrayToArray,
   jsonDecoderObjectToObject,
@@ -7,7 +9,6 @@ import {
 import { Pubkey, pubkeyToBase58 } from "../data/Pubkey";
 import { RpcHttp } from "./RpcHttp";
 
-// TODO - expose lamport and space info per account
 /**
  * Fetches the set of all account addresses owned by the given program.
  *
@@ -18,7 +19,9 @@ import { RpcHttp } from "./RpcHttp";
  * @param filters - Optional filters to narrow down results.
  * @param filters.dataSpace - Only return accounts whose data length equals this value (in bytes).
  * @param filters.dataBlobs - Only return accounts that match all given byte patterns at the specified offsets.
- * @returns An object containing `accountsAddresses`, a set of matching account {@link Pubkey}s.
+ * @returns An array of objects describing each matching account, with
+ *   `accountAddress` (public key), `accountExecutable`, `accountLamports`,
+ *   and `accountSpace` (data length in bytes).
  * @throws If more than 4 filter entries are provided (Solana RPC limit).
  * @throws If any filter blob has a negative offset.
  */
@@ -29,7 +32,14 @@ export async function rpcHttpFindProgramOwnedAccounts(
     dataSpace?: number | undefined;
     dataBlobs?: Array<{ offset: number; bytes: Uint8Array }> | undefined;
   },
-): Promise<{ accountsAddresses: Set<Pubkey> }> {
+): Promise<
+  Array<{
+    accountAddress: Pubkey;
+    accountExecutable: boolean;
+    accountLamports: bigint;
+    accountSpace: number;
+  }>
+> {
   const paramFilters = [];
   if (filters?.dataSpace !== undefined) {
     paramFilters.push({ dataSize: filters.dataSpace });
@@ -60,13 +70,21 @@ export async function rpcHttpFindProgramOwnedAccounts(
       encoding: "base64",
     }),
   );
-  const accountsAddresses = new Set<Pubkey>();
-  for (const item of result) {
-    accountsAddresses.add(item.pubkey);
-  }
-  return { accountsAddresses };
+  return result.map((item) => ({
+    accountAddress: item.pubkey,
+    accountExecutable: item.account.executable,
+    accountLamports: BigInt(item.account.lamports),
+    accountSpace: item.account.space,
+  }));
 }
 
 const resultJsonDecoder = jsonDecoderArrayToArray(
-  jsonDecoderObjectToObject({ pubkey: jsonCodecPubkey.decoder }),
+  jsonDecoderObjectToObject({
+    pubkey: jsonCodecPubkey.decoder,
+    account: jsonDecoderObjectToObject({
+      executable: jsonCodecBoolean.decoder,
+      lamports: jsonCodecNumber.decoder,
+      space: jsonCodecNumber.decoder,
+    }),
+  }),
 );

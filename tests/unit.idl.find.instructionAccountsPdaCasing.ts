@@ -78,6 +78,7 @@ it("run", async () => {
       expectDefined(programIdl.instructions.get("my_ix")),
       programAddress,
       {
+        throwOnMissing: true,
         instructionAddresses: {
           account_snake: accountSnakeAddress,
           account_camel: accountCamelAddress,

@@ -7,7 +7,13 @@ import { TransactionMessage } from "./Transaction";
  * and a function that produces a {@link Signature} for a given message.
  */
 export type Signer = {
+  /** The public key address associated with this signer. */
   address: Pubkey;
+  /**
+   * Signs the given message or transaction message with the signer's private key.
+   * @param message - The raw bytes to sign.
+   * @returns A promise resolving to the 64-byte {@link Signature}.
+   */
   sign: (message: TransactionMessage | Uint8Array) => Promise<Signature>;
 };
 
@@ -39,9 +45,7 @@ export async function signerGenerate(): Promise<Signer> {
  */
 export async function signerFromSecret(
   secret: Uint8Array,
-  options?: {
-    skipVerification?: boolean;
-  },
+  options?: { skipVerification?: boolean },
 ): Promise<Signer> {
   if (secret.length != 64) {
     throw new Error(

@@ -3,21 +3,21 @@ import {
   expectDefined,
   pubkeyNewDummy,
   rpcHttpSimulateTransaction,
-  TransactionPacket,
 } from "../src";
 
-function rpcHttp() {
-  return require("./fixtures/RpcHttpSimulateTransaction.json");
+function rpcHttp(method: string) {
+  if (method === "simulateTransaction") {
+    return require("./fixtures/solana.simulateTransaction.json");
+  }
+  throw new Error(`Unexpected method ${method}`);
 }
 
 it("run", async () => {
   const dummyAddress = pubkeyNewDummy();
   const { executionReport, simulatedAccountsByAddress } = expectDefined(
-    await rpcHttpSimulateTransaction(
-      rpcHttp,
-      new Uint8Array() as TransactionPacket,
-      { simulatedAccountsAddresses: new Set([dummyAddress]) },
-    ),
+    await rpcHttpSimulateTransaction(rpcHttp, new Uint8Array() as any, {
+      simulatedAccountsAddresses: new Set([dummyAddress]),
+    }),
   );
   // Check basic stuff about the transaction
   expect(executionReport.blockTime).toStrictEqual(undefined);

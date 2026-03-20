@@ -4,7 +4,6 @@ import {
   idlProgramParse,
   IdlTypeFull,
   IdlTypeFullFields,
-  IdlTypePrefix,
   IdlTypePrimitive,
 } from "../src";
 
@@ -131,7 +130,7 @@ function makeTypeFullGenericEnum(
     name: "GenericEnum",
     repr: undefined,
     content: IdlTypeFull.enum({
-      prefix: IdlTypePrefix.u8,
+      prefix: undefined,
       mask: 3n,
       indexByName: new Map([
         ["Unnamed", 0],
@@ -151,6 +150,7 @@ function makeTypeFullGenericEnum(
         ["2", 2],
         ["3", 3],
       ]),
+      fieldless: false,
       variants: [
         {
           name: "Unnamed",
@@ -190,10 +190,7 @@ function makeTypeFullMyStruct(): IdlTypeFull {
     repr: undefined,
     content: IdlTypeFull.struct({
       fields: IdlTypeFullFields.named([
-        {
-          name: "someField",
-          content: makeTypeFullU8(),
-        },
+        { name: "someField", content: makeTypeFullU8() },
       ]),
     }),
   });
@@ -226,10 +223,7 @@ function makeTypeFullWrappedU8Array(_n: number): IdlTypeFull {
 }
 
 function makeTypeFullArray(items: IdlTypeFull, length: number): IdlTypeFull {
-  return IdlTypeFull.array({
-    items,
-    length,
-  });
+  return IdlTypeFull.array({ items, length });
 }
 
 function makeTypeFullU8(): IdlTypeFull {

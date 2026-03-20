@@ -29,38 +29,38 @@ export async function rpcHttpFindBlocks(
     | { lowBlockSlot: BlockSlot }
     | { startBlockSlot: BlockSlot; endBlockSlot: BlockSlot },
 ): Promise<{ blocksSlots: Array<BlockSlot> }> {
-  let backward: boolean;
+  let orderDescending: boolean;
   let lowBlockSlot: number;
   let highBlockSlot: number;
   if ("lowBlockSlot" in context) {
-    backward = false;
+    orderDescending = false;
     lowBlockSlot = blockSlotToNumber(context.lowBlockSlot);
     highBlockSlot = +Infinity;
   } else if ("highBlockSlot" in context) {
-    backward = true;
+    orderDescending = true;
     lowBlockSlot = 0;
     highBlockSlot = blockSlotToNumber(context.highBlockSlot);
   } else {
     const startBlockSlot = blockSlotToNumber(context.startBlockSlot);
     const endBlockSlot = blockSlotToNumber(context.endBlockSlot);
     if (startBlockSlot <= endBlockSlot) {
-      backward = false;
+      orderDescending = false;
       lowBlockSlot = startBlockSlot;
       highBlockSlot = endBlockSlot;
     } else {
-      backward = true;
+      orderDescending = true;
       lowBlockSlot = endBlockSlot;
       highBlockSlot = startBlockSlot;
     }
   }
-  const batchSize = Math.min(500_000, maxResultLength * 2);
+  const searchDistance = Math.min(500_000, maxResultLength * 2);
   const blocksSlots = new Array<BlockSlot>();
-  if (backward) {
+  if (orderDescending) {
     while (true) {
       const result = resultJsonDecoder(
         await self(
           "getBlocks",
-          [highBlockSlot - batchSize, highBlockSlot - 1],
+          [highBlockSlot - searchDistance, highBlockSlot - 1],
           {},
         ),
       );
@@ -86,8 +86,8 @@ export async function rpcHttpFindBlocks(
     const result = resultJsonDecoder(
       await self(
         "getBlocks",
-        [lowBlockSlot + 1, lowBlockSlot + batchSize],
-        undefined,
+        [lowBlockSlot + 1, lowBlockSlot + searchDistance],
+        {},
       ),
     );
     if (result.length === 0) {

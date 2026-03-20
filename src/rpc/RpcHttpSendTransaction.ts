@@ -1,6 +1,10 @@
 import { base64Encode } from "../data/Base64";
-import { jsonCodecSignature } from "../data/Json";
-import { TransactionHandle, TransactionPacket } from "../data/Transaction";
+import { jsonCodecTransactionHandle } from "../data/Json";
+import {
+  TransactionHandle,
+  TransactionPacket,
+  transactionPacketToBytes,
+} from "../data/Transaction";
 import { RpcHttp } from "./RpcHttp";
 
 /**
@@ -17,10 +21,10 @@ export async function rpcHttpSendTransaction(
   transactionPacket: TransactionPacket,
   options?: { skipPreflight?: boolean },
 ): Promise<{ transactionHandle: TransactionHandle }> {
-  const transactionHandle = jsonCodecSignature.decoder(
+  const transactionHandle = jsonCodecTransactionHandle.decoder(
     await self(
       "sendTransaction",
-      [base64Encode(transactionPacket as Uint8Array)],
+      [base64Encode(transactionPacketToBytes(transactionPacket))],
       { skipPreflight: options?.skipPreflight, encoding: "base64" },
     ),
   );

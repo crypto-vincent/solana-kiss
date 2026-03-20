@@ -4,8 +4,11 @@ import {
   rpcHttpGetBlockWithTransactions,
 } from "../src";
 
-function rpcHttp() {
-  return require("./fixtures/RpcHttpGetBlock.json");
+function rpcHttp(method: string) {
+  if (method === "getBlock") {
+    return require("./fixtures/solana.getBlock.json");
+  }
+  throw new Error(`Unexpected method ${method}`);
 }
 
 it("run", async () => {

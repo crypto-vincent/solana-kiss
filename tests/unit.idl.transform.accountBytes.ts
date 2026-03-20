@@ -7,7 +7,6 @@ it("run", () => {
     accounts: {
       MyAccount: {
         fields: [
-          { name: "bytes", type: "bytes" },
           { name: "vec_u8", type: { vec: "u8" } },
           { name: "arr_u8", type: ["u8", 18] },
         ],
@@ -21,45 +20,36 @@ it("run", () => {
     117, 110,
   ];
   const case1 = idlAccountEncode(accountIdl, {
-    bytes: bytesCoordinatorJoinRun,
     vec_u8: bytesCoordinatorJoinRun,
     arr_u8: bytesCoordinatorJoinRun,
   });
   const case2 = idlAccountEncode(accountIdl, {
-    bytes: { utf8: "CoordinatorJoinRun" },
-    vec_u8: { utf8: "CoordinatorJoinRun" },
+    vec_u8: { base16: "436F6F7264696E61746F724A6F696E52756E" },
     arr_u8: { utf8: "CoordinatorJoinRun" },
   });
   const case3 = idlAccountEncode(accountIdl, {
-    bytes: {
-      encode: { value: "CoordinatorJoinRun", type: "string8", prefixed: false },
-    },
-    vec_u8: { encode: { value: "CoordinatorJoinRun", type: "string16" } },
-    arr_u8: { encode: { value: { utf8: "CoordinatorJoinRun" } } },
-  });
-  const case4 = idlAccountEncode(accountIdl, {
-    bytes: { base16: "436F6F7264696E61746F724A6F696E52756E" },
     vec_u8: { base58: "3oEADzTpGyQHQioFsuM8mzvXf" },
     arr_u8: { base64: "Q29vcmRpbmF0b3JKb2luUnVu" },
   });
-  const case5 = idlAccountEncode(accountIdl, {
-    bytes: {
-      encode: {
-        value: ["Coordinator", "Join", "Run"],
-        type: ["string"],
-      },
-    },
+  const case4 = idlAccountEncode(accountIdl, {
     vec_u8: {
-      encode: {
+      encoded: { type: "string0", value: "CoordinatorJoinRun" },
+    },
+    arr_u8: {
+      encoded: { type: "bytes0", value: { utf8: "CoordinatorJoinRun" } },
+    },
+  });
+  const case5 = idlAccountEncode(accountIdl, {
+    vec_u8: {
+      encoded: {
+        type: [{ vec0: "u8" }, 3],
         value: [{ utf8: "Coordinator" }, { utf8: "Join" }, [82, 117, 110]],
-        type: ["bytes", 3],
       },
     },
     arr_u8: {
-      encode: {
+      encoded: {
+        type: { vec0: "string0" },
         value: ["Coordinator", "Join", "Run"],
-        type: { vec: "string" },
-        prefixed: false,
       },
     },
   });
@@ -67,8 +57,6 @@ it("run", () => {
   const expected = new Uint8Array(
     [
       Array.from(accountIdl.discriminator),
-      [18, 0, 0, 0],
-      bytesCoordinatorJoinRun,
       [18, 0, 0, 0],
       bytesCoordinatorJoinRun,
       bytesCoordinatorJoinRun,

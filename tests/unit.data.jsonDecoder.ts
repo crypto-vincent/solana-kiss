@@ -29,6 +29,20 @@ it("run", async () => {
       decoded: null,
     },
     {
+      encoded: { hello_world: 3 },
+      decoder: jsonDecoderObjectToObject({
+        helloWorld: jsonCodecNumber.decoder,
+      }),
+      decoded: { helloWorld: 3 },
+    },
+    {
+      encoded: { helloWorld: 4 },
+      decoder: jsonDecoderObjectToObject({
+        hello_world: jsonCodecNumber.decoder,
+      }),
+      decoded: { hello_world: 4 },
+    },
+    {
       encoded: null,
       decoder: jsonDecoderByType({
         null: () => null,

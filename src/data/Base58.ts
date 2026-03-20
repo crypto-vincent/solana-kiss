@@ -12,82 +12,117 @@ for (let digit = 0; digit < alphabet.length; digit++) {
 }
 
 const codePadding = "1".charCodeAt(0);
+const cacheDigits = new Array<number>();
 
 /**
  * Encodes a byte array as a Base58 string.
- * @param decoded - The bytes to encode.
+ * @param bytes - The bytes to encode.
  * @returns The Base58 encoded string, or an empty string for empty input.
  */
-export function base58Encode(decoded: Uint8Array): string {
-  if (decoded.length === 0) {
+export function base58Encode(bytes: Uint8Array): string {
+  if (bytes.length === 0) {
     return "";
   }
-  const digits = new Array<number>();
-  for (let byteIndex = 0; byteIndex < decoded.length; byteIndex++) {
-    let carry = decoded[byteIndex]!;
-    for (let digitIndex = 0; digitIndex < digits.length; digitIndex++) {
-      carry += digits[digitIndex]! << 8;
-      digits[digitIndex] = carry % 58;
+  cacheDigits.length = 0;
+  for (let byteIndex = 0; byteIndex < bytes.length; byteIndex++) {
+    let carry = bytes[byteIndex]!;
+    for (let digitIndex = 0; digitIndex < cacheDigits.length; digitIndex++) {
+      carry += cacheDigits[digitIndex]! << 8;
+      cacheDigits[digitIndex] = carry % 58;
       carry = (carry / 58) | 0;
     }
     while (carry > 0) {
-      digits.push(carry % 58);
+      cacheDigits.push(carry % 58);
       carry = (carry / 58) | 0;
     }
   }
   let zeros = 0;
-  while (zeros < decoded.length && decoded[zeros] === 0) {
+  while (zeros < bytes.length && bytes[zeros] === 0) {
     zeros++;
   }
-  const codes = new Uint8Array(zeros + digits.length);
+  const codes = new Uint8Array(zeros + cacheDigits.length);
   let codeIndex = 0;
   for (let counter = 0; counter < zeros; counter++) {
     codes[codeIndex++] = codePadding;
   }
-  for (let digitIndex = digits.length - 1; digitIndex >= 0; digitIndex--) {
-    codes[codeIndex++] = digitToCode[digits[digitIndex]!]!;
+  for (let digitIndex = cacheDigits.length - 1; digitIndex >= 0; digitIndex--) {
+    codes[codeIndex++] = digitToCode[cacheDigits[digitIndex]!]!;
   }
   return utf8Decode(codes);
 }
 
 /**
  * Decodes a Base58 string into a byte array.
- * @param encoded - The Base58 string to decode.
+ * @param base58 - The Base58 string to decode.
  * @returns The decoded bytes, or an empty array for empty input.
  * @throws {Error} If the string contains characters outside the Base58 alphabet.
  */
-export function base58Decode(encoded: string): Uint8Array {
-  const encodedLength = encoded.length;
+export function base58Decode(base58: string): Uint8Array {
+  const encodedLength = base58.length;
   if (encodedLength === 0) {
     return new Uint8Array(0);
   }
-  const digits = new Array<number>();
+  cacheDigits.length = 0;
   for (let codeIndex = 0; codeIndex < encodedLength; codeIndex++) {
-    const code = encoded.charCodeAt(codeIndex);
-    const digit = codeToDigit[code] ?? -1;
-    if (digit < 0) {
-      throw new Error(
-        `Base58: decode: invalid character "${encoded[codeIndex]}" at index: ${codeIndex}`,
-      );
-    }
-    let carry = digit;
-    for (let digitIndex = 0; digitIndex < digits.length; digitIndex++) {
-      carry += digits[digitIndex]! * 58;
-      digits[digitIndex] = carry & 0xff;
+    let carry = base58DecodeDigit(base58, codeIndex);
+    for (let digitIndex = 0; digitIndex < cacheDigits.length; digitIndex++) {
+      carry += cacheDigits[digitIndex]! * 58;
+      cacheDigits[digitIndex] = carry & 0xff;
       carry >>= 8;
     }
     while (carry > 0) {
-      digits.push(carry & 0xff);
+      cacheDigits.push(carry & 0xff);
       carry >>= 8;
     }
   }
   let zeros = 0;
-  while (zeros < encodedLength && encoded.charCodeAt(zeros) === codePadding) {
+  while (zeros < encodedLength && base58.charCodeAt(zeros) === codePadding) {
     zeros++;
   }
-  const bytes = new Uint8Array(zeros + digits.length);
-  for (let digitIndex = 0; digitIndex < digits.length; digitIndex++) {
-    bytes[bytes.length - 1 - digitIndex] = digits[digitIndex]!;
+  const bytes = new Uint8Array(zeros + cacheDigits.length);
+  for (let digitIndex = 0; digitIndex < cacheDigits.length; digitIndex++) {
+    bytes[bytes.length - 1 - digitIndex] = cacheDigits[digitIndex]!;
   }
   return bytes;
+}
+
+/**
+ * Calculates the byte length of a Base58 encoded string
+ * @param base58 - The Base58 encoded string.
+ * @returns The byte length of the decoded byte array.
+ */
+export function base58BytesLength(base58: string): number {
+  const encodedLength = base58.length;
+  if (encodedLength === 0) {
+    return 0;
+  }
+  cacheDigits.length = 0;
+  for (let codeIndex = 0; codeIndex < encodedLength; codeIndex++) {
+    let carry = base58DecodeDigit(base58, codeIndex);
+    for (let digitIndex = 0; digitIndex < cacheDigits.length; digitIndex++) {
+      carry += cacheDigits[digitIndex]! * 58;
+      cacheDigits[digitIndex] = carry & 0xff;
+      carry >>= 8;
+    }
+    while (carry > 0) {
+      cacheDigits.push(carry & 0xff);
+      carry >>= 8;
+    }
+  }
+  let zeros = 0;
+  while (zeros < encodedLength && base58.charCodeAt(zeros) === codePadding) {
+    zeros++;
+  }
+  return zeros + cacheDigits.length;
+}
+
+function base58DecodeDigit(base58: string, codeIndex: number): number {
+  const code = base58.charCodeAt(codeIndex);
+  const digit = codeToDigit[code] ?? -1;
+  if (digit < 0) {
+    throw new Error(
+      `Base58: decode: invalid character "${base58[codeIndex]}" at index: ${codeIndex}`,
+    );
+  }
+  return digit;
 }

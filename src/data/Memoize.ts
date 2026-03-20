@@ -6,8 +6,10 @@ import { Result } from "./Utils";
  * @param inputToCacheKey - Async function that maps an input to a cache key.
  * @param invocation - The async function to memoize.
  * @param options - Optional approvers to control when cached values are used or stored.
- * @param options.cacheUseApprover - Called before using a cached value; return `false` to invalidate and bypass the cached entry.
+ * @param options.cacheUseApprover - Called before using a cached value; return `false` to invalidate
+ *   and bypass the cached entry. The `context` provides the current cache size and the cached entry.
  * @param options.cacheSetApprover - Called before storing a result; return `false` to skip caching.
+ *   The `context` provides the current cache size and the result about to be stored.
  * @returns An async function with the same signature as `invocation` that uses the cache.
  */
 export function memoize<CacheKey, In, Out>(
@@ -17,19 +19,23 @@ export function memoize<CacheKey, In, Out>(
     cacheUseApprover?: (
       input: In,
       context: {
+        /** The number of entries currently in the cache. */
         cacheSize: number;
+        /** The cached entry whose reuse is being evaluated. */
         cacheValue: { result: Result<Out>; at: Date };
       },
     ) => Promise<boolean>;
     cacheSetApprover?: (
       input: In,
       context: {
+        /** The number of entries currently in the cache (before this potential insertion). */
         cacheSize: number;
+        /** The result about to be cached, along with the timestamp of the invocation. */
         cacheValue: { result: Result<Out>; at: Date };
       },
     ) => Promise<boolean>;
   },
-): (input: In) => Promise<Out> {
+): (input: In) => Promise<Readonly<Out>> {
   const cacheUseApprover = options?.cacheUseApprover ?? (async () => true);
   const cacheSetApprover = options?.cacheSetApprover ?? (async () => true);
   const cacheMap = new Map<CacheKey, { result: Result<Out>; at: Date }>();
@@ -62,9 +68,9 @@ export function memoize<CacheKey, In, Out>(
         cacheMap.set(cacheKey, cacheValue);
       }
     }
-    if (cacheValue.result.error) {
+    if ("error" in cacheValue.result) {
       throw cacheValue.result.error;
     }
-    return cacheValue.result.value!;
+    return cacheValue.result.value;
   };
 }

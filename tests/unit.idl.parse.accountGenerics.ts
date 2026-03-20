@@ -5,7 +5,6 @@ import {
   IdlTypeFlatFields,
   IdlTypeFull,
   IdlTypeFullFields,
-  IdlTypePrefix,
   IdlTypePrimitive,
 } from "../src";
 
@@ -120,7 +119,7 @@ it("run", () => {
               name: "MyEnum",
               repr: undefined,
               content: IdlTypeFull.enum({
-                prefix: IdlTypePrefix.u8,
+                prefix: undefined,
                 mask: 1n,
                 indexByName: new Map([
                   ["CaseA", 0],
@@ -134,6 +133,7 @@ it("run", () => {
                   ["0", 0],
                   ["1", 1],
                 ]),
+                fieldless: false,
                 variants: [
                   {
                     name: "CaseA",
@@ -141,7 +141,7 @@ it("run", () => {
                     fields: IdlTypeFullFields.unnamed([
                       {
                         content: IdlTypeFull.vec({
-                          prefix: IdlTypePrefix.u32,
+                          prefix: undefined,
                           items: IdlTypeFull.primitive(IdlTypePrimitive.u8),
                         }),
                       },
@@ -173,14 +173,14 @@ it("run", () => {
                   {
                     name: "fieldA",
                     content: IdlTypeFull.option({
-                      prefix: IdlTypePrefix.u8,
+                      prefix: undefined,
                       content: IdlTypeFull.primitive(IdlTypePrimitive.f64),
                     }),
                   },
                   {
                     name: "fieldB",
                     content: IdlTypeFull.vec({
-                      prefix: IdlTypePrefix.u32,
+                      prefix: undefined,
                       items: IdlTypeFull.primitive(IdlTypePrimitive.f32),
                     }),
                   },

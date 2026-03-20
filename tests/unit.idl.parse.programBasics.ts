@@ -5,7 +5,6 @@ import {
   IdlTypeFlatFields,
   IdlTypeFull,
   IdlTypeFullFields,
-  IdlTypePrefix,
   IdlTypePrimitive,
 } from "../src";
 
@@ -123,13 +122,13 @@ it("run", () => {
   // Assert metadata was parsed correctly
   expect(programIdl1.metadata).toStrictEqual({
     name: "MyProgram",
+    spec: undefined,
     description: undefined,
     repository: undefined,
     contact: undefined,
-    address: undefined,
     version: "0.0.1",
+    address: undefined,
     source: undefined,
-    spec: undefined,
     docs: undefined,
   });
   // Assert instruction was parsed correctly
@@ -276,11 +275,11 @@ it("run", () => {
     docs: ["My constant doc"],
     value: [420_420, 69.069_0],
     typeFlat: IdlTypeFlat.vec({
-      prefix: IdlTypePrefix.u32,
+      prefix: undefined,
       items: IdlTypeFlat.primitive(IdlTypePrimitive.f32),
     }),
     typeFull: IdlTypeFull.vec({
-      prefix: IdlTypePrefix.u32,
+      prefix: undefined,
       items: IdlTypeFull.primitive(IdlTypePrimitive.f32),
     }),
   });

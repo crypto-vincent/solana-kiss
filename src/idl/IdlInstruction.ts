@@ -52,16 +52,29 @@ export type IdlInstructionAddresses = {
  * argument types, and return type.
  */
 export type IdlInstruction = {
+  /** The snake_case name of the instruction as declared in the IDL. */
   name: string;
+  /** Human-readable documentation strings attached to this instruction, or `undefined`. */
   docs: IdlDocs;
+  /**
+   * The byte sequence prepended to the serialised instruction arguments to identify
+   * the instruction. Defaults to the first 8 bytes of SHA-256(`"global:<name>"`).
+   */
   discriminator: Uint8Array;
+  /** Ordered list of accounts required by this instruction. */
   accounts: Array<IdlInstructionAccount>;
+  /** The flat and full type representations of the instruction's argument fields. */
   args: {
+    /** Unresolved flat type fields for the instruction arguments. */
     typeFlatFields: IdlTypeFlatFields;
+    /** Fully-resolved type fields used for encoding/decoding instruction arguments. */
     typeFullFields: IdlTypeFullFields;
   };
+  /** The flat and full type representations of the instruction's return value. */
   return: {
+    /** Unresolved flat type for the instruction's return value. */
     typeFlat: IdlTypeFlat;
+    /** Fully-resolved type for the instruction's return value. */
     typeFull: IdlTypeFull;
   };
 };
@@ -252,8 +265,7 @@ export function idlInstructionArgsEncode(
     instructionData: idlTypeFullFieldsEncode(
       self.args.typeFullFields,
       instructionPayload,
-      true,
-      self.discriminator,
+      { discriminator: self.discriminator },
     ),
   };
 }
@@ -305,7 +317,6 @@ export function idlInstructionReturnEncode(
     instructionReturned: idlTypeFullEncode(
       self.return.typeFull,
       instructionResult,
-      true,
     ),
   };
 }

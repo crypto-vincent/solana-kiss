@@ -4,7 +4,6 @@ import {
   idlProgramParse,
   IdlTypeFull,
   IdlTypeFullFields,
-  IdlTypePrefix,
 } from "../src";
 
 it("run", () => {
@@ -77,11 +76,11 @@ it("run", () => {
       MyEnum: {
         variants: {
           "77": "77",
-          Case2: 2,
+          "Case2": 2,
           "1": 1,
-          Case3: { code: 3, fields: [] },
+          "Case3": { code: 3, fields: [] },
           "0": { code: 0 },
-          Case42: 42,
+          "Case42": 42,
         },
       },
     },
@@ -96,7 +95,7 @@ it("run", () => {
   // Assert that the content is correct
   expect(programIdl1.accounts.get("MyEnum")!.typeFull).toStrictEqual(
     IdlTypeFull.enum({
-      prefix: IdlTypePrefix.u8,
+      prefix: undefined,
       mask: 111n,
       indexByName: new Map([
         ["0", 0],
@@ -122,6 +121,7 @@ it("run", () => {
         ["42", 4],
         ["77", 5],
       ]),
+      fieldless: true,
       variants: [
         {
           name: "0",

@@ -7,6 +7,8 @@ import {
   jsonDecoderConst,
   jsonDecoderNullable,
   jsonDecoderObjectToObject,
+  JsonFetcher,
+  jsonFetcherDefault,
   JsonObject,
   JsonValue,
 } from "../data/Json";
@@ -23,7 +25,7 @@ import {
 export type RpcHttp = (
   method: string,
   params: Readonly<JsonArray>,
-  config: Readonly<JsonObject> | undefined,
+  config: Readonly<JsonObject> | "skip-configuration-object",
 ) => Promise<JsonValue>;
 
 /**
@@ -55,50 +57,35 @@ export class RpcHttpError extends Error {
  *
  * @param url - The HTTP(S) URL of the Solana RPC node.
  * @param options - Optional configuration.
- * @param options.commitment - Default commitment level (`"confirmed"` or `"finalized"`) applied to every request unless overridden per-call.
- * @param options.customHeaders - Additional HTTP headers to include in every request.
- * @param options.customFetcher - Custom HTTP fetch implementation. Defaults to the global `fetch`.
+ * @param options.commitmentLevel - Commitment level (`"confirmed"` or `"finalized"`) applied to every request unless overridden per-call.
+ * @param options.extraRequestHeaders - Additional HTTP headers to include in every request.
+ * @param options.customJsonFetcher - Custom HTTP fetch implementation. Defaults to the global `fetch`.
  * @returns An {@link RpcHttp} function bound to the given URL.
  */
 export function rpcHttpFromUrl(
-  url: string,
+  url: URL,
   options?: {
-    commitment?: "confirmed" | "finalized";
-    customHeaders?: { [key: string]: string };
-    customFetcher?: (
-      url: string,
-      request: {
-        headers: { [key: string]: string };
-        method: string;
-        body: string;
-      },
-    ) => Promise<JsonValue>;
+    commitmentLevel?: "confirmed" | "finalized";
+    extraRequestHeaders?: { [key: string]: string };
+    customJsonFetcher?: JsonFetcher;
   },
 ): RpcHttp {
-  const fetcher =
-    options?.customFetcher ??
-    (async (url, request) => {
-      const response = await fetch(url, request);
-      const jsonValue = await response.json();
-      return jsonValue as JsonValue;
-    });
+  const jsonFetcher = options?.customJsonFetcher ?? jsonFetcherDefault;
   return async function (method, params, config) {
-    if (config !== undefined) {
-      const contextCommitment = options?.commitment;
-      if (contextCommitment !== undefined) {
-        config = {
-          preflightCommitment: contextCommitment,
-          commitment: contextCommitment,
-          ...config,
-        };
-      }
+    if (config !== "skip-configuration-object") {
+      const commitmentLevel = options?.commitmentLevel ?? "confirmed";
+      config = {
+        preflightCommitment: commitmentLevel,
+        commitment: commitmentLevel,
+        ...config,
+      };
       params = [...params, config];
     }
     const requestId = uniqueRequestId++;
-    const responseJson = await fetcher(url, {
+    const responseJson = await jsonFetcher(url, {
       headers: {
         "Content-Type": "application/json",
-        ...options?.customHeaders,
+        ...options?.extraRequestHeaders,
       },
       method: "POST",
       body: JSON.stringify({
@@ -227,11 +214,17 @@ export function rpcHttpWithRequestsPerSecondLimit(
 export function rpcHttpWithRetryOnError(
   self: RpcHttp,
   retryApprover: (context: {
+    /** Number of times the request has been retried so far (0 on first failure). */
     retriedCounter: number;
+    /** Total elapsed time in milliseconds since the first attempt. */
     totalDurationMs: number;
+    /** The JSON-RPC method name of the failing request. */
     requestMethod: string;
+    /** The positional parameters of the failing request. */
     requestParams: Readonly<JsonArray>;
-    requestConfig: Readonly<JsonObject | undefined>;
+    /** The configuration object of the failing request. */
+    requestConfig: Readonly<JsonObject> | "skip-configuration-object";
+    /** The last error thrown by the underlying client. */
     lastError: any;
   }) => Promise<boolean>,
 ): RpcHttp {

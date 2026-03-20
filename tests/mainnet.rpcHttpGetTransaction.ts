@@ -8,7 +8,7 @@ import {
   pubkeyFromBase58,
   rpcHttpFromUrl,
   rpcHttpGetTransaction,
-  signatureFromBase58,
+  transactionHandleFromBase58,
   urlRpcPublicMainnet,
 } from "../src";
 
@@ -18,7 +18,7 @@ it("run", async () => {
   const { transactionRequest, executionReport, executionFlow } = expectDefined(
     await rpcHttpGetTransaction(
       rpcHttp,
-      signatureFromBase58(
+      transactionHandleFromBase58(
         "5c4TRGCXbv6ChbTpTnmFzt3WFqpWMMSAKdEqiqCFzG7hTFTWxdHpv2VxfQBzG3VwvQ2mMyG4rvV2eTN68jrLKy3U",
       ),
     ),

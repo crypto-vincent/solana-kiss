@@ -1,5 +1,6 @@
+import { URL } from "url";
 import { ErrorStack } from "../data/Error";
-import { JsonValue } from "../data/Json";
+import { JsonFetcher, jsonFetcherDefault } from "../data/Json";
 import { memoize } from "../data/Memoize";
 import { Pubkey } from "../data/Pubkey";
 import { IdlProgram, idlProgramParse } from "./IdlProgram";
@@ -7,7 +8,9 @@ import { IdlProgram, idlProgramParse } from "./IdlProgram";
 /**
  * A function that asynchronously loads an {@link IdlProgram} for a given Solana program address.
  */
-export type IdlLoader = (programAddress: Pubkey) => Promise<IdlProgram>;
+export type IdlLoader = (
+  programAddress: Pubkey,
+) => Promise<Readonly<IdlProgram>>;
 
 /**
  * Wraps an {@link IdlLoader} with memoization so that repeated calls for the
@@ -54,21 +57,11 @@ export function idlLoaderFromLoaderSequence(
  * @returns A new {@link IdlLoader} backed by HTTP fetching.
  */
 export function idlLoaderFromUrl(
-  urlBuilder: (programAddress: Pubkey) => string,
-  options?: { customFetcher?: (url: string) => Promise<JsonValue> },
+  urlBuilder: (programAddress: Pubkey) => URL,
+  options?: { customJsonFetcher?: JsonFetcher },
 ): IdlLoader {
   const cacheIdls = new Map<Pubkey, IdlProgram>();
-  const jsonFetcher =
-    options?.customFetcher ??
-    (async (url) => {
-      const response = await fetch(url);
-      if (!response.ok) {
-        throw new ErrorStack(
-          `Failed to fetch IDL from ${url}: ${response.status}: ${response.statusText}`,
-        );
-      }
-      return (await response.json()) as JsonValue;
-    });
+  const jsonFetcher = options?.customJsonFetcher ?? jsonFetcherDefault;
   return async (programAddress: Pubkey) => {
     const httpUrl = urlBuilder(programAddress);
     const httpJson = await jsonFetcher(httpUrl);

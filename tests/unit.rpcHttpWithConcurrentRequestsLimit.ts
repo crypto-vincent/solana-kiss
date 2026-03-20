@@ -1,9 +1,5 @@
 import { it } from "@jest/globals";
-import {
-  JsonArray,
-  RpcHttp,
-  rpcHttpWithConcurrentRequestsLimit as rpcHttpWithConcurrentRequestLimit,
-} from "../src";
+import { JsonArray, RpcHttp, rpcHttpWithConcurrentRequestsLimit } from "../src";
 
 async function rpcHttp(method: string, params: Readonly<JsonArray>) {
   if (method === "delayMs") {
@@ -31,37 +27,37 @@ async function expectScenarioDurationMs(context: {
 
 it("run", async () => {
   await expectScenarioDurationMs({
-    rpcHttp: rpcHttpWithConcurrentRequestLimit(rpcHttp, 2),
+    rpcHttp: rpcHttpWithConcurrentRequestsLimit(rpcHttp, 2),
     requestsDurationsMs: [1, 5, 10, 5],
     expectedDurationMs: 11,
   });
   await expectScenarioDurationMs({
-    rpcHttp: rpcHttpWithConcurrentRequestLimit(rpcHttp, 2),
+    rpcHttp: rpcHttpWithConcurrentRequestsLimit(rpcHttp, 2),
     requestsDurationsMs: [5, 5, 10, 10],
     expectedDurationMs: 15,
   });
   await expectScenarioDurationMs({
-    rpcHttp: rpcHttpWithConcurrentRequestLimit(rpcHttp, 2),
+    rpcHttp: rpcHttpWithConcurrentRequestsLimit(rpcHttp, 2),
     requestsDurationsMs: [10, 4, 4, 4],
     expectedDurationMs: 12,
   });
   await expectScenarioDurationMs({
-    rpcHttp: rpcHttpWithConcurrentRequestLimit(rpcHttp, 2),
+    rpcHttp: rpcHttpWithConcurrentRequestsLimit(rpcHttp, 2),
     requestsDurationsMs: [10, 10, 10, 10, 10, 10],
     expectedDurationMs: 30,
   });
   await expectScenarioDurationMs({
-    rpcHttp: rpcHttpWithConcurrentRequestLimit(rpcHttp, 4),
+    rpcHttp: rpcHttpWithConcurrentRequestsLimit(rpcHttp, 4),
     requestsDurationsMs: [10, 10, 10, 10, 10, 10],
     expectedDurationMs: 20,
   });
   await expectScenarioDurationMs({
-    rpcHttp: rpcHttpWithConcurrentRequestLimit(rpcHttp, 6),
+    rpcHttp: rpcHttpWithConcurrentRequestsLimit(rpcHttp, 6),
     requestsDurationsMs: [10, 10, 10, 10, 10, 10],
     expectedDurationMs: 10,
   });
   await expectScenarioDurationMs({
-    rpcHttp: rpcHttpWithConcurrentRequestLimit(rpcHttp, 10),
+    rpcHttp: rpcHttpWithConcurrentRequestsLimit(rpcHttp, 10),
     requestsDurationsMs: [10, 10, 10, 10, 10, 10],
     expectedDurationMs: 10,
   });

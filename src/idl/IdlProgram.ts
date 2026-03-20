@@ -35,14 +35,24 @@ import { IdlTypedef, idlTypedefParse } from "./IdlTypedef";
  * metadata, typedefs, accounts, instructions, events, errors, PDAs, and constants.
  */
 export type IdlProgram = {
+  /** Program metadata including name, version, on-chain address, and source URL. */
   metadata: IdlMetadata;
+  /** Map of typedef definitions keyed by type name (camelCase). */
   typedefs: Map<string, IdlTypedef>;
+  /** Map of account type definitions keyed by account name (camelCase). */
   accounts: Map<string, IdlAccount>;
+  /** Map of instruction definitions keyed by instruction name (snake_case). */
   instructions: Map<string, IdlInstruction>;
+  /** Map of event type definitions keyed by event name (camelCase). */
   events: Map<string, IdlEvent>;
+  /** Map of error definitions keyed by error name (camelCase). */
   errors: Map<string, IdlError>;
+  /** Map of PDA definitions keyed by PDA name (camelCase). */
   pdas: Map<string, IdlPda>;
+  /** Map of program constant definitions keyed by constant name (camelCase). */
   constants: Map<string, IdlConstant>;
+  /** Accessor for the raw JSON value from which this IDL was originally parsed. */
+  original: IdlProgramOriginal;
 };
 
 /**
@@ -61,7 +71,9 @@ export function idlProgramGuessAccount(
   const errors = [];
   for (const accountIdl of self.accounts.values()) {
     try {
-      idlAccountCheck(accountIdl, accountData);
+      withErrorContext(`Idl: account check: ${accountIdl.name}`, () =>
+        idlAccountCheck(accountIdl, accountData),
+      );
       return accountIdl;
     } catch (error) {
       errors.push(error);
@@ -85,14 +97,16 @@ export function idlProgramGuessInstruction(
   const errors = [];
   for (const instructionIdl of self.instructions.values()) {
     try {
-      idlInstructionAccountsCheck(
-        instructionIdl,
-        instructionRequest.instructionInputs,
-      );
-      idlInstructionArgsCheck(
-        instructionIdl,
-        instructionRequest.instructionData,
-      );
+      withErrorContext(`Idl: instruction check: ${instructionIdl.name}`, () => {
+        idlInstructionAccountsCheck(
+          instructionIdl,
+          instructionRequest.instructionInputs,
+        );
+        idlInstructionArgsCheck(
+          instructionIdl,
+          instructionRequest.instructionData,
+        );
+      });
       return instructionIdl;
     } catch (error) {
       errors.push(error);
@@ -116,7 +130,9 @@ export function idlProgramGuessEvent(
   const errors = [];
   for (const eventIdl of self.events.values()) {
     try {
-      idlEventCheck(eventIdl, eventData);
+      withErrorContext(`Idl: event check: ${eventIdl.name}`, () =>
+        idlEventCheck(eventIdl, eventData),
+      );
       return eventIdl;
     } catch (error) {
       errors.push(error);
@@ -143,7 +159,7 @@ export function idlProgramGuessError(
     }
     codes.push(errorIdl.code);
   }
-  throw new ErrorStack("Idl: Failed to guess error", codes);
+  throw new ErrorStack(`Idl: Failed to guess error: ${errorCode}`, codes);
 }
 
 // TODO - support CODAMA IDLs
@@ -215,24 +231,41 @@ export function idlProgramParse(programValue: JsonValue): IdlProgram {
     errors,
     pdas,
     constants,
+    original: new IdlProgramOriginal(programValue),
   };
 }
 
 /**
  * Returns a minimal "unknown" {@link IdlProgram} stub memoized by program address.
- * Useful as a fallback when no IDL is available for a program.
+ * Useful as a fallback when no IDL is available for a program; the stub exposes
+ * generic `UnknownAccount`, `unknown_instruction`, and `UnknownEvent` definitions
+ * that accept arbitrary data without enforcing any schema constraints.
  */
 export const idlProgramUnknown = memoize(
   async (programAddress: Pubkey) => programAddress,
   async (programAddress: Pubkey) => {
     return idlProgramParse({
-      metadata: { address: programAddress, source: "unknown" },
+      metadata: { address: programAddress, source: "memory://unknown-program" },
       accounts: { UnknownAccount: { discriminator: [], fields: [] } },
       instructions: { unknown_instruction: { discriminator: [] } },
       events: { UnknownEvent: { discriminator: [], fields: [] } },
     });
   },
 );
+
+/**
+ * Opaque accessor for the raw JSON value from which an {@link IdlProgram} was originally parsed.
+ * Useful for forwarding the full original IDL JSON to downstream tools without re-serialisation.
+ */
+class IdlProgramOriginal {
+  #json: JsonValue;
+  constructor(json: JsonValue) {
+    this.#json = json;
+  }
+  getJson() {
+    return this.#json;
+  }
+}
 
 function parseScopedNamedValues<Content, Param>(
   programObject: JsonObject,

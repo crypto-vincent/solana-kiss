@@ -11,6 +11,11 @@ export function sha256Hash(blobs: Array<Uint8Array>): Uint8Array {
   return hasher.digest();
 }
 
+/**
+ * Incremental SHA-256 hasher implementing the FIPS 180-4 specification.
+ * Internally reuses a module-level singleton (`hasher`) so it must be fully
+ * consumed (i.e., `digest()` called) before being reused.
+ */
 class Hasher {
   private readonly state = new Int32Array(8);
   private readonly temp = new Int32Array(64);

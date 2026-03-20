@@ -4,55 +4,87 @@ import { IdlTypePrimitive } from "./IdlTypePrimitive";
 
 /** A resolved typedef reference, carrying the typedef name, optional repr hint, and its full content type. */
 export type IdlTypeFullTypedef = {
+  /** The camelCase name of the typedef. */
   name: string;
+  /** The memory representation hint (`"rust"`, `"c"`, etc.), or `undefined` if none. */
   repr: string | undefined;
+  /** The fully-resolved type described by this typedef. */
   content: IdlTypeFull;
 };
 /** An optional value whose presence is indicated by a length prefix. */
 export type IdlTypeFullOption = {
-  prefix: IdlTypePrefix;
+  /** The prefix type encoding option presence (1 = some, 0 = none), or `undefined` for the default `u8`. */
+  prefix: IdlTypePrefix | undefined;
+  /** The inner type of the option when present. */
   content: IdlTypeFull;
 };
 /** A variable-length sequence of items encoded with a length prefix. */
 export type IdlTypeFullVec = {
-  prefix: IdlTypePrefix;
+  /** The prefix type encoding the element count, or `undefined` for the default `u32`. */
+  prefix: IdlTypePrefix | undefined;
+  /** The type of each element in the sequence. */
   items: IdlTypeFull;
 };
 /** A sequence of items terminated by a sentinel value or the end of data. */
 export type IdlTypeFullLoop = {
+  /** The type of each element in the sequence. */
   items: IdlTypeFull;
+  /** The termination condition: a specific sentinel `{ value }` or `"end"` meaning end-of-buffer. */
   stop: { value: JsonValue } | "end";
 };
 /** A fixed-length array with a resolved element count. */
 export type IdlTypeFullArray = {
+  /** The type of each element in the array. */
   items: IdlTypeFull;
+  /** The fixed number of elements in the array. */
   length: number;
 };
 /** A UTF-8 string encoded with a length prefix. */
 export type IdlTypeFullString = {
-  prefix: IdlTypePrefix;
+  /** The prefix type encoding the byte length, or `undefined` for the default `u32`. */
+  prefix: IdlTypePrefix | undefined;
 };
 /** A struct type holding an ordered collection of fully-resolved fields. */
 export type IdlTypeFullStruct = {
+  /** The fields of the struct (nothing/named/unnamed). */
   fields: IdlTypeFullFields;
 };
 /** A fully-resolved enum type with precomputed index maps for fast variant lookup. */
 export type IdlTypeFullEnum = {
-  prefix: IdlTypePrefix;
+  /** The prefix type used to encode the discriminant value. */
+  prefix: IdlTypePrefix | undefined;
+  /**
+   * A bitmask applied to the raw discriminant before variant lookup.
+   * Used for enums that encode additional bits in the discriminant beyond the variant index.
+   */
   mask: bigint;
+  /** Map from variant name (string) to its index in `variants`. */
   indexByName: Map<string, number>;
+  /** Map from variant numeric code (`bigint`) to its index in `variants`. */
   indexByCodeBigInt: Map<bigint, number>;
+  /** Map from variant numeric code (decimal string) to its index in `variants`. */
   indexByCodeString: Map<string, number>;
+  /** `true` if all variants have no fields (unit/fieldless enum). */
+  fieldless: boolean;
+  /** Ordered list of all enum variants. */
   variants: Array<IdlTypeFullEnumVariant>;
 };
 /** A padding wrapper that skips bytes before and after an inner fully-resolved type. */
-export type IdlTypeFullPad = {
-  before: number; // TODO (repr) - can this be deprecated when transparent padding is supported ?
-  end: number;
+export type IdlTypeFullPadded = {
+  /** Number of bytes to skip before the inner type. */
+  before: number;
+  /**
+   * Minimum total byte size of the padded region (inner type + before padding).
+   * If the encoded inner type plus leading padding is smaller than this, trailing
+   * bytes are skipped until the minimum is reached.
+   */
+  minSize: number;
+  /** The inner fully-resolved type wrapped by this padding. */
   content: IdlTypeFull;
 };
 /** A raw byte blob of fixed content used as a discriminator or sentinel. */
 export type IdlTypeFullBlob = {
+  /** The fixed byte sequence to match or skip during encoding/decoding. */
   bytes: Uint8Array;
 };
 
@@ -65,7 +97,7 @@ type IdlTypeFullDiscriminant =
   | "string"
   | "struct"
   | "enum"
-  | "pad"
+  | "padded"
   | "blob"
   | "primitive";
 type IdlTypeFullContent =
@@ -77,7 +109,7 @@ type IdlTypeFullContent =
   | IdlTypeFullString
   | IdlTypeFullStruct
   | IdlTypeFullEnum
-  | IdlTypeFullPad
+  | IdlTypeFullPadded
   | IdlTypeFullBlob
   | IdlTypePrimitive;
 
@@ -130,9 +162,9 @@ export class IdlTypeFull {
   public static enum(value: IdlTypeFullEnum): IdlTypeFull {
     return new IdlTypeFull("enum", value);
   }
-  /** Creates a `pad` variant that wraps an inner type with byte padding. */
-  public static pad(value: IdlTypeFullPad): IdlTypeFull {
-    return new IdlTypeFull("pad", value);
+  /** Creates a `padded` variant that wraps an inner type with byte padding. */
+  public static padded(value: IdlTypeFullPadded): IdlTypeFull {
+    return new IdlTypeFull("padded", value);
   }
   /** Creates a `blob` variant for a raw byte sequence. */
   public static blob(value: IdlTypeFullBlob): IdlTypeFull {
@@ -175,7 +207,7 @@ export class IdlTypeFull {
       string: (value: IdlTypeFullString, p1: P1, p2: P2, p3: P3) => T;
       struct: (value: IdlTypeFullStruct, p1: P1, p2: P2, p3: P3) => T;
       enum: (value: IdlTypeFullEnum, p1: P1, p2: P2, p3: P3) => T;
-      pad: (value: IdlTypeFullPad, p1: P1, p2: P2, p3: P3) => T;
+      padded: (value: IdlTypeFullPadded, p1: P1, p2: P2, p3: P3) => T;
       blob: (value: IdlTypeFullBlob, p1: P1, p2: P2, p3: P3) => T;
       primitive: (value: IdlTypePrimitive, p1: P1, p2: P2, p3: P3) => T;
     },
@@ -189,17 +221,20 @@ export class IdlTypeFull {
 
 /** A named field within a fully-resolved struct or enum variant. */
 export type IdlTypeFullFieldNamed = {
+  /** The camelCase name of this field. */
   name: string;
+  /** The fully-resolved type of this field. */
   content: IdlTypeFull;
 };
 /** An unnamed (tuple-style) field within a fully-resolved struct or enum variant. */
 export type IdlTypeFullFieldUnnamed = {
+  /** The fully-resolved type of this positional field. */
   content: IdlTypeFull;
 };
 
 type IdlTypeFullFieldsDiscriminant = "nothing" | "named" | "unnamed";
 type IdlTypeFullFieldsContent =
-  | null
+  | Array<never>
   | Array<IdlTypeFullFieldNamed>
   | Array<IdlTypeFullFieldUnnamed>;
 
@@ -221,7 +256,7 @@ export class IdlTypeFullFields {
 
   /** Creates a `nothing` variant representing a unit (no fields). */
   public static nothing(): IdlTypeFullFields {
-    return new IdlTypeFullFields("nothing", null);
+    return new IdlTypeFullFields("nothing", []);
   }
   /** Creates a `named` variant wrapping a list of named fields. */
   public static named(value: Array<IdlTypeFullFieldNamed>): IdlTypeFullFields {
@@ -245,10 +280,11 @@ export class IdlTypeFullFields {
    * @param p1 - First context parameter forwarded to the visitor.
    * @param p2 - Second context parameter forwarded to the visitor.
    * @param p3 - Third context parameter forwarded to the visitor.
+   * @returns The value returned by the matched visitor branch.
    */
   public traverse<P1, P2, P3, T>(
     visitor: {
-      nothing: (value: null, p1: P1, p2: P2, p3: P3) => T;
+      nothing: (value: Array<never>, p1: P1, p2: P2, p3: P3) => T;
       named: (value: Array<IdlTypeFullFieldNamed>, p1: P1, p2: P2, p3: P3) => T;
       unnamed: (
         value: Array<IdlTypeFullFieldUnnamed>,
@@ -261,30 +297,16 @@ export class IdlTypeFullFields {
     p2: P2,
     p3: P3,
   ) {
-    switch (this.discriminant) {
-      case "nothing":
-        return visitor.nothing(this.content as null, p1, p2, p3);
-      case "named":
-        return visitor.named(
-          this.content as Array<IdlTypeFullFieldNamed>,
-          p1,
-          p2,
-          p3,
-        );
-      case "unnamed":
-        return visitor.unnamed(
-          this.content as Array<IdlTypeFullFieldUnnamed>,
-          p1,
-          p2,
-          p3,
-        );
-    }
+    return visitor[this.discriminant](this.content as any, p1, p2, p3);
   }
 }
 
 /** A single variant of a fully-resolved enum type, with a name, numeric code, and fields. */
 export type IdlTypeFullEnumVariant = {
+  /** The camelCase name of this variant. */
   name: string;
+  /** The numeric discriminant code for this variant. */
   code: bigint;
+  /** The fully-resolved fields of this variant (unit, named, or unnamed). */
   fields: IdlTypeFullFields;
 };
