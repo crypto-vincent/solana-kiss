@@ -5,28 +5,29 @@
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>solana-kiss cookbook</title>
     <style>
+      /* ── Design tokens ──────────────────────────────────────────── */
       :root {
         --bg: #0e1117;
         --surface: #161b22;
+        --surface2: #1c2128;
         --border: #21262d;
         --accent: #9945ff;
         --accent2: #14f195;
         --text: #e6edf3;
         --muted: #8b949e;
         --code-bg: #010409;
-        --keyword: #ff7b72;
-        --string: #a5d6ff;
-        --comment: #484f58;
+        --kw: #ff7b72;
+        --str: #a5d6ff;
+        --cmt: #484f58;
         --fn: #d2a8ff;
         --num: #79c0ff;
-        --type: #ffa657;
+        --ty: #ffa657;
+        --sidebar-w: 230px;
       }
 
-      * {
-        box-sizing: border-box;
-        margin: 0;
-        padding: 0;
-      }
+      /* ── Reset ──────────────────────────────────────────────────── */
+      * { box-sizing: border-box; margin: 0; padding: 0; }
+      html { scroll-behavior: smooth; }
 
       body {
         background: var(--bg);
@@ -36,97 +37,176 @@
         line-height: 1.6;
       }
 
-      /* ── Header ────────────────────────────────────────────────── */
-      header {
+      /* ── Top bar ─────────────────────────────────────────────────── */
+      .topbar {
+        position: fixed;
+        top: 0; left: 0; right: 0;
+        height: 48px;
+        background: var(--surface);
         border-bottom: 1px solid var(--border);
-        padding: 28px 0 24px;
-        text-align: center;
+        display: flex;
+        align-items: center;
+        padding: 0 20px;
+        z-index: 100;
+        gap: 16px;
       }
 
-      header h1 {
-        font-size: 1.75rem;
+      .topbar-logo {
         font-weight: 700;
-        letter-spacing: -0.5px;
+        font-size: 0.95rem;
+        text-decoration: none;
+        color: var(--text);
+        white-space: nowrap;
       }
 
-      header h1 span.kiss {
+      .topbar-logo .kiss {
         background: linear-gradient(135deg, var(--accent), var(--accent2));
         -webkit-background-clip: text;
         -webkit-text-fill-color: transparent;
         background-clip: text;
       }
 
-      header p {
+      .topbar-tagline {
         color: var(--muted);
-        margin-top: 6px;
-        font-size: 0.9rem;
+        font-size: 0.8rem;
+        border-left: 1px solid var(--border);
+        padding-left: 16px;
       }
 
-      header nav {
-        margin-top: 16px;
+      .topbar-gh {
+        margin-left: auto;
+        color: var(--muted);
+        font-size: 0.78rem;
+        text-decoration: none;
         display: flex;
-        flex-wrap: wrap;
-        justify-content: center;
-        gap: 8px;
+        align-items: center;
+        gap: 5px;
       }
 
-      header nav a {
+      .topbar-gh:hover { color: var(--text); }
+
+      /* ── Layout ──────────────────────────────────────────────────── */
+      .layout {
+        display: flex;
+        padding-top: 48px;
+        min-height: 100vh;
+      }
+
+      /* ── Sidebar ─────────────────────────────────────────────────── */
+      .sidebar {
+        width: var(--sidebar-w);
+        flex-shrink: 0;
+        position: sticky;
+        top: 48px;
+        height: calc(100vh - 48px);
+        overflow-y: auto;
+        border-right: 1px solid var(--border);
+        padding: 20px 0 40px;
+        scrollbar-width: thin;
+        scrollbar-color: var(--border) transparent;
+      }
+
+      .sidebar::-webkit-scrollbar { width: 4px; }
+      .sidebar::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+
+      .toc-chapter {
+        margin-bottom: 4px;
+      }
+
+      .toc-chapter-label {
+        display: block;
+        padding: 6px 20px 4px;
+        font-size: 0.68rem;
+        font-weight: 700;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        color: var(--muted);
+        margin-top: 12px;
+      }
+
+      .toc-link {
+        display: block;
+        padding: 4px 20px 4px 28px;
+        font-size: 0.82rem;
         color: var(--muted);
         text-decoration: none;
-        font-size: 0.8rem;
-        padding: 3px 10px;
-        border: 1px solid var(--border);
-        border-radius: 20px;
-        transition: border-color 0.15s, color 0.15s;
+        border-left: 2px solid transparent;
+        transition: color 0.12s, border-color 0.12s;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
       }
 
-      header nav a:hover {
-        border-color: var(--accent);
+      .toc-link:hover {
         color: var(--text);
       }
 
-      /* ── Layout ─────────────────────────────────────────────────── */
-      main {
-        max-width: 760px;
-        margin: 0 auto;
-        padding: 40px 20px 80px;
+      .toc-link.active {
+        color: var(--accent2);
+        border-left-color: var(--accent2);
+        background: rgba(20, 241, 149, 0.04);
+      }
+
+      /* ── Main content ────────────────────────────────────────────── */
+      .content {
+        flex: 1;
+        min-width: 0;
+        padding: 40px 48px 80px;
+        max-width: 900px;
+      }
+
+      /* ── Chapter heading ─────────────────────────────────────────── */
+      .chapter {
+        margin-bottom: 64px;
+      }
+
+      .chapter-title {
+        font-size: 1.35rem;
+        font-weight: 700;
+        letter-spacing: -0.3px;
+        padding-bottom: 12px;
+        border-bottom: 1px solid var(--border);
+        margin-bottom: 40px;
+      }
+
+      .chapter-title .ch-num {
+        color: var(--accent);
+        font-size: 0.8rem;
+        font-weight: 600;
+        display: block;
+        margin-bottom: 2px;
       }
 
       /* ── Recipe card ─────────────────────────────────────────────── */
       .recipe {
-        margin-bottom: 48px;
+        margin-bottom: 52px;
+        scroll-margin-top: 72px;
       }
 
-      .recipe-header {
-        display: flex;
-        align-items: baseline;
-        gap: 10px;
-        margin-bottom: 10px;
-      }
-
-      .recipe-num {
-        font-size: 0.7rem;
+      .recipe-title {
+        font-size: 1rem;
         font-weight: 600;
-        color: var(--accent);
-        font-variant-numeric: tabular-nums;
-        min-width: 22px;
+        margin-bottom: 8px;
       }
 
-      .recipe h2 {
-        font-size: 1.05rem;
-        font-weight: 600;
-      }
-
-      .recipe p {
+      .recipe-desc {
         color: var(--muted);
         font-size: 0.875rem;
-        margin-bottom: 12px;
-        padding-left: 32px;
+        margin-bottom: 14px;
+        max-width: 640px;
+      }
+
+      .recipe-desc code {
+        color: var(--ty);
+        font-family: "SF Mono", "Fira Code", Consolas, monospace;
+        font-size: 0.8rem;
+        background: var(--surface2);
+        padding: 1px 5px;
+        border-radius: 4px;
       }
 
       /* ── Code block ──────────────────────────────────────────────── */
       .code-wrap {
-        position: relative;
         border-radius: 8px;
         overflow: hidden;
         border: 1px solid var(--border);
@@ -135,11 +215,12 @@
       .code-label {
         background: var(--surface);
         border-bottom: 1px solid var(--border);
-        padding: 6px 14px;
-        font-size: 0.72rem;
+        padding: 5px 14px;
+        font-size: 0.7rem;
         color: var(--muted);
         font-family: monospace;
-        letter-spacing: 0.02em;
+        letter-spacing: 0.06em;
+        text-transform: uppercase;
       }
 
       pre {
@@ -150,41 +231,20 @@
       }
 
       code {
-        font-family: "SF Mono", "Fira Code", "Cascadia Code", Consolas,
-          monospace;
-        font-size: 0.82rem;
-        line-height: 1.65;
+        font-family: "SF Mono", "Fira Code", "Cascadia Code", Consolas, monospace;
+        font-size: 0.81rem;
+        line-height: 1.7;
       }
 
       /* ── Syntax tokens ──────────────────────────────────────────── */
-      .kw {
-        color: var(--keyword);
-      }
-      .fn {
-        color: var(--fn);
-      }
-      .str {
-        color: var(--string);
-      }
-      .cmt {
-        color: var(--comment);
-        font-style: italic;
-      }
-      .num {
-        color: var(--num);
-      }
-      .ty {
-        color: var(--type);
-      }
+      .kw  { color: var(--kw); }
+      .fn  { color: var(--fn); }
+      .str { color: var(--str); }
+      .cmt { color: var(--cmt); font-style: italic; }
+      .num { color: var(--num); }
+      .ty  { color: var(--ty); }
 
-      /* ── Divider ─────────────────────────────────────────────────── */
-      .divider {
-        border: none;
-        border-top: 1px solid var(--border);
-        margin: 0 0 48px;
-      }
-
-      /* ── Install badge ───────────────────────────────────────────── */
+      /* ── Install box ─────────────────────────────────────────────── */
       .install-box {
         display: flex;
         align-items: center;
@@ -197,196 +257,602 @@
         font-size: 0.85rem;
       }
 
-      .install-box .prompt {
-        color: var(--accent2);
-        user-select: none;
+      .install-box .prompt { color: var(--accent2); user-select: none; }
+
+      /* ── Tip callout ─────────────────────────────────────────────── */
+      .tip {
+        background: rgba(153, 69, 255, 0.07);
+        border-left: 3px solid var(--accent);
+        border-radius: 0 6px 6px 0;
+        padding: 10px 14px;
+        font-size: 0.84rem;
+        color: var(--muted);
+        margin-bottom: 14px;
+      }
+
+      .tip code {
+        color: var(--ty);
+        font-family: monospace;
+        font-size: 0.8rem;
       }
 
       /* ── Footer ──────────────────────────────────────────────────── */
       footer {
-        text-align: center;
         border-top: 1px solid var(--border);
-        padding: 24px 20px;
+        padding: 20px 48px;
         color: var(--muted);
-        font-size: 0.8rem;
+        font-size: 0.78rem;
+        margin-left: var(--sidebar-w);
       }
 
-      footer a {
-        color: var(--accent2);
-        text-decoration: none;
-      }
+      footer a { color: var(--accent2); text-decoration: none; }
+      footer a:hover { text-decoration: underline; }
 
-      footer a:hover {
-        text-decoration: underline;
+      /* ── Responsive ──────────────────────────────────────────────── */
+      @media (max-width: 768px) {
+        :root { --sidebar-w: 0px; }
+        .sidebar { display: none; }
+        .content { padding: 24px 20px 60px; }
+        footer { margin-left: 0; padding: 20px; }
+        .topbar-tagline { display: none; }
       }
     </style>
   </head>
   <body>
-    <header>
-      <h1>solana-<span class="kiss">kiss</span> cookbook</h1>
-      <p>No bloat. No dependencies. Full-featured Solana.</p>
-      <nav>
-        <a href="#install">Install</a>
-        <a href="#connect">Connect</a>
-        <a href="#keypair">Keypair</a>
-        <a href="#balance">Balance</a>
-        <a href="#pda">PDA</a>
-        <a href="#transaction">Transaction</a>
-        <a href="#idl">IDL</a>
-      </nav>
-    </header>
 
-    <main>
-      <!-- ── 1. Install ─────────────────────────────────────────── -->
-      <section class="recipe" id="install">
-        <div class="recipe-header">
-          <span class="recipe-num">01</span>
-          <h2>Install</h2>
+    <!-- ── Top bar ───────────────────────────────────────────────── -->
+    <div class="topbar">
+      <a class="topbar-logo" href="#">solana-<span class="kiss">kiss</span> cookbook</a>
+      <span class="topbar-tagline">Simple. Stupid. Full-featured.</span>
+      <a class="topbar-gh" href="https://github.com/crypto-vincent/solana-kiss" target="_blank" rel="noopener">
+        <svg width="14" height="14" viewBox="0 0 16 16" fill="currentColor" aria-hidden="true"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"/></svg>
+        GitHub
+      </a>
+    </div>
+
+    <div class="layout">
+
+      <!-- ── Sidebar ────────────────────────────────────────────────── -->
+      <aside class="sidebar">
+
+        <div class="toc-chapter">
+          <span class="toc-chapter-label">Getting Started</span>
+          <a class="toc-link" href="#install">Install</a>
+          <a class="toc-link" href="#connect">Connect</a>
         </div>
-        <p>One package. Zero peer dependencies.</p>
-        <div class="install-box">
-          <span class="prompt">$</span>
-          <span>npm install solana-kiss</span>
+
+        <div class="toc-chapter">
+          <span class="toc-chapter-label">Solana Class</span>
+          <a class="toc-link" href="#solana-constructor">Constructor</a>
+          <a class="toc-link" href="#solana-idl-override">IDL Override</a>
+          <a class="toc-link" href="#solana-decode-account">Decode Account</a>
+          <a class="toc-link" href="#solana-infer-instruction">Infer Instruction</a>
+          <a class="toc-link" href="#solana-encode-instruction">Encode Instruction</a>
+          <a class="toc-link" href="#solana-hydrate-addresses">Resolve Addresses</a>
+          <a class="toc-link" href="#solana-blockhash">Recent Block Hash</a>
+          <a class="toc-link" href="#solana-execute-tx">Execute Transaction</a>
+          <a class="toc-link" href="#solana-simulate-tx">Simulate Transaction</a>
+          <a class="toc-link" href="#solana-find-accounts">Find Owned Accounts</a>
+          <a class="toc-link" href="#solana-pda">Derive PDA via IDL</a>
         </div>
-      </section>
 
-      <hr class="divider" />
-
-      <!-- ── 2. Connect ─────────────────────────────────────────── -->
-      <section class="recipe" id="connect">
-        <div class="recipe-header">
-          <span class="recipe-num">02</span>
-          <h2>Connect to Solana</h2>
+        <div class="toc-chapter">
+          <span class="toc-chapter-label">data</span>
+          <a class="toc-link" href="#data-keypair">Keypairs</a>
+          <a class="toc-link" href="#data-pubkey">Public Keys</a>
+          <a class="toc-link" href="#data-pda">PDAs</a>
+          <a class="toc-link" href="#data-lamports">Lamports &amp; Fees</a>
+          <a class="toc-link" href="#data-transaction">Compile &amp; Sign</a>
+          <a class="toc-link" href="#data-wallet">Wallet Provider</a>
         </div>
-        <p>
-          Use a cluster moniker or any custom RPC URL. Built-in monikers:
-          <code style="color: var(--type)">mainnet</code>,
-          <code style="color: var(--type)">devnet</code>,
-          <code style="color: var(--type)">testnet</code>.
-        </p>
-        <div class="code-wrap">
-          <div class="code-label">TypeScript</div>
-          <pre><code><span class="kw">import</span> { rpcHttpFromUrl, urlRpcPublicMainnet } <span class="kw">from</span> <span class="str">"solana-kiss"</span>;
 
-<span class="cmt">// using a built-in public endpoint</span>
-<span class="kw">const</span> rpc = <span class="fn">rpcHttpFromUrl</span>(urlRpcPublicMainnet);
-
-<span class="cmt">// or bring your own</span>
-<span class="kw">const</span> rpc = <span class="fn">rpcHttpFromUrl</span>(<span class="str">"https://my-rpc.example.com"</span>);</code></pre>
+        <div class="toc-chapter">
+          <span class="toc-chapter-label">rpc</span>
+          <a class="toc-link" href="#rpc-client">Create Client</a>
+          <a class="toc-link" href="#rpc-middleware">Middleware</a>
+          <a class="toc-link" href="#rpc-account-meta">Account Metadata</a>
+          <a class="toc-link" href="#rpc-send-tx">Send &amp; Confirm</a>
+          <a class="toc-link" href="#rpc-simulate-tx">Simulate</a>
+          <a class="toc-link" href="#rpc-get-tx">Fetch Transaction</a>
+          <a class="toc-link" href="#rpc-account-history">Account History</a>
+          <a class="toc-link" href="#rpc-find-accounts">Program Accounts</a>
         </div>
-      </section>
 
-      <hr class="divider" />
-
-      <!-- ── 3. Keypair ─────────────────────────────────────────── -->
-      <section class="recipe" id="keypair">
-        <div class="recipe-header">
-          <span class="recipe-num">03</span>
-          <h2>Generate or Import a Keypair</h2>
+        <div class="toc-chapter">
+          <span class="toc-chapter-label">idl</span>
+          <a class="toc-link" href="#idl-loader">Load an IDL</a>
+          <a class="toc-link" href="#idl-encode-args">Encode Args</a>
+          <a class="toc-link" href="#idl-decode-args">Decode Args</a>
+          <a class="toc-link" href="#idl-decode-account">Decode Account</a>
         </div>
-        <p>
-          <code style="color: var(--fn)">signerGenerate</code> creates a fresh
-          Ed25519 keypair.
-          <code style="color: var(--fn)">signerFromSecret</code> restores one
-          from a 64-byte secret.
-        </p>
-        <div class="code-wrap">
-          <div class="code-label">TypeScript</div>
-          <pre><code><span class="kw">import</span> { signerFromSecret, signerGenerate } <span class="kw">from</span> <span class="str">"solana-kiss"</span>;
 
-<span class="cmt">// generate a brand-new keypair</span>
-<span class="kw">const</span> signer = <span class="kw">await</span> <span class="fn">signerGenerate</span>();
-console.<span class="fn">log</span>(signer.address); <span class="cmt">// base58 public key</span>
+      </aside>
 
-<span class="cmt">// restore from a 64-byte secret key</span>
-<span class="kw">const</span> secretBytes = <span class="kw">new</span> <span class="ty">Uint8Array</span>([<span class="cmt">/* 64 bytes */</span>]);
-<span class="kw">const</span> signer = <span class="kw">await</span> <span class="fn">signerFromSecret</span>(secretBytes);</code></pre>
-        </div>
-      </section>
+      <!-- ── Main ──────────────────────────────────────────────────── -->
+      <main class="content">
 
-      <hr class="divider" />
+        <!-- ════════════════════════════════════════════════════════
+             Chapter 1 — Getting Started
+             ════════════════════════════════════════════════════════ -->
+        <section class="chapter">
+          <h2 class="chapter-title">
+            <span class="ch-num">Chapter 1</span>
+            Getting Started
+          </h2>
 
-      <!-- ── 4. Balance ─────────────────────────────────────────── -->
-      <section class="recipe" id="balance">
-        <div class="recipe-header">
-          <span class="recipe-num">04</span>
-          <h2>Get Account Balance</h2>
-        </div>
-        <p>
-          Lamports are <code style="color: var(--type)">bigint</code>.
-          <code style="color: var(--fn)">lamportsToSol</code> converts to a
-          human-readable SOL string.
-        </p>
-        <div class="code-wrap">
-          <div class="code-label">TypeScript</div>
-          <pre><code><span class="kw">import</span> {
-  lamportsToSol,
-  pubkeyFromBase58,
+          <!-- Install -->
+          <article class="recipe" id="install">
+            <h3 class="recipe-title">Install</h3>
+            <p class="recipe-desc">One package. Zero peer dependencies.</p>
+            <div class="install-box">
+              <span class="prompt">$</span>
+              <span>npm install solana-kiss</span>
+            </div>
+          </article>
+
+          <!-- Connect -->
+          <article class="recipe" id="connect">
+            <h3 class="recipe-title">Connect</h3>
+            <p class="recipe-desc">
+              Pass a moniker (<code>"mainnet"</code>, <code>"devnet"</code>, <code>"testnet"</code>)
+              or any RPC URL string directly to <code>new Solana()</code>.
+              That's all the setup you need.
+            </p>
+            <div class="code-wrap">
+              <div class="code-label">TypeScript</div>
+              <pre><code><span class="kw">import</span> { <span class="ty">Solana</span> } <span class="kw">from</span> <span class="str">"solana-kiss"</span>;
+
+<span class="cmt">// moniker shortcut — confirmed commitment, public endpoint</span>
+<span class="kw">const</span> solana = <span class="kw">new</span> <span class="ty">Solana</span>(<span class="str">"mainnet"</span>);
+
+<span class="cmt">// or bring your own RPC URL</span>
+<span class="kw">const</span> solana = <span class="kw">new</span> <span class="ty">Solana</span>(<span class="str">"https://my-rpc.example.com"</span>);</code></pre>
+            </div>
+          </article>
+
+        </section>
+
+        <!-- ════════════════════════════════════════════════════════
+             Chapter 2 — The Solana Class
+             ════════════════════════════════════════════════════════ -->
+        <section class="chapter">
+          <h2 class="chapter-title">
+            <span class="ch-num">Chapter 2</span>
+            The <code style="font-size:1.1rem;background:none;color:var(--ty)">Solana</code> Class
+          </h2>
+
+          <p class="recipe-desc" style="margin-bottom:32px">
+            The high-level entry point. Wraps RPC + IDL loading so you can
+            focus on what your program does, not on boilerplate.
+          </p>
+
+          <!-- Constructor -->
+          <article class="recipe" id="solana-constructor">
+            <h3 class="recipe-title">Constructor</h3>
+            <p class="recipe-desc">
+              Accepts a moniker, a URL string, or a pre-built
+              <code>RpcHttp</code> client. An optional <code>idlOverrides</code>
+              map lets you pin specific programs to local IDL files from the start.
+            </p>
+            <div class="code-wrap">
+              <div class="code-label">TypeScript</div>
+              <pre><code><span class="kw">import</span> {
+  <span class="ty">IdlProgram</span>,
   rpcHttpFromUrl,
-  rpcHttpGetAccountLamports,
+  <span class="ty">Solana</span>,
   urlRpcPublicMainnet,
 } <span class="kw">from</span> <span class="str">"solana-kiss"</span>;
 
-<span class="kw">const</span> rpc = <span class="fn">rpcHttpFromUrl</span>(urlRpcPublicMainnet);
-<span class="kw">const</span> address = <span class="fn">pubkeyFromBase58</span>(<span class="str">"YourAddressHere..."</span>);
+<span class="cmt">// 1. moniker (simplest)</span>
+<span class="kw">const</span> solana = <span class="kw">new</span> <span class="ty">Solana</span>(<span class="str">"mainnet"</span>);
 
-<span class="kw">const</span> { lamports } = <span class="kw">await</span> <span class="fn">rpcHttpGetAccountLamports</span>(rpc, address);
-console.<span class="fn">log</span>(<span class="fn">lamportsToSol</span>(lamports)); <span class="cmt">// e.g. "1.5"</span></code></pre>
-        </div>
-      </section>
+<span class="cmt">// 2. custom RPC client (add rate-limits, headers, …)</span>
+<span class="kw">const</span> rpc = <span class="fn">rpcHttpFromUrl</span>(urlRpcPublicMainnet, {
+  commitmentLevel: <span class="str">"finalized"</span>,
+  extraRequestHeaders: { <span class="str">"x-api-key"</span>: <span class="str">"my-key"</span> },
+});
+<span class="kw">const</span> solana = <span class="kw">new</span> <span class="ty">Solana</span>(rpc);
 
-      <hr class="divider" />
+<span class="cmt">// 3. pin an IDL at construction time</span>
+<span class="kw">const</span> localIdl: <span class="ty">IdlProgram</span> = <span class="fn">loadMyIdl</span>();
+<span class="kw">const</span> solana = <span class="kw">new</span> <span class="ty">Solana</span>(<span class="str">"devnet"</span>, {
+  idlOverrides: <span class="kw">new</span> <span class="ty">Map</span>([[programAddress, localIdl]]),
+});</code></pre>
+            </div>
+          </article>
 
-      <!-- ── 5. PDA ──────────────────────────────────────────────── -->
-      <section class="recipe" id="pda">
-        <div class="recipe-header">
-          <span class="recipe-num">05</span>
-          <h2>Derive a PDA</h2>
-        </div>
-        <p>
-          Pass the program address and an array of seed byte buffers.
-          <code style="color: var(--fn)">pubkeyFindPdaAddress</code> returns the
-          off-curve address.
-        </p>
-        <div class="code-wrap">
-          <div class="code-label">TypeScript</div>
-          <pre><code><span class="kw">import</span> {
-  pubkeyFindPdaAddress,
+          <!-- IDL Override -->
+          <article class="recipe" id="solana-idl-override">
+            <h3 class="recipe-title">Override a Program IDL</h3>
+            <p class="recipe-desc">
+              Pin a local IDL for any program address at any time.
+              Pass <code>undefined</code> to remove the override and fall back
+              to the auto-loader.
+            </p>
+            <div class="code-wrap">
+              <div class="code-label">TypeScript</div>
+              <pre><code><span class="kw">import</span> localIdlJson <span class="kw">from</span> <span class="str">"./my_program.json"</span>;
+<span class="kw">import</span> { idlProgramParse, pubkeyFromBase58, <span class="ty">Solana</span> } <span class="kw">from</span> <span class="str">"solana-kiss"</span>;
+
+<span class="kw">const</span> solana      = <span class="kw">new</span> <span class="ty">Solana</span>(<span class="str">"devnet"</span>);
+<span class="kw">const</span> programAddr = <span class="fn">pubkeyFromBase58</span>(<span class="str">"MyProgram1111111111111111111111111111111111"</span>);
+
+<span class="cmt">// pin a local IDL — no on-chain fetch for this program</span>
+solana.<span class="fn">setProgramIdlOverride</span>(programAddr, <span class="fn">idlProgramParse</span>(localIdlJson));
+
+<span class="cmt">// later: remove the override and let the auto-loader take over</span>
+solana.<span class="fn">setProgramIdlOverride</span>(programAddr, <span class="kw">undefined</span>);</code></pre>
+            </div>
+          </article>
+
+          <!-- Decode Account -->
+          <article class="recipe" id="solana-decode-account">
+            <h3 class="recipe-title">Fetch &amp; Decode an Account</h3>
+            <p class="recipe-desc">
+              Give it an address. It fetches the account, auto-loads the
+              owning program's IDL, infers the account type, and returns fully
+              decoded state — in one call.
+            </p>
+            <div class="code-wrap">
+              <div class="code-label">TypeScript</div>
+              <pre><code><span class="kw">import</span> { pubkeyFromBase58, <span class="ty">Solana</span> } <span class="kw">from</span> <span class="str">"solana-kiss"</span>;
+
+<span class="kw">const</span> solana  = <span class="kw">new</span> <span class="ty">Solana</span>(<span class="str">"mainnet"</span>);
+<span class="kw">const</span> address = <span class="fn">pubkeyFromBase58</span>(<span class="str">"YourAccountAddress..."</span>);
+
+<span class="kw">const</span> {
+  accountState,      <span class="cmt">// decoded JSON (fully typed by IDL)</span>
+  accountIdl,        <span class="cmt">// the matched IDL account definition</span>
+  accountLamports,   <span class="cmt">// bigint</span>
+  programIdl,        <span class="cmt">// full IDL of the owning program</span>
+} = <span class="kw">await</span> solana.<span class="fn">getAndInferAndDecodeAccount</span>(address);
+
+console.<span class="fn">log</span>(accountState);</code></pre>
+            </div>
+          </article>
+
+          <!-- Infer Instruction -->
+          <article class="recipe" id="solana-infer-instruction">
+            <h3 class="recipe-title">Infer &amp; Decode an Instruction</h3>
+            <p class="recipe-desc">
+              Reverse-parse a raw <code>InstructionRequest</code> back into
+              human-readable named addresses and a JSON argument payload.
+            </p>
+            <div class="code-wrap">
+              <div class="code-label">TypeScript</div>
+              <pre><code><span class="kw">import</span> { <span class="ty">InstructionRequest</span>, pubkeyFromBase58, <span class="ty">Solana</span> } <span class="kw">from</span> <span class="str">"solana-kiss"</span>;
+
+<span class="kw">const</span> solana: <span class="ty">Solana</span>;
+<span class="kw">const</span> rawInstruction: <span class="ty">InstructionRequest</span>; <span class="cmt">// from a decoded transaction</span>
+
+<span class="kw">const</span> {
+  instructionIdl,      <span class="cmt">// matched IDL instruction definition</span>
+  instructionAddresses,<span class="cmt">// { [accountName]: Pubkey }</span>
+  instructionPayload,  <span class="cmt">// { [argName]: value }  (JSON)</span>
+} = <span class="kw">await</span> solana.<span class="fn">inferAndDecodeInstruction</span>(rawInstruction);
+
+console.<span class="fn">log</span>(instructionIdl.name);    <span class="cmt">// e.g. "transfer"</span>
+console.<span class="fn">log</span>(instructionAddresses);    <span class="cmt">// { source: "...", dest: "..." }</span>
+console.<span class="fn">log</span>(instructionPayload);      <span class="cmt">// { amount: "1000000" }</span></code></pre>
+            </div>
+          </article>
+
+          <!-- Encode Instruction -->
+          <article class="recipe" id="solana-encode-instruction">
+            <h3 class="recipe-title">Encode an Instruction</h3>
+            <p class="recipe-desc">
+              Build a ready-to-send <code>InstructionRequest</code> from named
+              addresses and a JSON payload. Missing accounts (PDAs, associated
+              token accounts) are derived automatically.
+            </p>
+            <div class="code-wrap">
+              <div class="code-label">TypeScript</div>
+              <pre><code><span class="kw">import</span> { pubkeyFromBase58, <span class="ty">Solana</span> } <span class="kw">from</span> <span class="str">"solana-kiss"</span>;
+
+<span class="kw">const</span> solana     = <span class="kw">new</span> <span class="ty">Solana</span>(<span class="str">"mainnet"</span>);
+<span class="kw">const</span> tokenProgram = <span class="fn">pubkeyFromBase58</span>(<span class="str">"TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA"</span>);
+
+<span class="kw">const</span> { instructionRequest } = <span class="kw">await</span> solana.<span class="fn">hydrateAndEncodeInstruction</span>(
+  tokenProgram,
+  <span class="str">"transfer"</span>,
+  {
+    instructionAddresses: {
+      source: <span class="fn">pubkeyFromBase58</span>(<span class="str">"SourceTokenAccount..."</span>),
+      destination: <span class="fn">pubkeyFromBase58</span>(<span class="str">"DestTokenAccount..."</span>),
+      authority: signer.address,
+    },
+    instructionPayload: { amount: <span class="str">"1000000"</span> },
+  },
+);
+
+<span class="cmt">// instructionRequest is ready for prepareAndExecuteTransaction</span></code></pre>
+            </div>
+          </article>
+
+          <!-- Hydrate Addresses -->
+          <article class="recipe" id="solana-hydrate-addresses">
+            <h3 class="recipe-title">Resolve Missing Accounts</h3>
+            <p class="recipe-desc">
+              Fill in only the accounts you know; let
+              <code>hydrateInstructionAddresses</code> derive the rest from
+              on-chain state, PDAs, or associated token account rules.
+            </p>
+            <div class="code-wrap">
+              <div class="code-label">TypeScript</div>
+              <pre><code><span class="kw">const</span> { instructionAddresses } = <span class="kw">await</span> solana.<span class="fn">hydrateInstructionAddresses</span>(
+  programAddress,
+  <span class="str">"stake"</span>,
+  {
+    throwOnMissing: <span class="kw">true</span>,
+    instructionAddresses: { wallet: signer.address },
+    instructionPayload:   { amount: <span class="str">"5000000000"</span> },
+  },
+);
+<span class="cmt">// instructionAddresses now contains all resolved accounts</span></code></pre>
+            </div>
+          </article>
+
+          <!-- Recent Block Hash -->
+          <article class="recipe" id="solana-blockhash">
+            <h3 class="recipe-title">Get a Recent Block Hash</h3>
+            <p class="recipe-desc">
+              The result is cached for 15 seconds so multiple calls in the
+              same window don't burn extra RPC requests.
+            </p>
+            <div class="code-wrap">
+              <div class="code-label">TypeScript</div>
+              <pre><code><span class="kw">const</span> blockHash = <span class="kw">await</span> solana.<span class="fn">getRecentBlockHash</span>();
+<span class="cmt">// BlockHash string — reused until cache expires (default 15 s)</span></code></pre>
+            </div>
+          </article>
+
+          <!-- Execute Transaction -->
+          <article class="recipe" id="solana-execute-tx">
+            <h3 class="recipe-title">Execute a Transaction</h3>
+            <p class="recipe-desc">
+              One call to compile, sign, send, and confirm. Block hash fetching,
+              address lookup tables, and multi-signer flows are all handled
+              automatically.
+            </p>
+            <div class="code-wrap">
+              <div class="code-label">TypeScript</div>
+              <pre><code><span class="kw">import</span> { pubkeyFromBase58, signerFromSecret, <span class="ty">Solana</span> } <span class="kw">from</span> <span class="str">"solana-kiss"</span>;
+
+<span class="kw">const</span> solana = <span class="kw">new</span> <span class="ty">Solana</span>(<span class="str">"devnet"</span>);
+<span class="kw">const</span> payer  = <span class="kw">await</span> <span class="fn">signerFromSecret</span>(secretBytes);
+
+<span class="kw">const</span> {
+  transactionHandle, <span class="cmt">// on-chain signature (base58)</span>
+  executionReport,   <span class="cmt">// fees, logs, error, slot</span>
+  executionFlow,     <span class="cmt">// structured call-stack trace</span>
+} = <span class="kw">await</span> solana.<span class="fn">prepareAndExecuteTransaction</span>(payer, [
+  instructionRequest,
+]);
+
+<span class="kw">if</span> (executionReport.transactionError !== <span class="kw">null</span>) {
+  <span class="kw">throw new</span> <span class="ty">Error</span>(<span class="str">`Transaction failed: </span>${executionReport.transactionError}<span class="str">`</span>);
+}
+console.<span class="fn">log</span>(<span class="str">"Signature:"</span>, transactionHandle);</code></pre>
+            </div>
+          </article>
+
+          <!-- Simulate Transaction -->
+          <article class="recipe" id="solana-simulate-tx">
+            <h3 class="recipe-title">Simulate a Transaction</h3>
+            <p class="recipe-desc">
+              Dry-run a transaction without broadcasting. Pass
+              <code>verifySignaturesAndBlockHash: false</code> to simulate
+              read-only flows where no signer is available.
+            </p>
+            <div class="code-wrap">
+              <div class="code-label">TypeScript</div>
+              <pre><code><span class="kw">const</span> { executionReport } = <span class="kw">await</span> solana.<span class="fn">prepareAndSimulateTransaction</span>(
+  payer,
+  [instructionRequest],
+);
+
+console.<span class="fn">log</span>(executionReport.transactionError);  <span class="cmt">// null → would succeed</span>
+console.<span class="fn">log</span>(executionReport.transactionLogs);   <span class="cmt">// program log output</span>
+
+<span class="cmt">// read-only simulation — no signer required</span>
+<span class="kw">const</span> { executionReport } = <span class="kw">await</span> solana.<span class="fn">prepareAndSimulateTransaction</span>(
+  payerAddress, <span class="cmt">// Pubkey only</span>
+  [instructionRequest],
+  { verifySignaturesAndBlockHash: <span class="kw">false</span> },
+);</code></pre>
+            </div>
+          </article>
+
+          <!-- Find Owned Accounts -->
+          <article class="recipe" id="solana-find-accounts">
+            <h3 class="recipe-title">Find Program-Owned Accounts</h3>
+            <p class="recipe-desc">
+              Returns every account owned by a program that matches a specific
+              IDL account type. Discriminator and size filters are derived from
+              the IDL automatically.
+            </p>
+            <div class="code-wrap">
+              <div class="code-label">TypeScript</div>
+              <pre><code><span class="kw">const</span> accounts = <span class="kw">await</span> solana.<span class="fn">findProgramOwnedAccounts</span>(
+  programAddress,
+  <span class="str">"UserAccount"</span>, <span class="cmt">// IDL account type name (camelCase)</span>
+);
+
+<span class="kw">for</span> (<span class="kw">const</span> acc <span class="kw">of</span> accounts) {
+  console.<span class="fn">log</span>(acc.accountAddress, acc.accountLamports);
+}</code></pre>
+            </div>
+          </article>
+
+          <!-- PDA via IDL -->
+          <article class="recipe" id="solana-pda">
+            <h3 class="recipe-title">Derive a PDA via IDL</h3>
+            <p class="recipe-desc">
+              Uses the PDA definition in the program's IDL to derive the address
+              automatically from named seed inputs — no manual seed assembly.
+            </p>
+            <div class="code-wrap">
+              <div class="code-label">TypeScript</div>
+              <pre><code><span class="kw">const</span> pdaAddress = <span class="kw">await</span> solana.<span class="fn">findPdaAddress</span>(
+  programAddress,
+  <span class="str">"userProfile"</span>,       <span class="cmt">// PDA name as declared in IDL</span>
+  { wallet: signer.address },
+);
+console.<span class="fn">log</span>(pdaAddress); <span class="cmt">// base58 off-curve address</span></code></pre>
+            </div>
+          </article>
+
+        </section>
+
+        <!-- ════════════════════════════════════════════════════════
+             Chapter 3 — data
+             ════════════════════════════════════════════════════════ -->
+        <section class="chapter">
+          <h2 class="chapter-title">
+            <span class="ch-num">Chapter 3</span>
+            data — Primitives
+          </h2>
+          <p class="recipe-desc" style="margin-bottom:32px">
+            Low-level building blocks: keypairs, public keys, PDAs, lamports,
+            transactions, and browser wallet integration. Import anything you
+            need directly from <code>"solana-kiss"</code>.
+          </p>
+
+          <!-- Keypairs -->
+          <article class="recipe" id="data-keypair">
+            <h3 class="recipe-title">Keypairs</h3>
+            <p class="recipe-desc">
+              <code>signerGenerate</code> creates a fresh Ed25519 keypair using
+              the Web Crypto API. <code>signerFromSecret</code> restores one
+              from a 64-byte secret (seed&nbsp;+&nbsp;pubkey).
+            </p>
+            <div class="code-wrap">
+              <div class="code-label">TypeScript</div>
+              <pre><code><span class="kw">import</span> { signerFromSecret, signerGenerate } <span class="kw">from</span> <span class="str">"solana-kiss"</span>;
+
+<span class="cmt">// generate — private key is non-extractable (Web Crypto)</span>
+<span class="kw">const</span> signer = <span class="kw">await</span> <span class="fn">signerGenerate</span>();
+console.<span class="fn">log</span>(signer.address); <span class="cmt">// Pubkey (base58)</span>
+
+<span class="cmt">// restore from a 64-byte keypair array</span>
+<span class="kw">const</span> secretBytes = <span class="kw">new</span> <span class="ty">Uint8Array</span>([<span class="cmt">/* 64 bytes */</span>]);
+<span class="kw">const</span> signer = <span class="kw">await</span> <span class="fn">signerFromSecret</span>(secretBytes);
+
+<span class="cmt">// sign arbitrary bytes</span>
+<span class="kw">const</span> signature = <span class="kw">await</span> signer.<span class="fn">sign</span>(<span class="kw">new</span> <span class="ty">Uint8Array</span>([<span class="num">1</span>, <span class="num">2</span>, <span class="num">3</span>]));</code></pre>
+            </div>
+          </article>
+
+          <!-- Public Keys -->
+          <article class="recipe" id="data-pubkey">
+            <h3 class="recipe-title">Public Keys</h3>
+            <p class="recipe-desc">
+              <code>Pubkey</code> is a branded base58 string — zero overhead at
+              runtime, full type safety at compile time.
+            </p>
+            <div class="code-wrap">
+              <div class="code-label">TypeScript</div>
+              <pre><code><span class="kw">import</span> {
   pubkeyFromBase58,
+  pubkeyFromBytes,
+  pubkeyToBytes,
+  pubkeyCreateFromSeed,
+} <span class="kw">from</span> <span class="str">"solana-kiss"</span>;
+
+<span class="cmt">// parse</span>
+<span class="kw">const</span> pk = <span class="fn">pubkeyFromBase58</span>(<span class="str">"TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA"</span>);
+
+<span class="cmt">// from raw bytes (32 bytes)</span>
+<span class="kw">const</span> pk = <span class="fn">pubkeyFromBytes</span>(rawBytes);
+
+<span class="cmt">// to bytes</span>
+<span class="kw">const</span> bytes = <span class="fn">pubkeyToBytes</span>(pk); <span class="cmt">// Uint8Array (32)</span>
+
+<span class="cmt">// derive with seed (createWithSeed convention)</span>
+<span class="kw">const</span> derived = <span class="fn">pubkeyCreateFromSeed</span>(baseAddress, <span class="str">"my-seed"</span>, ownerProgram);</code></pre>
+            </div>
+          </article>
+
+          <!-- PDAs -->
+          <article class="recipe" id="data-pda">
+            <h3 class="recipe-title">Program Derived Addresses</h3>
+            <p class="recipe-desc">
+              Pass the program address and an ordered array of seed byte
+              buffers. <code>pubkeyFindPdaAddressAndBump</code> also returns the
+              bump seed used.
+            </p>
+            <div class="code-wrap">
+              <div class="code-label">TypeScript</div>
+              <pre><code><span class="kw">import</span> {
+  pubkeyFindPdaAddress,
+  pubkeyFindPdaAddressAndBump,
+  pubkeyFromBase58,
+  pubkeyToBytes,
   utf8Encode,
 } <span class="kw">from</span> <span class="str">"solana-kiss"</span>;
 
 <span class="kw">const</span> program = <span class="fn">pubkeyFromBase58</span>(<span class="str">"TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA"</span>);
-<span class="kw">const</span> wallet  = <span class="fn">pubkeyFromBase58</span>(<span class="str">"YourWalletAddressHere..."</span>);
+<span class="kw">const</span> wallet  = <span class="fn">pubkeyFromBase58</span>(<span class="str">"YourWallet..."</span>);
+<span class="kw">const</span> mint    = <span class="fn">pubkeyFromBase58</span>(<span class="str">"MintAddress..."</span>);
 
+<span class="cmt">// derive — seeds are Uint8Arrays</span>
 <span class="kw">const</span> pda = <span class="fn">pubkeyFindPdaAddress</span>(program, [
-  <span class="fn">utf8Encode</span>(<span class="str">"metadata"</span>),
-  wallet,
-]);</code></pre>
-        </div>
-      </section>
+  <span class="fn">pubkeyToBytes</span>(wallet),
+  <span class="fn">utf8Encode</span>(<span class="str">"vault"</span>),
+  <span class="fn">pubkeyToBytes</span>(mint),
+]);
 
-      <hr class="divider" />
+<span class="cmt">// also get the bump</span>
+<span class="kw">const</span> { address, bump } = <span class="fn">pubkeyFindPdaAddressAndBump</span>(program, [<span class="fn">utf8Encode</span>(<span class="str">"vault"</span>)]);</code></pre>
+            </div>
+          </article>
 
-      <!-- ── 6. Transaction ─────────────────────────────────────── -->
-      <section class="recipe" id="transaction">
-        <div class="recipe-header">
-          <span class="recipe-num">06</span>
-          <h2>Build &amp; Send a Transaction</h2>
-        </div>
-        <p>
-          Compile, sign and broadcast in three straightforward steps. Await
-          confirmation with the built-in polling helper.
-        </p>
-        <div class="code-wrap">
-          <div class="code-label">TypeScript</div>
-          <pre><code><span class="kw">import</span> {
+          <!-- Lamports -->
+          <article class="recipe" id="data-lamports">
+            <h3 class="recipe-title">Lamports &amp; Fees</h3>
+            <p class="recipe-desc">
+              Lamports are <code>bigint</code> throughout the library.
+              Helper functions convert to/from SOL and compute rent-exemption
+              minimums.
+            </p>
+            <div class="code-wrap">
+              <div class="code-label">TypeScript</div>
+              <pre><code><span class="kw">import</span> {
+  approximateSolsForLamports,
+  approximateLamportsForSols,
+  lamportsRentExemptionMinimumForSpace,
+  lamportsFeePerSignature,
+} <span class="kw">from</span> <span class="str">"solana-kiss"</span>;
+
+<span class="cmt">// bigint → approximate SOL (floating-point)</span>
+<span class="fn">approximateSolsForLamports</span>(<span class="num">1_500_000_000n</span>); <span class="cmt">// 1.5</span>
+
+<span class="cmt">// SOL → bigint lamports</span>
+<span class="fn">approximateLamportsForSols</span>(<span class="num">1.5</span>); <span class="cmt">// 1500000000n</span>
+
+<span class="cmt">// rent-exemption minimum for an account with N bytes of data</span>
+<span class="kw">const</span> rentMin = <span class="fn">lamportsRentExemptionMinimumForSpace</span>(<span class="num">165</span>); <span class="cmt">// bigint</span>
+
+<span class="cmt">// fee per signature (5000 lamports)</span>
+<span class="kw">const</span> fee = lamportsFeePerSignature; <span class="cmt">// 5000n</span></code></pre>
+            </div>
+          </article>
+
+          <!-- Compile & Sign -->
+          <article class="recipe" id="data-transaction">
+            <h3 class="recipe-title">Compile &amp; Sign a Transaction</h3>
+            <p class="recipe-desc">
+              Low-level helpers when you want full control over the transaction
+              lifecycle without using the <code>Solana</code> class.
+            </p>
+            <div class="code-wrap">
+              <div class="code-label">TypeScript</div>
+              <pre><code><span class="kw">import</span> {
   rpcHttpFromUrl,
   rpcHttpGetLatestBlockHash,
   rpcHttpSendTransaction,
   rpcHttpWaitForTransaction,
   signerFromSecret,
-  timeoutMs,
   transactionCompileAndSign,
   urlRpcPublicDevnet,
 } <span class="kw">from</span> <span class="str">"solana-kiss"</span>;
@@ -394,65 +860,483 @@ console.<span class="fn">log</span>(<span class="fn">lamportsToSol</span>(lampor
 <span class="kw">const</span> rpc    = <span class="fn">rpcHttpFromUrl</span>(urlRpcPublicDevnet);
 <span class="kw">const</span> signer = <span class="kw">await</span> <span class="fn">signerFromSecret</span>(secretBytes);
 
-<span class="cmt">// 1. fetch a recent block hash</span>
+<span class="cmt">// 1. fetch recent block hash</span>
 <span class="kw">const</span> { blockHash } = <span class="kw">await</span> <span class="fn">rpcHttpGetLatestBlockHash</span>(rpc);
 
-<span class="cmt">// 2. compile + sign</span>
+<span class="cmt">// 2. compile + sign (returns a TransactionPacket)</span>
 <span class="kw">const</span> packet = <span class="kw">await</span> <span class="fn">transactionCompileAndSign</span>([signer], {
   payerAddress: signer.address,
   recentBlockHash: blockHash,
   instructionsRequests: [myInstruction],
 });
 
-<span class="cmt">// 3. send and wait</span>
+<span class="cmt">// 3. send</span>
 <span class="kw">const</span> { transactionHandle } = <span class="kw">await</span> <span class="fn">rpcHttpSendTransaction</span>(rpc, packet);
+
+<span class="cmt">// 4. confirm</span>
 <span class="kw">const</span> { executionReport } = <span class="kw">await</span> <span class="fn">rpcHttpWaitForTransaction</span>(
   rpc,
   transactionHandle,
-  <span class="kw">async</span> () => { <span class="kw">await</span> <span class="fn">timeoutMs</span>(<span class="num">2000</span>); <span class="kw">return</span> <span class="kw">true</span>; },
+  <span class="kw">async</span> () => {
+    <span class="kw">await new</span> <span class="ty">Promise</span>(<span class="fn">resolve</span> => <span class="fn">setTimeout</span>(resolve, <span class="num">2000</span>));
+    <span class="kw">return true</span>;
+  },
+);</code></pre>
+            </div>
+          </article>
+
+          <!-- Wallet Provider -->
+          <article class="recipe" id="data-wallet">
+            <h3 class="recipe-title">Browser Wallet Provider</h3>
+            <p class="recipe-desc">
+              Discover injected browser wallets (Phantom, Backpack, …) using
+              the Wallet Standard. <code>walletProviders</code> is a reactive
+              observable — subscribe once and it updates automatically.
+            </p>
+            <div class="code-wrap">
+              <div class="code-label">TypeScript</div>
+              <pre><code><span class="kw">import</span> { walletProviders } <span class="kw">from</span> <span class="str">"solana-kiss"</span>;
+
+<span class="cmt">// subscribe — fires immediately with discovered wallets</span>
+<span class="kw">const</span> unsubscribe = walletProviders.<span class="fn">subscribe</span>((providers) => {
+  <span class="kw">for</span> (<span class="kw">const</span> p <span class="kw">of</span> providers) {
+    console.<span class="fn">log</span>(p.name, p.icon); <span class="cmt">// "Phantom", data:image/...</span>
+  }
+});
+
+<span class="cmt">// connect the first available wallet</span>
+<span class="kw">const</span> [provider] = <span class="kw">await new</span> <span class="ty">Promise</span>(<span class="fn">resolve</span> =>
+  walletProviders.<span class="fn">subscribe</span>((ps) => ps.length &gt; <span class="num">0</span> &amp;&amp; <span class="fn">resolve</span>(ps)),
 );
-console.<span class="fn">log</span>(executionReport.transactionError); <span class="cmt">// null on success</span></code></pre>
-        </div>
-      </section>
+<span class="kw">const</span> [account] = <span class="kw">await</span> provider.<span class="fn">connect</span>();
 
-      <hr class="divider" />
+<span class="cmt">// WalletAccount implements signMessage + signTransaction</span>
+<span class="kw">const</span> sig = <span class="kw">await</span> account.<span class="fn">signMessage</span>(<span class="kw">new</span> <span class="ty">TextEncoder</span>().<span class="fn">encode</span>(<span class="str">"hello"</span>));</code></pre>
+            </div>
+          </article>
 
-      <!-- ── 7. IDL ──────────────────────────────────────────────── -->
-      <section class="recipe" id="idl">
-        <div class="recipe-header">
-          <span class="recipe-num">07</span>
-          <h2>Decode an Account via IDL</h2>
-        </div>
-        <p>
-          <code style="color: var(--type)">Solana</code> is the high-level
-          entry point. It auto-fetches the on-chain IDL and decodes account
-          state in one call.
-        </p>
-        <div class="code-wrap">
-          <div class="code-label">TypeScript</div>
-          <pre><code><span class="kw">import</span> { pubkeyFromBase58, Solana } <span class="kw">from</span> <span class="str">"solana-kiss"</span>;
+        </section>
 
-<span class="kw">const</span> solana  = <span class="kw">new</span> <span class="ty">Solana</span>(<span class="str">"mainnet"</span>);
-<span class="kw">const</span> address = <span class="fn">pubkeyFromBase58</span>(<span class="str">"YourAccountAddressHere..."</span>);
+        <!-- ════════════════════════════════════════════════════════
+             Chapter 4 — rpc
+             ════════════════════════════════════════════════════════ -->
+        <section class="chapter">
+          <h2 class="chapter-title">
+            <span class="ch-num">Chapter 4</span>
+            rpc — Raw RPC Calls
+          </h2>
+          <p class="recipe-desc" style="margin-bottom:32px">
+            Thin, typed wrappers around Solana JSON-RPC methods. Each function
+            takes an <code>RpcHttp</code> client as its first argument, making
+            them trivially composable with the middleware stack.
+          </p>
 
-<span class="kw">const</span> { accountState } =
-  <span class="kw">await</span> solana.<span class="fn">getAndInferAndDecodeAccount</span>(address);
+          <!-- Create Client -->
+          <article class="recipe" id="rpc-client">
+            <h3 class="recipe-title">Create an RPC Client</h3>
+            <p class="recipe-desc">
+              <code>rpcHttpFromUrl</code> binds a JSON-RPC function to a URL.
+              Optionally set commitment level, custom headers, or a custom fetch
+              implementation.
+            </p>
+            <div class="code-wrap">
+              <div class="code-label">TypeScript</div>
+              <pre><code><span class="kw">import</span> {
+  rpcHttpFromUrl,
+  urlRpcPublicMainnet,
+  urlRpcPublicDevnet,
+} <span class="kw">from</span> <span class="str">"solana-kiss"</span>;
 
-console.<span class="fn">log</span>(accountState); <span class="cmt">// fully typed, decoded JSON</span></code></pre>
-        </div>
-      </section>
-    </main>
+<span class="cmt">// public endpoint, confirmed commitment (default)</span>
+<span class="kw">const</span> rpc = <span class="fn">rpcHttpFromUrl</span>(urlRpcPublicDevnet);
+
+<span class="cmt">// private endpoint with auth header + finalized commitment</span>
+<span class="kw">const</span> rpc = <span class="fn">rpcHttpFromUrl</span>(<span class="kw">new</span> <span class="ty">URL</span>(<span class="str">"https://my-rpc.example.com"</span>), {
+  commitmentLevel: <span class="str">"finalized"</span>,
+  extraRequestHeaders: { <span class="str">"Authorization"</span>: <span class="str">"Bearer my-token"</span> },
+});</code></pre>
+            </div>
+          </article>
+
+          <!-- Middleware -->
+          <article class="recipe" id="rpc-middleware">
+            <h3 class="recipe-title">Middleware</h3>
+            <p class="recipe-desc">
+              Wrap any <code>RpcHttp</code> client to add timeouts, concurrency
+              caps, rate limiting, and automatic retry — composable in any order.
+            </p>
+            <div class="code-wrap">
+              <div class="code-label">TypeScript</div>
+              <pre><code><span class="kw">import</span> {
+  rpcHttpFromUrl,
+  rpcHttpWithConcurrentRequestsLimit,
+  rpcHttpWithRequestsPerSecondLimit,
+  rpcHttpWithRetryOnError,
+  rpcHttpWithTimeout,
+  urlRpcPublicMainnet,
+} <span class="kw">from</span> <span class="str">"solana-kiss"</span>;
+
+<span class="kw">let</span> rpc = <span class="fn">rpcHttpFromUrl</span>(urlRpcPublicMainnet);
+
+<span class="cmt">// add 10-second timeout per request</span>
+rpc = <span class="fn">rpcHttpWithTimeout</span>(rpc, <span class="num">10_000</span>);
+
+<span class="cmt">// cap concurrent in-flight requests</span>
+rpc = <span class="fn">rpcHttpWithConcurrentRequestsLimit</span>(rpc, <span class="num">5</span>);
+
+<span class="cmt">// rate-limit to 50 requests/second</span>
+rpc = <span class="fn">rpcHttpWithRequestsPerSecondLimit</span>(rpc, <span class="num">50</span>);
+
+<span class="cmt">// retry on transient errors (up to 3 times)</span>
+rpc = <span class="fn">rpcHttpWithRetryOnError</span>(rpc, <span class="kw">async</span> ({ retriedCounter }) => {
+  <span class="kw">if</span> (retriedCounter &gt;= <span class="num">3</span>) <span class="kw">return false</span>;
+  <span class="kw">await new</span> <span class="ty">Promise</span>(<span class="fn">resolve</span> => <span class="fn">setTimeout</span>(resolve, <span class="num">500</span> * (retriedCounter + <span class="num">1</span>)));
+  <span class="kw">return true</span>;
+});</code></pre>
+            </div>
+          </article>
+
+          <!-- Account Metadata -->
+          <article class="recipe" id="rpc-account-meta">
+            <h3 class="recipe-title">Fetch Account Metadata</h3>
+            <p class="recipe-desc">
+              Get owner, lamports, executable flag, and data size without
+              pulling the full account data. Returns zeroed defaults for
+              non-existent accounts.
+            </p>
+            <div class="code-wrap">
+              <div class="code-label">TypeScript</div>
+              <pre><code><span class="kw">import</span> {
+  pubkeyFromBase58,
+  rpcHttpFromUrl,
+  rpcHttpGetAccountMetadata,
+  urlRpcPublicMainnet,
+} <span class="kw">from</span> <span class="str">"solana-kiss"</span>;
+
+<span class="kw">const</span> rpc     = <span class="fn">rpcHttpFromUrl</span>(urlRpcPublicMainnet);
+<span class="kw">const</span> address = <span class="fn">pubkeyFromBase58</span>(<span class="str">"YourAccountAddress..."</span>);
+
+<span class="kw">const</span> {
+  programAddress,   <span class="cmt">// Pubkey of the owning program</span>
+  accountExecutable,<span class="cmt">// boolean</span>
+  accountLamports,  <span class="cmt">// bigint</span>
+  accountSpace,     <span class="cmt">// number (bytes)</span>
+} = <span class="kw">await</span> <span class="fn">rpcHttpGetAccountMetadata</span>(rpc, address);</code></pre>
+            </div>
+          </article>
+
+          <!-- Send & Confirm -->
+          <article class="recipe" id="rpc-send-tx">
+            <h3 class="recipe-title">Send &amp; Confirm a Transaction</h3>
+            <p class="recipe-desc">
+              <code>rpcHttpSendTransaction</code> broadcasts a signed packet.
+              <code>rpcHttpWaitForTransaction</code> polls until confirmed,
+              calling your <code>retryApprover</code> between each attempt.
+            </p>
+            <div class="code-wrap">
+              <div class="code-label">TypeScript</div>
+              <pre><code><span class="kw">import</span> {
+  rpcHttpSendTransaction,
+  rpcHttpWaitForTransaction,
+} <span class="kw">from</span> <span class="str">"solana-kiss"</span>;
+
+<span class="kw">const</span> { transactionHandle } = <span class="kw">await</span> <span class="fn">rpcHttpSendTransaction</span>(rpc, packet, {
+  skipPreflight: <span class="kw">false</span>,
+});
+
+<span class="kw">const</span> { transactionRequest, executionReport, executionFlow } =
+  <span class="kw">await</span> <span class="fn">rpcHttpWaitForTransaction</span>(
+    rpc,
+    transactionHandle,
+    <span class="kw">async</span> ({ retriedCounter, totalDurationMs }) => {
+      <span class="kw">if</span> (totalDurationMs &gt; <span class="num">30_000</span>) <span class="kw">return false</span>; <span class="cmt">// give up after 30 s</span>
+      <span class="kw">await new</span> <span class="ty">Promise</span>(<span class="fn">resolve</span> => <span class="fn">setTimeout</span>(resolve, <span class="num">2000</span>));
+      <span class="kw">return true</span>;
+    },
+  );</code></pre>
+            </div>
+          </article>
+
+          <!-- Simulate -->
+          <article class="recipe" id="rpc-simulate-tx">
+            <h3 class="recipe-title">Simulate a Transaction</h3>
+            <p class="recipe-desc">
+              Optionally request post-simulation state of up to 3 accounts.
+              Disable signature verification for read-only probing.
+            </p>
+            <div class="code-wrap">
+              <div class="code-label">TypeScript</div>
+              <pre><code><span class="kw">import</span> { rpcHttpSimulateTransaction } <span class="kw">from</span> <span class="str">"solana-kiss"</span>;
+
+<span class="kw">const</span> { executionReport, simulatedAccountsByAddress } =
+  <span class="kw">await</span> <span class="fn">rpcHttpSimulateTransaction</span>(rpc, signedPacket, {
+    verifySignaturesAndBlockHash: <span class="kw">false</span>,
+    simulatedAccountsAddresses: <span class="kw">new</span> <span class="ty">Set</span>([vaultAddress]),
+  });
+
+console.<span class="fn">log</span>(executionReport.unitsConsumed); <span class="cmt">// compute units used</span></code></pre>
+            </div>
+          </article>
+
+          <!-- Fetch Transaction -->
+          <article class="recipe" id="rpc-get-tx">
+            <h3 class="recipe-title">Fetch a Transaction</h3>
+            <p class="recipe-desc">
+              Returns <code>undefined</code> if the transaction is not yet
+              confirmed. Returns the full request, execution report, and
+              optional call-stack flow once found.
+            </p>
+            <div class="code-wrap">
+              <div class="code-label">TypeScript</div>
+              <pre><code><span class="kw">import</span> {
+  rpcHttpGetTransaction,
+  transactionHandleFromBase58,
+} <span class="kw">from</span> <span class="str">"solana-kiss"</span>;
+
+<span class="kw">const</span> handle = <span class="fn">transactionHandleFromBase58</span>(<span class="str">"5fdr7...base58sig"</span>);
+<span class="kw">const</span> result = <span class="kw">await</span> <span class="fn">rpcHttpGetTransaction</span>(rpc, handle);
+
+<span class="kw">if</span> (result === <span class="kw">undefined</span>) {
+  console.<span class="fn">log</span>(<span class="str">"not confirmed yet"</span>);
+} <span class="kw">else</span> {
+  <span class="kw">const</span> { transactionRequest, executionReport, executionFlow } = result;
+  console.<span class="fn">log</span>(executionReport.chargedFeesLamports); <span class="cmt">// bigint</span>
+}</code></pre>
+            </div>
+          </article>
+
+          <!-- Account History -->
+          <article class="recipe" id="rpc-account-history">
+            <h3 class="recipe-title">Fetch Account Transaction History</h3>
+            <p class="recipe-desc">
+              Paginates through an account's history, newest-first, up to
+              <code>maxResultLength</code>. Supports resume and rewind cursors.
+            </p>
+            <div class="code-wrap">
+              <div class="code-label">TypeScript</div>
+              <pre><code><span class="kw">import</span> {
+  pubkeyFromBase58,
+  rpcHttpFindAccountTransactions,
+} <span class="kw">from</span> <span class="str">"solana-kiss"</span>;
+
+<span class="kw">const</span> { newToOldTransactionsHandles } =
+  <span class="kw">await</span> <span class="fn">rpcHttpFindAccountTransactions</span>(
+    rpc,
+    <span class="fn">pubkeyFromBase58</span>(<span class="str">"YourAccount..."</span>),
+    <span class="num">50</span>, <span class="cmt">// max results</span>
+  );
+
+<span class="kw">for</span> (<span class="kw">const</span> handle <span class="kw">of</span> newToOldTransactionsHandles) {
+  console.<span class="fn">log</span>(handle); <span class="cmt">// TransactionHandle (base58)</span>
+}</code></pre>
+            </div>
+          </article>
+
+          <!-- Program Accounts -->
+          <article class="recipe" id="rpc-find-accounts">
+            <h3 class="recipe-title">Find Program-Owned Accounts</h3>
+            <p class="recipe-desc">
+              Low-level <code>getProgramAccounts</code> call with optional
+              data-size and memory-pattern filters (max 4 filters, Solana RPC
+              limit).
+            </p>
+            <div class="code-wrap">
+              <div class="code-label">TypeScript</div>
+              <pre><code><span class="kw">import</span> {
+  rpcHttpFindProgramOwnedAccounts,
+  utf8Encode,
+} <span class="kw">from</span> <span class="str">"solana-kiss"</span>;
+
+<span class="kw">const</span> accounts = <span class="kw">await</span> <span class="fn">rpcHttpFindProgramOwnedAccounts</span>(rpc, programAddress, {
+  dataSpace: <span class="num">165</span>,                         <span class="cmt">// exact byte size</span>
+  dataBlobs: [
+    { offset: <span class="num">0</span>, bytes: discriminator },  <span class="cmt">// memcmp filter at byte 0</span>
+  ],
+});
+
+<span class="kw">for</span> (<span class="kw">const</span> acc <span class="kw">of</span> accounts) {
+  console.<span class="fn">log</span>(acc.accountAddress, acc.accountSpace);
+}</code></pre>
+            </div>
+          </article>
+
+        </section>
+
+        <!-- ════════════════════════════════════════════════════════
+             Chapter 5 — idl
+             ════════════════════════════════════════════════════════ -->
+        <section class="chapter">
+          <h2 class="chapter-title">
+            <span class="ch-num">Chapter 5</span>
+            idl — Parsing &amp; Codec
+          </h2>
+          <p class="recipe-desc" style="margin-bottom:32px">
+            Parse Anchor IDL JSON, encode and decode instruction arguments and
+            account data. These are the building blocks the <code>Solana</code>
+            class uses internally.
+          </p>
+
+          <!-- Load an IDL -->
+          <article class="recipe" id="idl-loader">
+            <h3 class="recipe-title">Load an IDL</h3>
+            <p class="recipe-desc">
+              Combine multiple loaders in a fallback sequence. Wrap any loader
+              with memoization to avoid re-fetching the same program twice.
+            </p>
+            <div class="code-wrap">
+              <div class="code-label">TypeScript</div>
+              <pre><code><span class="kw">import</span> {
+  idlLoaderFromLoaderSequence,
+  idlLoaderFromUrl,
+  idlLoaderMemoized,
+  idlProgramParse,
+  pubkeyFromBase58,
+} <span class="kw">from</span> <span class="str">"solana-kiss"</span>;
+
+<span class="cmt">// loader from a URL template</span>
+<span class="kw">const</span> urlLoader = <span class="fn">idlLoaderFromUrl</span>(
+  (programAddress) => <span class="kw">new</span> <span class="ty">URL</span>(<span class="str">`https://my-cdn.example.com/idl/</span>${programAddress}<span class="str">.json`</span>),
+);
+
+<span class="cmt">// fallback sequence: CDN first, then on-chain</span>
+<span class="kw">const</span> loader = <span class="fn">idlLoaderMemoized</span>(
+  <span class="fn">idlLoaderFromLoaderSequence</span>([urlLoader, onchainLoader]),
+);
+
+<span class="cmt">// load manually</span>
+<span class="kw">const</span> programIdl = <span class="kw">await</span> <span class="fn">loader</span>(<span class="fn">pubkeyFromBase58</span>(<span class="str">"MyProgram..."</span>));
+
+<span class="cmt">// or parse a local JSON object</span>
+<span class="kw">const</span> programIdl = <span class="fn">idlProgramParse</span>(localIdlJson);</code></pre>
+            </div>
+          </article>
+
+          <!-- Encode Args -->
+          <article class="recipe" id="idl-encode-args">
+            <h3 class="recipe-title">Encode Instruction Arguments</h3>
+            <p class="recipe-desc">
+              Turn a JSON payload and named account addresses into the raw bytes
+              expected by the on-chain program.
+            </p>
+            <div class="code-wrap">
+              <div class="code-label">TypeScript</div>
+              <pre><code><span class="kw">import</span> {
+  idlInstructionAccountsEncode,
+  idlInstructionArgsEncode,
+  idlProgramParse,
+} <span class="kw">from</span> <span class="str">"solana-kiss"</span>;
+
+<span class="kw">const</span> programIdl     = <span class="fn">idlProgramParse</span>(idlJson);
+<span class="kw">const</span> instructionIdl = programIdl.instructions.<span class="fn">get</span>(<span class="str">"transfer"</span>)!;
+
+<span class="cmt">// encode accounts → ordered InstructionInput array</span>
+<span class="kw">const</span> { instructionInputs } = <span class="fn">idlInstructionAccountsEncode</span>(instructionIdl, {
+  source: sourceAddress,
+  destination: destAddress,
+  authority: signer.address,
+});
+
+<span class="cmt">// encode args → Uint8Array (discriminator + serialised args)</span>
+<span class="kw">const</span> { instructionData } = <span class="fn">idlInstructionArgsEncode</span>(instructionIdl, {
+  amount: <span class="str">"1000000"</span>,
+});</code></pre>
+            </div>
+          </article>
+
+          <!-- Decode Args -->
+          <article class="recipe" id="idl-decode-args">
+            <h3 class="recipe-title">Decode Instruction Arguments</h3>
+            <p class="recipe-desc">
+              Parse a raw <code>InstructionRequest</code> back into named
+              account addresses and a JSON payload using the IDL schema.
+            </p>
+            <div class="code-wrap">
+              <div class="code-label">TypeScript</div>
+              <pre><code><span class="kw">import</span> {
+  idlInstructionAccountsDecode,
+  idlInstructionArgsDecode,
+} <span class="kw">from</span> <span class="str">"solana-kiss"</span>;
+
+<span class="kw">const</span> { instructionAddresses } = <span class="fn">idlInstructionAccountsDecode</span>(
+  instructionIdl,
+  rawInstruction.instructionInputs,
+);
+<span class="cmt">// { source: Pubkey, destination: Pubkey, authority: Pubkey }</span>
+
+<span class="kw">const</span> { instructionPayload } = <span class="fn">idlInstructionArgsDecode</span>(
+  instructionIdl,
+  rawInstruction.instructionData,
+);
+<span class="cmt">// { amount: "1000000" }</span></code></pre>
+            </div>
+          </article>
+
+          <!-- Decode Account -->
+          <article class="recipe" id="idl-decode-account">
+            <h3 class="recipe-title">Encode &amp; Decode Account Data</h3>
+            <p class="recipe-desc">
+              Convert raw account bytes to a typed JSON object (decode) or
+              serialise account state back to bytes (encode) using an IDL
+              account definition.
+            </p>
+            <div class="code-wrap">
+              <div class="code-label">TypeScript</div>
+              <pre><code><span class="kw">import</span> {
+  idlAccountDecode,
+  idlAccountEncode,
+  idlProgramParse,
+} <span class="kw">from</span> <span class="str">"solana-kiss"</span>;
+
+<span class="kw">const</span> programIdl = <span class="fn">idlProgramParse</span>(idlJson);
+<span class="kw">const</span> accountIdl = programIdl.accounts.<span class="fn">get</span>(<span class="str">"UserAccount"</span>)!;
+
+<span class="cmt">// decode bytes → JSON state</span>
+<span class="kw">const</span> { accountState } = <span class="fn">idlAccountDecode</span>(accountIdl, rawAccountBytes);
+console.<span class="fn">log</span>(accountState); <span class="cmt">// { owner: "...", balance: "1000", ... }</span>
+
+<span class="cmt">// encode JSON state → bytes</span>
+<span class="kw">const</span> { accountData } = <span class="fn">idlAccountEncode</span>(accountIdl, {
+  owner: ownerAddress,
+  balance: <span class="str">"1000"</span>,
+});</code></pre>
+            </div>
+          </article>
+
+        </section>
+
+      </main>
+    </div>
 
     <footer>
-      <p>
-        <a
-          href="https://github.com/crypto-vincent/solana-kiss"
-          target="_blank"
-          rel="noopener"
-          >github.com/crypto-vincent/solana-kiss</a
-        >
-        &nbsp;·&nbsp; Keep It Simple, Stupid
-      </p>
+      <a href="https://github.com/crypto-vincent/solana-kiss" target="_blank" rel="noopener">
+        github.com/crypto-vincent/solana-kiss
+      </a>
+      &nbsp;·&nbsp; Keep It Simple, Stupid
     </footer>
+
+    <script>
+      // ── Active ToC highlight via IntersectionObserver ────────────
+      const tocLinks = document.querySelectorAll(".toc-link");
+      const recipes  = document.querySelectorAll(".recipe");
+
+      const observer = new IntersectionObserver(
+        (entries) => {
+          entries.forEach((entry) => {
+            if (entry.isIntersecting) {
+              const id = entry.target.id;
+              tocLinks.forEach((link) => {
+                link.classList.toggle(
+                  "active",
+                  link.getAttribute("href") === "#" + id,
+                );
+              });
+            }
+          }),
+        },
+        { rootMargin: "-56px 0px -70% 0px", threshold: 0 },
+      );
+
+      recipes.forEach((r) => observer.observe(r));
+    </script>
   </body>
 </html>
