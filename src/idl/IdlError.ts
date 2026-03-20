@@ -13,9 +13,13 @@ import { IdlDocs, idlDocsParse } from "./IdlDocs";
  * optional message, and documentation.
  */
 export type IdlError = {
+  /** The camelCase name of the error as declared in the IDL. */
   name: string;
+  /** Human-readable documentation strings attached to this error, or `undefined`. */
   docs: IdlDocs;
+  /** The numeric error code returned on-chain when this error is triggered. */
   code: number;
+  /** An optional human-readable error message, or `undefined` if not specified. */
   msg: string | undefined;
 };
 

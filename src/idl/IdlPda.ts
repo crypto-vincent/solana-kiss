@@ -13,9 +13,16 @@ import { IdlTypedef } from "./IdlTypedef";
 
 /** A Program Derived Address definition with its seed blobs and an optional program override. */
 export type IdlPda = {
+  /** The camelCase name of this PDA as declared in the IDL. */
   name: string;
+  /** Human-readable documentation strings attached to this PDA, or `undefined`. */
   docs: IdlDocs;
+  /** Ordered list of seed blobs used to derive the PDA address. */
   seeds: Array<IdlPdaBlob>;
+  /**
+   * An optional blob whose bytes resolve to the owning program address for this PDA.
+   * When `undefined`, the caller must provide the program address.
+   */
   program: IdlPdaBlob | undefined;
 };
 

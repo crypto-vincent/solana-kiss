@@ -15,14 +15,23 @@ import { IdlDocs, idlDocsParse } from "./IdlDocs";
  * from both top-level IDL properties and a nested `metadata` object.
  */
 export type IdlMetadata = {
+  /** Human-readable program name (e.g. `"my_program"`), or `undefined` if not specified. */
   name: string | undefined;
+  /** IDL specification version string (e.g. `"0.1.0"`), or `undefined` if not specified. */
   spec: string | undefined;
+  /** Human-readable description of the program, or `undefined` if not specified. */
   description: string | undefined;
+  /** URL to the program's source repository, or `undefined` if not specified. */
   repository: string | undefined;
+  /** Contact information for the program maintainers, or `undefined` if not specified. */
   contact: string | undefined;
+  /** Semantic version of the deployed program (e.g. `"1.2.3"`), or `undefined` if not specified. */
   version: string | undefined;
+  /** The on-chain address of the program, or `undefined` if not available. */
   address: Pubkey | undefined;
+  /** The URL from which this IDL was loaded (e.g. `onchain://…` or an HTTP URL), or `undefined`. */
   source: URL | undefined;
+  /** Human-readable documentation strings for the program, or `undefined` if not specified. */
   docs: IdlDocs;
 };
 
