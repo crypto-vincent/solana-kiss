@@ -303,13 +303,13 @@ function objectEnumJsonDecoder(prefix: IdlTypePrefix | undefined) {
 
 const objectPadInfoJsonDecoder = jsonDecoderObjectToObject({
   before: jsonDecoderNullable(jsonCodecNumber.decoder),
-  end: jsonDecoderNullable(jsonCodecNumber.decoder),
+  minSize: jsonDecoderNullable(jsonCodecNumber.decoder),
 });
 function objectPadJsonDecoder(value: JsonValue): IdlTypeFlat {
   const info = objectPadInfoJsonDecoder(value);
   return IdlTypeFlat.padded({
     before: info.before ?? 0,
-    end: info.end ?? 0,
+    minSize: info.minSize ?? 0,
     content: idlTypeFlatParseIsPossible(value)
       ? idlTypeFlatParse(value)
       : IdlTypeFlat.structNothing(),

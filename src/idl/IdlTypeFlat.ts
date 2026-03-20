@@ -48,7 +48,7 @@ export type IdlTypeFlatEnum = {
 /** A padding wrapper that skips bytes before and after an inner type. */
 export type IdlTypeFlatPadded = {
   before: number;
-  end: number;
+  minSize: number;
   content: IdlTypeFlat;
 };
 /** A raw byte blob of fixed content used as a discriminator or sentinel. */

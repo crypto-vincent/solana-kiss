@@ -290,8 +290,8 @@ const visitorEncode = {
       blobs.push(contentBlob);
       contentSize += contentBlob.length;
     }
-    if (self.end > contentSize) {
-      blobs.push(new Uint8Array(self.end - contentSize));
+    if (self.minSize > contentSize) {
+      blobs.push(new Uint8Array(self.minSize - contentSize));
     }
   },
   blob: (self: IdlTypeFullBlob, value: JsonValue, blobs: Array<Uint8Array>) => {

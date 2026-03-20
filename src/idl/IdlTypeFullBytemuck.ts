@@ -110,7 +110,7 @@ const visitorBytemuckC = {
       size,
       value: IdlTypeFull.padded({
         before: 0,
-        end: size,
+        minSize: size,
         content: IdlTypeFull.option({
           prefix: internalPrefixFromAlignment(alignment),
           content: contentPod.value,
@@ -181,7 +181,7 @@ const visitorBytemuckC = {
       size,
       value: IdlTypeFull.padded({
         before: 0,
-        end: size,
+        minSize: size,
         content: IdlTypeFull.enum({
           prefix: internalPrefixFromAlignment(alignment),
           mask: self.mask,
@@ -198,10 +198,10 @@ const visitorBytemuckC = {
     const contentPod = bytemuckC(self.content);
     return {
       alignment: 1,
-      size: self.before + Math.max(contentPod.size, self.end),
+      size: self.before + Math.max(contentPod.size, self.minSize),
       value: IdlTypeFull.padded({
         before: self.before,
-        end: self.end,
+        minSize: self.minSize,
         content: contentPod.value,
       }),
     };
@@ -232,7 +232,7 @@ const visitorBytemuckRust = {
       size,
       value: IdlTypeFull.padded({
         before: 0,
-        end: size,
+        minSize: size,
         content: IdlTypeFull.option({
           prefix: internalPrefixFromAlignment(alignment),
           content: contentPod.value,
@@ -303,7 +303,7 @@ const visitorBytemuckRust = {
       size,
       value: IdlTypeFull.padded({
         before: 0,
-        end: size,
+        minSize: size,
         content: IdlTypeFull.enum({
           prefix: self.prefix,
           mask: self.mask,
@@ -320,10 +320,10 @@ const visitorBytemuckRust = {
     const contentPod = bytemuckRust(self.content);
     return {
       alignment: 1,
-      size: self.before + Math.max(contentPod.size, self.end),
+      size: self.before + Math.max(contentPod.size, self.minSize),
       value: IdlTypeFull.padded({
         before: self.before,
-        end: self.end,
+        minSize: self.minSize,
         content: contentPod.value,
       }),
     };
@@ -462,7 +462,7 @@ function internalFieldsInfoAligned<T>(
         meta: fieldMeta,
         type: IdlTypeFull.padded({
           before: paddingBefore,
-          end: fieldSize + paddingAfter,
+          minSize: fieldSize + paddingAfter,
           content: fieldType,
         }),
       });

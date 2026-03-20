@@ -281,7 +281,7 @@ const visitorHydrateOrConstLiteral = {
   ): IdlTypeFull | number => {
     return IdlTypeFull.padded({
       before: self.before,
-      end: self.end,
+      minSize: self.minSize,
       content: idlTypeFlatHydrate(
         self.content,
         genericsBySymbol,

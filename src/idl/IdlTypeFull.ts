@@ -48,8 +48,8 @@ export type IdlTypeFullEnum = {
 };
 /** A padding wrapper that skips bytes before and after an inner fully-resolved type. */
 export type IdlTypeFullPadded = {
-  before: number; // TODO (repr) - can this be deprecated when transparent padding is supported ?
-  end: number;
+  before: number;
+  minSize: number;
   content: IdlTypeFull;
 };
 /** A raw byte blob of fixed content used as a discriminator or sentinel. */

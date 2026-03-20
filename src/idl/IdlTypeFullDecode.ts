@@ -234,7 +234,7 @@ const visitorDecode = {
       data,
       dataContentOffset,
     );
-    dataSize += Math.max(dataContentSize, self.end);
+    dataSize += Math.max(dataContentSize, self.minSize);
     return [dataSize, dataContent];
   },
   blob: (
