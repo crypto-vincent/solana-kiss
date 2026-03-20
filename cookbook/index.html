@@ -1,0 +1,458 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>solana-kiss cookbook</title>
+    <style>
+      :root {
+        --bg: #0e1117;
+        --surface: #161b22;
+        --border: #21262d;
+        --accent: #9945ff;
+        --accent2: #14f195;
+        --text: #e6edf3;
+        --muted: #8b949e;
+        --code-bg: #010409;
+        --keyword: #ff7b72;
+        --string: #a5d6ff;
+        --comment: #484f58;
+        --fn: #d2a8ff;
+        --num: #79c0ff;
+        --type: #ffa657;
+      }
+
+      * {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+      }
+
+      body {
+        background: var(--bg);
+        color: var(--text);
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+        font-size: 15px;
+        line-height: 1.6;
+      }
+
+      /* ── Header ────────────────────────────────────────────────── */
+      header {
+        border-bottom: 1px solid var(--border);
+        padding: 28px 0 24px;
+        text-align: center;
+      }
+
+      header h1 {
+        font-size: 1.75rem;
+        font-weight: 700;
+        letter-spacing: -0.5px;
+      }
+
+      header h1 span.kiss {
+        background: linear-gradient(135deg, var(--accent), var(--accent2));
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+      }
+
+      header p {
+        color: var(--muted);
+        margin-top: 6px;
+        font-size: 0.9rem;
+      }
+
+      header nav {
+        margin-top: 16px;
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: center;
+        gap: 8px;
+      }
+
+      header nav a {
+        color: var(--muted);
+        text-decoration: none;
+        font-size: 0.8rem;
+        padding: 3px 10px;
+        border: 1px solid var(--border);
+        border-radius: 20px;
+        transition: border-color 0.15s, color 0.15s;
+      }
+
+      header nav a:hover {
+        border-color: var(--accent);
+        color: var(--text);
+      }
+
+      /* ── Layout ─────────────────────────────────────────────────── */
+      main {
+        max-width: 760px;
+        margin: 0 auto;
+        padding: 40px 20px 80px;
+      }
+
+      /* ── Recipe card ─────────────────────────────────────────────── */
+      .recipe {
+        margin-bottom: 48px;
+      }
+
+      .recipe-header {
+        display: flex;
+        align-items: baseline;
+        gap: 10px;
+        margin-bottom: 10px;
+      }
+
+      .recipe-num {
+        font-size: 0.7rem;
+        font-weight: 600;
+        color: var(--accent);
+        font-variant-numeric: tabular-nums;
+        min-width: 22px;
+      }
+
+      .recipe h2 {
+        font-size: 1.05rem;
+        font-weight: 600;
+      }
+
+      .recipe p {
+        color: var(--muted);
+        font-size: 0.875rem;
+        margin-bottom: 12px;
+        padding-left: 32px;
+      }
+
+      /* ── Code block ──────────────────────────────────────────────── */
+      .code-wrap {
+        position: relative;
+        border-radius: 8px;
+        overflow: hidden;
+        border: 1px solid var(--border);
+      }
+
+      .code-label {
+        background: var(--surface);
+        border-bottom: 1px solid var(--border);
+        padding: 6px 14px;
+        font-size: 0.72rem;
+        color: var(--muted);
+        font-family: monospace;
+        letter-spacing: 0.02em;
+      }
+
+      pre {
+        background: var(--code-bg);
+        padding: 18px 20px;
+        overflow-x: auto;
+        tab-size: 2;
+      }
+
+      code {
+        font-family: "SF Mono", "Fira Code", "Cascadia Code", Consolas,
+          monospace;
+        font-size: 0.82rem;
+        line-height: 1.65;
+      }
+
+      /* ── Syntax tokens ──────────────────────────────────────────── */
+      .kw {
+        color: var(--keyword);
+      }
+      .fn {
+        color: var(--fn);
+      }
+      .str {
+        color: var(--string);
+      }
+      .cmt {
+        color: var(--comment);
+        font-style: italic;
+      }
+      .num {
+        color: var(--num);
+      }
+      .ty {
+        color: var(--type);
+      }
+
+      /* ── Divider ─────────────────────────────────────────────────── */
+      .divider {
+        border: none;
+        border-top: 1px solid var(--border);
+        margin: 0 0 48px;
+      }
+
+      /* ── Install badge ───────────────────────────────────────────── */
+      .install-box {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        background: var(--code-bg);
+        border: 1px solid var(--border);
+        border-radius: 8px;
+        padding: 14px 20px;
+        font-family: monospace;
+        font-size: 0.85rem;
+      }
+
+      .install-box .prompt {
+        color: var(--accent2);
+        user-select: none;
+      }
+
+      /* ── Footer ──────────────────────────────────────────────────── */
+      footer {
+        text-align: center;
+        border-top: 1px solid var(--border);
+        padding: 24px 20px;
+        color: var(--muted);
+        font-size: 0.8rem;
+      }
+
+      footer a {
+        color: var(--accent2);
+        text-decoration: none;
+      }
+
+      footer a:hover {
+        text-decoration: underline;
+      }
+    </style>
+  </head>
+  <body>
+    <header>
+      <h1>solana-<span class="kiss">kiss</span> cookbook</h1>
+      <p>No bloat. No dependencies. Full-featured Solana.</p>
+      <nav>
+        <a href="#install">Install</a>
+        <a href="#connect">Connect</a>
+        <a href="#keypair">Keypair</a>
+        <a href="#balance">Balance</a>
+        <a href="#pda">PDA</a>
+        <a href="#transaction">Transaction</a>
+        <a href="#idl">IDL</a>
+      </nav>
+    </header>
+
+    <main>
+      <!-- ── 1. Install ─────────────────────────────────────────── -->
+      <section class="recipe" id="install">
+        <div class="recipe-header">
+          <span class="recipe-num">01</span>
+          <h2>Install</h2>
+        </div>
+        <p>One package. Zero peer dependencies.</p>
+        <div class="install-box">
+          <span class="prompt">$</span>
+          <span>npm install solana-kiss</span>
+        </div>
+      </section>
+
+      <hr class="divider" />
+
+      <!-- ── 2. Connect ─────────────────────────────────────────── -->
+      <section class="recipe" id="connect">
+        <div class="recipe-header">
+          <span class="recipe-num">02</span>
+          <h2>Connect to Solana</h2>
+        </div>
+        <p>
+          Use a cluster moniker or any custom RPC URL. Built-in monikers:
+          <code style="color: var(--type)">mainnet</code>,
+          <code style="color: var(--type)">devnet</code>,
+          <code style="color: var(--type)">testnet</code>.
+        </p>
+        <div class="code-wrap">
+          <div class="code-label">TypeScript</div>
+          <pre><code><span class="kw">import</span> { rpcHttpFromUrl, urlRpcPublicMainnet } <span class="kw">from</span> <span class="str">"solana-kiss"</span>;
+
+<span class="cmt">// using a built-in public endpoint</span>
+<span class="kw">const</span> rpc = <span class="fn">rpcHttpFromUrl</span>(urlRpcPublicMainnet);
+
+<span class="cmt">// or bring your own</span>
+<span class="kw">const</span> rpc = <span class="fn">rpcHttpFromUrl</span>(<span class="str">"https://my-rpc.example.com"</span>);</code></pre>
+        </div>
+      </section>
+
+      <hr class="divider" />
+
+      <!-- ── 3. Keypair ─────────────────────────────────────────── -->
+      <section class="recipe" id="keypair">
+        <div class="recipe-header">
+          <span class="recipe-num">03</span>
+          <h2>Generate or Import a Keypair</h2>
+        </div>
+        <p>
+          <code style="color: var(--fn)">signerGenerate</code> creates a fresh
+          Ed25519 keypair.
+          <code style="color: var(--fn)">signerFromSecret</code> restores one
+          from a 64-byte secret.
+        </p>
+        <div class="code-wrap">
+          <div class="code-label">TypeScript</div>
+          <pre><code><span class="kw">import</span> { signerFromSecret, signerGenerate } <span class="kw">from</span> <span class="str">"solana-kiss"</span>;
+
+<span class="cmt">// generate a brand-new keypair</span>
+<span class="kw">const</span> signer = <span class="kw">await</span> <span class="fn">signerGenerate</span>();
+console.<span class="fn">log</span>(signer.address); <span class="cmt">// base58 public key</span>
+
+<span class="cmt">// restore from a 64-byte secret key</span>
+<span class="kw">const</span> secretBytes = <span class="kw">new</span> <span class="ty">Uint8Array</span>([<span class="cmt">/* 64 bytes */</span>]);
+<span class="kw">const</span> signer = <span class="kw">await</span> <span class="fn">signerFromSecret</span>(secretBytes);</code></pre>
+        </div>
+      </section>
+
+      <hr class="divider" />
+
+      <!-- ── 4. Balance ─────────────────────────────────────────── -->
+      <section class="recipe" id="balance">
+        <div class="recipe-header">
+          <span class="recipe-num">04</span>
+          <h2>Get Account Balance</h2>
+        </div>
+        <p>
+          Lamports are <code style="color: var(--type)">bigint</code>.
+          <code style="color: var(--fn)">lamportsToSol</code> converts to a
+          human-readable SOL string.
+        </p>
+        <div class="code-wrap">
+          <div class="code-label">TypeScript</div>
+          <pre><code><span class="kw">import</span> {
+  lamportsToSol,
+  pubkeyFromBase58,
+  rpcHttpFromUrl,
+  rpcHttpGetAccountLamports,
+  urlRpcPublicMainnet,
+} <span class="kw">from</span> <span class="str">"solana-kiss"</span>;
+
+<span class="kw">const</span> rpc = <span class="fn">rpcHttpFromUrl</span>(urlRpcPublicMainnet);
+<span class="kw">const</span> address = <span class="fn">pubkeyFromBase58</span>(<span class="str">"YourAddressHere..."</span>);
+
+<span class="kw">const</span> { lamports } = <span class="kw">await</span> <span class="fn">rpcHttpGetAccountLamports</span>(rpc, address);
+console.<span class="fn">log</span>(<span class="fn">lamportsToSol</span>(lamports)); <span class="cmt">// e.g. "1.5"</span></code></pre>
+        </div>
+      </section>
+
+      <hr class="divider" />
+
+      <!-- ── 5. PDA ──────────────────────────────────────────────── -->
+      <section class="recipe" id="pda">
+        <div class="recipe-header">
+          <span class="recipe-num">05</span>
+          <h2>Derive a PDA</h2>
+        </div>
+        <p>
+          Pass the program address and an array of seed byte buffers.
+          <code style="color: var(--fn)">pubkeyFindPdaAddress</code> returns the
+          off-curve address.
+        </p>
+        <div class="code-wrap">
+          <div class="code-label">TypeScript</div>
+          <pre><code><span class="kw">import</span> {
+  pubkeyFindPdaAddress,
+  pubkeyFromBase58,
+  utf8Encode,
+} <span class="kw">from</span> <span class="str">"solana-kiss"</span>;
+
+<span class="kw">const</span> program = <span class="fn">pubkeyFromBase58</span>(<span class="str">"TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA"</span>);
+<span class="kw">const</span> wallet  = <span class="fn">pubkeyFromBase58</span>(<span class="str">"YourWalletAddressHere..."</span>);
+
+<span class="kw">const</span> pda = <span class="fn">pubkeyFindPdaAddress</span>(program, [
+  <span class="fn">utf8Encode</span>(<span class="str">"metadata"</span>),
+  wallet,
+]);</code></pre>
+        </div>
+      </section>
+
+      <hr class="divider" />
+
+      <!-- ── 6. Transaction ─────────────────────────────────────── -->
+      <section class="recipe" id="transaction">
+        <div class="recipe-header">
+          <span class="recipe-num">06</span>
+          <h2>Build &amp; Send a Transaction</h2>
+        </div>
+        <p>
+          Compile, sign and broadcast in three straightforward steps. Await
+          confirmation with the built-in polling helper.
+        </p>
+        <div class="code-wrap">
+          <div class="code-label">TypeScript</div>
+          <pre><code><span class="kw">import</span> {
+  rpcHttpFromUrl,
+  rpcHttpGetLatestBlockHash,
+  rpcHttpSendTransaction,
+  rpcHttpWaitForTransaction,
+  signerFromSecret,
+  timeoutMs,
+  transactionCompileAndSign,
+  urlRpcPublicDevnet,
+} <span class="kw">from</span> <span class="str">"solana-kiss"</span>;
+
+<span class="kw">const</span> rpc    = <span class="fn">rpcHttpFromUrl</span>(urlRpcPublicDevnet);
+<span class="kw">const</span> signer = <span class="kw">await</span> <span class="fn">signerFromSecret</span>(secretBytes);
+
+<span class="cmt">// 1. fetch a recent block hash</span>
+<span class="kw">const</span> { blockHash } = <span class="kw">await</span> <span class="fn">rpcHttpGetLatestBlockHash</span>(rpc);
+
+<span class="cmt">// 2. compile + sign</span>
+<span class="kw">const</span> packet = <span class="kw">await</span> <span class="fn">transactionCompileAndSign</span>([signer], {
+  payerAddress: signer.address,
+  recentBlockHash: blockHash,
+  instructionsRequests: [myInstruction],
+});
+
+<span class="cmt">// 3. send and wait</span>
+<span class="kw">const</span> { transactionHandle } = <span class="kw">await</span> <span class="fn">rpcHttpSendTransaction</span>(rpc, packet);
+<span class="kw">const</span> { executionReport } = <span class="kw">await</span> <span class="fn">rpcHttpWaitForTransaction</span>(
+  rpc,
+  transactionHandle,
+  <span class="kw">async</span> () => { <span class="kw">await</span> <span class="fn">timeoutMs</span>(<span class="num">2000</span>); <span class="kw">return</span> <span class="kw">true</span>; },
+);
+console.<span class="fn">log</span>(executionReport.transactionError); <span class="cmt">// null on success</span></code></pre>
+        </div>
+      </section>
+
+      <hr class="divider" />
+
+      <!-- ── 7. IDL ──────────────────────────────────────────────── -->
+      <section class="recipe" id="idl">
+        <div class="recipe-header">
+          <span class="recipe-num">07</span>
+          <h2>Decode an Account via IDL</h2>
+        </div>
+        <p>
+          <code style="color: var(--type)">Solana</code> is the high-level
+          entry point. It auto-fetches the on-chain IDL and decodes account
+          state in one call.
+        </p>
+        <div class="code-wrap">
+          <div class="code-label">TypeScript</div>
+          <pre><code><span class="kw">import</span> { pubkeyFromBase58, Solana } <span class="kw">from</span> <span class="str">"solana-kiss"</span>;
+
+<span class="kw">const</span> solana  = <span class="kw">new</span> <span class="ty">Solana</span>(<span class="str">"mainnet"</span>);
+<span class="kw">const</span> address = <span class="fn">pubkeyFromBase58</span>(<span class="str">"YourAccountAddressHere..."</span>);
+
+<span class="kw">const</span> { accountState } =
+  <span class="kw">await</span> solana.<span class="fn">getAndInferAndDecodeAccount</span>(address);
+
+console.<span class="fn">log</span>(accountState); <span class="cmt">// fully typed, decoded JSON</span></code></pre>
+        </div>
+      </section>
+    </main>
+
+    <footer>
+      <p>
+        <a
+          href="https://github.com/crypto-vincent/solana-kiss"
+          target="_blank"
+          rel="noopener"
+          >github.com/crypto-vincent/solana-kiss</a
+        >
+        &nbsp;·&nbsp; Keep It Simple, Stupid
+      </p>
+    </footer>
+  </body>
+</html>
