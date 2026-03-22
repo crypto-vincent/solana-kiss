@@ -3,11 +3,9 @@ import { Pubkey, pubkeyToBase58 } from "../data/Pubkey";
 import { RpcHttp } from "./RpcHttp";
 
 /**
- * Fetches the lamport balance of the given account.
- *
- * @param self - The {@link RpcHttp} client to use.
- * @param accountAddress - The {@link Pubkey} of the account whose balance to query.
- * @returns An object containing `accountLamports`, the account's balance as a `bigint`.
+ * Fetches the lamport balance of an account.
+ * @param accountAddress - Account to query.
+ * @returns `{ accountLamports }`.
  */
 export async function rpcHttpGetAccountLamports(
   self: RpcHttp,

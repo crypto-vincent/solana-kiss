@@ -53,24 +53,7 @@ import { rpcHttpWaitForTransaction } from "./rpc/RpcHttpWaitForTransaction";
 // TODO - add documentation website
 // TODO - add versioning for slots and IDLs upgrades
 
-/**
- * High-level entry point for interacting with the Solana blockchain.
- *
- * `Solana` wraps an RPC HTTP client and an IDL loader to provide a rich,
- * ergonomic API for common on-chain operations:
- * - Loading and caching program IDLs (with optional per-program overrides)
- * - Decoding on-chain account state using IDL type information
- * - Building, encoding, and decoding instructions
- * - Deriving PDA (Program Derived Address) addresses
- * - Preparing, signing, sending, and simulating transactions
- * - Querying all accounts owned by a given program
- *
- * @example
- * ```ts
- * const solana = new Solana("mainnet");
- * const { accountState } = await solana.getAndInferAndDecodeAccount(myAddress);
- * ```
- */
+/** High-level Solana client. Wraps RPC + IDL loader. */
 export class Solana {
   readonly #rpcHttp: RpcHttp;
   readonly #idlOverrides: Map<Pubkey, Readonly<IdlProgram>>;
@@ -83,17 +66,10 @@ export class Solana {
   } | null;
 
   /**
-   * Creates a new `Solana` instance.
-   *
-   * @param rpcHttpOrUrl - An existing {@link RpcHttp}, URL, or moniker (`"mainnet"`, `"devnet"`, or `"testnet"`).
-   *   When a moniker is provided, a `confirmed`-commitment {@link RpcHttp} client is created automatically.
-   * @param options - Optional configuration.
-   * @param options.idlLoader - Custom IDL loader to use instead of the built-in
-   *   sequence (on-chain native → on-chain Anchor → remote GitHub fallback).
-   * @param options.idlOverrides - Map of program addresses to IDLs that should
-   *   be used unconditionally, bypassing the loader entirely.
-   * @param options.recentBlockHashCacheDurationMs - How long (in milliseconds)
-   *   to cache the most-recently fetched block hash. Defaults to `15_000` ms.
+   * @param rpcHttpOrUrl - {@link RpcHttp}, URL, or moniker (`"mainnet"`, `"devnet"`, `"testnet"`).
+   * @param options.idlLoader - Custom IDL loader (default: native → Anchor → GitHub).
+   * @param options.idlOverrides - Per-program IDL overrides bypassing the loader.
+   * @param options.recentBlockHashCacheDurationMs - Block hash cache TTL (default: `15_000` ms).
    */
   constructor(
     rpcHttpOrUrl: RpcHttp | URL | Parameters<typeof urlRpcFromUrlOrMoniker>[0],
@@ -118,8 +94,6 @@ export class Solana {
   }
 
   /**
-   * Returns the underlying RPC HTTP client used by this instance.
-   *
    * @returns The {@link RpcHttp} client.
    */
   public getRpcHttp() {
@@ -127,14 +101,9 @@ export class Solana {
   }
 
   /**
-   * Registers or removes a program IDL override for the given program address.
-   *
-   * When an override is set, {@link getOrLoadProgramIdl} will return it
-   * directly without consulting the IDL loader.
-   *
-   * @param programAddress - The on-chain address of the program.
-   * @param programIdl - The IDL to use for this program, or `undefined` to
-   *   remove a previously registered override.
+   * Registers or removes a program IDL override.
+   * When set, {@link getOrLoadProgramIdl} returns it without consulting the loader.
+   * @param programIdl - IDL to use, or `undefined` to remove the override.
    */
   public setProgramIdlOverride(
     programAddress: Pubkey,
@@ -148,17 +117,10 @@ export class Solana {
   }
 
   /**
-   * Returns the IDL for a program, using an in-memory override when available
-   * and falling back to the configured IDL loader otherwise.
-   *
-   * @param programAddress - The on-chain address of the program.
-   * @param options - Optional behaviour flags.
-   * @param options.fallbackOnUnknown - When `true`, returns a minimal
-   *   "unknown-program" IDL instead of throwing if the loader cannot find the
-   *   IDL. Defaults to `false`.
-   * @returns An object containing the resolved {@link IdlProgram}.
-   * @throws If the loader cannot find the IDL and `fallbackOnUnknown` is not
-   *   set to `true`.
+   * Returns the IDL for a program. Uses override if set; otherwise uses the IDL loader.
+   * @param options.fallbackOnUnknown - Return minimal "unknown-program" IDL instead of throwing.
+   * @returns `{ programIdl }`.
+   * @throws If the loader cannot find the IDL and `fallbackOnUnknown` is not set.
    */
   public async getOrLoadProgramIdl(
     programAddress: Pubkey,
@@ -179,16 +141,11 @@ export class Solana {
   }
 
   /**
-   * Derives a PDA (Program Derived Address) for a named PDA defined in the
-   * program's IDL.
-   *
-   * @param programAddress - The on-chain address of the program that owns the
-   *   PDA.
-   * @param pdaName - The name of the PDA as declared in the program's IDL.
-   * @param pdaInputs - Optional input values for the PDA seeds
-   * @returns The derived PDA {@link Pubkey}, as returned by {@link idlPdaFind}.
-   * @throws If the program IDL cannot be loaded, or if no PDA named
-   *   `pdaName` exists in the IDL.
+   * Derives a PDA for a named PDA defined in the program's IDL.
+   * @param pdaName - PDA name as declared in the IDL.
+   * @param pdaInputs - Optional seed input values.
+   * @returns Derived PDA {@link Pubkey}.
+   * @throws If the IDL can't be loaded or PDA not found.
    */
   public async findPdaAddress(
     programAddress: Pubkey,
@@ -201,14 +158,10 @@ export class Solana {
   }
 
   /**
-   * Loads the IDL for a specific instruction of a program.
-   *
-   * @param programAddress - The on-chain address of the program.
-   * @param instructionName - The name of the instruction as declared in the
-   *   program's IDL.
-   * @returns An object containing the resolved instruction IDL.
-   * @throws If the program IDL cannot be loaded, or if no instruction named
-   *   `instructionName` exists in the IDL.
+   * Returns the IDL for a specific instruction.
+   * @param instructionName - Instruction name as declared in the IDL.
+   * @returns `{ instructionIdl }`.
+   * @throws If IDL can't be loaded or instruction not found.
    */
   public async getOrLoadInstructionIdl(
     programAddress: Pubkey,
@@ -225,21 +178,10 @@ export class Solana {
   }
 
   /**
-   * Fetches an on-chain account, infers its type from the owning program's IDL,
-   * and decodes its data into a typed state object.
-   *
-   * @param accountAddress - The public key of the account to fetch and decode.
-   * @returns An object containing:
-   *   - `programAddress` – address of the program that owns the account
-   *   - `programIdl` – the resolved IDL for the owning program
-   *   - `accountAddress` – the queried account address
-   *   - `accountIdl` – the inferred account type from the IDL
-   *   - `accountLamports` – the account balance in lamports
-   *   - `accountExecutable` – whether the account is marked executable
-   *   - `accountData` – raw account data bytes
-   *   - `accountState` – decoded account state according to the IDL schema
-   * @throws If the RPC request fails, or if the account data cannot be decoded
-   *   according to the inferred account type.
+   * Fetches, infers, and decodes an on-chain account using its program's IDL.
+   * @param accountAddress - Account to fetch.
+   * @returns `{ programAddress, programIdl, accountAddress, accountIdl, accountLamports, accountExecutable, accountData, accountState }`.
+   * @throws If the RPC request fails or account data cannot be decoded.
    */
   public async getAndInferAndDecodeAccount(accountAddress: Pubkey) {
     const { programAddress, accountExecutable, accountLamports, accountData } =
@@ -262,18 +204,10 @@ export class Solana {
   }
 
   /**
-   * Infers the instruction type from its raw on-chain representation and
-   * decodes both its account addresses and its argument payload.
-   *
-   * @param instructionRequest - The raw instruction to decode, including the
-   *   program address, account inputs, and serialised instruction data.
-   * @returns An object containing:
-   *   - `programIdl` – the resolved IDL for the program
-   *   - `instructionIdl` – the inferred instruction definition from the IDL
-   *   - `instructionAddresses` – decoded named account addresses
-   *   - `instructionPayload` – decoded instruction arguments as a JSON value
-   * @throws If the program IDL cannot be loaded, or if the instruction
-   *   discriminator does not match any known instruction.
+   * Infers and decodes an instruction's account addresses and argument payload.
+   * @param instructionRequest - Raw instruction (program, accounts, data).
+   * @returns `{ programIdl, instructionIdl, instructionAddresses, instructionPayload }`.
+   * @throws If IDL can't be loaded or discriminator doesn't match.
    */
   public async inferAndDecodeInstruction(
     instructionRequest: InstructionRequest,
@@ -303,26 +237,14 @@ export class Solana {
   }
 
   /**
-   * Builds a fully-encoded {@link InstructionRequest} from human-friendly
-   * named addresses and a JSON argument payload.
-   *
-   * Missing accounts are resolved automatically using
-   * {@link hydrateInstructionAddresses} before encoding.
-   *
-   * @param programAddress - The on-chain address of the target program.
-   * @param instructionName - The name of the instruction as declared in the
-   *   program's IDL.
-   * @param options - Encoding inputs.
-   * @param options.instructionAddresses - Named account addresses for the
-   *   instruction (may be partial; missing accounts will be derived).
-   * @param options.instructionPayload - Instruction arguments as a JSON value.
-   * @param options.accountsContext - Optional context blob used to resolve
-   *   accounts that require on-chain state (e.g. associated-token accounts).
-   * @returns An object containing the encoded {@link InstructionRequest} ready
-   *   to be passed to {@link prepareAndExecuteTransaction} or
-   *   {@link prepareAndSimulateTransaction}.
-   * @throws If the program IDL cannot be loaded, if the instruction does not
-   *   exist, or if a required account address cannot be resolved.
+   * Builds an encoded {@link InstructionRequest} from named addresses and a JSON payload.
+   * Missing accounts are resolved via {@link hydrateInstructionAddresses}.
+   * @param instructionName - Instruction name as declared in the IDL.
+   * @param options.instructionAddresses - Named account addresses (partial; missing will be derived).
+   * @param options.instructionPayload - Instruction arguments as JSON.
+   * @param options.accountsContext - Optional context for deriving accounts.
+   * @returns `{ instructionRequest }`.
+   * @throws If IDL can't be loaded, instruction not found, or account can't be resolved.
    */
   public async hydrateAndEncodeInstruction(
     programAddress: Pubkey,
@@ -360,30 +282,14 @@ export class Solana {
   }
 
   /**
-   * Resolves and fills in any missing account addresses for an instruction by
-   * consulting the IDL's account-finding rules and on-chain state.
-   *
-   * PDAs and associated-token accounts that can be derived from already-known
-   * addresses or the optional `accountsContext` blob are resolved
-   * automatically. Accounts that remain unresolvable are left as-is (or an
-   * error is thrown when `throwOnMissing` is `true`).
-   *
-   * @param programAddress - The on-chain address of the target program.
-   * @param instructionName - The name of the instruction as declared in the
-   *   program's IDL.
-   * @param options - Resolution options.
-   * @param options.throwOnMissing - When `true`, throws if any required account
-   *   address cannot be resolved. Defaults to `false`.
-   * @param options.instructionAddresses - Partially-filled named account
-   *   addresses to start from.
-   * @param options.instructionPayload - Instruction arguments, used when
-   *   account derivation depends on argument values.
-   * @param options.accountsContext - Optional context blob providing
-   *   additional on-chain data for account resolution.
-   * @returns The result of {@link idlInstructionAccountsFind}, containing the
-   *   hydrated `instructionAddresses` map.
-   * @throws If `throwOnMissing` is `true` and a required account cannot be
-   *   resolved.
+   * Resolves missing account addresses for an instruction using IDL rules and on-chain state.
+   * PDAs and ATAs derivable from known addresses are auto-resolved.
+   * @param options.throwOnMissing - Throw if any required address can't be resolved.
+   * @param options.instructionAddresses - Partially-filled account addresses.
+   * @param options.instructionPayload - Instruction arguments (used for arg-based derivation).
+   * @param options.accountsContext - Optional context for resolving accounts.
+   * @returns Hydrated `{ instructionAddresses }`.
+   * @throws If `throwOnMissing` is `true` and an account can't be resolved.
    */
   public async hydrateInstructionAddresses(
     programAddress: Pubkey,
@@ -421,20 +327,12 @@ export class Solana {
 
   /**
    * Resolves a specific instruction account address by name.
-   *
-   * @param programAddress - The on-chain address of the target program.
-   * @param instructionName - The name of the instruction as declared in the
-   *   program's IDL.
-   * @param instructionAccountName - The name of the instruction account to resolve.
-   * @param options - Resolution options.
-   * @param options.instructionAddresses - Partially-filled named account
-   *   addresses.
-   * @param options.instructionPayload - Instruction arguments, used when
-   *   account derivation depends on argument values.
-   * @param options.accountsContext - Optional context blob providing
-   *   additional on-chain data for account resolution.
-   * @returns The resolved instruction account address.
-   * @throws If the instruction or account does not exist in the IDL, or if it cannot be resolved with the provided information.
+   * @param instructionAccountName - Account name to resolve.
+   * @param options.instructionAddresses - Partially-filled account addresses.
+   * @param options.instructionPayload - Instruction arguments.
+   * @param options.accountsContext - Optional context for account resolution.
+   * @returns Resolved account {@link Pubkey}.
+   * @throws If the account can't be resolved.
    */
   public async resolveInstructionAddress(
     programAddress: Pubkey,
@@ -474,14 +372,8 @@ export class Solana {
   }
 
   /**
-   * Returns the most recent block hash, using an in-memory cache to avoid
-   * redundant RPC calls.
-   *
-   * The cached value is reused for up to `recentBlockHashCacheDurationMs`
-   * milliseconds (default 15 s). A fresh value is fetched when the cache
-   * entry has expired.
-   *
-   * @returns The latest {@link BlockHash} string.
+   * Returns the most recent block hash (cached, TTL = `recentBlockHashCacheDurationMs`).
+   * @returns Latest {@link BlockHash}.
    * @throws If the RPC call fails.
    */
   public async getRecentBlockHash(): Promise<BlockHash> {
@@ -499,35 +391,15 @@ export class Solana {
   }
 
   /**
-   * Compiles, signs, and submits a transaction to the network.
-   *
-   * Fetches a recent block hash automatically (using the cache), gathers all
-   * signers, compiles the versioned transaction, and sends it via the
-   * configured RPC endpoint.
-   *
-   * @param payerSigner - The transaction fee-payer; either a {@link Signer} or
-   *   {@link WalletAccount} that can sign directly, or an object with `address`
-   *   and `processor` fields to sign via a {@link TransactionProcessor}.
-   * @param instructionsRequests - Ordered list of instructions to include in
-   *   the transaction.
-   * @param options - Optional submission settings.
-   * @param options.extraSigners - Additional signers required by the
-   *   instructions (e.g. multisig co-signers or program-owned keypairs).
-   * @param options.transactionLookupTables - Address lookup tables to attach
-   *   to the versioned transaction for account index compression.
-   * @param options.skipPreflight - When `true`, skips the preflight simulation
-   *   performed by the RPC node before broadcasting. Defaults to `false`.
-   * @param options.skipExecutionFlowParsing - When `true`, skips parsing the
-   *   transaction execution flow from logs in the confirmation step, which is
-   *   required to produce a detailed `executionFlow` report but adds overhead.
-   *   Defaults to `false`.
-   * @returns An object containing:
-   *   - `transactionHandle` – the on-chain transaction signature
-   *   - `transactionRequest` – the decompiled instruction inputs
-   *   - `transactionPacket` – the raw signed wire packet
-   *   - `executionReport` – on-chain execution metadata (slot, fees, logs, error)
-   *   - `executionFlow` – structured call-stack trace (`undefined` when skipped)
-   * @throws If signing fails, or if the RPC rejects the transaction.
+   * Compiles, signs, and submits a transaction.
+   * @param payerSigner - Fee-payer: {@link Signer}, {@link WalletAccount}, or `{ address, processor }`.
+   * @param instructionsRequests - Instructions to include.
+   * @param options.extraSigners - Additional signers.
+   * @param options.transactionLookupTables - ALTs for account index compression.
+   * @param options.skipPreflight - Skip preflight simulation.
+   * @param options.skipExecutionFlowParsing - Skip call-stack trace parsing.
+   * @returns `{ transactionHandle, transactionRequest, transactionPacket, executionReport, executionFlow }`.
+   * @throws If signing fails or RPC rejects the transaction.
    */
   public async prepareAndExecuteTransaction(
     payerSigner:
@@ -580,30 +452,14 @@ export class Solana {
   }
 
   /**
-   * Compiles, optionally signs, and simulates a transaction without
-   * broadcasting it to the network.
-   *
-   * By default the transaction is fully signed with a real block hash so that
-   * the simulation is as close to live execution as possible. Signature
-   * verification and block-hash fetching can be disabled by setting
-   * `verifySignaturesAndBlockHash` to `false`, which is useful for quick
-   * read-only simulations where signers are unavailable.
-   *
-   * @param payer - The fee-payer, supplied either as a raw {@link Pubkey}
-   *   (address-only, no signing) or as a {@link Signer} / {@link WalletAccount}
-   *   when `verifySignaturesAndBlockHash` is `true`.
-   * @param instructionsRequests - Ordered list of instructions to simulate.
-   * @param options - Optional simulation settings.
-   * @param options.extraSigners - Additional signers collected when signature
-   *   verification is enabled.
-   * @param options.transactionLookupTables - Address lookup tables to attach
-   *   to the versioned transaction.
-   * @param options.verifySignaturesAndBlockHash - When `false`, skips signature
-   *   collection and uses a default (zeroed) block hash. Defaults to `true`.
-   * @param options.simulatedAccountsAddresses - Set of account addresses whose
-   *   post-simulation state should be returned in the simulation result.
-   * @returns The simulation result from {@link rpcHttpSimulateTransaction},
-   *   including logs, compute-units consumed, and optional account states.
+   * Compiles, optionally signs, and simulates a transaction without broadcasting.
+   * @param payer - Fee-payer: raw {@link Pubkey} (no signing) or {@link Signer}/{@link WalletAccount}.
+   * @param instructionsRequests - Instructions to simulate.
+   * @param options.extraSigners - Additional signers.
+   * @param options.transactionLookupTables - ALTs for versioned transactions.
+   * @param options.verifySignaturesAndBlockHash - Skip signatures and use default blockhash if `false` (default: `true`).
+   * @param options.simulatedAccountsAddresses - Account addresses whose post-simulation state to return.
+   * @returns Simulation result (logs, compute units, account states).
    * @throws If the RPC simulation request fails.
    */
   public async prepareAndSimulateTransaction(
@@ -644,19 +500,10 @@ export class Solana {
   }
 
   /**
-   * Fetches all on-chain accounts owned by a program that match the layout of
-   * a specific account type defined in the program's IDL.
-   *
-   * Uses `getProgramAccounts` RPC filters derived from the IDL account
-   * definition (data size and/or discriminator blobs) to narrow results.
-   *
-   * @param programAddress - The on-chain address of the owning program.
-   * @param accountName - The name of the account type as declared in the
-   *   program's IDL.
-   * @returns The result of {@link rpcHttpFindProgramOwnedAccounts}, containing
-   *   the set of matching account {@link Pubkey}s (`accountsAddresses`).
-   * @throws If the program IDL cannot be loaded, if no account named
-   *   `accountName` exists in the IDL, or if the RPC request fails.
+   * Fetches all accounts owned by a program that match a specific IDL account type.
+   * @param accountName - Account type name as declared in the IDL.
+   * @returns Result of {@link rpcHttpFindProgramOwnedAccounts}.
+   * @throws If IDL can't be loaded, account type not found, or RPC fails.
    */
   public async findProgramOwnedAccounts(
     programAddress: Pubkey,

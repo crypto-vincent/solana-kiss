@@ -30,39 +30,34 @@ import { IdlMetadata, idlMetadataParse } from "./IdlMetadata";
 import { IdlPda, idlPdaParse } from "./IdlPda";
 import { IdlTypedef, idlTypedefParse } from "./IdlTypedef";
 
-/**
- * Parsed representation of an Anchor IDL program, containing all
- * metadata, typedefs, accounts, instructions, events, errors, PDAs, and constants.
- */
+/** Parsed IDL program: all metadata, typedefs, accounts, instructions, events, errors, PDAs, and constants. */
 export type IdlProgram = {
-  /** Program metadata including name, version, on-chain address, and source URL. */
+  /** Program metadata (name, version, address, source). */
   metadata: IdlMetadata;
-  /** Map of typedef definitions keyed by type name (camelCase). */
+  /** Typedef definitions keyed by type name (camelCase). */
   typedefs: Map<string, IdlTypedef>;
-  /** Map of account type definitions keyed by account name (camelCase). */
+  /** Account type definitions keyed by account name (camelCase). */
   accounts: Map<string, IdlAccount>;
-  /** Map of instruction definitions keyed by instruction name (snake_case). */
+  /** Instruction definitions keyed by instruction name (snake_case). */
   instructions: Map<string, IdlInstruction>;
-  /** Map of event type definitions keyed by event name (camelCase). */
+  /** Event type definitions keyed by event name (camelCase). */
   events: Map<string, IdlEvent>;
-  /** Map of error definitions keyed by error name (camelCase). */
+  /** Error definitions keyed by error name (camelCase). */
   errors: Map<string, IdlError>;
-  /** Map of PDA definitions keyed by PDA name (camelCase). */
+  /** PDA definitions keyed by PDA name (camelCase). */
   pdas: Map<string, IdlPda>;
-  /** Map of program constant definitions keyed by constant name (camelCase). */
+  /** Constant definitions keyed by constant name (camelCase). */
   constants: Map<string, IdlConstant>;
   /** Accessor for the raw JSON value from which this IDL was originally parsed. */
   original: IdlProgramOriginal;
 };
 
 /**
- * Attempts to identify which IDL account definition matches the given raw account data.
- * Iterates over all known accounts and returns the first one that passes its data
- * validation check (data space and blob/discriminator comparison).
- * @param self - The {@link IdlProgram} to search.
- * @param accountData - The raw account data bytes to match against.
- * @returns The first matching {@link IdlAccount}.
- * @throws {@link ErrorStack} if no account definition matches.
+ * Finds the first IDL account definition matching raw account data.
+ * @param self - {@link IdlProgram} to search.
+ * @param accountData - Raw account data.
+ * @returns First matching {@link IdlAccount}.
+ * @throws {@link ErrorStack} if no match.
  */
 export function idlProgramGuessAccount(
   self: IdlProgram,
@@ -83,12 +78,11 @@ export function idlProgramGuessAccount(
 }
 
 /**
- * Attempts to identify which IDL instruction definition matches the given instruction request.
- * Iterates over all known instructions and returns the first one whose accounts and args check pass.
- * @param self - The {@link IdlProgram} to search.
- * @param instructionRequest - The {@link InstructionRequest} to match against.
- * @returns The first matching {@link IdlInstruction}.
- * @throws {@link ErrorStack} if no instruction definition matches.
+ * Finds the first IDL instruction definition matching an instruction request.
+ * @param self - {@link IdlProgram} to search.
+ * @param instructionRequest - Instruction to match.
+ * @returns First matching {@link IdlInstruction}.
+ * @throws {@link ErrorStack} if no match.
  */
 export function idlProgramGuessInstruction(
   self: IdlProgram,
@@ -116,12 +110,11 @@ export function idlProgramGuessInstruction(
 }
 
 /**
- * Attempts to identify which IDL event definition matches the given raw event data.
- * Iterates over all known events and returns the first one that passes its discriminator check.
- * @param self - The {@link IdlProgram} to search.
- * @param eventData - The raw event data bytes to match against.
- * @returns The first matching {@link IdlEvent}.
- * @throws {@link ErrorStack} if no event definition matches.
+ * Finds the first IDL event definition matching raw event data by discriminator.
+ * @param self - {@link IdlProgram} to search.
+ * @param eventData - Raw event data.
+ * @returns First matching {@link IdlEvent}.
+ * @throws {@link ErrorStack} if no match.
  */
 export function idlProgramGuessEvent(
   self: IdlProgram,

@@ -1,58 +1,50 @@
 /**
- * A reactive observable that allows listeners to subscribe to a stream of values of type `T`.
- * @typeParam T - The type of values emitted by this observable.
+ * Observable that emits values of type `T`.
+ * @typeParam T - Emitted value type.
  */
 export type RxObservable<T> = {
   /**
-   * Registers a listener that will be called whenever a new value is emitted.
-   * @param listener - The callback to invoke on each emitted value.
-   * @returns An {@link RxUnsubscriber} function that removes the listener when called.
+   * Subscribes a listener to emitted values.
+   * @param listener - Called on each emitted value.
+   * @returns Unsubscriber function.
    */
   subscribe: (listener: RxListener<T>) => RxUnsubscriber;
 };
 
 /**
- * A reactive observer that can push new values of type `T` to its subscribers.
- * @typeParam T - The type of values this observer emits.
+ * Observer that pushes values of type `T` to subscribers.
+ * @typeParam T - Emitted value type.
  */
 export type RxObserver<T> = {
   /**
-   * Pushes a new value to all current subscribers.
-   * @param value - The new value to emit.
+   * Pushes a value to all subscribers.
+   * @param value - Value to emit.
    */
   notify(value: T): void;
 };
 
 /**
- * A behaviour subject interface that synchronously exposes the current value of type `T`.
- * @typeParam T - The type of the held value.
+ * Synchronously exposes the current value of type `T`.
+ * @typeParam T - Held value type.
  */
 export type RxBehaviour<T> = {
   /**
-   * Returns the current held value synchronously.
-   * @returns The latest value held by this behaviour subject.
+   * @returns Current held value.
    */
   get(): T;
 };
 
-/**
- * A callback function invoked with a new value whenever an {@link RxObservable} emits.
- * @typeParam T - The type of the value received.
- */
+/** Callback invoked when an {@link RxObservable} emits. */
 export type RxListener<T> = (value: T) => void;
 
-/**
- * A function that, when called, cancels a previously registered subscription.
- */
+/** Cancels a previously registered subscription. */
 export type RxUnsubscriber = () => void;
 
 /**
- * Creates a behaviour subject that combines {@link RxBehaviour}, {@link RxObservable},
- * and {@link RxObserver} into a single object.
- * New subscribers immediately receive the current value upon subscription.
- * @typeParam T - The type of the value managed by this subject.
- * @param firstValue - The initial value held by the subject.
- * @returns An object implementing {@link RxBehaviour}, {@link RxObservable}, and {@link RxObserver}.
+ * Behaviour subject combining {@link RxBehaviour}, {@link RxObservable}, and {@link RxObserver}.
+ * New subscribers immediately receive the current value.
+ * @param firstValue - Initial value.
+ * @returns Combined subject object.
  */
 export function rxBehaviourSubject<T>(
   firstValue: T,

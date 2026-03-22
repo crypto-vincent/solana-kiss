@@ -12,9 +12,8 @@ export type Pubkey = Branded<string, "Pubkey">;
 export const pubkeyDefault = pubkeyFromBytes(new Uint8Array(32));
 
 /**
- * Creates a dummy public key with a fixed 5-byte prefix and random remaining bytes.
- * Useful for testing and placeholder purposes.
- * @returns A randomly generated dummy {@link Pubkey}.
+ * Dummy public key with a fixed prefix and random remaining bytes (for testing).
+ * @returns Randomly generated dummy {@link Pubkey}.
  */
 export function pubkeyNewDummy(): Pubkey {
   const bytes = new Uint8Array(32);
@@ -30,10 +29,10 @@ export function pubkeyNewDummy(): Pubkey {
 }
 
 /**
- * Creates a {@link Pubkey} from a base58-encoded string, validating the decoded byte length.
- * @param base58 - The base58-encoded public key string.
- * @returns The validated {@link Pubkey}.
- * @throws If the decoded bytes do not span exactly 32 bytes.
+ * Creates a {@link Pubkey} from a Base58 string.
+ * @param base58 - Base58-encoded public key.
+ * @returns Validated {@link Pubkey}.
+ * @throws If decoded bytes are not 32 bytes.
  */
 export function pubkeyFromBase58(base58: string): Pubkey {
   pubkeyBytesLengthCheck(base58BytesLength(base58));
@@ -41,10 +40,10 @@ export function pubkeyFromBase58(base58: string): Pubkey {
 }
 
 /**
- * Creates a {@link Pubkey} from a 32-byte array.
- * @param bytes - A `Uint8Array` of exactly 32 bytes representing the public key.
- * @returns The base58-encoded {@link Pubkey}.
- * @throws If `bytes` does not have a length of exactly 32.
+ * Creates a {@link Pubkey} from 32 bytes.
+ * @param bytes - Exactly 32 bytes.
+ * @returns Base58-encoded {@link Pubkey}.
+ * @throws If not 32 bytes.
  */
 export function pubkeyFromBytes(bytes: Uint8Array): Pubkey {
   pubkeyBytesLengthCheck(bytes.length);
@@ -52,31 +51,30 @@ export function pubkeyFromBytes(bytes: Uint8Array): Pubkey {
 }
 
 /**
- * Decodes a {@link Pubkey} back into its raw 32-byte representation.
- * @param self - The public key to decode.
- * @returns A `Uint8Array` of exactly 32 bytes.
- * @throws If the decoded bytes do not span exactly 32 bytes.
+ * Decodes a {@link Pubkey} to raw bytes.
+ * @param self - Public key to decode.
+ * @returns 32-byte `Uint8Array`.
+ * @throws If decoded bytes are not 32 bytes.
  */
 export function pubkeyToBytes(self: Pubkey): Uint8Array {
   return base58Decode(self as string);
 }
 
 /**
- * Returns the base58 string representation of a {@link Pubkey}.
- * @param self - The public key to convert.
- * @returns The base58-encoded string of the public key.
+ * Returns the Base58 string of a {@link Pubkey}.
+ * @param self - Public key.
+ * @returns Base58 string.
  */
 export function pubkeyToBase58(self: Pubkey): string {
   return self as string;
 }
 
 /**
- * Finds a Program Derived Address (PDA) for the given program and seeds.
- * Iterates bump values from 255 down to 0 and returns the first valid off-curve address.
- * @param programAddress - The program's public key.
- * @param seedsBlobs - An array of seed byte buffers.
- * @returns The derived {@link Pubkey} that lies off the Ed25519 curve.
- * @throws If no valid PDA can be found for the provided seeds.
+ * Finds a PDA for the given program and seeds (bump 255→0).
+ * @param programAddress - Program's public key.
+ * @param seedsBlobs - Seed byte buffers.
+ * @returns Off-curve derived {@link Pubkey}.
+ * @throws If no valid PDA is found.
  */
 export function pubkeyFindPdaAddress(
   programAddress: Pubkey,
@@ -86,12 +84,11 @@ export function pubkeyFindPdaAddress(
 }
 
 /**
- * Finds a Program Derived Address (PDA) and its associated bump seed.
- * Iterates bump values from 255 down to 0 and returns the first valid off-curve address together with its bump.
- * @param programAddress - The program's public key.
- * @param seedsBlobs - An array of seed byte buffers.
- * @returns An object containing the derived {@link Pubkey} (`address`) and the `bump` value used.
- * @throws If no valid PDA can be found for the provided seeds.
+ * Finds a PDA and its bump seed (255→0).
+ * @param programAddress - Program's public key.
+ * @param seedsBlobs - Seed byte buffers.
+ * @returns `{ address, bump }` for the first valid off-curve PDA.
+ * @throws If no valid PDA is found.
  */
 export function pubkeyFindPdaAddressAndBump(
   programAddress: Pubkey,
@@ -114,13 +111,12 @@ export function pubkeyFindPdaAddressAndBump(
 }
 
 /**
- * Derives a public key from a base address, a UTF-8 seed string, and an owner program address
- * using SHA-256 hashing, following the `createWithSeed` convention.
- * @param baseAddress - The base public key.
- * @param seedUtf8 - A UTF-8 seed string of at most 32 bytes.
- * @param ownerAddress - The owner program's public key.
- * @returns The derived {@link Pubkey}.
- * @throws If the UTF-8-encoded seed exceeds 32 bytes.
+ * Derives a public key via `createWithSeed` (SHA-256 of base + seed + owner).
+ * @param baseAddress - Base public key.
+ * @param seedUtf8 - UTF-8 seed string (max 32 bytes).
+ * @param ownerAddress - Owner program's public key.
+ * @returns Derived {@link Pubkey}.
+ * @throws If seed exceeds 32 bytes.
  */
 export function pubkeyCreateFromSeed(
   baseAddress: Pubkey,
@@ -142,9 +138,8 @@ export function pubkeyCreateFromSeed(
 
 /**
  * Imports a {@link Pubkey} as a Web Crypto Ed25519 verifier function.
- * @param self - The public key to import.
- * @returns A promise that resolves to an async function which verifies a {@link Signature}
- *   against a message, returning `true` if the signature is valid.
+ * @param self - Public key to import.
+ * @returns Async function that verifies a {@link Signature} against a message.
  */
 export async function pubkeyToVerifier(self: Pubkey) {
   const spkiBytes = new Uint8Array([
@@ -183,10 +178,9 @@ export async function pubkeyToVerifier(self: Pubkey) {
 }
 
 /**
- * Checks whether a {@link Pubkey} represents a point that lies on the Ed25519 elliptic curve.
- * Points off the curve are used as Program Derived Addresses (PDAs).
- * @param self - The public key to check.
- * @returns `true` if the key is on the Ed25519 curve, `false` otherwise.
+ * Checks whether a {@link Pubkey} lies on the Ed25519 curve. Off-curve keys are used as PDAs.
+ * @param self - Public key to check.
+ * @returns `true` if on the curve.
  */
 export function pubkeyIsOnCurve(self: Pubkey): boolean {
   const bytes = pubkeyToBytes(self);

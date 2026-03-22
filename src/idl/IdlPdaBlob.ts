@@ -33,10 +33,7 @@ export type IdlPdaBlobInput = {
 type IdlPdaBlobDiscriminant = "const" | "input";
 type IdlPdaBlobContent = IdlPdaBlobConst | IdlPdaBlobInput;
 
-/**
- * A discriminated union representing a single PDA seed that is either a pre-encoded
- * constant byte array or a named runtime input value.
- */
+/** PDA seed: constant bytes or named runtime input. */
 export class IdlPdaBlob {
   private readonly discriminant: IdlPdaBlobDiscriminant;
   private readonly content: IdlPdaBlobContent;
@@ -59,12 +56,11 @@ export class IdlPdaBlob {
   }
 
   /**
-   * Dispatches to the appropriate visitor branch based on the seed's variant,
-   * forwarding two extra parameters and returning the visitor's result.
-   * @param visitor - An object with one handler per variant (`const`, `input`).
-   * @param p1 - First context parameter forwarded to the visitor.
-   * @param p2 - Second context parameter forwarded to the visitor.
-   * @returns The value returned by the matched visitor branch.
+   * Dispatches to the matching variant handler.
+   * @param visitor - Handler per variant (`const`, `input`).
+   * @param p1 - Forwarded context.
+   * @param p2 - Forwarded context.
+   * @returns Visitor result.
    */
   public traverse<P1, P2, T>(
     visitor: {
@@ -79,10 +75,10 @@ export class IdlPdaBlob {
 }
 
 /**
- * Computes the raw byte representation of a PDA seed by resolving it against the given named inputs.
- * @param self - The {@link IdlPdaBlob} seed to compute.
- * @param inputs - Named input values used when the seed is an `input` variant.
- * @returns The computed seed bytes.
+ * Computes raw bytes for a PDA seed by resolving it against the given inputs.
+ * @param self - PDA seed to compute.
+ * @param inputs - Named input values.
+ * @returns Computed seed bytes.
  */
 export function idlPdaBlobCompute(
   self: IdlPdaBlob,
@@ -92,10 +88,10 @@ export function idlPdaBlobCompute(
 }
 
 /**
- * Parses a raw IDL PDA blob JSON value into an {@link IdlPdaBlob}, resolving constant or named-input variants.
- * @param pdaBlobValue - The raw JSON value describing the PDA seed.
- * @param typedefsIdls - A map of known typedef definitions for type resolution.
- * @returns The parsed {@link IdlPdaBlob}.
+ * Parses a raw IDL PDA blob JSON value into an {@link IdlPdaBlob}.
+ * @param pdaBlobValue - Raw JSON PDA seed value.
+ * @param typedefsIdls - Known typedef definitions.
+ * @returns Parsed {@link IdlPdaBlob}.
  */
 export function idlPdaBlobParse(
   pdaBlobValue: JsonValue,

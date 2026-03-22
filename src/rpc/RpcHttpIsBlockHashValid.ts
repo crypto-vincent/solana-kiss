@@ -7,11 +7,9 @@ import {
 import { RpcHttp } from "./RpcHttp";
 
 /**
- * Checks if a given block hash is valid at this point in time.
- *
- * @param self - The {@link RpcHttp} client to use.
- * @param blockHash - The block hash to validate.
- * @returns A boolean indicating whether the block hash is valid.
+ * Checks if a block hash is still valid.
+ * @param blockHash - Block hash to check.
+ * @returns `true` if valid.
  */
 export async function rpcHttpIsBlockHashValid(
   self: RpcHttp,

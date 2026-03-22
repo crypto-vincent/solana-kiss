@@ -23,21 +23,12 @@ import {
 import { RpcHttp } from "./RpcHttp";
 
 /**
- * Simulates a transaction against the current cluster state without broadcasting it.
- *
- * Optionally fetches the post-simulation state of up to 3 accounts.
- *
- * @param self - The {@link RpcHttp} client to use.
- * @param transactionPacket - The {@link TransactionPacket} to simulate.
- * @param options - Optional simulation options.
- * @param options.verifySignaturesAndBlockHash - When `true` (default), verifies signatures and the block hash before simulation.
- *   When `false`, the block hash is replaced with a recent one and signature verification is skipped.
- * @param options.simulatedAccountsAddresses - An optional set of up to 3 {@link Pubkey} account addresses whose post-simulation
- *   state should be returned.
- * @returns An object containing:
- *   - `executionReport` – {@link ExecutionReport} result including logs, error, compute units, and fees.
- *   - `simulatedAccountsByAddress` – a map from each requested {@link Pubkey} to its post-simulation state.
- * @throws If more than 3 accounts are requested via `simulatedAccountsAddresses`.
+ * Simulates a transaction without broadcasting it.
+ * @param transactionPacket - Transaction to simulate.
+ * @param options.verifySignaturesAndBlockHash - Verify signatures/blockhash before simulation (default: `true`).
+ * @param options.simulatedAccountsAddresses - Up to 3 accounts whose post-simulation state to return.
+ * @returns `{ executionReport, simulatedAccountsByAddress }`.
+ * @throws If more than 3 accounts are requested.
  */
 export async function rpcHttpSimulateTransaction(
   self: RpcHttp,
