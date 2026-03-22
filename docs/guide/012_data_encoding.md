@@ -13,7 +13,6 @@ import { base58Encode, base58Decode, base58BytesLength } from "solana-kiss";
 
 const encoded = base58Encode(bytes);
 const decoded = base58Decode(encoded);
-const len     = base58BytesLength(encoded); // byte length without decoding
 ```
 
 ## Base64

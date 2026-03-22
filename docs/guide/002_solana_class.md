@@ -40,7 +40,7 @@ const { accountState } = await solana.getAndInferAndDecodeAccount(accountAddress
 ```
 
 Fetches the account, auto-detects its type via the owning program's IDL, and
-decodes its binary state into a JS value.
+decodes its binary state into a JSON value.
 
 ## Build and send a transaction
 

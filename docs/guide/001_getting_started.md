@@ -27,7 +27,7 @@ import { Solana } from "solana-kiss";
 const solana = new Solana("mainnet");
 
 const { accountState } = await solana.getAndInferAndDecodeAccount(
-  pubkeyFromBase58("So11111111111111111111111111111111111111112"),
+  pubkeyFromBase58("EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v"),
 );
 
 console.log(accountState);
