@@ -1,6 +1,21 @@
 // TODO - clean this up
-// TODO - protect against loop in case of malformed data
 // @ts-nocheck
+
+/** Maximum compressed input size (16 MiB). Guards against trivially large payloads. */
+const MAX_INPUT_SIZE = 16 * 1024 * 1024;
+
+/**
+ * Maximum decompressed output size (64 MiB).
+ * Prevents zip-bomb / inflate-bomb attacks where a tiny input expands to
+ * gigabytes of output.
+ */
+const MAX_OUTPUT_SIZE = 64 * 1024 * 1024;
+
+/**
+ * Maximum number of DEFLATE blocks per stream.
+ * Caps the outer decode loop so a crafted stream cannot spin forever.
+ */
+const MAX_BLOCKS = 100_000;
 
 /**
  * Decompresses a zlib- or gzip-compressed byte array.
@@ -11,9 +26,16 @@
  * @throws If the compression format is unsupported or the data is malformed.
  */
 export function inflate(bytes: Uint8Array, buf: Uint8Array | null): Uint8Array {
+  if (bytes.length > MAX_INPUT_SIZE) {
+    throw new Error("inflate: input exceeds maximum allowed size");
+  }
   const CMF = bytes[0];
   const FLG = bytes[1];
   if (CMF === 31 && FLG === 139) {
+    // GZIP — minimum valid size: 10-byte header + 8-byte trailer
+    if (bytes.length < 18) {
+      throw new Error("inflate: gzip input too short");
+    }
     // GZIP
     const CM = bytes[2];
     const FLG = bytes[3];
@@ -27,17 +49,26 @@ export function inflate(bytes: Uint8Array, buf: Uint8Array | null): Uint8Array {
       throw "FEXTRA";
     }
     if ((FLG & 8) !== 0) {
-      // FNAME
-      while (bytes[off] !== 0) {
+      // FNAME — scan for null terminator; guard against missing terminator
+      while (off < bytes.length && bytes[off] !== 0) {
         off++;
       }
-      off++;
+      if (off >= bytes.length) {
+        throw new Error(
+          "inflate: malformed gzip — FNAME has no null terminator",
+        );
+      }
+      off++; // skip the null byte
     }
     if ((FLG & 16) !== 0) {
       throw "FCOMMENT";
     }
     if ((FLG & 2) !== 0) {
       throw "FHCR";
+    }
+    // Ensure there is room for both the deflate payload and the 8-byte GZIP trailer
+    if (off + 8 > bytes.length) {
+      throw new Error("inflate: malformed gzip — truncated after header");
     }
     return inflateRaw(
       new Uint8Array(
@@ -47,6 +78,10 @@ export function inflate(bytes: Uint8Array, buf: Uint8Array | null): Uint8Array {
       ),
       buf,
     );
+  }
+  // zlib — minimum valid size: 2-byte header + 4-byte Adler-32 checksum
+  if (bytes.length < 6) {
+    throw new Error("inflate: zlib input too short");
   }
   const CM = CMF & 15;
   const CINFO = CMF >>> 4;
@@ -242,6 +277,10 @@ export function inflateRaw(
   data: Uint8Array,
   buf: Uint8Array | null,
 ): Uint8Array {
+  if (data.length > MAX_INPUT_SIZE) {
+    throw new Error("inflateRaw: input exceeds maximum allowed size");
+  }
+
   var u8 = Uint8Array;
   if (data[0] == 3 && data[1] == 0) return buf ? buf : new u8(0);
 
@@ -259,7 +298,13 @@ export function inflateRaw(
     pos = 0;
   var lmap, dmap;
 
+  var blockCount = 0;
   while (BFINAL == 0) {
+    if (++blockCount > MAX_BLOCKS) {
+      throw new Error(
+        "inflateRaw: too many DEFLATE blocks (possible malicious input)",
+      );
+    }
     BFINAL = _bitsF(data, pos, 1);
     BTYPE = _bitsF(data, pos + 1, 2);
     pos += 3;
@@ -268,6 +313,11 @@ export function inflateRaw(
       if ((pos & 7) != 0) pos += 8 - (pos & 7);
       var p8 = (pos >>> 3) + 4,
         len = data[p8 - 4] | (data[p8 - 3] << 8);
+      if (off + len > MAX_OUTPUT_SIZE) {
+        throw new Error(
+          "inflateRaw: output exceeds maximum allowed size (possible zip bomb)",
+        );
+      }
       if (noBuf) buf = _check(buf, off + len);
       buf.set(new u8(data.buffer, data.byteOffset + p8, len), off);
 
@@ -328,7 +378,13 @@ export function inflateRaw(
     //var ooff=off, opos=pos;
     while (true) {
       var code = lmap[_get17(data, pos) & ML];
-      pos += code & 15;
+      var advance = code & 15;
+      if (advance === 0) {
+        throw new Error(
+          "inflateRaw: invalid Huffman code (possible malformed or malicious input)",
+        );
+      }
+      pos += advance;
       var lit = code >>> 4; //U.lhst[lit]++;
       if (lit >>> 8 == 0) {
         buf[off++] = lit;
@@ -340,6 +396,11 @@ export function inflateRaw(
           var ebs = U.ldef[lit - 257];
           end = off + (ebs >>> 3) + _bitsE(data, pos, ebs & 7);
           pos += ebs & 7;
+        }
+        if (end > MAX_OUTPUT_SIZE) {
+          throw new Error(
+            "inflateRaw: output exceeds maximum allowed size (possible zip bomb)",
+          );
         }
         //UZIP.F.dst[end-off]++;
 
@@ -366,6 +427,11 @@ export function inflateRaw(
 }
 
 function _check(buf: Uint8Array, len: number) {
+  if (len > MAX_OUTPUT_SIZE) {
+    throw new Error(
+      "inflateRaw: output exceeds maximum allowed size (possible zip bomb)",
+    );
+  }
   const bl = buf.length;
   if (len <= bl) {
     return buf;
@@ -386,7 +452,13 @@ function _decodeTiny(
   let i = 0;
   while (i < len) {
     const code = lmap[_get17(data, pos) & LL];
-    pos += code & 15;
+    const advance = code & 15;
+    if (advance === 0) {
+      throw new Error(
+        "inflateRaw: invalid Huffman code in block header (possible malformed or malicious input)",
+      );
+    }
+    pos += advance;
     var lit = code >>> 4;
     if (lit <= 15) {
       tree[i] = lit;
