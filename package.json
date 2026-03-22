@@ -16,12 +16,16 @@
     "ts-node": "^10.9.2",
     "tsup": "^8.5.0",
     "typescript": "^5.8.3",
-    "uzip": "^0.20201231.0"
+    "uzip": "^0.20201231.0",
+    "vitepress": "^1.6.4"
   },
   "scripts": {
     "format": "prettier --write src && prettier --write tests",
     "checks": "tsc --noEmit --skipLibCheck && prettier --check src && prettier --check tests/*.ts",
     "tests": "jest --config jest.config.ts",
-    "build": "tsup src/index.ts --dts --clean --minify --sourcemap --out-dir dist"
+    "build": "tsup src/index.ts --dts --clean --minify --sourcemap --out-dir dist",
+    "docs:dev": "vitepress dev docs",
+    "docs:build": "vitepress build docs",
+    "docs:preview": "vitepress preview docs"
   }
 }

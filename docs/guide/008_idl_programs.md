@@ -1,0 +1,72 @@
+---
+title: IDL Programs
+---
+
+# IDL Programs
+
+solana-kiss loads, parses, and caches **Anchor-compatible IDLs**. The parsed
+`IdlProgram` is the source of truth for encoding/decoding instructions,
+accounts, events, and PDAs.
+
+## Parse from JSON
+
+```ts
+import { idlProgramParse } from "solana-kiss";
+
+const idl = idlProgramParse(rawJson); // accepts a plain JS object
+```
+
+## Built-in loaders
+
+```ts
+import {
+  idlLoaderFromOnchainNative,  // newer Anchor native storage
+  idlLoaderFromOnchainAnchor,  // legacy Anchor IDL account
+  idlLoaderFromUrl,            // fetch from a URL
+  idlLoaderFromLoaderSequence, // try loaders in order
+  idlLoaderMemoized,           // cache results in memory
+} from "solana-kiss";
+
+// Both on-chain loaders take an accountDataFetcher, not an RpcHttp directly
+const accountDataFetcher = async (addr: Pubkey) => {
+  const { accountData } = await rpcHttpGetAccountWithData(rpc, addr);
+  return accountData;
+};
+
+// Recommended composition (same as what Solana class uses by default)
+const loader = idlLoaderMemoized(
+  idlLoaderFromLoaderSequence([
+    idlLoaderFromOnchainNative(accountDataFetcher),
+    idlLoaderFromOnchainAnchor(accountDataFetcher),
+    idlLoaderFromUrl((addr) => new URL(`https://idls.example.com/${addr}.json`)),
+  ]),
+);
+```
+
+## Via `Solana` class (recommended)
+
+```ts
+// Load and cache on demand
+const { programIdl } = await solana.getOrLoadProgramIdl(programAddress);
+
+// Pin a specific IDL (useful in tests)
+solana.setProgramIdlOverride(programAddress, myIdl);
+```
+
+## Guess account / instruction type
+
+```ts
+import {
+  idlProgramGuessAccount,
+  idlProgramGuessInstruction,
+  idlProgramGuessEvent,
+  idlProgramGuessError,
+} from "solana-kiss";
+
+const accountIdl     = idlProgramGuessAccount(programIdl, accountDataBytes);
+const instructionIdl = idlProgramGuessInstruction(programIdl, instructionRequest);
+const eventIdl       = idlProgramGuessEvent(programIdl, eventDataBytes);
+const errorIdl       = idlProgramGuessError(programIdl, errorCode);
+```
+
+All functions match by discriminator prefix.
