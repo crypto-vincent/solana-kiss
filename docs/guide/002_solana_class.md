@@ -44,34 +44,28 @@ decodes its binary state into a JS value.
 
 ## Build and send a transaction
 
+`prepareAndExecuteTransaction` compiles, signs, sends, and waits for
+confirmation in a single call. It returns once the transaction is confirmed
+(or throws if the block hash expires).
+
 ```ts
 import { signerFromSecret } from "solana-kiss";
 
 const signer = await signerFromSecret(secretBytes);
 
 // 1. Encode instruction (IDL-aware)
-const { instructionRequest } = await solana.encodeInstruction(
+const { instructionRequest } = await solana.hydrateAndEncodeInstruction(
   programAddress,
   "transfer",
-  { source, destination, authority },
-  { amount: 1_000_000n },
+  {
+    instructionAddresses: { source, destination, authority },
+    instructionPayload: { amount: 1_000_000n },
+  },
 );
 
-// 2. Build, sign
-const { transactionPacket } = await solana.buildAndSignTransaction(
-  [signer],
-  [instructionRequest],
-  { payerAddress: signer.address },
-);
-
-// 3. Send
-const { transactionHandle } = await solana.sendTransaction(transactionPacket);
-
-// 4. Wait for confirmation
-const { executionReport } = await solana.waitForTransaction(
-  transactionHandle,
-  async ({ totalDurationMs }) => totalDurationMs < 60_000,
-);
+// 2. Compile + sign + send + confirm
+const { transactionHandle, executionReport } =
+  await solana.prepareAndExecuteTransaction(signer, [instructionRequest]);
 
 if (executionReport.transactionError) {
   console.error("Failed:", executionReport.transactionError);
@@ -83,7 +77,10 @@ if (executionReport.transactionError) {
 ## Simulate before sending
 
 ```ts
-const { executionReport } = await solana.simulateTransaction(transactionPacket);
+const { executionReport } = await solana.prepareAndSimulateTransaction(
+  signer,
+  [instructionRequest],
+);
 ```
 
 ## IDL access
@@ -114,10 +111,11 @@ const pdaAddress = await solana.findPdaAddress(
 ## Program-owned accounts
 
 ```ts
-const accounts = await solana.findProgramOwnedAccounts(programAddress, {
-  dataSpace: 165,
-  dataBlobs: [{ offset: 0, bytes: discriminatorBytes }],
-});
+// accountName must match an account type defined in the program's IDL
+const accounts = await solana.findProgramOwnedAccounts(
+  programAddress,
+  "UserAccount",
+);
 ```
 
 ## Access the underlying RPC client

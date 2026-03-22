@@ -26,7 +26,7 @@ Both `from*` functions throw if the input does not decode to exactly 32 bytes.
 ```ts
 import { pubkeyDefault, pubkeyNewDummy } from "solana-kiss";
 
-pubkeyDefault();   // 11111111111111111111111111111111 (all zeros)
+pubkeyDefault;     // 11111111111111111111111111111111 (all zeros, a const)
 pubkeyNewDummy();  // random key for tests
 ```
 

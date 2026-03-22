@@ -27,11 +27,17 @@ import {
   idlLoaderMemoized,           // cache results in memory
 } from "solana-kiss";
 
+// Both on-chain loaders take an accountDataFetcher, not an RpcHttp directly
+const accountDataFetcher = async (addr: Pubkey) => {
+  const { accountData } = await rpcHttpGetAccountWithData(rpc, addr);
+  return accountData;
+};
+
 // Recommended composition (same as what Solana class uses by default)
 const loader = idlLoaderMemoized(
   idlLoaderFromLoaderSequence([
-    idlLoaderFromOnchainNative(rpc),
-    idlLoaderFromOnchainAnchor(rpc),
+    idlLoaderFromOnchainNative(accountDataFetcher),
+    idlLoaderFromOnchainAnchor(accountDataFetcher),
     idlLoaderFromUrl((addr) => new URL(`https://idls.example.com/${addr}.json`)),
   ]),
 );

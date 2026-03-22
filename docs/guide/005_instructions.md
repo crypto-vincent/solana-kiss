@@ -25,7 +25,7 @@ type InstructionInput = {
 
 ## Build with an IDL
 
-The easiest way — used by `Solana.encodeInstruction` internally:
+The easiest way — used by `Solana.hydrateAndEncodeInstruction` internally:
 
 ```ts
 import { idlInstructionAccountsEncode, idlInstructionArgsEncode } from "solana-kiss";
@@ -69,13 +69,15 @@ const { instructionPayload } = idlInstructionArgsDecode(instructionIdl, ix.instr
 // → { amount: 1000000n }
 ```
 
-## Via `Solana.encodeInstruction` (recommended)
+## Via `Solana.hydrateAndEncodeInstruction` (recommended)
 
 ```ts
-const { instructionRequest } = await solana.encodeInstruction(
+const { instructionRequest } = await solana.hydrateAndEncodeInstruction(
   programAddress,
   "transfer",
-  { source, destination, authority },
-  { amount: 1_000_000n },
+  {
+    instructionAddresses: { source, destination, authority },
+    instructionPayload: { amount: 1_000_000n },
+  },
 );
 ```

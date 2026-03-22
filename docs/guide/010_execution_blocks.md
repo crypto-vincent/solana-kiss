@@ -6,7 +6,8 @@ title: Execution & Blocks
 
 ## `ExecutionReport`
 
-Returned by `waitForTransaction`, `simulateTransaction`, and `getTransaction`.
+Returned by `prepareAndExecuteTransaction`, `prepareAndSimulateTransaction`,
+and `rpcHttpGetTransaction`.
 
 ```ts
 type ExecutionReport = {
@@ -65,7 +66,7 @@ import {
   blockHashDefault,
 } from "solana-kiss";
 
-const { blockHash, lastValidBlockHeight } = await rpcHttpGetLatestBlockHash(rpc);
+const { blockHash } = await rpcHttpGetLatestBlockHash(rpc);
 
 // Branded constructors
 const hash = blockHashFromBase58("4vJ9...");
@@ -93,8 +94,13 @@ import {
   rpcHttpFindAccountTransactions,
 } from "solana-kiss";
 
-const meta   = await rpcHttpGetBlockMetadata(rpc, slot);
-const block  = await rpcHttpGetBlockWithTransactions(rpc, slot);
-const slots  = await rpcHttpFindBlocks(rpc, startSlot, { limit: 100 });
-const txRefs = await rpcHttpFindAccountTransactions(rpc, accountAddress, { limit: 50 });
+const meta  = await rpcHttpGetBlockMetadata(rpc, slot);
+const block = await rpcHttpGetBlockWithTransactions(rpc, slot);
+
+// Find up to 100 block slots starting from startSlot
+const { blocksSlots } = await rpcHttpFindBlocks(rpc, 100, { lowBlockSlot: startSlot });
+
+// Get the 50 most recent transaction handles for an account
+const { newToOldTransactionsHandles } =
+  await rpcHttpFindAccountTransactions(rpc, accountAddress, 50);
 ```

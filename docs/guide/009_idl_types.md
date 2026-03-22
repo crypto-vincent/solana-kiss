@@ -72,13 +72,17 @@ const [offset, value]       = idlTypeFullDecode(typeFull, dataView, 0);
 const [nextOffset, fields]  = idlTypeFullFieldsDecode(fullFields, dataView, 0);
 ```
 
-## JSON round-trip
+## JSON codec (code generation)
+
+`idlTypeFullJsonCodecModule` generates a ready-to-use TypeScript source file
+with a typed `jsonCodec` for a given IDL type — useful for build-time
+code generation:
 
 ```ts
-import { idlTypeFullJsonEncode, idlTypeFullJsonDecode } from "solana-kiss";
+import { idlTypeFullJsonCodecModule } from "solana-kiss";
 
-const json      = idlTypeFullJsonEncode(typeFull, decodedValue);
-const backAgain = idlTypeFullJsonDecode(typeFull, json);
+// Returns a TypeScript module string with a typed `jsonCodec` constant
+const tsSource = idlTypeFullJsonCodecModule(typeFull);
 ```
 
 ## Primitive types

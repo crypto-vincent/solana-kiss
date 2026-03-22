@@ -55,9 +55,8 @@ const { executionReport } = await rpcHttpWaitForTransaction(
 );
 ```
 
-> **Tip:** The `Solana` class wraps all of the above into
-> `buildAndSignTransaction` + `sendTransaction` + `waitForTransaction`.
-> Prefer it for most use cases.
+> **Tip:** The `Solana` class wraps all of the above into a single
+> `prepareAndExecuteTransaction` call. Prefer it for most use cases.
 
 ## Compile without signing
 
