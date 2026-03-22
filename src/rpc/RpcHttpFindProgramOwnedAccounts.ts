@@ -10,20 +10,13 @@ import { Pubkey, pubkeyToBase58 } from "../data/Pubkey";
 import { RpcHttp } from "./RpcHttp";
 
 /**
- * Fetches the set of all account addresses owned by the given program.
- *
- * Optionally filters results by account data size or byte-level memory patterns.
- *
- * @param self - The {@link RpcHttp} client to use.
- * @param programAddress - The {@link Pubkey} of the program whose owned accounts to find.
- * @param filters - Optional filters to narrow down results.
- * @param filters.dataSpace - Only return accounts whose data length equals this value (in bytes).
- * @param filters.dataBlobs - Only return accounts that match all given byte patterns at the specified offsets.
- * @returns An array of objects describing each matching account, with
- *   `accountAddress` (public key), `accountExecutable`, `accountLamports`,
- *   and `accountSpace` (data length in bytes).
- * @throws If more than 4 filter entries are provided (Solana RPC limit).
- * @throws If any filter blob has a negative offset.
+ * Fetches all account addresses owned by a program. Optionally filters by size or byte patterns.
+ * @param self - {@link RpcHttp} client.
+ * @param programAddress - Program to query.
+ * @param filters.dataSpace - Filter by account data length (bytes).
+ * @param filters.dataBlobs - Filter by byte patterns at given offsets.
+ * @returns Array of `{ accountAddress, accountExecutable, accountLamports, accountSpace }`.
+ * @throws If more than 4 filters or any filter blob has a negative offset.
  */
 export async function rpcHttpFindProgramOwnedAccounts(
   self: RpcHttp,

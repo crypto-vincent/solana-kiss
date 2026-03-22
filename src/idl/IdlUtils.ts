@@ -28,12 +28,9 @@ import { idlTypeFullEncode } from "./IdlTypeFullEncode";
 import { IdlTypePrimitive } from "./IdlTypePrimitive";
 
 /**
- * A JSON decoder that converts various byte-array representations into a
- * `Uint8Array`. Accepted formats:
- * - **array** – plain JSON array of numbers (`[0, 1, 2, …]`)
- * - **object keys**: `utf8`, `base16`, `base58`, `base64` – encoded strings
- * - `zeroes` – allocates an all-zero buffer of the given length
- * - `encode` – encodes an inline IDL value/type pair into bytes
+ * JSON decoder for byte arrays. Accepted formats:
+ * - JSON array of numbers
+ * - Object keys: `utf8`, `base16`, `base58`, `base64`, `zeroes`, `encode`
  */
 export const idlUtilsBytesJsonDecoder = jsonDecoderByType({
   array: jsonCodecArrayToBytes.decoder,
@@ -60,13 +57,11 @@ export const idlUtilsBytesJsonDecoder = jsonDecoderByType({
 });
 
 /**
- * Asserts that a specific byte sequence (`blobBytes`) is present in `data`
- * starting at `blobOffset`. Throws a descriptive error if the data is too
- * short or any byte does not match.
- *
- * @param blobOffset - The byte offset in `data` at which the expected bytes begin.
- * @param blobBytes - The expected byte sequence.
- * @param data - The buffer to verify against.
+ * Asserts a specific byte sequence is present in `data` at `blobOffset`.
+ * @param blobOffset - Start byte offset.
+ * @param blobBytes - Expected bytes.
+ * @param data - Buffer to verify.
+ * @throws If data is too short or bytes don't match.
  */
 export function idlUtilsExpectBlobAt(
   blobOffset: number,
@@ -92,12 +87,9 @@ export function idlUtilsExpectBlobAt(
 }
 
 /**
- * Parses a Rust-flavored JSON string into a standard {@link JsonValue}. Handles
- * Rust-style numeric literals that contain underscores as digit separators
- * (e.g. `1_000_000`), which are not valid in standard JSON.
- *
- * @param jsonRusted - A JSON string potentially containing Rust numeric literals.
- * @returns The parsed {@link JsonValue}.
+ * Parses a Rust-flavored JSON string (handles `_` digit separators, e.g. `1_000_000`).
+ * @param jsonRusted - JSON string with possible Rust numeric literals.
+ * @returns Parsed {@link JsonValue}.
  */
 export function idlUtilsJsonRustedParse(jsonRusted: string): JsonValue {
   return jsonParse(
@@ -114,12 +106,9 @@ export function idlUtilsJsonRustedParse(jsonRusted: string): JsonValue {
 }
 
 /**
- * Computes the 8-byte Anchor discriminator for an account or instruction
- * name. The discriminator is the first 8 bytes of the SHA-256 hash of the
- * UTF-8 encoded name string.
- *
- * @param name - The account or instruction name (e.g. `"account:MyAccount"`).
- * @returns An 8-byte `Uint8Array` discriminator.
+ * Computes the 8-byte Anchor discriminator (first 8 bytes of SHA-256(name)).
+ * @param name - Account or instruction name (e.g. `"account:MyAccount"`).
+ * @returns 8-byte discriminator.
  */
 export function idlUtilsAnchorDiscriminator(name: string): Uint8Array {
   return sha256Hash([utf8Encode(name)]).slice(0, 8);
@@ -127,10 +116,9 @@ export function idlUtilsAnchorDiscriminator(name: string): Uint8Array {
 
 /**
  * Parses a blob value into a structured format with type information.
- *
- * @param blobValue - The JSON value representing the blob's value.
- * @param typedefsIdls - A map of typedefs for resolving type information.
- * @returns An object containing the parsed blob information.
+ * @param blobValue - JSON value for the blob.
+ * @param typedefsIdls - Typedefs for type resolution.
+ * @returns Parsed blob info.
  */
 export function idlUtilsBlobTypeValueParse(
   blobValue: JsonValue,

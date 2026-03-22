@@ -4,20 +4,12 @@ import { RpcHttp } from "./RpcHttp";
 import { rpcHttpGetTransaction } from "./RpcHttpGetTransaction";
 
 /**
- * Polls for a transaction until it is confirmed on-chain or the retry approver rejects further attempts.
- *
- * The `retryApprover` callback is invoked each time the transaction is not yet found; returning `true`
- * triggers another attempt, while returning `false` throws an error.
- *
- * @param self - The {@link RpcHttp} client to use.
- * @param transactionHandle - The {@link TransactionHandle} (signature) of the transaction to wait for.
- * @param retryApprover - Async callback invoked when the transaction is not yet found, receiving context about
- *   the current wait. Return `true` to keep polling or `false` to abort with an error.
- * @param options - Optional options forwarded to {@link rpcHttpGetTransaction}.
- * @param options.skipExecutionFlowParsing - When `true`, skips parsing the program invocation call-stack.
- * @returns An object containing `transactionRequest` ({@link TransactionRequest}),
- *   `executionReport` ({@link ExecutionReport}), and `executionFlow` ({@link ExecutionFlow} or `undefined`)
- *   once the transaction is confirmed.
+ * Polls until a transaction is confirmed or `retryApprover` returns `false`.
+ * @param self - {@link RpcHttp} client.
+ * @param transactionHandle - Transaction signature to wait for.
+ * @param retryApprover - Called each poll; return `true` to retry, `false` to abort.
+ * @param options.skipExecutionFlowParsing - Skip parsing the invocation call-stack.
+ * @returns `{ transactionRequest, executionReport, executionFlow }` once confirmed.
  * @throws If the retry approver returns `false`.
  */
 export async function rpcHttpWaitForTransaction(

@@ -22,17 +22,10 @@ export const urlRpcPublicDevnet = new URL("https://api.devnet.solana.com");
 export const urlRpcPublicTestnet = new URL("https://api.testnet.solana.com");
 
 /**
- * Resolves a short moniker or a raw URL string to a canonical RPC endpoint URL.
- *
- * Accepted monikers:
- * - `"mainnet"` → {@link urlRpcPublicMainnet}
- * - `"devnet"` → {@link urlRpcPublicDevnet}
- * - `"testnet"` → {@link urlRpcPublicTestnet}
- *
- * Any other value is returned unchanged, allowing callers to pass a raw URL directly.
- *
- * @param rawUrlOrMoniker - A value representing a RPC endpoint's URL or a well-known moniker.
- * @returns The resolved RPC endpoint URL.
+ * Resolves a moniker or raw URL string to an RPC endpoint URL.
+ * Monikers: `"mainnet"`, `"devnet"`, `"testnet"`.
+ * @param rawUrlOrMoniker - URL string or moniker.
+ * @returns Resolved RPC URL.
  */
 export function urlRpcFromUrlOrMoniker(
   rawUrlOrMoniker: "mainnet" | "devnet" | "testnet" | string,
@@ -50,11 +43,10 @@ export function urlRpcFromUrlOrMoniker(
 }
 
 /**
- * Builds a Solana Explorer URL for an account (address) page.
- *
- * @param urlRpc - An RPC URL (see {@link urlRpcFromUrlOrMoniker})
- * @param accountAddress - The public key of the account to inspect.
- * @returns The full Explorer URL.
+ * Builds a Solana Explorer URL for an account page.
+ * @param urlRpc - RPC URL (see {@link urlRpcFromUrlOrMoniker}).
+ * @param accountAddress - Account public key.
+ * @returns Explorer URL.
  */
 export function urlExplorerAccount(urlRpc: URL, accountAddress: Pubkey) {
   return urlExplorer(urlRpc, "address", accountAddress.toString());
@@ -62,21 +54,19 @@ export function urlExplorerAccount(urlRpc: URL, accountAddress: Pubkey) {
 
 /**
  * Builds a Solana Explorer URL for a block page.
- *
- * @param urlRpc - An RPC URL (see {@link urlRpcFromUrlOrMoniker})
- * @param blockSlot - The slot number of the block to inspect.
- * @returns The full Explorer URL.
+ * @param urlRpc - RPC URL (see {@link urlRpcFromUrlOrMoniker}).
+ * @param blockSlot - Block slot number.
+ * @returns Explorer URL.
  */
 export function urlExplorerBlock(urlRpc: URL, blockSlot: BlockSlot) {
   return urlExplorer(urlRpc, "block", blockSlot.toString());
 }
 
 /**
- * Builds a Solana Explorer URL for a confirmed transaction page.
- *
- * @param urlRpc - An RPC URL (see {@link urlRpcFromUrlOrMoniker})
- * @param transactionHandle - The {@link TransactionHandle} of the transaction to inspect.
- * @returns The full Explorer URL.
+ * Builds a Solana Explorer URL for a transaction page.
+ * @param urlRpc - RPC URL (see {@link urlRpcFromUrlOrMoniker}).
+ * @param transactionHandle - Transaction handle.
+ * @returns Explorer URL.
  */
 export function urlExplorerTransaction(
   urlRpc: URL,
@@ -86,13 +76,10 @@ export function urlExplorerTransaction(
 }
 
 /**
- * Builds a Solana Explorer transaction-inspector URL that pre-loads the
- * encoded message and signatures so the transaction can be simulated without
- * being broadcast.
- *
- * @param urlRpc - An RPC URL (see {@link urlRpcFromUrlOrMoniker})
- * @param transactionPacket - The signed (or unsigned) {@link TransactionPacket}
- * @returns The full Explorer inspector URL.
+ * Builds a Solana Explorer transaction-inspector URL pre-loaded with the encoded message and signatures.
+ * @param urlRpc - RPC URL (see {@link urlRpcFromUrlOrMoniker}).
+ * @param transactionPacket - Signed (or unsigned) {@link TransactionPacket}.
+ * @returns Explorer inspector URL.
  */
 export function urlExplorerSimulation(
   urlRpc: URL,

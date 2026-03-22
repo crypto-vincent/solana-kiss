@@ -9,9 +9,8 @@ import {
 import { pubkeyFromBytes, pubkeyToBytes } from "../data/Pubkey";
 
 /**
- * Represents a primitive scalar type supported by the Anchor IDL
- * (unsigned/signed integers, floats, bool, and pubkey).
- * Pre-built singleton instances are available as static properties.
+ * Primitive scalar type supported by the Anchor IDL.
+ * Pre-built singletons available as static properties.
  */
 export class IdlTypePrimitive {
   /** 8-bit unsigned integer (1 byte). */
@@ -43,11 +42,11 @@ export class IdlTypePrimitive {
   /** Solana public key (32-byte Ed25519 point). */
   public static readonly pubkey = new IdlTypePrimitive("pubkey", 32, 1);
 
-  /** The name of this primitive type (e.g. `"u8"`, `"bool"`, `"pubkey"`). */
+  /** Type name (e.g. `"u8"`, `"bool"`, `"pubkey"`). */
   public readonly name: string;
-  /** The size in bytes of this primitive type. */
+  /** Byte size. */
   public readonly size: number;
-  /** The required byte alignment of this primitive type. */
+  /** Byte alignment. */
   public readonly alignment: number;
 
   private constructor(name: string, size: number, alignment: number) {
@@ -57,11 +56,11 @@ export class IdlTypePrimitive {
   }
 
   /**
-   * Dispatches to the matching visitor branch based on this primitive's name.
-   * @param visitor - An object with one handler per primitive type.
-   * @param p1 - First context parameter forwarded to the visitor.
-   * @param p2 - Second context parameter forwarded to the visitor.
-   * @returns The value returned by the matched visitor branch.
+   * Dispatches to the matching visitor branch by primitive name.
+   * @param visitor - Handlers per primitive type.
+   * @param p1 - First context parameter.
+   * @param p2 - Second context parameter.
+   * @returns Value from the matched visitor branch.
    */
   public traverse<P1, P2, T>(
     visitor: {
@@ -87,7 +86,7 @@ export class IdlTypePrimitive {
   }
 }
 
-/** A read-only map from primitive type name (e.g. `"u8"`, `"pubkey"`) to its {@link IdlTypePrimitive} instance. */
+/** Read-only map from primitive type name to its {@link IdlTypePrimitive} instance. */
 export const idlTypePrimitiveByName: ReadonlyMap<string, IdlTypePrimitive> =
   (() => {
     const primitives = [
@@ -114,11 +113,10 @@ export const idlTypePrimitiveByName: ReadonlyMap<string, IdlTypePrimitive> =
   })();
 
 /**
- * Encodes a JSON value into the byte representation of `self`'s primitive type
- * and appends the resulting {@link Uint8Array} to `blobs`.
- * @param self - The {@link IdlTypePrimitive} defining the scalar type to encode.
- * @param value - The JSON-compatible value to encode.
- * @param blobs - The output array to which the encoded bytes are appended.
+ * Encodes a JSON value into the byte representation of `self`'s primitive type, appending to `blobs`.
+ * @param self - Primitive type to encode.
+ * @param value - Value to encode.
+ * @param blobs - Output byte array collection.
  */
 export function idlTypePrimitiveEncode(
   self: IdlTypePrimitive,
@@ -133,11 +131,11 @@ export function idlTypePrimitiveEncode(
 }
 
 /**
- * Decodes a JSON-compatible value from `data` at `dataOffset` according to `self`'s primitive type.
- * @param self - The {@link IdlTypePrimitive} defining the scalar type to decode.
- * @param data - The `DataView` over the raw binary buffer.
- * @param dataOffset - Byte offset within `data` at which to start reading.
- * @returns A tuple of `[bytesConsumed, decodedJsonValue]`.
+ * Decodes a JSON value from `data` at `dataOffset` using `self`'s primitive type.
+ * @param self - Primitive type to decode.
+ * @param data - Raw binary `DataView`.
+ * @param dataOffset - Byte offset.
+ * @returns `[bytesConsumed, decodedJsonValue]`.
  */
 export function idlTypePrimitiveDecode(
   self: IdlTypePrimitive,

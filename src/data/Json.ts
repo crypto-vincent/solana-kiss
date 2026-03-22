@@ -36,18 +36,18 @@ export interface JsonObject {
 }
 
 /**
- * Parses a JSON string into a {@link JsonValue}.
- * @param jsonString - The JSON string to parse.
- * @returns The parsed {@link JsonValue}.
+ * Parses a JSON string.
+ * @param jsonString - JSON string.
+ * @returns Parsed {@link JsonValue}.
  */
 export function jsonParse(jsonString: string): JsonValue {
   return JSON.parse(jsonString) as JsonValue;
 }
 /**
- * Stringifies a {@link JsonValue} into a JSON string.
- * @param value - The {@link JsonValue} to stringify.
- * @param space - Optional. A string or number that's used to insert white space into the output JSON string for readability purposes.
- * @returns The JSON string representation of the {@link JsonValue}.
+ * Stringifies a {@link JsonValue}.
+ * @param value - Value to stringify.
+ * @param space - Optional whitespace for readability.
+ * @returns JSON string.
  */
 export function jsonStringify(
   value: JsonValue,
@@ -193,8 +193,7 @@ export function jsonIsDeepEqual(leftValue: JsonValue, rightValue: JsonValue) {
 }
 /**
  * Returns `true` if `subsetValue` is a deep subset of `supersetValue`.
- * Arrays are compared positionally up to the length of `subsetValue`;
- * object keys present in `subsetValue` must exist and match in `supersetValue`.
+ * Arrays compared positionally; object keys in subset must match in superset.
  */
 export function jsonIsDeepSubset(
   subsetValue: JsonValue,
@@ -250,8 +249,8 @@ export function jsonIsDeepSubset(
 export type JsonPointer = Array<string | number>;
 
 /**
- * Parses a dot-notation, bracket-notation, or slash-notation path string
- * (e.g. `"foo.bar[0]"` or `"/foo/bar/0"`) into a {@link JsonPointer}.
+ * Parses a dot/bracket/slash path string into a {@link JsonPointer}.
+ * e.g. `"foo.bar[0]"` or `"/foo/bar/0"`.
  */
 export function jsonPointerParse(path: string): JsonPointer {
   const tokens = path
@@ -274,10 +273,7 @@ export function jsonPointerParse(path: string): JsonPointer {
   }
   return tokens;
 }
-/**
- * Formats a {@link JsonPointer} (or a prefix up to `tokenIndex`) as a
- * human-readable path string.
- */
+/** Formats a {@link JsonPointer} (or prefix up to `tokenIndex`) as a human-readable path. */
 export function jsonPointerPreview(
   self: JsonPointer,
   tokenIndex?: number,
@@ -298,9 +294,8 @@ export function jsonPointerPreview(
   return parts.join("");
 }
 /**
- * Converts a {@link JsonPointer} token to a valid non-negative array index for
- * an array of the given length, handling negative indices. Returns `undefined`
- * if the token is not a number or the resulting index is out of bounds.
+ * Converts a {@link JsonPointer} token to a valid array index.
+ * Returns `undefined` if not a number or out of bounds.
  */
 export function jsonPointerTokenAsArrayIndex(
   pointerToken: string | number,
@@ -320,8 +315,8 @@ export function jsonPointerTokenAsArrayIndex(
 }
 
 /**
- * Retrieves the nested {@link JsonValue} at the given dot/bracket path string
- * or {@link JsonPointer} within `value`. Throws if any segment is invalid.
+ * Gets the nested value at a dot/bracket path or {@link JsonPointer}.
+ * @throws If any path segment is invalid.
  */
 export function jsonGetAt(
   value: JsonValue,
@@ -366,9 +361,7 @@ export function jsonGetAt(
   return current;
 }
 
-/**
- * A function type for fetching JSON data from a URL with an optional request configuration.
- */
+/** Function that fetches JSON from a URL with an optional request config. */
 export type JsonFetcher = (
   url: URL,
   request?: {
@@ -379,11 +372,11 @@ export type JsonFetcher = (
 ) => Promise<JsonValue>;
 
 /**
- * Default {@link JsonFetcher} implementation that fetches JSON from a URL using the Fetch API.
- * @param url The URL to fetch JSON from.
- * @param request Optional request configuration with headers, method, and body.
- * @returns A promise that resolves to the parsed JSON value.
- * @throws {ErrorStack} If the fetch response is not ok (status not 200-299).
+ * Default {@link JsonFetcher} using the Fetch API.
+ * @param url - URL to fetch JSON from.
+ * @param request - Optional request config.
+ * @returns Parsed JSON value.
+ * @throws If the response status is not 2xx.
  */
 export async function jsonFetcherDefault(
   url: Parameters<JsonFetcher>[0],
@@ -437,9 +430,7 @@ export const jsonCodecBoolean: JsonCodec<boolean> = {
   encoder: (decoded) => decoded,
 };
 /**
- * {@link JsonCodec} for `number` values.
- * Encodes `NaN`, `Infinity`, and `-Infinity` as their string representations
- * since JSON does not support these values natively.
+ * {@link JsonCodec} for `number`. Encodes `NaN`/`Infinity`/`-Infinity` as strings.
  */
 export const jsonCodecNumber: JsonCodec<number> = {
   decoder: jsonDecoderByType({
@@ -514,9 +505,7 @@ export const jsonCodecObject: JsonCodec<JsonObject> = {
 };
 
 /**
- * {@link JsonCodec} for `bigint` values.
- * Accepts a JSON number or a decimal string (with optional `_` separators);
- * encodes as a decimal string.
+ * {@link JsonCodec} for `bigint`. Accepts number or decimal string; encodes as decimal string.
  */
 export const jsonCodecBigInt: JsonCodec<bigint> = {
   decoder: jsonDecoderByType({
@@ -611,10 +600,10 @@ export const jsonCodecTransactionHandle: JsonCodec<TransactionHandle> =
   });
 
 /**
- * Creates a {@link JsonDecoder} that only accepts the specified literal primitive `values`.
- * @param values - One or more literal primitive values to accept.
- * @returns A decoder that passes through any value equal to one of `values`.
- * @throws If the encoded value does not strictly equal any of the specified literals.
+ * Creates a {@link JsonDecoder} accepting only the specified literal primitive(s).
+ * @param values - Literal values to accept.
+ * @returns Decoder passing through matching values.
+ * @throws If encoded value does not match any literal.
  */
 export function jsonDecoderConst<Values extends Array<JsonPrimitive>>(
   ...values: Values
@@ -682,10 +671,9 @@ export function jsonCodecArrayToArray<Item>(
 
 /**
  * Creates a {@link JsonDecoder} that decodes a positional JSON array into a named object.
- * The keys of `valuesDecoders` determine the output property names; each entry at
- * the corresponding array index is decoded by the matching decoder in insertion order.
+ * Keys of `valuesDecoders` map to output properties (in insertion order).
  * Missing array elements default to `null`.
- * @param valuesDecoders - An object (in insertion order) mapping output keys to decoders.
+ * @param valuesDecoders - Output keys mapped to decoders.
  */
 export function jsonDecoderArrayToObject<
   Content extends { [key: string]: any },
@@ -709,8 +697,8 @@ export function jsonDecoderArrayToObject<
 }
 /**
  * Creates a {@link JsonEncoder} that encodes a named object into a positional JSON array.
- * The insertion order of `valuesEncoders` determines which property maps to which array index.
- * @param valuesEncoders - An object (in insertion order) mapping input keys to encoders.
+ * Insertion order of `valuesEncoders` determines the array index mapping.
+ * @param valuesEncoders - Input keys mapped to encoders.
  */
 export function jsonEncoderArrayToObject<
   Content extends { [key: string]: any },
@@ -728,9 +716,8 @@ export function jsonEncoderArrayToObject<
   };
 }
 /**
- * Creates a {@link JsonCodec} for objects whose JSON representation is a positional array.
- * Useful for encoding/decoding fixed-structure tuples stored as arrays in JSON.
- * @param valuesCodecs - An object (in insertion order) mapping keys to their {@link JsonCodec}s.
+ * Creates a {@link JsonCodec} for objects stored as positional arrays in JSON.
+ * @param valuesCodecs - Keys mapped to their {@link JsonCodec}s (insertion order).
  */
 export function jsonCodecArrayToObject<
   Content extends { [key: string]: any },
@@ -803,10 +790,8 @@ export function jsonCodecArrayToTuple<
 
 /**
  * Creates a {@link JsonDecoder} that decodes a JSON object into a typed object.
- * Each key in `valuesDecoders` is looked up in the encoded object using fuzzy
- * key matching (via {@link objectGuessIntendedKey}), allowing camelCase/snake_case
- * variants to match transparently. Missing keys are treated as `null`.
- * @param valuesDecoders - An object mapping output keys to their individual decoders.
+ * Uses fuzzy key matching (camelCase/snake_case). Missing keys treated as `null`.
+ * @param valuesDecoders - Output keys mapped to decoders.
  */
 export function jsonDecoderObjectToObject<
   Content extends { [keyDecoded: string]: any },
@@ -830,9 +815,7 @@ export function jsonDecoderObjectToObject<
 }
 /**
  * Creates a {@link JsonEncoder} that encodes a typed object into a JSON object.
- * Each key in `valuesEncoders` is encoded using its corresponding encoder and
- * written to the output object under the same key name.
- * @param valuesEncoders - An object mapping input keys to their individual encoders.
+ * @param valuesEncoders - Input keys mapped to encoders.
  */
 export function jsonEncoderObjectToObject<
   Content extends { [keyDecoded: string]: any },
@@ -851,9 +834,7 @@ export function jsonEncoderObjectToObject<
 }
 /**
  * Creates a {@link JsonCodec} for a typed object.
- * Combines a {@link JsonDecoder} and {@link JsonEncoder} built from `valuesCodecs`
- * for round-trip encoding/decoding of structured JSON objects.
- * @param valuesCodecs - An object mapping keys to their individual {@link JsonCodec}s.
+ * @param valuesCodecs - Keys mapped to their {@link JsonCodec}s.
  */
 export function jsonCodecObjectToObject<
   Content extends { [keyDecoded: string]: any },
@@ -874,8 +855,8 @@ export function jsonCodecObjectToObject<
 
 /**
  * Creates a {@link JsonDecoder} that decodes a JSON object into a `Map<Key, Value>`.
- * Each object key is decoded via `params.keyDecoder` and each value via
- * `params.valueDecoder`.
+ * @param params.keyDecoder - Decodes each string key.
+ * @param params.valueDecoder - Decodes each value.
  */
 export function jsonDecoderObjectToMap<Key, Value>(params: {
   keyDecoder: (keyEncoded: string) => Key;
@@ -904,8 +885,8 @@ export function jsonDecoderObjectToMap<Key, Value>(params: {
 }
 /**
  * Creates a {@link JsonEncoder} that encodes a `Map<Key, Value>` into a JSON object.
- * Each key is encoded via `params.keyEncoder` and each value via
- * `params.valueEncoder`.
+ * @param params.keyEncoder - Encodes each key to string.
+ * @param params.valueEncoder - Encodes each value.
  */
 export function jsonEncoderObjectToMap<Key, Value>(params: {
   keyEncoder: (keyDecoded: Key) => string;
@@ -921,10 +902,7 @@ export function jsonEncoderObjectToMap<Key, Value>(params: {
     return encoded;
   };
 }
-/**
- * Creates a {@link JsonCodec} for `Map<Key, Value>`, where the map is
- * represented as a JSON object with string keys.
- */
+/** Creates a {@link JsonCodec} for `Map<Key, Value>` stored as a JSON object. */
 export function jsonCodecObjectToMap<Key, Value>(params: {
   keyCodec: {
     decoder: (keyEncoded: string) => Key;
@@ -944,10 +922,7 @@ export function jsonCodecObjectToMap<Key, Value>(params: {
   };
 }
 
-/**
- * Creates a {@link JsonDecoder} that decodes a JSON object into a
- * `Record<string, Value>`, applying `valueDecoder` to each value.
- */
+/** Creates a {@link JsonDecoder} that decodes a JSON object into `Record<string, Value>`. */
 export function jsonDecoderObjectToRecord<Value>(
   valueDecoder: JsonDecoder<Value>,
 ): JsonDecoder<Record<string, Value>> {
@@ -968,10 +943,7 @@ export function jsonDecoderObjectToRecord<Value>(
     return decoded;
   };
 }
-/**
- * Creates a {@link JsonEncoder} that encodes a `Record<string, Value>` into a
- * JSON object, applying `valueEncoder` to each value.
- */
+/** Creates a {@link JsonEncoder} that encodes a `Record<string, Value>` into a JSON object. */
 export function jsonEncoderObjectToRecord<Value>(
   valueEncoder: JsonEncoder<Value>,
 ): JsonEncoder<Record<string, Value>> {
@@ -996,9 +968,8 @@ export function jsonCodecObjectToRecord<Value>(
 }
 
 /**
- * Creates a {@link JsonDecoder} for a discriminated-union enum style: the JSON
- * object must have exactly one key from `Variants`, and that key's value is
- * decoded by the corresponding decoder. The result is a single-key object.
+ * Creates a {@link JsonDecoder} for a discriminated-union enum: JSON object must have
+ * exactly one key from `Variants`, decoded by the matching decoder.
  */
 export function jsonDecoderObjectToEnum<
   Variants extends { [keyEncoded: string]: any },
@@ -1011,8 +982,8 @@ export function jsonDecoderObjectToEnum<
   return jsonDecoderOneOfKeys(Object.fromEntries(variantsEntries));
 }
 /**
- * Creates a {@link JsonEncoder} for a discriminated-union enum style: encodes a
- * single-key object by applying the encoder for that key from `Variants`.
+ * Creates a {@link JsonEncoder} for a discriminated-union enum: encodes
+ * a single-key object using the matching variant encoder.
  */
 export function jsonEncoderObjectToEnum<
   Variants extends { [key: string]: any },
@@ -1026,10 +997,7 @@ export function jsonEncoderObjectToEnum<
     return { [key]: valueEncoded };
   };
 }
-/**
- * Creates a {@link JsonCodec} for a discriminated-union enum style where the
- * JSON representation is a single-key object.
- */
+/** Creates a {@link JsonCodec} for a discriminated-union enum stored as a single-key object. */
 export function jsonCodecObjectToEnum<
   Variants extends { [key: string]: any },
 >(variantsCodecs: { [K in keyof Variants]: JsonCodec<Variants[K]> }): JsonCodec<
@@ -1101,8 +1069,8 @@ export function jsonEncoderWrapped<Decoded, Encoded>(
   return (decoded: Decoded) => encoderInner(encoderOuter(decoded));
 }
 /**
- * Creates a {@link JsonCodec} by composing an `innerCodec` (handles JSON ↔ `Encoded`)
- * with an `outerCodec` (handles `Encoded` ↔ `Decoded`).
+ * Creates a {@link JsonCodec} by composing an `innerCodec` (JSON ↔ `Encoded`)
+ * with an `outerCodec` (`Encoded` ↔ `Decoded`).
  */
 export function jsonCodecWrapped<Decoded, Encoded>(
   innerCodec: {
@@ -1121,9 +1089,8 @@ export function jsonCodecWrapped<Decoded, Encoded>(
 }
 
 /**
- * Creates a {@link JsonDecoder} that decodes a JSON object (or bare string)
- * by dispatching on a single recognised key from `Variants`. Throws if zero or
- * more than one matching key is found.
+ * Creates a {@link JsonDecoder} dispatching on a single recognised key from `Variants`.
+ * Throws if zero or more than one matching key is found.
  */
 export function jsonDecoderOneOfKeys<
   Variants extends { [key: string]: any },
@@ -1167,9 +1134,8 @@ export function jsonDecoderOneOfKeys<
 }
 
 /**
- * Creates a {@link JsonDecoder} that dispatches to the appropriate handler
- * based on the runtime JSON value type (`null`, `boolean`, `number`, `string`,
- * array, or object). Throws if no handler matches the actual type.
+ * Creates a {@link JsonDecoder} dispatching to a handler based on the runtime JSON type.
+ * Throws if no handler matches.
  */
 export function jsonDecoderByType<Content>(decoders: {
   null?: () => Content;
@@ -1210,9 +1176,8 @@ export function jsonDecoderByType<Content>(decoders: {
 }
 
 /**
- * Creates a {@link JsonDecoder} that runs every decoder in `Branches` against the
- * same encoded value and collects all results into a single object keyed by
- * the branches's keys.
+ * Creates a {@link JsonDecoder} that runs every decoder in `Branches` and
+ * collects all results into a single object.
  */
 export function jsonDecoderInParallel<
   Branches extends { [key: string]: any },
@@ -1229,9 +1194,8 @@ export function jsonDecoderInParallel<
 }
 
 /**
- * Creates a {@link JsonDecoder} that tries each decoder in `decoders` in order,
- * returning the result of the first one that succeeds. Throws an aggregated
- * error if all decoders fail.
+ * Creates a {@link JsonDecoder} that tries each decoder in order, returning
+ * the first success. Throws an aggregated error if all fail.
  */
 export function jsonDecoderTrySequentially<Content>(
   decoders: Array<JsonDecoder<Content>>,

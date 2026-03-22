@@ -4,37 +4,28 @@ import {
 } from "./Casing";
 import { ErrorStack } from "./Error";
 
-/**
- * Constructs a union type where exactly one key of `T` is present and all others are absent.
- * Useful for discriminated union–like objects without a discriminant field.
- */
+/** Exactly-one-key variant of object `T`. Useful for discriminated unions without a discriminant field. */
 export type OneKeyOf<T extends Record<string, any>> = {
   [K in keyof T]: { [P in K]: T[P] } & { [Q in Exclude<keyof T, K>]?: never };
 }[keyof T];
 
-/**
- * Represents either a successful value or an error.
- * Exactly one of `value` or `error` is present.
- */
+/** Either a successful value or an error (exactly one of `value` or `error` is present). */
 export type Result<Value, Error = any> = OneKeyOf<{
   value: Value;
   error: Error;
 }>;
 
-/**
- * Creates a nominal (branded) type from an underlying type `T` and a unique brand `Name`.
- * Prevents accidental mixing of values that share the same underlying type.
- */
+/** Nominal (branded) type to prevent accidental mixing of same-underlying-type values. */
 export type Branded<T, Name> =
   | (T & { readonly __unique: symbol })
   | { readonly __brand: Name };
 
 /**
- * Asserts that a value is defined (not `undefined`), throwing if it is.
- * @param value - The value to check.
- * @param context - Optional additional context to include in the error message.
- * @returns The value, narrowed to exclude `undefined`.
- * @throws {@link ErrorStack} If `value` is `undefined`.
+ * Asserts a value is defined, throwing if it is `undefined`.
+ * @param value - Value to check.
+ * @param context - Optional error context.
+ * @returns Value narrowed to exclude `undefined`.
+ * @throws {@link ErrorStack} if `undefined`.
  */
 export function expectDefined<T>(value: T | undefined, context?: string): T {
   if (value === undefined) {
@@ -49,12 +40,11 @@ export function expectDefined<T>(value: T | undefined, context?: string): T {
 }
 
 /**
- * Asserts that two values are equal, throwing if they are not.
- * @param a - The first value to compare.
- * @param b - The second value to compare.
- * @param context - Optional additional context to include in the error message.
- * @return `void` if the values are equal.
- * @throws {@link ErrorStack} If `a` is not equal to `b`.
+ * Asserts two values are equal, throwing if not.
+ * @param a - First value.
+ * @param b - Second value.
+ * @param context - Optional error context.
+ * @throws {@link ErrorStack} if `a !== b`.
  */
 export function expectEqual<T>(a: T, b: T, context?: string): void {
   if (a !== b) {
@@ -68,19 +58,19 @@ export function expectEqual<T>(a: T, b: T, context?: string): void {
 }
 
 /**
- * Returns a promise that resolves after the specified number of milliseconds.
- * @param durationMs - The delay duration in milliseconds.
- * @returns A `Promise<void>` that resolves after the delay.
+ * Returns a promise that resolves after `durationMs` milliseconds.
+ * @param durationMs - Delay in milliseconds.
+ * @returns `Promise<void>`.
  */
 export function timeoutMs(durationMs: number): Promise<void> {
   return new Promise((resolve) => setTimeout(resolve, durationMs));
 }
 
 /**
- * Safely retrieves an own (non-inherited) property of an object.
- * @param object - The object to inspect.
- * @param key - The property key to retrieve.
- * @returns The property value if it is an own property, otherwise `undefined`.
+ * Returns an own (non-inherited) property of an object, or `undefined`.
+ * @param object - Object to inspect.
+ * @param key - Property key.
+ * @returns Property value if own, otherwise `undefined`.
  */
 export function objectGetOwnProperty<
   Object extends object,
@@ -93,11 +83,10 @@ export function objectGetOwnProperty<
 }
 
 /**
- * Resolves the best matching key on an object, trying camelCase and snake_case variants.
- * Returns the first variant that exists as an own property, falling back to the original key.
- * @param object - The object whose keys to search.
- * @param key - The key to look up (string or number).
- * @returns The matching key string found on the object, or the original key if none found.
+ * Finds the best matching key on an object, trying camelCase and snake_case variants.
+ * @param object - Object whose keys to search.
+ * @param key - Key to look up.
+ * @returns Matching key found, or original key as fallback.
  */
 export function objectGuessIntendedKey(
   object: object,
@@ -121,11 +110,10 @@ export function objectGuessIntendedKey(
 }
 
 /**
- * Resolves the best matching key in a `Map`, trying camelCase and snake_case variants.
- * Returns the first variant that exists in the map, falling back to the original key.
- * @param map - The map whose keys to search.
- * @param key - The key to look up.
- * @returns The matching key string found in the map, or the original key if none found.
+ * Finds the best matching key in a `Map`, trying camelCase and snake_case variants.
+ * @param map - Map whose keys to search.
+ * @param key - Key to look up.
+ * @returns Matching key found, or original key as fallback.
  */
 export function mapGuessIntendedKey<Value>(
   map: Map<string, Value>,
@@ -146,10 +134,10 @@ export function mapGuessIntendedKey<Value>(
 }
 
 /**
- * Compares two byte arrays, ordering first by length and then element-by-element.
- * @param a - The first byte array.
- * @param b - The second byte array.
- * @returns A negative number if `a < b`, positive if `a > b`, or `0` if equal.
+ * Compares two byte arrays: first by length, then element-by-element.
+ * @param a - First byte array.
+ * @param b - Second byte array.
+ * @returns Negative if `a < b`, positive if `a > b`, `0` if equal.
  */
 export function bytesCompare(a: Uint8Array, b: Uint8Array): number {
   if (a.length !== b.length) {

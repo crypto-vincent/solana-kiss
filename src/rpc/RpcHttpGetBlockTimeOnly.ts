@@ -3,11 +3,10 @@ import { jsonCodecNumber, jsonDecoderNullable } from "../data/Json";
 import { RpcHttp } from "./RpcHttp";
 
 /**
- * Fetches only the production timestamp for the given block slot.
- *
- * @param self - The {@link RpcHttp} client to use.
- * @param blockSlot - The {@link BlockSlot} to query.
- * @returns An object containing `blockTime`, the block production time as a `Date`, or `undefined` if not available.
+ * Fetches only the production timestamp for a block slot.
+ * @param self - {@link RpcHttp} client.
+ * @param blockSlot - Slot to query.
+ * @returns `{ blockTime }` as a `Date`, or `undefined` if unavailable.
  */
 export async function rpcHttpGetBlockTimeOnly(
   self: RpcHttp,

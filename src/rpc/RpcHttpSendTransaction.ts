@@ -8,13 +8,11 @@ import {
 import { RpcHttp } from "./RpcHttp";
 
 /**
- * Sends a signed and serialized transaction to the Solana network.
- *
- * @param self - The {@link RpcHttp} client to use.
- * @param transactionPacket - The {@link TransactionPacket} to broadcast.
- * @param options - Optional send options.
- * @param options.skipPreflight - When `true`, skips the preflight simulation check before submission.
- * @returns An object containing `transactionHandle` ({@link TransactionHandle}), the signature of the submitted transaction.
+ * Sends a signed transaction to the Solana network.
+ * @param self - {@link RpcHttp} client.
+ * @param transactionPacket - Transaction to broadcast.
+ * @param options.skipPreflight - Skip preflight simulation.
+ * @returns `{ transactionHandle }`.
  */
 export async function rpcHttpSendTransaction(
   self: RpcHttp,

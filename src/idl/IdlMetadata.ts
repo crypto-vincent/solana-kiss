@@ -10,36 +10,33 @@ import {
 import { Pubkey } from "../data/Pubkey";
 import { IdlDocs, idlDocsParse } from "./IdlDocs";
 
-/**
- * Represents parsed IDL metadata for a Solana program, aggregating fields
- * from both top-level IDL properties and a nested `metadata` object.
- */
+/** Parsed IDL metadata for a Solana program. */
 export type IdlMetadata = {
-  /** Human-readable program name (e.g. `"my_program"`), or `undefined` if not specified. */
+  /** Program name (e.g. `"my_program"`), or `undefined`. */
   name: string | undefined;
-  /** IDL specification version string (e.g. `"0.1.0"`), or `undefined` if not specified. */
+  /** IDL spec version string (e.g. `"0.1.0"`), or `undefined`. */
   spec: string | undefined;
-  /** Human-readable description of the program, or `undefined` if not specified. */
+  /** Program description, or `undefined`. */
   description: string | undefined;
-  /** URL to the program's source repository, or `undefined` if not specified. */
+  /** Source repository URL, or `undefined`. */
   repository: string | undefined;
-  /** Contact information for the program maintainers, or `undefined` if not specified. */
+  /** Maintainer contact info, or `undefined`. */
   contact: string | undefined;
-  /** Semantic version of the deployed program (e.g. `"1.2.3"`), or `undefined` if not specified. */
+  /** Deployed program version (e.g. `"1.2.3"`), or `undefined`. */
   version: string | undefined;
-  /** The on-chain address of the program, or `undefined` if not available. */
+  /** On-chain program address, or `undefined`. */
   address: Pubkey | undefined;
-  /** The URL from which this IDL was loaded (e.g. `onchain://…` or an HTTP URL), or `undefined`. */
+  /** URL from which this IDL was loaded, or `undefined`. */
   source: URL | undefined;
-  /** Human-readable documentation strings for the program, or `undefined` if not specified. */
+  /** Program documentation strings, or `undefined`. */
   docs: IdlDocs;
 };
 
 /**
  * Parses program metadata from a raw IDL JSON value.
- * Fields are resolved by checking a nested `metadata` key first, then the root object.
- * @param value - The raw JSON value (typically the top-level IDL object).
- * @returns The parsed {@link IdlMetadata}.
+ * Checks `metadata` key first, then the root object.
+ * @param value - Top-level IDL JSON value.
+ * @returns Parsed {@link IdlMetadata}.
  */
 export function idlMetadataParse(value: JsonValue): IdlMetadata {
   const { keyed, root } = outerJsonDecoder(value);

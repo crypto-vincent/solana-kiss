@@ -14,13 +14,11 @@ import {
 } from "../data/Json";
 
 /**
- * A function type representing a Solana JSON-RPC HTTP client.
- * Sends a JSON-RPC request to the Solana node and returns the raw result value.
- *
- * @param method - The JSON-RPC method name (e.g. `"getAccountInfo"`).
- * @param params - The positional parameters for the RPC method.
- * @param config - An optional configuration object appended as the last parameter (e.g. commitment, encoding).
- * @returns A promise resolving to the raw JSON result value from the RPC response.
+ * Solana JSON-RPC HTTP client function.
+ * @param method - RPC method name (e.g. `"getAccountInfo"`).
+ * @param params - Positional parameters.
+ * @param config - Config object appended as last param, or `"skip-configuration-object"`.
+ * @returns Raw JSON result from the RPC response.
  */
 export type RpcHttp = (
   method: string,
@@ -28,9 +26,7 @@ export type RpcHttp = (
   config: Readonly<JsonObject> | "skip-configuration-object",
 ) => Promise<JsonValue>;
 
-/**
- * Error thrown when a Solana JSON-RPC HTTP response contains an error payload.
- */
+/** Error thrown when a JSON-RPC response contains an error payload. */
 export class RpcHttpError extends Error {
   /** The numeric JSON-RPC error code. */
   public readonly code: number;
@@ -40,9 +36,9 @@ export class RpcHttpError extends Error {
   public readonly data: JsonValue;
   /**
    * @param message - Human-readable error message.
-   * @param code - The numeric JSON-RPC error code.
-   * @param desc - Short description of the error.
-   * @param data - Additional error data from the RPC response.
+   * @param code - JSON-RPC error code.
+   * @param desc - Short description.
+   * @param data - Additional error data.
    */
   constructor(message: string, code: number, desc: string, data: JsonValue) {
     super(message);
@@ -53,14 +49,12 @@ export class RpcHttpError extends Error {
 }
 
 /**
- * Creates an {@link RpcHttp} client that sends JSON-RPC requests to the given Solana node URL.
- *
- * @param url - The HTTP(S) URL of the Solana RPC node.
- * @param options - Optional configuration.
- * @param options.commitmentLevel - Commitment level (`"confirmed"` or `"finalized"`) applied to every request unless overridden per-call.
- * @param options.extraRequestHeaders - Additional HTTP headers to include in every request.
- * @param options.customJsonFetcher - Custom HTTP fetch implementation. Defaults to the global `fetch`.
- * @returns An {@link RpcHttp} function bound to the given URL.
+ * Creates an {@link RpcHttp} client for the given Solana node URL.
+ * @param url - HTTP(S) URL of the Solana RPC node.
+ * @param options.commitmentLevel - Default commitment level (`"confirmed"` or `"finalized"`).
+ * @param options.extraRequestHeaders - Extra HTTP headers for every request.
+ * @param options.customJsonFetcher - Custom fetch implementation.
+ * @returns {@link RpcHttp} function bound to the URL.
  */
 export function rpcHttpFromUrl(
   url: URL,
@@ -117,12 +111,10 @@ export function rpcHttpFromUrl(
 }
 
 /**
- * Wraps an {@link RpcHttp} client to add a per-request timeout.
- * Rejects with an error if the RPC call does not complete within `timeoutMs` milliseconds.
- *
- * @param self - The underlying {@link RpcHttp} client to wrap.
- * @param timeoutMs - Maximum allowed duration in milliseconds before the request is rejected.
- * @returns A new {@link RpcHttp} client with timeout enforcement.
+ * Wraps an {@link RpcHttp} client with a per-request timeout.
+ * @param self - Underlying {@link RpcHttp} client.
+ * @param timeoutMs - Max duration before rejection.
+ * @returns {@link RpcHttp} with timeout enforcement.
  */
 export function rpcHttpWithTimeout(self: RpcHttp, timeoutMs: number): RpcHttp {
   return async function (method, params, config) {
@@ -139,13 +131,11 @@ export function rpcHttpWithTimeout(self: RpcHttp, timeoutMs: number): RpcHttp {
 }
 
 /**
- * Wraps an {@link RpcHttp} client to cap the number of in-flight requests.
- * Excess requests are queued and executed as earlier requests complete.
- *
- * @param self - The underlying {@link RpcHttp} client to wrap.
- * @param maxConcurrentRequests - Maximum number of requests allowed to run simultaneously. Must be greater than 0.
- * @returns A new {@link RpcHttp} client with concurrency limiting.
- * @throws If `maxConcurrentRequests` is not greater than 0.
+ * Wraps an {@link RpcHttp} client to cap in-flight requests. Excess requests are queued.
+ * @param self - Underlying {@link RpcHttp} client.
+ * @param maxConcurrentRequests - Max simultaneous requests (must be > 0).
+ * @returns {@link RpcHttp} with concurrency limiting.
+ * @throws If `maxConcurrentRequests` ≤ 0.
  */
 export function rpcHttpWithConcurrentRequestsLimit(
   self: RpcHttp,
@@ -171,13 +161,11 @@ export function rpcHttpWithConcurrentRequestsLimit(
 }
 
 /**
- * Wraps an {@link RpcHttp} client to limit the rate of requests to a maximum per second.
- * Excess requests are queued and executed at a controlled rate.
- *
- * @param self - The underlying {@link RpcHttp} client to wrap.
- * @param maxRequestsPerSecond - Maximum number of requests allowed per second. Must be greater than 0.
- * @returns A new {@link RpcHttp} client with rate limiting.
- * @throws If `maxRequestsPerSecond` is not greater than 0.
+ * Wraps an {@link RpcHttp} client to limit request rate. Excess requests are queued.
+ * @param self - Underlying {@link RpcHttp} client.
+ * @param maxRequestsPerSecond - Max requests per second (must be > 0).
+ * @returns {@link RpcHttp} with rate limiting.
+ * @throws If `maxRequestsPerSecond` ≤ 0.
  */
 export function rpcHttpWithRequestsPerSecondLimit(
   self: RpcHttp,
@@ -202,29 +190,25 @@ export function rpcHttpWithRequestsPerSecondLimit(
 }
 
 /**
- * Wraps an {@link RpcHttp} client to automatically retry failed requests.
- * The `retryApprover` callback is invoked after each failure; returning `true` retries the request,
- * while returning `false` re-throws the original error.
- *
- * @param self - The underlying {@link RpcHttp} client to wrap.
- * @param retryApprover - Async callback invoked on each error, receiving context about the failure.
- *   Return `true` to retry the request, or `false` to propagate the error.
- * @returns A new {@link RpcHttp} client with automatic retry support.
+ * Wraps an {@link RpcHttp} client to automatically retry on failure.
+ * @param self - Underlying {@link RpcHttp} client.
+ * @param retryApprover - Called on each failure; return `true` to retry, `false` to rethrow.
+ * @returns {@link RpcHttp} with retry support.
  */
 export function rpcHttpWithRetryOnError(
   self: RpcHttp,
   retryApprover: (context: {
-    /** Number of times the request has been retried so far (0 on first failure). */
+    /** Retry count so far (0 on first failure). */
     retriedCounter: number;
-    /** Total elapsed time in milliseconds since the first attempt. */
+    /** Total elapsed ms since first attempt. */
     totalDurationMs: number;
-    /** The JSON-RPC method name of the failing request. */
+    /** RPC method name. */
     requestMethod: string;
-    /** The positional parameters of the failing request. */
+    /** Positional params. */
     requestParams: Readonly<JsonArray>;
-    /** The configuration object of the failing request. */
+    /** Config object. */
     requestConfig: Readonly<JsonObject> | "skip-configuration-object";
-    /** The last error thrown by the underlying client. */
+    /** Last error thrown. */
     lastError: any;
   }) => Promise<boolean>,
 ): RpcHttp {

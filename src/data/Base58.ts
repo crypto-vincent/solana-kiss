@@ -15,9 +15,9 @@ const codePadding = "1".charCodeAt(0);
 const cacheDigits = new Array<number>();
 
 /**
- * Encodes a byte array as a Base58 string.
- * @param bytes - The bytes to encode.
- * @returns The Base58 encoded string, or an empty string for empty input.
+ * Encodes bytes as a Base58 string.
+ * @param bytes - Bytes to encode.
+ * @returns Base58 string, or `""` for empty input.
  */
 export function base58Encode(bytes: Uint8Array): string {
   if (bytes.length === 0) {
@@ -52,10 +52,10 @@ export function base58Encode(bytes: Uint8Array): string {
 }
 
 /**
- * Decodes a Base58 string into a byte array.
- * @param base58 - The Base58 string to decode.
- * @returns The decoded bytes, or an empty array for empty input.
- * @throws {Error} If the string contains characters outside the Base58 alphabet.
+ * Decodes a Base58 string into bytes.
+ * @param base58 - Base58 string to decode.
+ * @returns Decoded bytes, or empty array for empty input.
+ * @throws If invalid characters.
  */
 export function base58Decode(base58: string): Uint8Array {
   const encodedLength = base58.length;
@@ -87,9 +87,9 @@ export function base58Decode(base58: string): Uint8Array {
 }
 
 /**
- * Calculates the byte length of a Base58 encoded string
- * @param base58 - The Base58 encoded string.
- * @returns The byte length of the decoded byte array.
+ * Returns the decoded byte length of a Base58 string.
+ * @param base58 - Base58 string.
+ * @returns Byte length of the decoded value.
  */
 export function base58BytesLength(base58: string): number {
   const encodedLength = base58.length;

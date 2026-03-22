@@ -15,9 +15,9 @@ for (let digit = 0; digit < alphabet.length; digit++) {
 const codePadding = "=".charCodeAt(0);
 
 /**
- * Encodes a byte array as a Base64 string with `=` padding.
- * @param bytes - The bytes to encode.
- * @returns The Base64 encoded string.
+ * Encodes bytes as a Base64 string with `=` padding.
+ * @param bytes - Bytes to encode.
+ * @returns Base64 string.
  */
 export function base64Encode(bytes: Uint8Array): string {
   const chunks = bytes.length / 3;
@@ -60,10 +60,10 @@ export function base64Encode(bytes: Uint8Array): string {
 }
 
 /**
- * Decodes a Base64 string into a byte array.
- * @param base64 - The Base64 string to decode
- * @returns The decoded bytes.
- * @throws {Error} If the string contains characters outside the Base64 alphabet or has invalid length.
+ * Decodes a Base64 string into bytes.
+ * @param base64 - Base64 string to decode.
+ * @returns Decoded bytes.
+ * @throws If invalid characters or length.
  */
 export function base64Decode(base64: string): Uint8Array {
   let encodedLength = base64.length;

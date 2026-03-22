@@ -1,8 +1,7 @@
 /**
- * Computes a SHA-256 hash over one or more byte blobs.
- * The blobs are fed into the hasher sequentially and the digest is returned.
- * @param blobs - An array of byte arrays to hash.
- * @returns A 32-byte `Uint8Array` containing the SHA-256 digest.
+ * Computes SHA-256 over one or more byte blobs sequentially.
+ * @param blobs - Byte arrays to hash.
+ * @returns 32-byte SHA-256 digest.
  */
 export function sha256Hash(blobs: Array<Uint8Array>): Uint8Array {
   for (const blob of blobs) {
@@ -12,9 +11,8 @@ export function sha256Hash(blobs: Array<Uint8Array>): Uint8Array {
 }
 
 /**
- * Incremental SHA-256 hasher implementing the FIPS 180-4 specification.
- * Internally reuses a module-level singleton (`hasher`) so it must be fully
- * consumed (i.e., `digest()` called) before being reused.
+ * Incremental SHA-256 hasher (FIPS 180-4).
+ * Module-level singleton — must call `digest()` before reuse.
  */
 class Hasher {
   private readonly state = new Int32Array(8);
