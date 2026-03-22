@@ -16,18 +16,18 @@ export function memoize<CacheKey, In, Out>(
     cacheUseApprover?: (
       input: In,
       context: {
-      /** Number of entries currently in the cache. */
+        /** Number of entries currently in the cache. */
         cacheSize: number;
-      /** Cached entry being evaluated for reuse. */
+        /** Cached entry being evaluated for reuse. */
         cacheValue: { result: Result<Out>; at: Date };
       },
     ) => Promise<boolean>;
     cacheSetApprover?: (
       input: In,
       context: {
-      /** Cache size before this potential insertion. */
+        /** Cache size before this potential insertion. */
         cacheSize: number;
-      /** Result about to be cached, with invocation timestamp. */
+        /** Result about to be cached, with invocation timestamp. */
         cacheValue: { result: Result<Out>; at: Date };
       },
     ) => Promise<boolean>;

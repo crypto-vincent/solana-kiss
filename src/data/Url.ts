@@ -22,12 +22,13 @@ export const urlRpcPublicDevnet = new URL("https://api.devnet.solana.com");
 export const urlRpcPublicTestnet = new URL("https://api.testnet.solana.com");
 
 /**
- * Resolves a moniker or raw URL string to an RPC endpoint URL. Monikers: `"mainnet"`, `"devnet"`, `"testnet"`.
+ * Sanitizes a moniker or raw URL string to an RPC endpoint URL.
+ * Monikers: `"mainnet"`, `"devnet"`, `"testnet"`.
  * @param rawUrlOrMoniker - URL string or moniker.
  * @returns Resolved RPC URL.
  */
 export function urlRpcFromUrlOrMoniker(
-  rawUrlOrMoniker: "mainnet" | "devnet" | "testnet" | string,
+  rawUrlOrMoniker: URL | "mainnet" | "devnet" | "testnet" | string,
 ): URL {
   switch (rawUrlOrMoniker) {
     case "mainnet":
@@ -37,7 +38,10 @@ export function urlRpcFromUrlOrMoniker(
     case "testnet":
       return urlRpcPublicTestnet;
     default:
-      return new URL(rawUrlOrMoniker);
+      if (typeof rawUrlOrMoniker === "string") {
+        return new URL(rawUrlOrMoniker);
+      }
+      return rawUrlOrMoniker;
   }
 }
 
