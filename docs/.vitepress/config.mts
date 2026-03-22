@@ -1,16 +1,23 @@
 import { defineConfig } from "vitepress";
 
 export default defineConfig({
-  title: "solana-kiss",
-  description: "No bloat, no dependency, full-featured Solana framework",
+  description: "Full-featured Solana framework. No bloat, no dependency.",
+  title: "solana-kiss 💋",
   base: "/solana-kiss/",
+  head: [
+    [
+      "style",
+      {},
+      `
+      .VPDoc div[class*="language-"] code { font-size: 0.8em; line-height: 1.6; }
+      `,
+    ],
+  ],
   themeConfig: {
+    search: { provider: "local", options: { detailedView: true } },
     nav: [
       { text: "Guide", link: "/guide/001_getting_started" },
-      {
-        text: "GitHub",
-        link: "https://github.com/crypto-vincent/solana-kiss",
-      },
+      { text: "GitHub", link: "https://github.com/crypto-vincent/solana-kiss" },
     ],
     sidebar: [
       {
@@ -43,7 +50,7 @@ export default defineConfig({
       },
     ],
     footer: {
-      message: "Released under the MIT License.",
+      message: "Solana: Keep It Simple, Stupid. (KISS)",
     },
   },
 });
