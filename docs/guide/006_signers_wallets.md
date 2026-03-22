@@ -4,150 +4,71 @@ title: Signers & Wallets
 
 # Signers & Wallets
 
-solana-kiss distinguishes between two signing interfaces:
-
 | Interface | Use case |
 |---|---|
-| `Signer` | Server-side / Node.js, holds the private key in the Web Crypto store |
-| `WalletAccount` | Browser, delegates signing to a wallet extension |
+| `Signer` | Node.js / server — private key lives in Web Crypto |
+| `WalletAccount` | Browser — signing is delegated to a wallet extension |
 
-Both are accepted wherever signatures are needed (e.g.
-`transactionCompileAndSign`).
+Both work wherever signatures are needed (e.g. `transactionCompileAndSign`).
 
-## `Signer`
-
-```ts
-type Signer = {
-  address: Pubkey;
-  sign: (message: TransactionMessage | Uint8Array) => Promise<Signature>;
-};
-```
-
-### Generate a fresh keypair
+## `Signer` — Node.js
 
 ```ts
-import { signerGenerate } from "solana-kiss";
+import { signerGenerate, signerFromSecret } from "solana-kiss";
 
+// Generate a fresh keypair (non-extractable private key)
 const signer = await signerGenerate();
-// The private key is non-extractable – held in the Web Crypto key store only.
-console.log(signer.address); // the derived public key
-```
 
-### Load from a 64-byte secret
-
-The secret follows the standard Solana format: the first 32 bytes are the
-private seed and the last 32 bytes are the public key.
-
-```ts
-import { signerFromSecret } from "solana-kiss";
-
+// Load from a 64-byte secret (first 32 = seed, last 32 = public key)
 const signer = await signerFromSecret(secretBytes);
-// By default the keypair consistency is verified before returning.
+
+console.log(signer.address); // Pubkey
 ```
 
-To skip verification (useful for hot paths):
+## Browser wallets (`WalletAccount`)
 
-```ts
-const signer = await signerFromSecret(secretBytes, { skipVerification: true });
-```
-
-## Browser wallet adapters (`WalletProvider` / `WalletAccount`)
-
-### Discovering wallets
+### Discover installed wallets
 
 ```ts
 import { walletProviders } from "solana-kiss";
 
-const unsubscribe = walletProviders.subscribe((providers) => {
-  for (const p of providers) {
-    console.log(p.name, p.icon);
-  }
+walletProviders.subscribe((providers) => {
+  for (const p of providers) console.log(p.name, p.icon);
 });
 ```
 
-`walletProviders` is a lazy `RxObservable` – discovery starts on the first
-`subscribe()` call by dispatching the `wallet-standard:app-ready` event to
-discover all installed extensions.
-
-### Connecting to a wallet
+### Connect and sign
 
 ```ts
 const providers = walletProviders.get?.() ?? [];
 const phantom = providers.find((p) => p.name === "Phantom");
 
 if (phantom) {
-  const accounts = await phantom.connect();
-  // accounts: Array<WalletAccount>
-  const account = accounts[0]!;
-  console.log(account.address);
+  const [account] = await phantom.connect();
+
+  // Pass the account directly to transactionCompileAndSign
+  const packet = await transactionCompileAndSign([account], request);
 }
-```
 
-To reconnect silently (no approval dialog):
+// Reconnect silently (no approval dialog)
+await phantom.connect({ silent: true });
 
-```ts
-const accounts = await phantom.connect({ silent: true });
-```
-
-### Disconnecting
-
-```ts
+// Disconnect
 await phantom.disconnect();
-```
-
-### Using a `WalletAccount` to sign
-
-`WalletAccount` has two methods:
-
-```ts
-type WalletAccount = {
-  address: Pubkey;
-  signMessage: (message: Uint8Array) => Promise<Signature>;
-  signTransaction: (packet: TransactionPacket) => Promise<TransactionPacket>;
-};
-```
-
-Pass a `WalletAccount` directly to `transactionCompileAndSign`:
-
-```ts
-import { transactionCompileAndSign } from "solana-kiss";
-
-const packet = await transactionCompileAndSign([walletAccount], request);
 ```
 
 ### Reactive account list
 
 ```ts
 const unsubscribe = phantom.accounts.subscribe((accounts) => {
-  // called immediately with the current list and on every change
-  currentAccounts = accounts;
+  currentAccounts = accounts; // called immediately and on change
 });
-
-// Later:
-unsubscribe();
-```
-
-## `TransactionProcessor`
-
-For advanced scenarios (e.g. multi-sig wallets, Ledger hardware) you can pass
-a raw async function as a signer. It receives the current
-`TransactionPacket` and must return the updated packet:
-
-```ts
-import type { TransactionProcessor } from "solana-kiss";
-
-const ledgerProcessor: TransactionProcessor = async (packet) => {
-  // Call your Ledger SDK here…
-  return signedPacket;
-};
-
-const packet = await transactionCompileAndSign([ledgerProcessor], request);
+unsubscribe(); // stop listening
 ```
 
 ## Choosing the right interface
 
 ```
 Node.js / scripts  →  signerFromSecret / signerGenerate
-Browser (dApp)     →  walletProviders + WalletAccount
-Custom hardware    →  TransactionProcessor callback
+Browser dApp       →  walletProviders + WalletAccount
 ```

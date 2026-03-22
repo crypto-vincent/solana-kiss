@@ -8,7 +8,7 @@ hero:
   actions:
     - theme: brand
       text: Get Started
-      link: /guide/getting-started
+      link: /guide/001_getting_started
     - theme: alt
       text: View on GitHub
       link: https://github.com/crypto-vincent/solana-kiss
