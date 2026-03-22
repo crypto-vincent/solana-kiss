@@ -13,9 +13,64 @@ const MAX_OUTPUT_SIZE = 64 * 1024 * 1024;
 
 /**
  * Maximum number of DEFLATE blocks per stream.
- * Caps the outer decode loop so a crafted stream cannot spin forever.
+ * Provides a cheap O(1)-per-block early-rejection before the per-operation quota kicks in.
  */
 const MAX_BLOCKS = 100_000;
+
+/**
+ * Unified resource tracker for a single inflate call.
+ *
+ * Synchronous code cannot use real wall-clock timeouts, so we instead measure
+ * cumulative *work*:
+ *
+ * - **ops** – every Huffman symbol decoded, every byte copied in a back-reference
+ *   expansion, and every code processed in the dynamic-Huffman header.  This is
+ *   the sync-code analogue of "abort if too much CPU time has elapsed".
+ * - **allocBytes** – cumulative bytes handed to `new Uint8Array` during buffer
+ *   growth.  Repeated small allocations that each stay under `MAX_OUTPUT_SIZE`
+ *   would otherwise go undetected.
+ *
+ * Both counters throw the moment their limit is crossed, regardless of where in
+ * the call stack that happens.
+ */
+class DecodeQuota {
+  private ops = 0;
+  private allocBytes = 0;
+
+  /**
+   * Maximum total operations (symbol decodes + byte copies) for one stream.
+   * A legitimate 64 MiB decompression needs at most ~64 M ops (all literals).
+   * 512 M gives generous headroom while still bounding worst-case CPU work.
+   */
+  static readonly MAX_OPS = 512 * 1024 * 1024;
+
+  /**
+   * Maximum cumulative bytes allocated across all buffer-growth events.
+   * Buffer doubling means up to ~2× live at once; 8× MAX_OUTPUT_SIZE (512 MiB)
+   * leaves room for a few doublings while catching runaway allocation loops.
+   */
+  static readonly MAX_ALLOC_BYTES = MAX_OUTPUT_SIZE * 8;
+
+  /** Charge `n` operations to the budget; throws if the total exceeds the cap. */
+  tick(n: number): void {
+    this.ops += n;
+    if (this.ops > DecodeQuota.MAX_OPS) {
+      throw new Error(
+        "inflateRaw: operation budget exceeded (possible infinite loop or zip bomb)",
+      );
+    }
+  }
+
+  /** Record a new buffer allocation; throws if cumulative allocations exceed the cap. */
+  addAlloc(bytes: number): void {
+    this.allocBytes += bytes;
+    if (this.allocBytes > DecodeQuota.MAX_ALLOC_BYTES) {
+      throw new Error(
+        "inflateRaw: allocation budget exceeded (possible zip bomb)",
+      );
+    }
+  }
+}
 
 /**
  * Decompresses a zlib- or gzip-compressed byte array.
@@ -34,7 +89,9 @@ export function inflate(bytes: Uint8Array, buf: Uint8Array | null): Uint8Array {
   if (CMF === 31 && FLG === 139) {
     // GZIP — minimum valid size: 10-byte header + 8-byte trailer
     if (bytes.length < 18) {
-      throw new Error("inflate: gzip input too short");
+      throw new Error(
+        "inflate: gzip input too short (minimum 18 bytes: 10-byte header + 8-byte trailer)",
+      );
     }
     // GZIP
     const CM = bytes[2];
@@ -81,7 +138,9 @@ export function inflate(bytes: Uint8Array, buf: Uint8Array | null): Uint8Array {
   }
   // zlib — minimum valid size: 2-byte header + 4-byte Adler-32 checksum
   if (bytes.length < 6) {
-    throw new Error("inflate: zlib input too short");
+    throw new Error(
+      "inflate: zlib input too short (minimum 6 bytes: 2-byte header + 4-byte checksum)",
+    );
   }
   const CM = CMF & 15;
   const CINFO = CMF >>> 4;
@@ -281,6 +340,8 @@ export function inflateRaw(
     throw new Error("inflateRaw: input exceeds maximum allowed size");
   }
 
+  const quota = new DecodeQuota();
+
   var u8 = Uint8Array;
   if (data[0] == 3 && data[1] == 0) return buf ? buf : new u8(0);
 
@@ -318,14 +379,15 @@ export function inflateRaw(
           "inflateRaw: output exceeds maximum allowed size (possible zip bomb)",
         );
       }
-      if (noBuf) buf = _check(buf, off + len);
+      quota.tick(len); // charge for every byte copied from an uncompressed block
+      if (noBuf) buf = _check(buf, off + len, quota);
       buf.set(new u8(data.buffer, data.byteOffset + p8, len), off);
 
       pos = (p8 + len) << 3;
       off += len;
       continue;
     }
-    if (noBuf) buf = _check(buf, off + (1 << 17)); // really not enough in many cases (but PNG and ZIP provide buffer in advance)
+    if (noBuf) buf = _check(buf, off + (1 << 17), quota); // really not enough in many cases (but PNG and ZIP provide buffer in advance)
     if (BTYPE == 1) {
       lmap = U.flmap;
       dmap = U.fdmap;
@@ -363,6 +425,7 @@ export function inflateRaw(
         data,
         pos,
         U.ttree,
+        quota,
       );
       var mx0 = _copyOut(U.ttree, 0, HLIT, U.ltree);
       ML = (1 << mx0) - 1;
@@ -385,6 +448,7 @@ export function inflateRaw(
         );
       }
       pos += advance;
+      quota.tick(1); // one op per decoded symbol
       var lit = code >>> 4; //U.lhst[lit]++;
       if (lit >>> 8 == 0) {
         buf[off++] = lit;
@@ -411,7 +475,8 @@ export function inflateRaw(
           dst = (dbs >>> 4) + _bitsF(data, pos, dbs & 15);
         pos += dbs & 15;
 
-        if (noBuf) buf = _check(buf, off + (1 << 17));
+        quota.tick(end - off); // charge for every byte copied in this back-reference
+        if (noBuf) buf = _check(buf, off + (1 << 17), quota);
         while (off < end) {
           buf[off] = buf[off++ - dst];
           buf[off] = buf[off++ - dst];
@@ -426,7 +491,7 @@ export function inflateRaw(
   return buf.length == off ? buf : buf.slice(0, off);
 }
 
-function _check(buf: Uint8Array, len: number) {
+function _check(buf: Uint8Array, len: number, quota: DecodeQuota) {
   if (len > MAX_OUTPUT_SIZE) {
     throw new Error(
       "inflateRaw: output exceeds maximum allowed size (possible zip bomb)",
@@ -436,7 +501,9 @@ function _check(buf: Uint8Array, len: number) {
   if (len <= bl) {
     return buf;
   }
-  const nbuf = new Uint8Array(Math.max(bl << 1, len));
+  const newSize = Math.max(bl << 1, len);
+  quota.addAlloc(newSize); // track cumulative allocation pressure
+  const nbuf = new Uint8Array(newSize);
   nbuf.set(buf, 0);
   return nbuf;
 }
@@ -448,6 +515,7 @@ function _decodeTiny(
   data: any,
   pos: number,
   tree: number[],
+  quota: DecodeQuota,
 ) {
   let i = 0;
   while (i < len) {
@@ -459,6 +527,7 @@ function _decodeTiny(
       );
     }
     pos += advance;
+    quota.tick(1); // one op per code decoded in header
     var lit = code >>> 4;
     if (lit <= 15) {
       tree[i] = lit;
