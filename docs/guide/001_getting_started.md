@@ -60,14 +60,14 @@ const solana = new Solana(rpc);
 
 | Topic | Description |
 |---|---|
-| [The Solana Class](./solana-class) | All methods on the top-level entry point |
-| [Public Keys](./pubkey) | Parsing, deriving, and verifying `Pubkey` values |
-| [Transactions](./transactions) | Compiling, signing, and sending transactions |
-| [Instructions](./instructions) | Building and decoding on-chain instructions |
-| [Signers & Wallets](./signers-wallets) | `Signer` and browser wallet adapters |
-| [RPC Client](./rpc-client) | Low-level JSON-RPC layer and middleware |
-| [IDL Programs](./idl-programs) | Loading and caching Anchor program IDLs |
-| [IDL Types](./idl-types) | Binary encoding/decoding with the type system |
-| [Execution & Blocks](./execution-blocks) | Transaction results and log parsing |
-| [SPL & Utilities](./spl-utilities) | Well-known program addresses and fee helpers |
-| [Data Encoding](./data-encoding) | Base58, Base64, Base16, UTF-8, SHA-256 |
+| [The Solana Class](./002_solana_class) | All methods on the top-level entry point |
+| [Public Keys](./003_pubkey) | Parsing, deriving, and verifying `Pubkey` values |
+| [Transactions](./004_transactions) | Compiling, signing, and sending transactions |
+| [Instructions](./005_instructions) | Building and decoding on-chain instructions |
+| [Signers & Wallets](./006_signers_wallets) | `Signer` and browser wallet adapters |
+| [RPC Client](./007_rpc_client) | Low-level JSON-RPC layer and middleware |
+| [IDL Programs](./008_idl_programs) | Loading and caching Anchor program IDLs |
+| [IDL Types](./009_idl_types) | Binary encoding/decoding with the type system |
+| [Execution & Blocks](./010_execution_blocks) | Transaction results and log parsing |
+| [SPL & Utilities](./011_spl_utilities) | Well-known program addresses and fee helpers |
+| [Data Encoding](./012_data_encoding) | Base58, Base64, Base16, UTF-8, SHA-256 |

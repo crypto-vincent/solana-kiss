@@ -5,7 +5,7 @@ export default defineConfig({
   description: "No bloat, no dependency, full-featured Solana framework",
   themeConfig: {
     nav: [
-      { text: "Guide", link: "/guide/getting-started" },
+      { text: "Guide", link: "/guide/001_getting_started" },
       {
         text: "GitHub",
         link: "https://github.com/crypto-vincent/solana-kiss",
@@ -14,37 +14,39 @@ export default defineConfig({
     sidebar: [
       {
         text: "Introduction",
-        items: [{ text: "Getting Started", link: "/guide/getting-started" }],
+        items: [
+          { text: "Getting Started", link: "/guide/001_getting_started" },
+        ],
       },
       {
         text: "Core API",
         items: [
-          { text: "The Solana Class", link: "/guide/solana-class" },
-          { text: "Public Keys", link: "/guide/pubkey" },
-          { text: "Transactions", link: "/guide/transactions" },
-          { text: "Instructions", link: "/guide/instructions" },
-          { text: "Signers & Wallets", link: "/guide/signers-wallets" },
+          { text: "The Solana Class", link: "/guide/002_solana_class" },
+          { text: "Public Keys", link: "/guide/003_pubkey" },
+          { text: "Transactions", link: "/guide/004_transactions" },
+          { text: "Instructions", link: "/guide/005_instructions" },
+          { text: "Signers & Wallets", link: "/guide/006_signers_wallets" },
         ],
       },
       {
         text: "RPC & Network",
         items: [
-          { text: "RPC Client", link: "/guide/rpc-client" },
-          { text: "Execution & Blocks", link: "/guide/execution-blocks" },
+          { text: "RPC Client", link: "/guide/007_rpc_client" },
+          { text: "Execution & Blocks", link: "/guide/010_execution_blocks" },
         ],
       },
       {
         text: "IDL",
         items: [
-          { text: "IDL Programs", link: "/guide/idl-programs" },
-          { text: "IDL Types", link: "/guide/idl-types" },
+          { text: "IDL Programs", link: "/guide/008_idl_programs" },
+          { text: "IDL Types", link: "/guide/009_idl_types" },
         ],
       },
       {
         text: "Utilities",
         items: [
-          { text: "SPL & Utilities", link: "/guide/spl-utilities" },
-          { text: "Data Encoding", link: "/guide/data-encoding" },
+          { text: "SPL & Utilities", link: "/guide/011_spl_utilities" },
+          { text: "Data Encoding", link: "/guide/012_data_encoding" },
         ],
       },
     ],
