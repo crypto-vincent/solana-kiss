@@ -10,4 +10,4 @@ npm install solana-kiss
 
 ## Cookbook
 
-https://crypto-vincent.github.io/solana-kiss/
+Documentation and examples: **https://crypto-vincent.github.io/solana-kiss/** 💋
