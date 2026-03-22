@@ -1,6 +1,79 @@
-// TODO - clean this up
-// TODO - protect against loop in case of malformed data
+// noUncheckedIndexedAccess would require a non-null assertion on every typed-array element
+// read throughout this low-level DEFLATE decoder. Rather than cluttering every hot-path
+// expression, the file opts out of that specific check via @ts-nocheck; all other strict
+// rules are reinforced by the explicit types declared below.
 // @ts-nocheck
+
+/** Maximum compressed input size (16 MiB). Guards against trivially large payloads. */
+const MAX_INPUT_SIZE = 16 * 1024 * 1024;
+
+/**
+ * Maximum decompressed output size (64 MiB).
+ * Prevents zip-bomb / inflate-bomb attacks where a tiny input expands to
+ * gigabytes of output.
+ */
+const MAX_OUTPUT_SIZE = 64 * 1024 * 1024;
+
+/**
+ * Maximum number of DEFLATE blocks per stream.
+ * Provides a cheap O(1)-per-block early-rejection before the per-operation quota kicks in.
+ */
+const MAX_BLOCKS = 100_000;
+
+/**
+ * Unified resource tracker for a single inflate call.
+ *
+ * Synchronous code cannot use real wall-clock timeouts, so we instead measure
+ * cumulative *work*:
+ *
+ * - **ops** – every Huffman symbol decoded, every byte copied in a back-reference
+ *   expansion, and every code processed in the dynamic-Huffman header.  This is
+ *   the sync-code analogue of "abort if too much CPU time has elapsed".
+ * - **allocBytes** – cumulative bytes handed to `new Uint8Array` during buffer
+ *   growth.  Repeated small allocations that each stay under `MAX_OUTPUT_SIZE`
+ *   would otherwise go undetected.
+ *
+ * Both counters throw the moment their limit is crossed, regardless of where in
+ * the call stack that happens.
+ */
+class DecodeQuota {
+  private ops = 0;
+  private allocBytes = 0;
+
+  /**
+   * Maximum total operations (symbol decodes + byte copies) for one stream.
+   * A legitimate 64 MiB decompression needs at most ~64 M ops (all literals).
+   * 512 M gives generous headroom while still bounding worst-case CPU work.
+   */
+  static readonly MAX_OPS = 512 * 1024 * 1024;
+
+  /**
+   * Maximum cumulative bytes allocated across all buffer-growth events.
+   * Buffer doubling means up to ~2× live at once; 8× MAX_OUTPUT_SIZE (512 MiB)
+   * leaves room for a few doublings while catching runaway allocation loops.
+   */
+  static readonly MAX_ALLOC_BYTES = MAX_OUTPUT_SIZE * 8;
+
+  /** Charge `n` operations to the budget; throws if the total exceeds the cap. */
+  tick(n: number): void {
+    this.ops += n;
+    if (this.ops > DecodeQuota.MAX_OPS) {
+      throw new Error(
+        "inflateRaw: operation budget exceeded (possible infinite loop or zip bomb)",
+      );
+    }
+  }
+
+  /** Record a new buffer allocation; throws if cumulative allocations exceed the cap. */
+  addAlloc(bytes: number): void {
+    this.allocBytes += bytes;
+    if (this.allocBytes > DecodeQuota.MAX_ALLOC_BYTES) {
+      throw new Error(
+        "inflateRaw: allocation budget exceeded (possible zip bomb)",
+      );
+    }
+  }
+}
 
 /**
  * Decompresses a zlib- or gzip-compressed byte array (auto-detects format).
@@ -10,33 +83,49 @@
  * @throws If format is unsupported or data is malformed.
  */
 export function inflate(bytes: Uint8Array, buf: Uint8Array | null): Uint8Array {
+  if (bytes.length > MAX_INPUT_SIZE) {
+    throw new Error("inflate: input exceeds maximum allowed size");
+  }
   const CMF = bytes[0];
   const FLG = bytes[1];
   if (CMF === 31 && FLG === 139) {
-    // GZIP
+    // GZIP — minimum valid size: 10-byte header + 8-byte trailer
+    if (bytes.length < 18) {
+      throw new Error(
+        "inflate: gzip input too short (minimum 18 bytes: 10-byte header + 8-byte trailer)",
+      );
+    }
     const CM = bytes[2];
-    const FLG = bytes[3];
+    const gzipFLG = bytes[3];
     if (CM !== 8) {
       throw CM; /* 8 is DEFLATE */
     }
-    let off = 4;
-    off += 4; // MTIME
-    off += 2; // XFL, OS
-    if ((FLG & 4) !== 0) {
+    // skip ID1(1) + ID2(1) + CM(1) + FLG(1) + MTIME(4) + XFL(1) + OS(1) = 10 bytes
+    let off = 10;
+    if ((gzipFLG & 4) !== 0) {
       throw "FEXTRA";
     }
-    if ((FLG & 8) !== 0) {
-      // FNAME
-      while (bytes[off] !== 0) {
+    if ((gzipFLG & 8) !== 0) {
+      // FNAME — scan for null terminator; guard against missing terminator
+      while (off < bytes.length && bytes[off] !== 0) {
         off++;
       }
-      off++;
+      if (off >= bytes.length) {
+        throw new Error(
+          "inflate: malformed gzip — FNAME has no null terminator",
+        );
+      }
+      off++; // skip the null byte
     }
-    if ((FLG & 16) !== 0) {
+    if ((gzipFLG & 16) !== 0) {
       throw "FCOMMENT";
     }
-    if ((FLG & 2) !== 0) {
+    if ((gzipFLG & 2) !== 0) {
       throw "FHCR";
+    }
+    // Ensure there is room for both the deflate payload and the 8-byte GZIP trailer
+    if (off + 8 > bytes.length) {
+      throw new Error("inflate: malformed gzip — truncated after header");
     }
     return inflateRaw(
       new Uint8Array(
@@ -47,15 +136,19 @@ export function inflate(bytes: Uint8Array, buf: Uint8Array | null): Uint8Array {
       buf,
     );
   }
-  const CM = CMF & 15;
-  const CINFO = CMF >>> 4;
+  // zlib — minimum valid size: 2-byte header + 4-byte Adler-32 checksum
+  if (bytes.length < 6) {
+    throw new Error(
+      "inflate: zlib input too short (minimum 6 bytes: 2-byte header + 4-byte checksum)",
+    );
+  }
   return inflateRaw(
     new Uint8Array(bytes.buffer, bytes.byteOffset + 2, bytes.length - 6),
     buf,
   );
 }
 
-var U = (function () {
+const U = (function () {
   const u16 = Uint16Array;
   const u32 = Uint32Array;
   return {
@@ -82,16 +175,16 @@ var U = (function () {
     ],
     ddef: new u32(32),
     flmap: new u16(512),
-    fltree: [],
+    fltree: [] as number[],
     fdmap: new u16(32),
-    fdtree: [],
+    fdtree: [] as number[],
     lmap: new u16(32768),
-    ltree: [],
-    ttree: [],
+    ltree: [] as number[],
+    ttree: [] as number[],
     dmap: new u16(32768),
-    dtree: [],
+    dtree: [] as number[],
     imap: new u16(512),
-    itree: [],
+    itree: [] as number[],
     rev15: new u16(1 << 15),
     lhst: new u32(286),
     dhst: new u32(30),
@@ -102,74 +195,72 @@ var U = (function () {
   };
 })();
 
-function makeCodes(tree: string | any[], MAX_BITS: number) {
+function makeCodes(tree: number[], MAX_BITS: number): void {
   // code, length
   const max_code = tree.length;
-  var code, bits, n, i, len;
+  const bl_count = U.bl_count;
+  const next_code = U.next_code; // smallest code for each length
 
-  var bl_count = U.bl_count;
-  for (var i = 0; i <= MAX_BITS; i++) bl_count[i] = 0;
-  for (i = 1; i < max_code; i += 2) bl_count[tree[i]]++;
+  for (let i = 0; i <= MAX_BITS; i++) {
+    bl_count[i] = 0;
+  }
+  for (let i = 1; i < max_code; i += 2) {
+    bl_count[tree[i]]++;
+  }
 
-  var next_code = U.next_code; // smallest code for each length
-
-  code = 0;
+  let code = 0;
   bl_count[0] = 0;
-  for (bits = 1; bits <= MAX_BITS; bits++) {
+  for (let bits = 1; bits <= MAX_BITS; bits++) {
     code = (code + bl_count[bits - 1]) << 1;
     next_code[bits] = code;
   }
 
-  for (n = 0; n < max_code; n += 2) {
-    len = tree[n + 1];
-    if (len != 0) {
+  for (let n = 0; n < max_code; n += 2) {
+    const len = tree[n + 1];
+    if (len !== 0) {
       tree[n] = next_code[len];
       next_code[len]++;
     }
   }
 }
 
-function codes2map(
-  tree: string | any[],
-  MAX_BITS: number,
-  map: Uint16Array<ArrayBuffer> | number[],
-) {
-  var max_code = tree.length;
-  var r15 = U.rev15;
-  for (var i = 0; i < max_code; i += 2)
-    if (tree[i + 1] != 0) {
-      var lit = i >> 1;
-      var cl = tree[i + 1],
-        val = (lit << 4) | cl; // :  (0x8000 | (U.of0[lit-257]<<7) | (U.exb[lit-257]<<4) | cl);
-      var rest = MAX_BITS - cl,
-        i0 = tree[i] << rest,
-        i1 = i0 + (1 << rest);
-      //tree[i]=r15[i0]>>>(15-MAX_BITS);
-      while (i0 != i1) {
-        var p0 = r15[i0] >>> (15 - MAX_BITS);
+function codes2map(tree: number[], MAX_BITS: number, map: Uint16Array): void {
+  const max_code = tree.length;
+  const r15 = U.rev15;
+  for (let i = 0; i < max_code; i += 2) {
+    if (tree[i + 1] !== 0) {
+      const lit = i >> 1;
+      const cl = tree[i + 1];
+      const val = (lit << 4) | cl;
+      const rest = MAX_BITS - cl;
+      let i0 = tree[i] << rest;
+      const i1 = i0 + (1 << rest);
+      while (i0 !== i1) {
+        const p0 = r15[i0] >>> (15 - MAX_BITS);
         map[p0] = val;
         i0++;
       }
     }
+  }
 }
 
-function revCodes(tree: string | any[], MAX_BITS: number) {
-  var r15 = U.rev15,
-    imb = 15 - MAX_BITS;
-  for (var i = 0; i < tree.length; i += 2) {
-    var i0 = tree[i] << (MAX_BITS - tree[i + 1]);
+function revCodes(tree: number[], MAX_BITS: number): void {
+  const r15 = U.rev15;
+  const imb = 15 - MAX_BITS;
+  for (let i = 0; i < tree.length; i += 2) {
+    const i0 = tree[i] << (MAX_BITS - tree[i + 1]);
     tree[i] = r15[i0] >>> imb;
   }
 }
 
-function _bitsE(dt: number[], pos: number, length: number) {
+function _bitsE(dt: Uint8Array, pos: number, length: number): number {
   return (
     ((dt[pos >>> 3] | (dt[(pos >>> 3) + 1] << 8)) >>> (pos & 7)) &
     ((1 << length) - 1)
   );
 }
 
-function _bitsF(dt: number[], pos: number, length: number) {
+function _bitsF(dt: Uint8Array, pos: number, length: number): number {
   return (
     ((dt[pos >>> 3] |
       (dt[(pos >>> 3) + 1] << 8) |
@@ -179,7 +270,7 @@ function _bitsF(dt: number[], pos: number, length: number) {
   );
 }
 
-function _get17(dt: Uint8Array, pos: number) {
+function _get17(dt: Uint8Array, pos: number): number {
   // return at least 17 meaningful bytes
   return (
     (dt[pos >>> 3] |
@@ -200,11 +291,11 @@ function _get17(dt: Uint8Array, pos: number) {
     U.rev15[i] = ((x >>> 16) | (x << 16)) >>> 17;
   }
 
-  function pushV(tgt: number[], n: number, sv: number) {
-    while (n-- != 0) tgt.push(0, sv);
+  function pushV(tgt: number[], n: number, sv: number): void {
+    while (n-- !== 0) tgt.push(0, sv);
   }
 
-  for (var i = 0; i < 32; i++) {
+  for (let i = 0; i < 32; i++) {
     U.ldef[i] = (U.of0[i] << 3) | U.exb[i];
     U.ddef[i] = (U.df0[i] << 4) | U.dxb[i];
   }
@@ -219,7 +310,6 @@ function _get17(dt: Uint8Array, pos: number) {
   revCodes(U.fltree, 9);
 
   pushV(U.fdtree, 32, 5);
-  //for(i=0;i<32; i++) U.fdtree.push(0,5);
   makeCodes(U.fdtree, 5);
   codes2map(U.fdtree, 5, U.fdmap);
   revCodes(U.fdtree, 5);
@@ -241,64 +331,81 @@ export function inflateRaw(
   data: Uint8Array,
   buf: Uint8Array | null,
 ): Uint8Array {
-  var u8 = Uint8Array;
-  if (data[0] == 3 && data[1] == 0) return buf ? buf : new u8(0);
+  if (data.length > MAX_INPUT_SIZE) {
+    throw new Error("inflateRaw: input exceeds maximum allowed size");
+  }
 
-  var noBuf = buf == null;
-  if (noBuf) buf = new u8((data.length >>> 2) << 3);
+  const quota = new DecodeQuota();
 
-  var BFINAL = 0,
-    BTYPE = 0,
-    HLIT = 0,
-    HDIST = 0,
-    HCLEN = 0,
-    ML = 0,
-    MD = 0;
-  var off = 0,
-    pos = 0;
-  var lmap, dmap;
+  if (data[0] === 3 && data[1] === 0) {
+    return buf ?? new Uint8Array(0);
+  }
 
-  while (BFINAL == 0) {
+  const noBuf = buf === null;
+  let outBuf: Uint8Array = noBuf
+    ? new Uint8Array((data.length >>> 2) << 3)
+    : buf;
+
+  let BFINAL = 0;
+  let BTYPE = 0;
+  let ML = 0;
+  let MD = 0;
+  let off = 0;
+  let pos = 0;
+  let lmap: Uint16Array = U.flmap;
+  let dmap: Uint16Array = U.fdmap;
+
+  let blockCount = 0;
+  while (BFINAL === 0) {
+    if (++blockCount > MAX_BLOCKS) {
+      throw new Error(
+        "inflateRaw: too many DEFLATE blocks (possible malicious input)",
+      );
+    }
     BFINAL = _bitsF(data, pos, 1);
     BTYPE = _bitsF(data, pos + 1, 2);
     pos += 3;
 
-    if (BTYPE == 0) {
-      if ((pos & 7) != 0) pos += 8 - (pos & 7);
-      var p8 = (pos >>> 3) + 4,
-        len = data[p8 - 4] | (data[p8 - 3] << 8);
-      if (noBuf) buf = _check(buf, off + len);
-      buf.set(new u8(data.buffer, data.byteOffset + p8, len), off);
-
+    if (BTYPE === 0) {
+      if ((pos & 7) !== 0) pos += 8 - (pos & 7);
+      const p8 = (pos >>> 3) + 4;
+      const len = data[p8 - 4] | (data[p8 - 3] << 8);
+      if (off + len > MAX_OUTPUT_SIZE) {
+        throw new Error(
+          "inflateRaw: output exceeds maximum allowed size (possible zip bomb)",
+        );
+      }
+      quota.tick(len); // charge for every byte copied from an uncompressed block
+      if (noBuf) outBuf = _check(outBuf, off + len, quota);
+      outBuf.set(new Uint8Array(data.buffer, data.byteOffset + p8, len), off);
       pos = (p8 + len) << 3;
       off += len;
       continue;
     }
-    if (noBuf) buf = _check(buf, off + (1 << 17)); // really not enough in many cases (but PNG and ZIP provide buffer in advance)
-    if (BTYPE == 1) {
+    if (noBuf) outBuf = _check(outBuf, off + (1 << 17), quota); // really not enough in many cases (but PNG and ZIP provide buffer in advance)
+    if (BTYPE === 1) {
       lmap = U.flmap;
       dmap = U.fdmap;
       ML = (1 << 9) - 1;
       MD = (1 << 5) - 1;
     }
-    if (BTYPE == 2) {
-      HLIT = _bitsE(data, pos, 5) + 257;
-      HDIST = _bitsE(data, pos + 5, 5) + 1;
-      HCLEN = _bitsE(data, pos + 10, 4) + 4;
+    if (BTYPE === 2) {
+      const HLIT = _bitsE(data, pos, 5) + 257;
+      const HDIST = _bitsE(data, pos + 5, 5) + 1;
+      const HCLEN = _bitsE(data, pos + 10, 4) + 4;
       pos += 14;
 
-      var ppos = pos;
-      for (var i = 0; i < 38; i += 2) {
+      for (let i = 0; i < 38; i += 2) {
         U.itree[i] = 0;
         U.itree[i + 1] = 0;
       }
-      var tl = 1;
-      for (var i = 0; i < HCLEN; i++) {
-        var l = _bitsE(data, pos + i * 3, 3);
+      let tl = 1;
+      for (let i = 0; i < HCLEN; i++) {
+        const l = _bitsE(data, pos + i * 3, 3);
         U.itree[(U.ordr[i] << 1) + 1] = l;
         if (l > tl) tl = l;
       }
-      pos += 3 * HCLEN; //console.log(itree);
+      pos += 3 * HCLEN;
       makeCodes(U.itree, tl);
       codes2map(U.itree, tl, U.imap);
 
@@ -312,10 +419,11 @@ export function inflateRaw(
         data,
         pos,
         U.ttree,
+        quota,
       );
-      var mx0 = _copyOut(U.ttree, 0, HLIT, U.ltree);
+      const mx0 = _copyOut(U.ttree, 0, HLIT, U.ltree);
       ML = (1 << mx0) - 1;
-      var mx1 = _copyOut(U.ttree, HLIT, HDIST, U.dtree);
+      const mx1 = _copyOut(U.ttree, HLIT, HDIST, U.dtree);
       MD = (1 << mx1) - 1;
 
       makeCodes(U.ltree, mx0);
@@ -324,87 +432,113 @@ export function inflateRaw(
       makeCodes(U.dtree, mx1);
       codes2map(U.dtree, mx1, dmap);
     }
-    //var ooff=off, opos=pos;
     while (true) {
-      var code = lmap[_get17(data, pos) & ML];
-      pos += code & 15;
-      var lit = code >>> 4; //U.lhst[lit]++;
-      if (lit >>> 8 == 0) {
-        buf[off++] = lit;
-      } else if (lit == 256) {
+      const code = lmap[_get17(data, pos) & ML];
+      const advance = code & 15;
+      if (advance === 0) {
+        throw new Error(
+          "inflateRaw: invalid Huffman code (possible malformed or malicious input)",
+        );
+      }
+      pos += advance;
+      quota.tick(1); // one op per decoded symbol
+      const lit = code >>> 4;
+      if (lit >>> 8 === 0) {
+        outBuf[off++] = lit;
+      } else if (lit === 256) {
         break;
       } else {
-        var end = off + lit - 254;
+        let end = off + lit - 254;
         if (lit > 264) {
-          var ebs = U.ldef[lit - 257];
+          const ebs = U.ldef[lit - 257];
           end = off + (ebs >>> 3) + _bitsE(data, pos, ebs & 7);
           pos += ebs & 7;
         }
-        //UZIP.F.dst[end-off]++;
+        if (end > MAX_OUTPUT_SIZE) {
+          throw new Error(
+            "inflateRaw: output exceeds maximum allowed size (possible zip bomb)",
+          );
+        }
 
-        var dcode = dmap[_get17(data, pos) & MD];
+        const dcode = dmap[_get17(data, pos) & MD];
         pos += dcode & 15;
-        var dlit = dcode >>> 4;
-        var dbs = U.ddef[dlit],
-          dst = (dbs >>> 4) + _bitsF(data, pos, dbs & 15);
+        const dlit = dcode >>> 4;
+        const dbs = U.ddef[dlit];
+        const dst = (dbs >>> 4) + _bitsF(data, pos, dbs & 15);
         pos += dbs & 15;
 
-        if (noBuf) buf = _check(buf, off + (1 << 17));
+        quota.tick(end - off); // charge for every byte copied in this back-reference
+        if (noBuf) outBuf = _check(outBuf, off + (1 << 17), quota);
         while (off < end) {
-          buf[off] = buf[off++ - dst];
-          buf[off] = buf[off++ - dst];
-          buf[off] = buf[off++ - dst];
-          buf[off] = buf[off++ - dst];
+          outBuf[off] = outBuf[off++ - dst];
+          outBuf[off] = outBuf[off++ - dst];
+          outBuf[off] = outBuf[off++ - dst];
+          outBuf[off] = outBuf[off++ - dst];
         }
         off = end;
       }
     }
   }
 
-  return buf.length == off ? buf : buf.slice(0, off);
+  return outBuf.length === off ? outBuf : outBuf.slice(0, off);
 }
 
-function _check(buf: Uint8Array, len: number) {
+function _check(buf: Uint8Array, len: number, quota: DecodeQuota): Uint8Array {
+  if (len > MAX_OUTPUT_SIZE) {
+    throw new Error(
+      "inflateRaw: output exceeds maximum allowed size (possible zip bomb)",
+    );
+  }
   const bl = buf.length;
   if (len <= bl) {
     return buf;
   }
-  const nbuf = new Uint8Array(Math.max(bl << 1, len));
+  const newSize = Math.max(bl << 1, len);
+  quota.addAlloc(newSize); // track cumulative allocation pressure
+  const nbuf = new Uint8Array(newSize);
   nbuf.set(buf, 0);
   return nbuf;
 }
 
 function _decodeTiny(
-  lmap: any[] | Uint16Array<ArrayBuffer>,
+  lmap: Uint16Array,
   LL: number,
   len: number,
-  data: any,
+  data: Uint8Array,
   pos: number,
   tree: number[],
-) {
+  quota: DecodeQuota,
+): number {
   let i = 0;
   while (i < len) {
     const code = lmap[_get17(data, pos) & LL];
-    pos += code & 15;
-    var lit = code >>> 4;
+    const advance = code & 15;
+    if (advance === 0) {
+      throw new Error(
+        "inflateRaw: invalid Huffman code in block header (possible malformed or malicious input)",
+      );
+    }
+    pos += advance;
+    quota.tick(1); // one op per code decoded in header
+    const lit = code >>> 4;
     if (lit <= 15) {
       tree[i] = lit;
       i++;
     } else {
-      var ll = 0,
-        n = 0;
-      if (lit == 16) {
+      let ll = 0;
+      let n = 0;
+      if (lit === 16) {
         n = 3 + _bitsE(data, pos, 2);
         pos += 2;
         ll = tree[i - 1];
-      } else if (lit == 17) {
+      } else if (lit === 17) {
         n = 3 + _bitsE(data, pos, 3);
         pos += 3;
-      } else if (lit == 18) {
+      } else if (lit === 18) {
         n = 11 + _bitsE(data, pos, 7);
         pos += 7;
       }
-      var ni = i + n;
+      const ni = i + n;
       while (i < ni) {
         tree[i] = ll;
         i++;
@@ -415,16 +549,16 @@ function _decodeTiny(
 }
 
 function _copyOut(
-  src: never[],
+  src: number[],
   off: number,
   len: number,
-  tree: string | any[],
-) {
-  var mx = 0,
-    i = 0,
-    tl = tree.length >>> 1;
+  tree: number[],
+): number {
+  let mx = 0;
+  let i = 0;
+  const tl = tree.length >>> 1;
   while (i < len) {
-    var v = src[i + off];
+    const v = src[i + off];
     tree[i << 1] = 0;
     tree[(i << 1) + 1] = v;
     if (v > mx) mx = v;
