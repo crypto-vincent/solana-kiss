@@ -6,18 +6,13 @@ import {
   JsonValue,
 } from "../data/Json";
 
-/**
- * Documentation strings attached to an IDL item.
- * Can be a single string (stored as a one-element array), an array of strings,
- * or `undefined` if no documentation is present.
- */
+/** Documentation strings for an IDL item: array of strings, or `undefined`. */
 export type IdlDocs = Array<string> | undefined;
 
 /**
- * Parses documentation from a raw JSON value into the {@link IdlDocs} format.
- * Accepts either a string or an array of strings; returns `undefined` if absent.
- * @param docsValue - The raw JSON value containing the documentation.
- * @returns The parsed documentation, or `undefined` if not present.
+ * Parses documentation from a raw JSON value into {@link IdlDocs}.
+ * @param docsValue - Raw JSON documentation value.
+ * @returns Parsed docs, or `undefined`.
  */
 export function idlDocsParse(docsValue: JsonValue): IdlDocs {
   return jsonDecoder(docsValue) ?? undefined;

@@ -47,44 +47,37 @@ export type IdlInstructionAddresses = {
   [instructionAccountName: string]: Pubkey;
 };
 
-/**
- * A parsed Solana program instruction, containing its discriminator, accounts list,
- * argument types, and return type.
- */
+/** Parsed instruction with discriminator, accounts, args, and return type. */
 export type IdlInstruction = {
-  /** The snake_case name of the instruction as declared in the IDL. */
+  /** snake_case instruction name. */
   name: string;
-  /** Human-readable documentation strings attached to this instruction, or `undefined`. */
+  /** Documentation strings, or `undefined`. */
   docs: IdlDocs;
-  /**
-   * The byte sequence prepended to the serialised instruction arguments to identify
-   * the instruction. Defaults to the first 8 bytes of SHA-256(`"global:<name>"`).
-   */
+  /** Discriminator bytes prepended to serialised args. */
   discriminator: Uint8Array;
-  /** Ordered list of accounts required by this instruction. */
+  /** Ordered accounts required by this instruction. */
   accounts: Array<IdlInstructionAccount>;
-  /** The flat and full type representations of the instruction's argument fields. */
+  /** Arg fields (flat and full). */
   args: {
-    /** Unresolved flat type fields for the instruction arguments. */
+    /** Flat arg type fields. */
     typeFlatFields: IdlTypeFlatFields;
-    /** Fully-resolved type fields used for encoding/decoding instruction arguments. */
+    /** Full arg type fields. */
     typeFullFields: IdlTypeFullFields;
   };
-  /** The flat and full type representations of the instruction's return value. */
+  /** Return type (flat and full). */
   return: {
-    /** Unresolved flat type for the instruction's return value. */
+    /** Flat return type. */
     typeFlat: IdlTypeFlat;
-    /** Fully-resolved type for the instruction's return value. */
+    /** Full return type. */
     typeFull: IdlTypeFull;
   };
 };
 
 /**
- * Encodes a map of instruction account addresses into the ordered {@link InstructionInput} array required by the transaction builder.
- * @param self - The {@link IdlInstruction} whose account list defines the expected order.
- * @param instructionAddresses - Named account addresses to encode.
- * @returns An object containing the ordered `instructionInputs` array.
- * @throws If a required account address is missing from `instructionAddresses`.
+ * Encodes named account addresses into an ordered {@link InstructionInput} array.
+ * @param self - Instruction whose account list defines the order.
+ * @param instructionAddresses - Named account addresses.
+ * @returns Object with ordered `instructionInputs`.
  */
 export function idlInstructionAccountsEncode(
   self: IdlInstruction,
@@ -114,11 +107,10 @@ export function idlInstructionAccountsEncode(
 }
 
 /**
- * Decodes an ordered array of {@link InstructionInput}s back into a named {@link IdlInstructionAddresses} map.
- * @param self - The {@link IdlInstruction} whose account list defines the expected mapping.
- * @param instructionInputs - The ordered account inputs to decode.
- * @returns An object containing the decoded `instructionAddresses` map.
- * @throws If the number of inputs is fewer than the number of required accounts.
+ * Decodes ordered {@link InstructionInput}s into a named {@link IdlInstructionAddresses} map.
+ * @param self - Instruction whose account list defines the mapping.
+ * @param instructionInputs - Ordered account inputs.
+ * @returns Object with decoded `instructionAddresses`.
  */
 export function idlInstructionAccountsDecode(
   self: IdlInstruction,
@@ -162,17 +154,15 @@ export function idlInstructionAccountsDecode(
 }
 
 /**
- * Iteratively resolves all account addresses for an instruction, deriving PDAs where possible.
- * Continues until no further progress can be made, optionally throwing if any required address remains unresolved.
- * @param self - The {@link IdlInstruction} whose accounts to resolve.
- * @param programAddress - The on-chain address of the owning program.
- * @param options - Optional resolution context.
- * @param options.throwOnMissing - When `true`, throws if any required account remains unresolved.
- * @param options.instructionAddresses - Partially-filled named account addresses to start from.
- * @param options.instructionPayload - Instruction arguments used when account derivation depends on args.
- * @param options.accountsContext - Optional context for resolving accounts requiring on-chain state.
- * @param options.accountFetcher - Optional async function to fetch and decode on-chain account data.
- * @returns An object containing the resolved `instructionAddresses` map.
+ * Iteratively resolves all account addresses, deriving PDAs where possible.
+ * @param self - Instruction whose accounts to resolve.
+ * @param programAddress - Owning program address.
+ * @param options.throwOnMissing - Throw if any required account stays unresolved.
+ * @param options.instructionAddresses - Partial addresses to start from.
+ * @param options.instructionPayload - Args used when derivation depends on args.
+ * @param options.accountsContext - Pre-fetched account state context.
+ * @param options.accountFetcher - Async function to fetch on-chain account data.
+ * @returns Object with resolved `instructionAddresses`.
  */
 export async function idlInstructionAccountsFind(
   self: IdlInstruction,
@@ -239,10 +229,9 @@ export async function idlInstructionAccountsFind(
 }
 
 /**
- * Validates that the provided instruction inputs satisfy all required accounts defined in the IDL instruction.
- * @param self - The {@link IdlInstruction} whose account list to validate against.
- * @param instructionInputs - The ordered account inputs to check.
- * @throws If the inputs do not satisfy the instruction's account requirements.
+ * Validates that instruction inputs satisfy all required accounts.
+ * @param self - Instruction to validate against.
+ * @param instructionInputs - Account inputs to check.
  */
 export function idlInstructionAccountsCheck(
   self: IdlInstruction,
@@ -252,10 +241,10 @@ export function idlInstructionAccountsCheck(
 }
 
 /**
- * Encodes a JSON instruction payload into binary instruction data, prepending the discriminator.
- * @param self - The {@link IdlInstruction} whose args schema and discriminator to use.
- * @param instructionPayload - The instruction arguments as a JSON value.
- * @returns An object containing the encoded `instructionData` bytes.
+ * Encodes a JSON instruction payload into binary, prepending the discriminator.
+ * @param self - Instruction whose args schema and discriminator to use.
+ * @param instructionPayload - Args as a JSON value.
+ * @returns Object with encoded `instructionData` bytes.
  */
 export function idlInstructionArgsEncode(
   self: IdlInstruction,
@@ -271,11 +260,10 @@ export function idlInstructionArgsEncode(
 }
 
 /**
- * Decodes binary instruction data (after verifying its discriminator) into a JSON instruction payload.
- * @param self - The {@link IdlInstruction} whose args schema and discriminator to use.
- * @param instructionData - The binary instruction data bytes to decode.
- * @returns An object containing the decoded `instructionPayload`.
- * @throws If the discriminator does not match.
+ * Decodes binary instruction data into a JSON payload, verifying the discriminator.
+ * @param self - Instruction whose args schema and discriminator to use.
+ * @param instructionData - Binary data to decode.
+ * @returns Object with decoded `instructionPayload`.
  */
 export function idlInstructionArgsDecode(
   self: IdlInstruction,
@@ -291,10 +279,9 @@ export function idlInstructionArgsDecode(
 }
 
 /**
- * Validates that the binary instruction data starts with the correct discriminator for this instruction.
- * @param self - The {@link IdlInstruction} whose discriminator to check against.
- * @param instructionData - The binary instruction data bytes to validate.
- * @throws If the discriminator bytes do not match.
+ * Validates that binary instruction data starts with the correct discriminator.
+ * @param self - Instruction whose discriminator to check.
+ * @param instructionData - Binary data to validate.
  */
 export function idlInstructionArgsCheck(
   self: IdlInstruction,
@@ -304,10 +291,10 @@ export function idlInstructionArgsCheck(
 }
 
 /**
- * Encodes a JSON instruction return value into its binary representation.
- * @param self - The {@link IdlInstruction} whose return type schema to use.
- * @param instructionResult - The return value as a JSON value.
- * @returns An object containing the encoded `instructionReturned` bytes.
+ * Encodes a JSON instruction return value into binary.
+ * @param self - Instruction whose return type schema to use.
+ * @param instructionResult - Return value as a JSON value.
+ * @returns Object with encoded `instructionReturned` bytes.
  */
 export function idlInstructionReturnEncode(
   self: IdlInstruction,
@@ -323,9 +310,9 @@ export function idlInstructionReturnEncode(
 
 /**
  * Decodes binary instruction return data into a JSON result value.
- * @param self - The {@link IdlInstruction} whose return type schema to use.
- * @param instructionReturned - The binary return data bytes to decode.
- * @returns An object containing the decoded `instructionResult`.
+ * @param self - Instruction whose return type schema to use.
+ * @param instructionReturned - Binary return data to decode.
+ * @returns Object with decoded `instructionResult`.
  */
 export function idlInstructionReturnDecode(
   self: IdlInstruction,
@@ -340,11 +327,10 @@ export function idlInstructionReturnDecode(
 }
 
 /**
- * Parses a raw IDL instruction JSON value into a fully-typed {@link IdlInstruction}, resolving all typedefs.
- * @param instructionName - The name of the instruction.
- * @param instructionValue - The raw JSON value describing the instruction.
- * @param typedefsIdls - A map of known typedef definitions for type resolution.
- * @returns The parsed {@link IdlInstruction}.
+ * Parses a raw IDL instruction JSON value into a fully-typed {@link IdlInstruction}.
+ * @param instructionValue - Raw JSON value.
+ * @param typedefsIdls - Known typedef definitions.
+ * @returns Parsed {@link IdlInstruction}.
  */
 export function idlInstructionParse(
   instructionName: string,

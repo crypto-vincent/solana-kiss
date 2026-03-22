@@ -33,11 +33,10 @@ import { IdlTypePrimitive, idlTypePrimitiveDecode } from "./IdlTypePrimitive";
 
 /**
  * Decodes a byte array into a JSON-compatible value.
- *
- * @param self - The full IDL type describing the binary layout.
- * @param data - The `DataView` over the raw binary buffer.
- * @param dataOffset - Byte offset within `data` at which to start reading.
- * @returns A tuple of `[bytesConsumed, decodedJsonValue]`.
+ * @param self - Full IDL type describing the binary layout.
+ * @param data - Raw binary buffer.
+ * @param dataOffset - Byte offset to start reading.
+ * @returns Tuple of `[bytesConsumed, decodedJsonValue]`.
  */
 export function idlTypeFullDecode(
   self: IdlTypeFull,
@@ -48,12 +47,11 @@ export function idlTypeFullDecode(
 }
 
 /**
- * Decodes a byte array into a JSON-compatible value.
- *
- * @param self - The full IDL fields describing the binary layout.
- * @param data - The `DataView` over the raw binary buffer.
- * @param dataOffset - Byte offset within `data` at which to start reading.
- * @returns A tuple of `[bytesConsumed, decodedJsonValue]`.
+ * Decodes a byte array into a JSON-compatible value using IDL fields.
+ * @param self - Full IDL fields describing the binary layout.
+ * @param data - Raw binary buffer.
+ * @param dataOffset - Byte offset to start reading.
+ * @returns Tuple of `[bytesConsumed, decodedJsonValue]`.
  */
 export function idlTypeFullFieldsDecode(
   self: IdlTypeFullFields,

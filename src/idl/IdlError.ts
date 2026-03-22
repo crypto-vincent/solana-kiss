@@ -8,27 +8,22 @@ import {
 } from "../data/Json";
 import { IdlDocs, idlDocsParse } from "./IdlDocs";
 
-/**
- * Represents a parsed IDL error definition, including its numeric error code,
- * optional message, and documentation.
- */
+/** Parsed IDL error definition. */
 export type IdlError = {
-  /** The camelCase name of the error as declared in the IDL. */
+  /** camelCase error name. */
   name: string;
-  /** Human-readable documentation strings attached to this error, or `undefined`. */
+  /** Documentation strings, or `undefined`. */
   docs: IdlDocs;
-  /** The numeric error code returned on-chain when this error is triggered. */
+  /** Numeric error code. */
   code: number;
-  /** An optional human-readable error message, or `undefined` if not specified. */
+  /** Human-readable error message, or `undefined`. */
   msg: string | undefined;
 };
 
 /**
  * Parses an IDL error definition from its raw JSON representation.
- * Accepts either a plain error code number or a full object with code, message, and docs.
- * @param errorName - The name of the error.
- * @param errorValue - The raw JSON value describing the error.
- * @returns The parsed {@link IdlError}.
+ * @param errorValue - Raw JSON value.
+ * @returns Parsed {@link IdlError}.
  */
 export function idlErrorParse(
   errorName: string,

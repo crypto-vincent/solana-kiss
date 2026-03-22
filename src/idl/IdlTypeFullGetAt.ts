@@ -24,12 +24,10 @@ import {
 import { IdlTypePrimitive } from "./IdlTypePrimitive";
 
 /**
- * Traverses a fully-resolved IDL type tree and returns the sub-type located
- * at the given JSON Pointer path (e.g. `"/fields/amount"` or `"/0"`).
- *
- * @param self - The full IDL type to traverse.
- * @param pathOrPointer - A JSON Pointer string or pre-parsed token array.
- * @returns The {@link IdlTypeFull} found at the specified path.
+ * Returns the sub-type at the given JSON Pointer path within the IDL type tree.
+ * @param self - Full IDL type to traverse.
+ * @param pathOrPointer - JSON Pointer string or pre-parsed token array.
+ * @returns {@link IdlTypeFull} at the specified path.
  */
 export function idlTypeFullGetAt(
   self: IdlTypeFull,
@@ -42,13 +40,10 @@ export function idlTypeFullGetAt(
 }
 
 /**
- * Traverses a set of fully-resolved IDL fields and returns the sub-type
- * located at the given JSON Pointer path. Throws if the pointer runs out of
- * tokens while still pointing at a fields node.
- *
- * @param self - The full IDL fields to traverse.
- * @param pathOrPointer - A JSON Pointer string or pre-parsed token array.
- * @returns The {@link IdlTypeFull} found at the specified path.
+ * Returns the sub-type at the given JSON Pointer path within IDL fields.
+ * @param self - Full IDL fields to traverse.
+ * @param pathOrPointer - JSON Pointer string or pre-parsed token array.
+ * @returns {@link IdlTypeFull} at the specified path.
  */
 export function idlTypeFullFieldsGetAt(
   self: IdlTypeFullFields,

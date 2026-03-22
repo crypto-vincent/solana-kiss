@@ -25,54 +25,50 @@ import {
 import { IdlTypedef } from "./IdlTypedef";
 import { IdlTypeFullFields } from "./IdlTypeFull";
 
-/** A single account entry in a Solana instruction's account list, including its constraints and optional PDA derivation. */
+/** Single instruction account with constraints and optional PDA derivation. */
 export type IdlInstructionAccount = {
-  /** The snake_case dotted name of the account (e.g. `"mint"` or `"token.authority"`). */
+  /** snake_case dotted account name. */
   name: string;
-  /** Human-readable documentation strings attached to this account, or `undefined`. */
+  /** Documentation strings, or `undefined`. */
   docs: IdlDocs;
   /** `true` if the instruction may write to this account. */
   writable: boolean;
-  /** `true` if this account must provide a signature in the transaction. */
+  /** `true` if this account must sign the transaction. */
   signer: boolean;
-  /** `true` if this account may be omitted from the instruction. */
+  /** `true` if this account may be omitted. */
   optional: boolean;
-  /** A fixed on-chain address for this account, or `undefined` if it must be supplied at call-time. */
+  /** Fixed on-chain address, or `undefined` if supplied at call-time. */
   address: Pubkey | undefined;
-  /** PDA derivation rules for automatically resolving this account's address, or `undefined` if not a PDA. */
+  /** PDA derivation rules, or `undefined` if not a PDA. */
   pda: IdlInstructionAccountPda | undefined;
 };
 
-/** The PDA seeds and optional program override used to derive an instruction account's address. */
+/** PDA seeds and optional program override for deriving an account address. */
 export type IdlInstructionAccountPda = {
-  /** Ordered list of seed blobs used to derive the PDA address. */
+  /** Ordered seed blobs to derive the PDA address. */
   seeds: Array<IdlInstructionBlob>;
-  /**
-   * An optional blob whose bytes resolve to the owning program address for this PDA.
-   * When `undefined`, the instruction's own program address is used.
-   */
+  /** Optional blob resolving to the owning program address; defaults to instruction's program. */
   program: IdlInstructionBlob | undefined;
 };
 
-/** The context available when searching for instruction account addresses, including already-resolved addresses and optional payload/account data. */
+/** Context for resolving instruction account addresses. */
 export type IdlInstructionAccountFindContext = {
-  /** Map of already-resolved account addresses keyed by account name. */
+  /** Already-resolved account addresses keyed by account name. */
   instructionAddresses: IdlInstructionAddresses;
-  /** Instruction arguments as a JSON value, used when account derivation depends on argument values. */
+  /** Instruction args as JSON, used when derivation depends on arg values. */
   instructionPayload?: JsonValue;
-  /** Pre-fetched map of on-chain account state for accounts that serve as PDA seeds. */
+  /** Pre-fetched on-chain account state for PDA seed resolution. */
   accountsContext?: IdlInstructionBlobAccountsContext;
-  /** Optional async function to fetch on-chain account content by address when not already in `accountsContext`. */
+  /** Async function to fetch on-chain account content by address. */
   accountFetcher?: IdlInstructionBlobAccountFetcher;
 };
 
 /**
- * Resolves the public key address for a single instruction account, using a fixed address, PDA derivation, or the find context.
- * @param self - The {@link IdlInstructionAccount} to resolve.
- * @param programAddress - The on-chain address of the owning program (used for PDA derivation).
- * @param findContext - The resolution context containing already-known addresses and optional payload/account data.
- * @returns The resolved {@link Pubkey} address.
- * @throws If the address cannot be resolved from any available source.
+ * Resolves the public key for a single instruction account.
+ * @param self - Account to resolve.
+ * @param programAddress - Owning program address (used for PDA derivation).
+ * @param findContext - Resolution context with known addresses and payload.
+ * @returns Resolved {@link Pubkey}.
  */
 export async function idlInstructionAccountFind(
   self: IdlInstructionAccount,
@@ -111,12 +107,12 @@ export async function idlInstructionAccountFind(
 }
 
 /**
- * Parses a raw IDL account JSON value into one or more {@link IdlInstructionAccount} entries, expanding nested account groups.
- * @param instructionAccountGroups - The accumulated parent group names for nested accounts.
- * @param instructionAccountValue - The raw JSON value describing the account or group.
- * @param instructionArgsTypeFullFields - The instruction's resolved argument fields, used for PDA seed blob parsing.
- * @param typedefsIdls - A map of known typedef definitions for type resolution.
- * @returns An array of parsed {@link IdlInstructionAccount} entries.
+ * Parses a raw IDL account JSON value into {@link IdlInstructionAccount} entries, expanding nested groups.
+ * @param instructionAccountGroups - Accumulated parent group names for nested accounts.
+ * @param instructionAccountValue - Raw JSON account or group value.
+ * @param instructionArgsTypeFullFields - Resolved arg fields for PDA seed blob parsing.
+ * @param typedefsIdls - Known typedef definitions.
+ * @returns Array of parsed {@link IdlInstructionAccount} entries.
  */
 export function idlInstructionAccountParse(
   instructionAccountGroups: Array<string>,

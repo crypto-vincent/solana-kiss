@@ -17,14 +17,10 @@ import {
 import { IdlTypePrimitive } from "./IdlTypePrimitive";
 
 /**
- * Generates a complete TypeScript module source string that exports a
- * `jsonCodec` constant and a `JsonDecoded` type alias derived from the given
- * fully-resolved IDL type. The module imports required codec helpers from
- * `solana-kiss` (or a custom `importPath`).
- *
- * @param self - The full IDL type to generate a codec for.
- * @param importPath - Optional import path for the codec helpers (defaults to `"solana-kiss"`).
- * @returns A TypeScript module source string.
+ * Generates a TypeScript module source string exporting a `jsonCodec` constant and `JsonDecoded` type for the given IDL type.
+ * @param self - Full IDL type to generate a codec for.
+ * @param importPath - Import path for codec helpers (default: `"solana-kiss"`).
+ * @returns TypeScript module source string.
  */
 export function idlTypeFullJsonCodecModule(
   self: IdlTypeFull,
@@ -45,14 +41,10 @@ export function idlTypeFullJsonCodecModule(
 }
 
 /**
- * Generates a TypeScript expression string for the JSON codec of the given
- * fully-resolved IDL type. If `dependencies` is provided, the set is
- * populated with the codec helper function names referenced by the expression,
- * enabling callers to build a minimal import statement.
- *
- * @param self - The full IDL type to generate a codec expression for.
+ * Generates a TypeScript expression string for the JSON codec of the given IDL type.
+ * @param self - Full IDL type to generate a codec expression for.
  * @param dependencies - Optional set to collect required codec helper names.
- * @returns A TypeScript expression string (e.g. `jsonCodecObjectToObject({...})`).
+ * @returns TypeScript expression string.
  */
 export function idlTypeFullJsonCodecExpression(
   self: IdlTypeFull,
