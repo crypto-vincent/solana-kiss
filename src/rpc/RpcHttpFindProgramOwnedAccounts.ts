@@ -11,7 +11,6 @@ import { RpcHttp } from "./RpcHttp";
 
 /**
  * Fetches all account addresses owned by a program. Optionally filters by size or byte patterns.
- * @param self - {@link RpcHttp} client.
  * @param programAddress - Program to query.
  * @param filters.dataSpace - Filter by account data length (bytes).
  * @param filters.dataBlobs - Filter by byte patterns at given offsets.

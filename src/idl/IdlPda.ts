@@ -53,7 +53,6 @@ export function idlPdaFind(
 
 /**
  * Parses a raw IDL PDA JSON value into an {@link IdlPda}.
- * @param pdaName - PDA name.
  * @param pdaValue - Raw JSON value.
  * @param typedefsIdls - Known typedef definitions.
  * @returns Parsed {@link IdlPda}.

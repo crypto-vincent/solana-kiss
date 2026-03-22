@@ -10,7 +10,6 @@ import { RpcHttp } from "./RpcHttp";
 
 /**
  * Fetches block metadata for a slot (no transaction details).
- * @param self - {@link RpcHttp} client.
  * @param blockSlot - Slot to query.
  * @returns `{ previousBlockSlot, blockHeight, blockTime, blockHash }`.
  */

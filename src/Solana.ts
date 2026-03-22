@@ -93,7 +93,9 @@ export class Solana {
     this.#recentBlockHashCacheValue = null;
   }
 
-  /** @returns The {@link RpcHttp} client. */
+  /**
+   * @returns The {@link RpcHttp} client.
+   */
   public getRpcHttp() {
     return this.#rpcHttp;
   }
@@ -101,7 +103,6 @@ export class Solana {
   /**
    * Registers or removes a program IDL override.
    * When set, {@link getOrLoadProgramIdl} returns it without consulting the loader.
-   * @param programAddress - Program address.
    * @param programIdl - IDL to use, or `undefined` to remove the override.
    */
   public setProgramIdlOverride(
@@ -117,7 +118,6 @@ export class Solana {
 
   /**
    * Returns the IDL for a program. Uses override if set; otherwise uses the IDL loader.
-   * @param programAddress - Program address.
    * @param options.fallbackOnUnknown - Return minimal "unknown-program" IDL instead of throwing.
    * @returns `{ programIdl }`.
    * @throws If the loader cannot find the IDL and `fallbackOnUnknown` is not set.
@@ -142,7 +142,6 @@ export class Solana {
 
   /**
    * Derives a PDA for a named PDA defined in the program's IDL.
-   * @param programAddress - Program address.
    * @param pdaName - PDA name as declared in the IDL.
    * @param pdaInputs - Optional seed input values.
    * @returns Derived PDA {@link Pubkey}.
@@ -160,7 +159,6 @@ export class Solana {
 
   /**
    * Returns the IDL for a specific instruction.
-   * @param programAddress - Program address.
    * @param instructionName - Instruction name as declared in the IDL.
    * @returns `{ instructionIdl }`.
    * @throws If IDL can't be loaded or instruction not found.
@@ -241,7 +239,6 @@ export class Solana {
   /**
    * Builds an encoded {@link InstructionRequest} from named addresses and a JSON payload.
    * Missing accounts are resolved via {@link hydrateInstructionAddresses}.
-   * @param programAddress - Program address.
    * @param instructionName - Instruction name as declared in the IDL.
    * @param options.instructionAddresses - Named account addresses (partial; missing will be derived).
    * @param options.instructionPayload - Instruction arguments as JSON.
@@ -287,8 +284,6 @@ export class Solana {
   /**
    * Resolves missing account addresses for an instruction using IDL rules and on-chain state.
    * PDAs and ATAs derivable from known addresses are auto-resolved.
-   * @param programAddress - Program address.
-   * @param instructionName - Instruction name.
    * @param options.throwOnMissing - Throw if any required address can't be resolved.
    * @param options.instructionAddresses - Partially-filled account addresses.
    * @param options.instructionPayload - Instruction arguments (used for arg-based derivation).
@@ -332,8 +327,6 @@ export class Solana {
 
   /**
    * Resolves a specific instruction account address by name.
-   * @param programAddress - Program address.
-   * @param instructionName - Instruction name.
    * @param instructionAccountName - Account name to resolve.
    * @param options.instructionAddresses - Partially-filled account addresses.
    * @param options.instructionPayload - Instruction arguments.
@@ -508,7 +501,6 @@ export class Solana {
 
   /**
    * Fetches all accounts owned by a program that match a specific IDL account type.
-   * @param programAddress - Program address.
    * @param accountName - Account type name as declared in the IDL.
    * @returns Result of {@link rpcHttpFindProgramOwnedAccounts}.
    * @throws If IDL can't be loaded, account type not found, or RPC fails.

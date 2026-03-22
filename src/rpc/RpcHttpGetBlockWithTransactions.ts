@@ -13,7 +13,6 @@ import { RpcHttp } from "./RpcHttp";
 
 /**
  * Fetches block metadata and ordered transaction signatures for a slot.
- * @param self - {@link RpcHttp} client.
  * @param blockSlot - Slot to query.
  * @returns `{ previousBlockSlot, blockHeight, blockTime, blockHash, oldToNewTransactionsHandles }`.
  */

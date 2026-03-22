@@ -64,7 +64,7 @@ export type IdlTypeFlatEnum = {
 export type IdlTypeFlatPadded = {
   /** Number of bytes to skip before the inner type. */
   before: number;
-/** Min total bytes (inner + before padding); trailing bytes skipped if needed. */
+  /** Min total bytes (inner + before padding); trailing bytes skipped if needed. */
   minSize: number;
   /** The inner type wrapped by this padding. */
   content: IdlTypeFlat;

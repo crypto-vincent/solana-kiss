@@ -4,7 +4,6 @@ import { RpcHttp } from "./RpcHttp";
 
 /**
  * Fetches only the production timestamp for a block slot.
- * @param self - {@link RpcHttp} client.
  * @param blockSlot - Slot to query.
  * @returns `{ blockTime }` as a `Date`, or `undefined` if unavailable.
  */

@@ -28,7 +28,6 @@ export type IdlConstant = {
 
 /**
  * Parses an IDL constant definition from its raw JSON representation.
- * @param constantName - Constant name.
  * @param constantValue - Raw JSON value.
  * @param typedefsIdls - Known typedef definitions.
  * @returns Parsed {@link IdlConstant}.

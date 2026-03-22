@@ -8,7 +8,6 @@ import { RpcHttp } from "./RpcHttp";
 
 /**
  * Fetches the latest confirmed block hash.
- * @param self - {@link RpcHttp} client.
  * @returns `{ blockHash }`.
  */
 export async function rpcHttpGetLatestBlockHash(self: RpcHttp): Promise<{

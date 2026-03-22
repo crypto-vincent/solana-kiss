@@ -140,7 +140,6 @@ export function idlUtilsBlobTypeValueParse(
 /**
  * Infers the type of a blob value based on its structure.
  * For example, if the value is a JSON array, it infers a vector of bytes.
- *
  * @param blobValue - The JSON value representing the blob's value.
  * @returns The inferred {@link IdlTypeFull} or `null` if the type cannot be inferred.
  */

@@ -23,8 +23,7 @@ import { idlTypeFullTypedefBytemuck } from "./IdlTypeFullBytemuck";
 import { IdlTypePrimitive } from "./IdlTypePrimitive";
 
 /**
- * Hydrates a flat IDL type into a fully-resolved type.
- * Throws if a const literal is encountered at the top level.
+ * Hydrates a flat IDL type into a fully-resolved type. Throws if a const literal is encountered at the top level.
  * @param self - Flat IDL type to hydrate.
  * @param genericsBySymbol - Map of generic symbols to resolved types or const literals.
  * @param typedefsByName - Typedef definitions, or `null` if unavailable.

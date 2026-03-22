@@ -9,7 +9,6 @@ import { RpcHttp } from "./RpcHttp";
 
 /**
  * Fetches transaction signatures for an account, newest-first. Auto-paginates.
- * @param self - {@link RpcHttp} client.
  * @param accountAddress - Account to query.
  * @param maxResultLength - Max signatures to return.
  * @param pagination.startBeforeTransactionHandle - Start before this handle (exclusive).

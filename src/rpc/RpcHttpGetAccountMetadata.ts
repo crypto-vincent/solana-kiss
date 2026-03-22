@@ -10,7 +10,6 @@ import { RpcHttp } from "./RpcHttp";
 
 /**
  * Fetches account metadata without data. Returns zeroed defaults if account doesn't exist.
- * @param self - {@link RpcHttp} client.
  * @param accountAddress - Account to query.
  * @returns `{ programAddress, accountExecutable, accountLamports, accountSpace }`.
  */

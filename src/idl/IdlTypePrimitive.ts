@@ -8,10 +8,7 @@ import {
 } from "../data/Json";
 import { pubkeyFromBytes, pubkeyToBytes } from "../data/Pubkey";
 
-/**
- * Primitive scalar type supported by the Anchor IDL.
- * Pre-built singletons available as static properties.
- */
+/** Primitive scalar type supported by the Anchor IDL. Pre-built singletons available as static properties. */
 export class IdlTypePrimitive {
   /** 8-bit unsigned integer (1 byte). */
   public static readonly u8 = new IdlTypePrimitive("u8", 1, 1);

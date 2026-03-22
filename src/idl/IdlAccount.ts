@@ -28,15 +28,11 @@ export type IdlAccount = {
   name: string;
   /** Documentation strings, or `undefined`. */
   docs: IdlDocs;
-  /**
-   * Discriminator bytes (default: first 8 bytes of SHA-256(`"account:<name>"`)).
-   */
+  /** Discriminator bytes (default: first 8 bytes of SHA-256(`"account:<name>"`)). */
   discriminator: Uint8Array;
   /** Expected data byte length, or `undefined` if variable-length. */
   dataSpace: number | undefined;
-  /**
-   * Expected byte blobs at fixed offsets (e.g. discriminator at offset 0).
-   */
+  /** Expected byte blobs at fixed offsets (e.g. discriminator at offset 0). */
   dataBlobs: Array<{ offset: number; bytes: Uint8Array }>;
   /** Unresolved flat type representation. */
   typeFlat: IdlTypeFlat;
@@ -99,7 +95,6 @@ export function idlAccountCheck(
 /**
  * Parses an IDL account definition from JSON. Resolves types from `typedefsIdls`.
  * Discriminator defaults to Anchor `account:<name>` hash if not specified.
- * @param accountName - Account name.
  * @param accountValue - Raw JSON value.
  * @param typedefsIdls - Known typedef definitions.
  * @returns Parsed {@link IdlAccount}.

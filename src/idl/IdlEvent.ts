@@ -75,7 +75,6 @@ export function idlEventCheck(self: IdlEvent, eventData: Uint8Array): void {
 
 /**
  * Parses an IDL event definition from its raw JSON representation.
- * @param eventName - Event name.
  * @param eventValue - Raw JSON value.
  * @param typedefsIdls - Known typedef definitions.
  * @returns Parsed {@link IdlEvent}.

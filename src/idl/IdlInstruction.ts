@@ -328,7 +328,6 @@ export function idlInstructionReturnDecode(
 
 /**
  * Parses a raw IDL instruction JSON value into a fully-typed {@link IdlInstruction}.
- * @param instructionName - Instruction name.
  * @param instructionValue - Raw JSON value.
  * @param typedefsIdls - Known typedef definitions.
  * @returns Parsed {@link IdlInstruction}.

@@ -8,7 +8,6 @@ import { RpcHttp } from "./RpcHttp";
 
 /**
  * Checks if a block hash is still valid.
- * @param self - {@link RpcHttp} client.
  * @param blockHash - Block hash to check.
  * @returns `true` if valid.
  */

@@ -178,8 +178,7 @@ export async function pubkeyToVerifier(self: Pubkey) {
 }
 
 /**
- * Checks whether a {@link Pubkey} lies on the Ed25519 curve.
- * Off-curve keys are used as PDAs.
+ * Checks whether a {@link Pubkey} lies on the Ed25519 curve. Off-curve keys are used as PDAs.
  * @param self - Public key to check.
  * @returns `true` if on the curve.
  */

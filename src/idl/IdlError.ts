@@ -22,7 +22,6 @@ export type IdlError = {
 
 /**
  * Parses an IDL error definition from its raw JSON representation.
- * @param errorName - Error name.
  * @param errorValue - Raw JSON value.
  * @returns Parsed {@link IdlError}.
  */

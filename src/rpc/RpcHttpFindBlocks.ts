@@ -9,7 +9,6 @@ import { RpcHttp } from "./RpcHttp";
 /**
  * Fetches confirmed block slots in a range. Auto-paginates.
  * `context` defines direction: `{ lowBlockSlot }`, `{ highBlockSlot }`, or `{ startBlockSlot, endBlockSlot }`.
- * @param self - {@link RpcHttp} client.
  * @param maxResultLength - Max slots to return.
  * @param context - Range/direction definition.
  * @returns `{ blocksSlots }`.

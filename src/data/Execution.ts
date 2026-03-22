@@ -10,10 +10,7 @@ export type ExecutionReport = {
   blockSlot: BlockSlot;
   /** Ordered program log messages, or `undefined`. */
   transactionLogs: Array<string> | undefined;
-  /**
-   * Transaction-level error, if any.
-   * `null` = success; string/object = failure.
-   */
+  /** Transaction-level error, if any. `null` = success; string/object = failure. */
   transactionError: null | string | JsonObject;
   /** Compute units consumed by the transaction. */
   consumedComputeUnits: number;

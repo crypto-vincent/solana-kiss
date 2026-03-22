@@ -5,7 +5,6 @@ import { rpcHttpGetTransaction } from "./RpcHttpGetTransaction";
 
 /**
  * Polls until a transaction is confirmed or `retryApprover` returns `false`.
- * @param self - {@link RpcHttp} client.
  * @param transactionHandle - Transaction signature to wait for.
  * @param retryApprover - Called each poll; return `true` to retry, `false` to abort.
  * @param options.skipExecutionFlowParsing - Skip parsing the invocation call-stack.

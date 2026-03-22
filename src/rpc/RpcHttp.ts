@@ -112,7 +112,6 @@ export function rpcHttpFromUrl(
 
 /**
  * Wraps an {@link RpcHttp} client with a per-request timeout.
- * @param self - Underlying {@link RpcHttp} client.
  * @param timeoutMs - Max duration before rejection.
  * @returns {@link RpcHttp} with timeout enforcement.
  */
@@ -132,7 +131,6 @@ export function rpcHttpWithTimeout(self: RpcHttp, timeoutMs: number): RpcHttp {
 
 /**
  * Wraps an {@link RpcHttp} client to cap in-flight requests. Excess requests are queued.
- * @param self - Underlying {@link RpcHttp} client.
  * @param maxConcurrentRequests - Max simultaneous requests (must be > 0).
  * @returns {@link RpcHttp} with concurrency limiting.
  * @throws If `maxConcurrentRequests` ≤ 0.
@@ -162,7 +160,6 @@ export function rpcHttpWithConcurrentRequestsLimit(
 
 /**
  * Wraps an {@link RpcHttp} client to limit request rate. Excess requests are queued.
- * @param self - Underlying {@link RpcHttp} client.
  * @param maxRequestsPerSecond - Max requests per second (must be > 0).
  * @returns {@link RpcHttp} with rate limiting.
  * @throws If `maxRequestsPerSecond` ≤ 0.
@@ -191,7 +188,6 @@ export function rpcHttpWithRequestsPerSecondLimit(
 
 /**
  * Wraps an {@link RpcHttp} client to automatically retry on failure.
- * @param self - Underlying {@link RpcHttp} client.
  * @param retryApprover - Called on each failure; return `true` to retry, `false` to rethrow.
  * @returns {@link RpcHttp} with retry support.
  */

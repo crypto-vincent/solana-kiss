@@ -29,7 +29,6 @@ export type IdlTypedef = {
 
 /**
  * Parses an IDL typedef from its raw JSON representation.
- * @param typedefName - Typedef name.
  * @param typedefValue - Raw JSON value.
  * @returns Parsed {@link IdlTypedef}.
  */

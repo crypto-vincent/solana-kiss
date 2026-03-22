@@ -93,7 +93,6 @@ export function transactionPacketFromBytes(
 
 /**
  * Returns the raw bytes of a {@link TransactionPacket}.
- * @param transactionPacket - Transaction packet.
  * @returns Raw byte array.
  */
 export function transactionPacketToBytes(
@@ -314,7 +313,6 @@ export async function transactionVerify(
 
 /**
  * Extracts the {@link TransactionMessage} from a {@link TransactionPacket}.
- * @param transactionPacket - Transaction packet.
  * @returns Message portion.
  */
 export function transactionExtractMessage(

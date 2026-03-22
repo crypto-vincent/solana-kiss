@@ -22,8 +22,7 @@ export const urlRpcPublicDevnet = new URL("https://api.devnet.solana.com");
 export const urlRpcPublicTestnet = new URL("https://api.testnet.solana.com");
 
 /**
- * Resolves a moniker or raw URL string to an RPC endpoint URL.
- * Monikers: `"mainnet"`, `"devnet"`, `"testnet"`.
+ * Resolves a moniker or raw URL string to an RPC endpoint URL. Monikers: `"mainnet"`, `"devnet"`, `"testnet"`.
  * @param rawUrlOrMoniker - URL string or moniker.
  * @returns Resolved RPC URL.
  */
@@ -65,7 +64,7 @@ export function urlExplorerBlock(urlRpc: URL, blockSlot: BlockSlot) {
 /**
  * Builds a Solana Explorer URL for a transaction page.
  * @param urlRpc - RPC URL (see {@link urlRpcFromUrlOrMoniker}).
- * @param transactionHandle - Transaction handle.
+ * @param transactionHandle - Signature or handle identifying the transaction.
  * @returns Explorer URL.
  */
 export function urlExplorerTransaction(

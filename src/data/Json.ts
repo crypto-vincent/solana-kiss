@@ -37,7 +37,6 @@ export interface JsonObject {
 
 /**
  * Parses a JSON string.
- * @param jsonString - JSON string.
  * @returns Parsed {@link JsonValue}.
  */
 export function jsonParse(jsonString: string): JsonValue {
@@ -248,10 +247,7 @@ export function jsonIsDeepSubset(
 /** A parsed JSON pointer represented as an ordered array of string (object key) or number (array index) tokens. */
 export type JsonPointer = Array<string | number>;
 
-/**
- * Parses a dot/bracket/slash path string into a {@link JsonPointer}.
- * e.g. `"foo.bar[0]"` or `"/foo/bar/0"`.
- */
+/** Parses a dot/bracket/slash path string into a {@link JsonPointer}. e.g. `"foo.bar[0]"` or `"/foo/bar/0"`. */
 export function jsonPointerParse(path: string): JsonPointer {
   const tokens = path
     .replace(/\[(.*?)\]/g, ".$1")
@@ -294,8 +290,7 @@ export function jsonPointerPreview(
   return parts.join("");
 }
 /**
- * Converts a {@link JsonPointer} token to a valid array index.
- * Returns `undefined` if not a number or out of bounds.
+ * Converts a {@link JsonPointer} token to a valid array index. Returns `undefined` if not a number or out of bounds.
  */
 export function jsonPointerTokenAsArrayIndex(
   pointerToken: string | number,
@@ -429,9 +424,7 @@ export const jsonCodecBoolean: JsonCodec<boolean> = {
   },
   encoder: (decoded) => decoded,
 };
-/**
- * {@link JsonCodec} for `number`. Encodes `NaN`/`Infinity`/`-Infinity` as strings.
- */
+/** {@link JsonCodec} for `number`. Encodes `NaN`/`Infinity`/`-Infinity` as strings. */
 export const jsonCodecNumber: JsonCodec<number> = {
   decoder: jsonDecoderByType({
     number: (number) => number,
@@ -504,9 +497,7 @@ export const jsonCodecObject: JsonCodec<JsonObject> = {
   encoder: (decoded) => decoded,
 };
 
-/**
- * {@link JsonCodec} for `bigint`. Accepts number or decimal string; encodes as decimal string.
- */
+/** {@link JsonCodec} for `bigint`. Accepts number or decimal string; encodes as decimal string. */
 export const jsonCodecBigInt: JsonCodec<bigint> = {
   decoder: jsonDecoderByType({
     number: (number) => BigInt(number),
@@ -1049,8 +1040,7 @@ export function jsonCodecNullable<Content>(contentCodec: {
 }
 
 /**
- * Creates a {@link JsonDecoder} by composing `decoderInner` (JSON → `Encoded`)
- * and `decoderOuter` (`Encoded` → `Decoded`).
+ * Creates a {@link JsonDecoder} by composing `decoderInner` (JSON → `Encoded`) and `decoderOuter` (`Encoded` → `Decoded`).
  */
 export function jsonDecoderWrapped<Decoded, Encoded>(
   decoderInner: (encoded: JsonValue) => Encoded,
@@ -1059,8 +1049,7 @@ export function jsonDecoderWrapped<Decoded, Encoded>(
   return (encoded: JsonValue) => decoderOuter(decoderInner(encoded));
 }
 /**
- * Creates a {@link JsonEncoder} by composing `encoderOuter` (`Decoded` → `Encoded`)
- * and `encoderInner` (`Encoded` → JSON).
+ * Creates a {@link JsonEncoder} by composing `encoderOuter` (`Decoded` → `Encoded`) and `encoderInner` (`Encoded` → JSON).
  */
 export function jsonEncoderWrapped<Decoded, Encoded>(
   encoderInner: (decoded: Encoded) => JsonValue,
@@ -1134,8 +1123,7 @@ export function jsonDecoderOneOfKeys<
 }
 
 /**
- * Creates a {@link JsonDecoder} dispatching to a handler based on the runtime JSON type.
- * Throws if no handler matches.
+ * Creates a {@link JsonDecoder} dispatching to a handler based on the runtime JSON type. Throws if no handler matches.
  */
 export function jsonDecoderByType<Content>(decoders: {
   null?: () => Content;
@@ -1176,8 +1164,7 @@ export function jsonDecoderByType<Content>(decoders: {
 }
 
 /**
- * Creates a {@link JsonDecoder} that runs every decoder in `Branches` and
- * collects all results into a single object.
+ * Creates a {@link JsonDecoder} that runs every decoder in `Branches` and collects all results into a single object.
  */
 export function jsonDecoderInParallel<
   Branches extends { [key: string]: any },

@@ -31,7 +31,6 @@ import { RpcHttp } from "./RpcHttp";
 
 /**
  * Fetches a confirmed transaction with full execution details.
- * @param self - {@link RpcHttp} client.
  * @param transactionHandle - Transaction signature to look up.
  * @param options.skipExecutionFlowParsing - Skip parsing the invocation call-stack.
  * @returns `{ transactionRequest, executionReport, executionFlow }`, or `undefined` if not yet on-chain.

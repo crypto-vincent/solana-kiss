@@ -9,7 +9,6 @@ import { RpcHttp } from "./RpcHttp";
 
 /**
  * Sends a signed transaction to the Solana network.
- * @param self - {@link RpcHttp} client.
  * @param transactionPacket - Transaction to broadcast.
  * @param options.skipPreflight - Skip preflight simulation.
  * @returns `{ transactionHandle }`.

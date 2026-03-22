@@ -54,8 +54,7 @@ export type IdlTypeFullEnum = {
   /** The prefix type used to encode the discriminant value. */
   prefix: IdlTypePrefix | undefined;
   /**
-   * Bitmask applied to discriminant before variant lookup.
-   * Used for enums that encode extra bits in the discriminant.
+   * Bitmask applied to discriminant before variant lookup. Used for enums that encode extra bits in the discriminant.
    */
   mask: bigint;
   /** Map from variant name (string) to its index in `variants`. */
@@ -181,9 +180,7 @@ export class IdlTypeFull {
     });
   }
 
-  /**
-   * Returns `true` if this type is the `primitive` variant and equals the given primitive instance.
-   */
+  /** Returns `true` if this type is the `primitive` variant and equals the given primitive instance. */
   public isPrimitive(primitive: IdlTypePrimitive): boolean {
     return this.discriminant === "primitive" && this.content === primitive;
   }

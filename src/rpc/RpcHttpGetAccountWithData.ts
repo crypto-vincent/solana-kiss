@@ -14,7 +14,6 @@ import { RpcHttp } from "./RpcHttp";
 
 /**
  * Fetches full account info including raw data. Returns zeroed defaults if account doesn't exist.
- * @param self - {@link RpcHttp} client.
  * @param accountAddress - Account to query.
  * @returns `{ programAddress, accountExecutable, accountLamports, accountData }`.
  * @throws If data length doesn't match reported account space.

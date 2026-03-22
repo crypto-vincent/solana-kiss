@@ -10,10 +10,7 @@ export function sha256Hash(blobs: Array<Uint8Array>): Uint8Array {
   return hasher.digest();
 }
 
-/**
- * Incremental SHA-256 hasher (FIPS 180-4).
- * Module-level singleton — must call `digest()` before reuse.
- */
+/** Incremental SHA-256 hasher (FIPS 180-4). Module-level singleton — must call `digest()` before reuse. */
 class Hasher {
   private readonly state = new Int32Array(8);
   private readonly temp = new Int32Array(64);

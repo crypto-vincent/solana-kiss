@@ -6,9 +6,7 @@ import {
   JsonValue,
 } from "../data/Json";
 
-/**
- * Documentation strings for an IDL item: array of strings, or `undefined`.
- */
+/** Documentation strings for an IDL item: array of strings, or `undefined`. */
 export type IdlDocs = Array<string> | undefined;
 
 /**

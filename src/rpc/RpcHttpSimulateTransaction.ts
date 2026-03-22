@@ -24,7 +24,6 @@ import { RpcHttp } from "./RpcHttp";
 
 /**
  * Simulates a transaction without broadcasting it.
- * @param self - {@link RpcHttp} client.
  * @param transactionPacket - Transaction to simulate.
  * @param options.verifySignaturesAndBlockHash - Verify signatures/blockhash before simulation (default: `true`).
  * @param options.simulatedAccountsAddresses - Up to 3 accounts whose post-simulation state to return.

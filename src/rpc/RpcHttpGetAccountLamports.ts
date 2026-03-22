@@ -4,7 +4,6 @@ import { RpcHttp } from "./RpcHttp";
 
 /**
  * Fetches the lamport balance of an account.
- * @param self - {@link RpcHttp} client.
  * @param accountAddress - Account to query.
  * @returns `{ accountLamports }`.
  */

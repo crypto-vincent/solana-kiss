@@ -33,8 +33,7 @@ export type IdlMetadata = {
 };
 
 /**
- * Parses program metadata from a raw IDL JSON value.
- * Checks `metadata` key first, then the root object.
+ * Parses program metadata from a raw IDL JSON value. Checks `metadata` key first, then the root object.
  * @param value - Top-level IDL JSON value.
  * @returns Parsed {@link IdlMetadata}.
  */
