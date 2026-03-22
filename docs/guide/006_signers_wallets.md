@@ -65,10 +65,3 @@ const unsubscribe = phantom.accounts.subscribe((accounts) => {
 });
 unsubscribe(); // stop listening
 ```
-
-## Choosing the right interface
-
-```
-Node.js / scripts  →  signerFromSecret / signerGenerate
-Browser dApp       →  walletProviders + WalletAccount
-```

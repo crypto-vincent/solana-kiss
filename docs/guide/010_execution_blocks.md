@@ -7,31 +7,13 @@ title: Execution & Blocks
 ## `ExecutionReport`
 
 Returned by `prepareAndExecuteTransaction`, `prepareAndSimulateTransaction`,
-and `rpcHttpGetTransaction`.
-
-```ts
-type ExecutionReport = {
-  blockTime: Date | undefined;
-  blockSlot: BlockSlot;
-  transactionLogs: string[] | undefined;
-  transactionError: null | string | JsonObject; // null = success
-  consumedComputeUnits: number;
-  chargedFeesLamports: bigint | undefined;
-};
-```
+and `rpcHttpGetTransaction`. Contains `blockSlot`, `transactionError`,
+`transactionLogs`, `consumedComputeUnits`, and `chargedFeesLamports`.
 
 ## `ExecutionFlow`
 
-Hierarchical trace of every program invocation, parsed from the program logs:
-
-```ts
-type ExecutionFlow = Array<
-  | { invocation: ExecutionInvocation }  // CPI call (nested)
-  | { data: Uint8Array }                 // "Program data:" log
-  | { log: string }                      // "Program log:" message
-  | { unknown: string }
->;
-```
+Hierarchical trace of every program invocation, parsed from program logs.
+Returned alongside `executionReport` by the same functions.
 
 ## Fetch a confirmed transaction
 
@@ -75,14 +57,6 @@ blockHashDefault; // all-zeroes block hash
 
 Block hashes expire after ~150 slots (~90 s). The `Solana` class caches the
 latest hash for `recentBlockHashCacheDurationMs` (default 15 s).
-
-## Block slot
-
-```ts
-import { blockSlotFromNumber, blockSlotToNumber } from "solana-kiss";
-
-const slot = blockSlotFromNumber(12345678);
-```
 
 ## Block content
 

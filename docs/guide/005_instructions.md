@@ -7,22 +7,6 @@ title: Instructions
 An instruction describes a single operation for an on-chain program.
 Transactions carry one or more instructions.
 
-## Core types
-
-```ts
-type InstructionRequest = {
-  programAddress: Pubkey;
-  instructionInputs: InstructionInput[];  // ordered account list
-  instructionData: Uint8Array;            // encoded args + discriminator
-};
-
-type InstructionInput = {
-  address: Pubkey;
-  signer: boolean;
-  writable: boolean;
-};
-```
-
 ## Build with an IDL
 
 The easiest way — used by `Solana.hydrateAndEncodeInstruction` internally:
@@ -55,18 +39,6 @@ const ix: InstructionRequest = {
   ],
   instructionData: encodedArgs,
 };
-```
-
-## Decode a raw instruction
-
-```ts
-import { idlInstructionAccountsDecode, idlInstructionArgsDecode } from "solana-kiss";
-
-const { instructionAddresses } = idlInstructionAccountsDecode(instructionIdl, ix.instructionInputs);
-// → { source: Pubkey, destination: Pubkey, authority: Pubkey }
-
-const { instructionPayload } = idlInstructionArgsDecode(instructionIdl, ix.instructionData);
-// → { amount: 1000000n }
 ```
 
 ## Via `Solana.hydrateAndEncodeInstruction` (recommended)

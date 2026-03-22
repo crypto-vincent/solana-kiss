@@ -64,17 +64,3 @@ urlExplorerBlock(rpcUrl, blockSlot);
 urlExplorerTransaction(rpcUrl, transactionHandle);
 urlExplorerSimulation(rpcUrl, transactionPacket); // inspect without broadcasting
 ```
-
-## RPC endpoint URLs
-
-```ts
-import {
-  urlRpcPublicMainnet,
-  urlRpcPublicDevnet,
-  urlRpcPublicTestnet,
-  urlRpcFromUrlOrMoniker,
-} from "solana-kiss";
-
-const url = urlRpcFromUrlOrMoniker("devnet");
-const url2 = urlRpcFromUrlOrMoniker("https://my-rpc.example.com");
-```

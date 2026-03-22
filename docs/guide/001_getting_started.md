@@ -33,29 +33,6 @@ const { accountState } = await solana.getAndInferAndDecodeAccount(
 console.log(accountState);
 ```
 
-## Picking a cluster
-
-Pass a short moniker or a full URL:
-
-```ts
-// Monikers – point to the public endpoints
-const mainnet = new Solana("mainnet");
-const devnet  = new Solana("devnet");
-const testnet = new Solana("testnet");
-
-// Custom node / local validator
-const local = new Solana("http://localhost:8899");
-
-// Bring your own RpcHttp instance (see the RPC Client guide)
-import { rpcHttpFromUrl, rpcHttpWithRetryOnError } from "solana-kiss";
-
-const rpc = rpcHttpWithRetryOnError(
-  rpcHttpFromUrl(new URL("https://my-rpc.example.com")),
-  async ({ retriedCounter }) => retriedCounter < 3,
-);
-const solana = new Solana(rpc);
-```
-
 ## What's next?
 
 | Topic | Description |

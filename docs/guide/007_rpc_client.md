@@ -81,15 +81,3 @@ Every helper accepts `RpcHttp` as its first argument:
 | `rpcHttpSendTransaction` | `sendTransaction` |
 | `rpcHttpSimulateTransaction` | `simulateTransaction` |
 | `rpcHttpWaitForTransaction` | polling via `getTransaction` |
-
-## `RpcHttp` type
-
-```ts
-type RpcHttp = (
-  method: string,
-  params: Readonly<JsonArray>,
-  config: Readonly<JsonObject> | "skip-configuration-object",
-) => Promise<JsonValue>;
-```
-
-Every helper accepts a plain `RpcHttp`, making them easy to test with a mock.

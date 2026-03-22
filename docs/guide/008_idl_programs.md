@@ -70,30 +70,3 @@ const errorIdl       = idlProgramGuessError(programIdl, errorCode);
 ```
 
 All functions match by discriminator prefix.
-
-## `IdlProgram` structure
-
-```ts
-type IdlProgram = {
-  metadata:     IdlMetadata;
-  typedefs:     Map<string, IdlTypedef>;
-  accounts:     Map<string, IdlAccount>;
-  instructions: Map<string, IdlInstruction>; // snake_case keys
-  events:       Map<string, IdlEvent>;
-  errors:       Map<string, IdlError>;
-  pdas:         Map<string, IdlPda>;
-  constants:    Map<string, IdlConstant>;
-  original:     IdlProgramOriginal;          // raw JSON access
-};
-```
-
-## Unknown-program stub
-
-When no IDL is available:
-
-```ts
-import { idlProgramUnknown } from "solana-kiss";
-
-const unknownIdl = await idlProgramUnknown(programAddress);
-// Accepts any data without schema constraints.
-```

@@ -60,13 +60,3 @@ compile time:
 | `Signature` | `Uint8Array` | 64-byte Ed25519 signature |
 | `TransactionPacket` | `Uint8Array` | Full wire-format transaction bytes |
 | `BlockSlot` | `number` | Solana slot number |
-
-```ts
-import {
-  pubkeyFromBase58,    pubkeyToBase58,    pubkeyToBytes,
-  blockHashFromBase58, blockHashToBase58, blockHashToBytes,
-  signatureFromBytes,  signatureToBytes,
-  transactionHandleFromBase58, transactionHandleToBase58,
-  blockSlotFromNumber, blockSlotToNumber,
-} from "solana-kiss";
-```

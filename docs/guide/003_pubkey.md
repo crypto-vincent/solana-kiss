@@ -55,23 +55,3 @@ import { pubkeyCreateFromSeed } from "solana-kiss";
 const derived = pubkeyCreateFromSeed(baseAddress, "nonce", ownerAddress);
 // Throws if seed exceeds 32 UTF-8 bytes
 ```
-
-## Curve check
-
-```ts
-import { pubkeyIsOnCurve } from "solana-kiss";
-
-// PDAs must be off the curve
-if (!pubkeyIsOnCurve(candidate)) {
-  console.log("Valid PDA candidate");
-}
-```
-
-## Signature verification
-
-```ts
-import { pubkeyToVerifier } from "solana-kiss";
-
-const verify = await pubkeyToVerifier(signerPublicKey);
-const ok = await verify(signature, messageBytes);
-```
