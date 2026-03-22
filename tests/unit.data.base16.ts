@@ -2,7 +2,7 @@ import { expect, it } from "@jest/globals";
 import { base16Decode, base16Encode, utf8Encode } from "../src";
 
 function referenceImplementation(data: Uint8Array): string {
-  const hex = "0123456789ABCDEF";
+  const hex = "0123456789abcdef";
   const parts = new Array<string>();
   for (let byteIndex = 0; byteIndex < data.length; byteIndex++) {
     const byte = data[byteIndex]!;

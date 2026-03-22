@@ -4,8 +4,8 @@ const alphabetLower = "0123456789abcdef";
 const alphabetUpper = "0123456789ABCDEF";
 
 const digitToCode = new Uint8Array(16);
-for (let digit = 0; digit < alphabetUpper.length; digit++) {
-  digitToCode[digit] = alphabetUpper.charCodeAt(digit);
+for (let digit = 0; digit < alphabetLower.length; digit++) {
+  digitToCode[digit] = alphabetLower.charCodeAt(digit);
 }
 const codeToDigit = new Int8Array(256).fill(-1);
 for (let digit = 0; digit < alphabetLower.length; digit++) {
@@ -16,7 +16,7 @@ for (let digit = 0; digit < alphabetUpper.length; digit++) {
 }
 
 /**
- * Encodes a byte array as an uppercase hexadecimal string.
+ * Encodes a byte array as a lowercase hexadecimal string.
  * @param bytes - The bytes to encode.
  * @returns The Base16 (hex) encoded string.
  */
