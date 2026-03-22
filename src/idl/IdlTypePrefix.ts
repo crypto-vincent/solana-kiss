@@ -1,7 +1,4 @@
-/**
- * Represents an unsigned integer prefix type used to encode the length or
- * discriminant of variable-size fields (e.g. vec, string, option).
- */
+/** Unsigned integer prefix for encoding length or discriminant of variable-size fields. */
 export class IdlTypePrefix {
   /** No prefix case (u0). */
   public static readonly u0 = new IdlTypePrefix("u0", 0);
@@ -27,11 +24,11 @@ export class IdlTypePrefix {
   }
 
   /**
-   * Dispatches to the matching visitor branch based on this prefix's integer width.
-   * @param visitor - An object with one handler per prefix size (u8/u16/u32/u64/u128).
-   * @param p1 - First context parameter forwarded to the visitor.
-   * @param p2 - Second context parameter forwarded to the visitor.
-   * @returns The value returned by the matched visitor branch.
+   * Dispatches to the matching prefix width handler.
+   * @param visitor - Handler per prefix size.
+   * @param p1 - Forwarded context.
+   * @param p2 - Forwarded context.
+   * @returns Visitor result.
    */
   public traverse<P1, P2, T>(
     visitor: {
@@ -50,11 +47,10 @@ export class IdlTypePrefix {
 }
 
 /**
- * Encodes a `bigint` value into the byte representation determined by `self`'s width
- * and appends the resulting {@link Uint8Array} to `blobs`.
- * @param self - The {@link IdlTypePrefix} defining the byte width to use.
- * @param value - The `bigint` value to encode.
- * @param blobs - The output array to which the encoded bytes are appended.
+ * Encodes a `bigint` value using `self`'s width and appends it to `blobs`.
+ * @param self - Prefix defining byte width.
+ * @param value - Value to encode.
+ * @param blobs - Output array to append bytes to.
  */
 export function idlTypePrefixEncode(
   self: IdlTypePrefix,
@@ -67,11 +63,11 @@ export function idlTypePrefixEncode(
 }
 
 /**
- * Decodes a `bigint` value from `data` at `dataOffset` using `self`'s byte width.
- * @param self - The {@link IdlTypePrefix} defining the byte width to use.
- * @param data - The `DataView` over the raw binary buffer.
- * @param dataOffset - Byte offset within `data` at which to start reading.
- * @returns A tuple of `[bytesConsumed, decodedValue]`.
+ * Decodes a `bigint` from `data` at `dataOffset` using `self`'s byte width.
+ * @param self - Prefix defining byte width.
+ * @param data - Raw binary buffer.
+ * @param dataOffset - Byte offset to start reading.
+ * @returns Tuple of `[bytesConsumed, decodedValue]`.
  */
 export function idlTypePrefixDecode(
   self: IdlTypePrefix,

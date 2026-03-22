@@ -40,15 +40,12 @@ import { IdlTypePrimitive, idlTypePrimitiveEncode } from "./IdlTypePrimitive";
 import { idlUtilsBytesJsonDecoder } from "./IdlUtils";
 
 /**
- * Encodes a JSON-compatible value into a binary `Uint8Array`.
- * An optional discriminator can be prepended to the output.
- *
- * @param self - The full IDL type describing the binary layout.
- * @param value - The JSON-compatible value to encode.
- * @param options - Optional encoding options, including:
- * @param options.discriminator - An optional byte sequence to prepend before the encoded data.
- * @param options.blobMode - If true, default to zero length prefix for option, vec, enum and string (default: false).
- * @returns The encoded binary representation.
+ * Encodes a JSON value into binary using the given IDL type.
+ * @param self - IDL type describing the binary layout.
+ * @param value - Value to encode.
+ * @param options.discriminator - Optional bytes to prepend.
+ * @param options.blobMode - If true, default to zero-length prefix (default: false).
+ * @returns Encoded binary.
  */
 export function idlTypeFullEncode(
   self: IdlTypeFull,
@@ -64,15 +61,12 @@ export function idlTypeFullEncode(
 }
 
 /**
- * Encodes a JSON-compatible value into a binary `Uint8Array`.
- * An optional discriminator can be prepended to the output.
- *
- * @param self - The full IDL fields describing the binary layout.
- * @param value - The JSON-compatible value to encode.
- * @param options - Optional encoding options, including:
- * @param options.discriminator - An optional byte sequence to prepend before the encoded data.
- * @param options.blobMode - If true, default to zero length prefix for option, vec, enum and string (default: false).
- * @returns The encoded binary representation.
+ * Encodes a JSON value into binary using the given IDL fields.
+ * @param self - IDL fields describing the binary layout.
+ * @param value - Value to encode.
+ * @param options.discriminator - Optional bytes to prepend.
+ * @param options.blobMode - If true, default to zero-length prefix (default: false).
+ * @returns Encoded binary.
  */
 export function idlTypeFullFieldsEncode(
   self: IdlTypeFullFields,

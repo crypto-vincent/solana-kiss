@@ -40,7 +40,7 @@ export type IdlTypeFlatLoop = {
 export type IdlTypeFlatArray = {
   /** The type of each element in the array. */
   items: IdlTypeFlat;
-  /** A flat type expression that resolves to the array's fixed element count (e.g. a const literal). */
+  /** Flat type expression for the fixed element count. */
   length: IdlTypeFlat;
 };
 /** A UTF-8 string encoded with a length prefix. */
@@ -64,11 +64,7 @@ export type IdlTypeFlatEnum = {
 export type IdlTypeFlatPadded = {
   /** Number of bytes to skip before the inner type. */
   before: number;
-  /**
-   * Minimum total byte size of the padded region (inner type + before padding).
-   * If the encoded inner type plus leading padding is smaller than this, trailing
-   * bytes are skipped until the minimum is reached.
-   */
+/** Min total bytes (inner + before padding); trailing bytes skipped if needed. */
   minSize: number;
   /** The inner type wrapped by this padding. */
   content: IdlTypeFlat;
@@ -113,11 +109,7 @@ type IdlTypeFlatContent =
   | IdlTypeFlatConst
   | IdlTypePrimitive;
 
-/**
- * Algebraic sum type representing any unresolved ("flat") IDL type.
- * Named typedef references may not yet be linked; use {@link IdlTypeFull} for fully-resolved types.
- * Construct instances via the static factory methods and dispatch via {@link traverse}.
- */
+/** Algebraic sum type for unresolved IDL types. Use {@link IdlTypeFull} for resolved. Construct via static factories; dispatch via {@link traverse}. */
 export class IdlTypeFlat {
   private readonly discriminant: IdlTypeFlatDiscriminant;
   private readonly content: IdlTypeFlatContent;
@@ -191,11 +183,11 @@ export class IdlTypeFlat {
   }
 
   /**
-   * Dispatches to the matching visitor branch based on this type's discriminant.
-   * @param visitor - An object with one handler per variant.
-   * @param p1 - First context parameter forwarded to the visitor.
-   * @param p2 - Second context parameter forwarded to the visitor.
-   * @returns The value returned by the matched visitor branch.
+   * Dispatches to the matching variant handler.
+   * @param visitor - Handler per variant.
+   * @param p1 - Forwarded context.
+   * @param p2 - Forwarded context.
+   * @returns Visitor result.
    */
   public traverse<P1, P2, T>(
     visitor: {
@@ -224,16 +216,16 @@ export class IdlTypeFlat {
 export type IdlTypeFlatFieldNamed = {
   /** The camelCase name of the field. */
   name: string;
-  /** Human-readable documentation strings attached to this field, or `undefined`. */
+  /** Documentation strings, or `undefined`. */
   docs: IdlDocs;
-  /** The unresolved flat type of this field. */
+  /** Unresolved flat type of this field. */
   content: IdlTypeFlat;
 };
 /** An unnamed (tuple-style) field within a struct or enum variant, carrying docs and its flat type. */
 export type IdlTypeFlatFieldUnnamed = {
-  /** Human-readable documentation strings attached to this field, or `undefined`. */
+  /** Documentation strings, or `undefined`. */
   docs: IdlDocs;
-  /** The unresolved flat type of this positional field. */
+  /** Unresolved flat type of this positional field. */
   content: IdlTypeFlat;
 };
 
@@ -243,10 +235,7 @@ type IdlTypeFlatFieldsContent =
   | Array<IdlTypeFlatFieldNamed>
   | Array<IdlTypeFlatFieldUnnamed>;
 
-/**
- * Algebraic sum type representing the fields of a struct or enum variant in the flat (unresolved) type system.
- * Can be nothing (unit), a list of named fields, or a list of unnamed (tuple) fields.
- */
+/** Fields of a struct/enum variant: nothing (unit), named, or unnamed (tuple). */
 export class IdlTypeFlatFields {
   private readonly discriminant: IdlTypeFlatFieldsDiscriminant;
   private readonly content: IdlTypeFlatFieldsContent;
@@ -275,11 +264,11 @@ export class IdlTypeFlatFields {
   }
 
   /**
-   * Dispatches to the matching visitor branch based on this fields discriminant.
-   * @param visitor - An object with one handler per variant (nothing/named/unnamed).
-   * @param p1 - First context parameter forwarded to the visitor.
-   * @param p2 - Second context parameter forwarded to the visitor.
-   * @returns The value returned by the matched visitor branch.
+   * Dispatches to the matching variant handler.
+   * @param visitor - Handler per variant (nothing/named/unnamed).
+   * @param p1 - Forwarded context.
+   * @param p2 - Forwarded context.
+   * @returns Visitor result.
    */
   public traverse<P1, P2, T>(
     visitor: {
@@ -300,8 +289,8 @@ export type IdlTypeFlatEnumVariant = {
   name: string | undefined;
   /** The explicit numeric discriminant code for this variant, or `undefined` to use the positional index. */
   code: bigint | undefined;
-  /** Human-readable documentation strings attached to this variant, or `undefined`. */
+  /** Documentation strings, or `undefined`. */
   docs: IdlDocs;
-  /** The fields of this variant (unit, named, or unnamed). */
+  /** Fields of this variant (unit, named, or unnamed). */
   fields: IdlTypeFlatFields;
 };

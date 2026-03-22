@@ -11,36 +11,27 @@ import { IdlDocs, idlDocsParse } from "./IdlDocs";
 import { IdlTypeFlat } from "./IdlTypeFlat";
 import { idlTypeFlatParse } from "./IdlTypeFlatParse";
 
-/**
- * Represents a parsed IDL type definition, including its name, type layout,
- * optional repr and serialization overrides, and generic parameters.
- */
+/** Parsed IDL type definition. */
 export type IdlTypedef = {
-  /** The camelCase name of the typedef as declared in the IDL. */
+  /** camelCase typedef name. */
   name: string;
-  /** Human-readable documentation strings attached to this typedef, or `undefined`. */
+  /** Documentation strings, or `undefined`. */
   docs: IdlDocs;
-  /**
-   * The memory representation hint, or `undefined` if none.
-   * Common values are `"rust"` (Repr(Rust)) and `"c"` (Repr(C)), used by bytemuck-serialized types.
-   */
+  /** Memory repr hint (`"rust"`, `"c"`), or `undefined`. */
   repr: string | undefined;
-  /**
-   * The serialization format override, or `undefined` for the default Borsh encoding.
-   * Currently the only supported non-default value is `"bytemuck"`.
-   */
+  /** Serialization format override, or `undefined` for Borsh. */
   serialization: string | undefined;
-  /** Ordered list of generic type parameter symbol names declared on this typedef. */
+  /** Ordered generic type parameter names. */
   generics: Array<string>;
-  /** The unresolved flat type representation of this typedef's layout. */
+  /** Unresolved flat type representation. */
   typeFlat: IdlTypeFlat;
 };
 
 /**
- * Parses an IDL typedef definition from its raw JSON representation.
- * @param typedefName - The name of the typedef.
- * @param typedefValue - The raw JSON value describing the typedef.
- * @returns The parsed {@link IdlTypedef}.
+ * Parses an IDL typedef from its raw JSON representation.
+ * @param typedefName - Typedef name.
+ * @param typedefValue - Raw JSON value.
+ * @returns Parsed {@link IdlTypedef}.
  */
 export function idlTypedefParse(
   typedefName: string,
@@ -57,11 +48,7 @@ export function idlTypedefParse(
   };
 }
 
-/**
- * A read-only map of built-in global typedef definitions keyed by name.
- * Includes synthetic types such as `$Rust` and `$C` used to represent
- * Rust and C memory layout overrides for bytemuck-serialized structs.
- */
+/** Read-only map of built-in global typedef definitions (e.g. `$Rust`, `$C`). */
 export const idlTypedefGlobalsByName: ReadonlyMap<string, IdlTypedef> = (() => {
   const typedefs = [
     {

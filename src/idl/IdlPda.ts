@@ -27,12 +27,11 @@ export type IdlPda = {
 };
 
 /**
- * Derives the PDA public key from the given inputs, using the PDA's seeds and the provided (or embedded) program address.
- * @param self - The {@link IdlPda} definition containing seeds and optional program override.
- * @param inputs - The input values used for seed blobs that reference named inputs.
- * @param programAddress - The owning program's {@link Pubkey}, required when the PDA has no embedded program override.
- * @returns The derived {@link Pubkey} address.
- * @throws If `programAddress` is not provided and the PDA definition does not embed a program.
+ * Derives the PDA public key from seeds and the provided program address.
+ * @param self - PDA definition with seeds and optional program override.
+ * @param inputs - Named input values for seed blobs.
+ * @param programAddress - Owning program address; required if PDA has no embedded program.
+ * @returns Derived {@link Pubkey}.
  */
 export function idlPdaFind(
   self: IdlPda,
@@ -53,11 +52,11 @@ export function idlPdaFind(
 }
 
 /**
- * Parses a raw IDL PDA JSON value into an {@link IdlPda}, resolving all seed blobs and the optional program override.
- * @param pdaName - The name of the PDA.
- * @param pdaValue - The raw JSON value describing the PDA.
- * @param typedefsIdls - A map of known typedef definitions for type resolution.
- * @returns The parsed {@link IdlPda}.
+ * Parses a raw IDL PDA JSON value into an {@link IdlPda}.
+ * @param pdaName - PDA name.
+ * @param pdaValue - Raw JSON value.
+ * @param typedefsIdls - Known typedef definitions.
+ * @returns Parsed {@link IdlPda}.
  */
 export function idlPdaParse(
   pdaName: string,
