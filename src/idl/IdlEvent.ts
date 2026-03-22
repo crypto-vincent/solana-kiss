@@ -20,32 +20,25 @@ import {
   idlUtilsExpectBlobAt,
 } from "./IdlUtils";
 
-/**
- * Represents a parsed IDL event definition, including its discriminator
- * and associated type information used for encoding and decoding event data.
- */
+/** Parsed IDL event definition. */
 export type IdlEvent = {
-  /** The camelCase name of the event as declared in the IDL. */
+  /** camelCase event name. */
   name: string;
-  /** Human-readable documentation strings attached to this event, or `undefined`. */
+  /** Documentation strings, or `undefined`. */
   docs: IdlDocs;
-  /**
-   * The byte sequence used to identify this event type at the start of its data.
-   * Defaults to the first 8 bytes of SHA-256(`"event:<name>"`).
-   */
+  /** Discriminator bytes at the start of event data. */
   discriminator: Uint8Array;
-  /** The unresolved flat type representation of the event's data layout. */
+  /** Unresolved flat type of the event's data layout. */
   typeFlat: IdlTypeFlat;
-  /** The fully-resolved type used for encoding and decoding. */
+  /** Fully-resolved type for encoding and decoding. */
   typeFull: IdlTypeFull;
 };
 
 /**
- * Encodes an event payload value into its binary representation,
- * prepending the event's discriminator bytes.
- * @param self - The IDL event definition.
- * @param eventPayload - The event payload to encode as a JSON value.
- * @returns An object containing the encoded `eventData` bytes.
+ * Encodes an event payload into binary, prepending the discriminator.
+ * @param self - IDL event definition.
+ * @param eventPayload - Payload to encode as JSON.
+ * @returns Object with encoded `eventData` bytes.
  */
 export function idlEventEncode(self: IdlEvent, eventPayload: JsonValue) {
   return {
@@ -56,11 +49,10 @@ export function idlEventEncode(self: IdlEvent, eventPayload: JsonValue) {
 }
 
 /**
- * Decodes raw event data bytes into a structured event payload value,
- * after first validating the discriminator.
- * @param self - The IDL event definition.
- * @param eventData - The raw event data bytes to decode.
- * @returns An object containing the decoded `eventPayload`.
+ * Decodes raw event data bytes into an event payload, validating the discriminator.
+ * @param self - IDL event definition.
+ * @param eventData - Raw event data bytes.
+ * @returns Object with decoded `eventPayload`.
  */
 export function idlEventDecode(self: IdlEvent, eventData: Uint8Array) {
   idlEventCheck(self, eventData);
@@ -73,10 +65,9 @@ export function idlEventDecode(self: IdlEvent, eventData: Uint8Array) {
 }
 
 /**
- * Validates that raw event data bytes begin with the expected discriminator.
- * Throws if the discriminator does not match.
- * @param self - The IDL event definition.
- * @param eventData - The raw event data bytes to validate.
+ * Validates that event data starts with the expected discriminator.
+ * @param self - IDL event definition.
+ * @param eventData - Raw event data bytes.
  */
 export function idlEventCheck(self: IdlEvent, eventData: Uint8Array): void {
   idlUtilsExpectBlobAt(0, self.discriminator, eventData);
@@ -84,12 +75,9 @@ export function idlEventCheck(self: IdlEvent, eventData: Uint8Array): void {
 
 /**
  * Parses an IDL event definition from its raw JSON representation.
- * Resolves type references using the provided typedef map and derives a
- * discriminator (defaulting to the Anchor `event:<name>` hash if not specified).
- * @param eventName - The name of the event.
- * @param eventValue - The raw JSON value describing the event.
- * @param typedefsIdls - A map of known typedef definitions for type resolution.
- * @returns The parsed {@link IdlEvent}.
+ * @param eventValue - Raw JSON value.
+ * @param typedefsIdls - Known typedef definitions.
+ * @returns Parsed {@link IdlEvent}.
  */
 export function idlEventParse(
   eventName: string,

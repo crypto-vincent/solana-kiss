@@ -16,9 +16,9 @@ for (let digit = 0; digit < alphabetUpper.length; digit++) {
 }
 
 /**
- * Encodes a byte array as a lowercase hexadecimal string.
- * @param bytes - The bytes to encode.
- * @returns The Base16 (hex) encoded string.
+ * Encodes bytes a lowercase hex.
+ * @param bytes - Bytes to encode.
+ * @returns Hex string.
  */
 export function base16Encode(bytes: Uint8Array): string {
   const codes = new Uint8Array(bytes.length * 2);
@@ -32,10 +32,10 @@ export function base16Encode(bytes: Uint8Array): string {
 }
 
 /**
- * Decodes a Base16 (hex) string into a byte array.
- * @param base16 - The hex string to decode (case-insensitive).
- * @returns The decoded bytes.
- * @throws {Error} If the string length is odd or contains non-hex characters.
+ * Decodes a hex string into bytes (case-insensitive).
+ * @param base16 - Hex string to decode.
+ * @returns Decoded bytes.
+ * @throws If odd length or non-hex characters.
  */
 export function base16Decode(base16: string): Uint8Array {
   const encodedLength = base16.length;

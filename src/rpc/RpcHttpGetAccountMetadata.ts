@@ -9,15 +9,9 @@ import { Pubkey, pubkeyDefault, pubkeyToBase58 } from "../data/Pubkey";
 import { RpcHttp } from "./RpcHttp";
 
 /**
- * Fetches metadata for an account without retrieving its data.
- *
- * If the account does not exist, returns zeroed defaults:
- * `programAddress` is the default public key, `accountExecutable` is `false`,
- * `accountLamports` is `0n`, and `accountSpace` is `0`.
- *
- * @param self - The {@link RpcHttp} client to use.
- * @param accountAddress - The {@link Pubkey} of the account to query.
- * @returns An object containing the account's owning program address, executable flag, lamport balance, and data size.
+ * Fetches account metadata without data. Returns zeroed defaults if account doesn't exist.
+ * @param accountAddress - Account to query.
+ * @returns `{ programAddress, accountExecutable, accountLamports, accountSpace }`.
  */
 export async function rpcHttpGetAccountMetadata(
   self: RpcHttp,

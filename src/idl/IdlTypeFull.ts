@@ -2,25 +2,25 @@ import { JsonValue } from "../data/Json";
 import { IdlTypePrefix } from "./IdlTypePrefix";
 import { IdlTypePrimitive } from "./IdlTypePrimitive";
 
-/** A resolved typedef reference, carrying the typedef name, optional repr hint, and its full content type. */
+/** Resolved typedef reference with name, optional repr hint, and content type. */
 export type IdlTypeFullTypedef = {
   /** The camelCase name of the typedef. */
   name: string;
-  /** The memory representation hint (`"rust"`, `"c"`, etc.), or `undefined` if none. */
+  /** Memory representation hint (`"rust"`, `"c"`, etc.), or `undefined`. */
   repr: string | undefined;
   /** The fully-resolved type described by this typedef. */
   content: IdlTypeFull;
 };
 /** An optional value whose presence is indicated by a length prefix. */
 export type IdlTypeFullOption = {
-  /** The prefix type encoding option presence (1 = some, 0 = none), or `undefined` for the default `u8`. */
+  /** Prefix encoding option presence (1=some, 0=none), or `undefined` for default `u8`. */
   prefix: IdlTypePrefix | undefined;
   /** The inner type of the option when present. */
   content: IdlTypeFull;
 };
 /** A variable-length sequence of items encoded with a length prefix. */
 export type IdlTypeFullVec = {
-  /** The prefix type encoding the element count, or `undefined` for the default `u32`. */
+  /** Prefix encoding element count, or `undefined` for default `u32`. */
   prefix: IdlTypePrefix | undefined;
   /** The type of each element in the sequence. */
   items: IdlTypeFull;
@@ -29,7 +29,7 @@ export type IdlTypeFullVec = {
 export type IdlTypeFullLoop = {
   /** The type of each element in the sequence. */
   items: IdlTypeFull;
-  /** The termination condition: a specific sentinel `{ value }` or `"end"` meaning end-of-buffer. */
+  /** Termination condition: sentinel `{ value }` or `"end"` (end-of-buffer). */
   stop: { value: JsonValue } | "end";
 };
 /** A fixed-length array with a resolved element count. */
@@ -41,7 +41,7 @@ export type IdlTypeFullArray = {
 };
 /** A UTF-8 string encoded with a length prefix. */
 export type IdlTypeFullString = {
-  /** The prefix type encoding the byte length, or `undefined` for the default `u32`. */
+  /** Prefix encoding byte length, or `undefined` for default `u32`. */
   prefix: IdlTypePrefix | undefined;
 };
 /** A struct type holding an ordered collection of fully-resolved fields. */
@@ -54,8 +54,7 @@ export type IdlTypeFullEnum = {
   /** The prefix type used to encode the discriminant value. */
   prefix: IdlTypePrefix | undefined;
   /**
-   * A bitmask applied to the raw discriminant before variant lookup.
-   * Used for enums that encode additional bits in the discriminant beyond the variant index.
+   * Bitmask applied to discriminant before variant lookup. Used for enums that encode extra bits in the discriminant.
    */
   mask: bigint;
   /** Map from variant name (string) to its index in `variants`. */
@@ -74,9 +73,8 @@ export type IdlTypeFullPadded = {
   /** Number of bytes to skip before the inner type. */
   before: number;
   /**
-   * Minimum total byte size of the padded region (inner type + before padding).
-   * If the encoded inner type plus leading padding is smaller than this, trailing
-   * bytes are skipped until the minimum is reached.
+   * Minimum total bytes of the padded region (inner type + before padding).
+   * Trailing bytes are skipped if needed to reach the minimum.
    */
   minSize: number;
   /** The inner fully-resolved type wrapped by this padding. */
@@ -114,9 +112,9 @@ type IdlTypeFullContent =
   | IdlTypePrimitive;
 
 /**
- * Algebraic sum type representing any fully-resolved IDL type.
- * All typedef references have been linked; use {@link IdlTypeFlat} for unresolved types.
- * Construct instances via the static factory methods and dispatch via {@link traverse}.
+ * Algebraic sum type for any fully-resolved IDL type.
+ * All typedef references linked; see {@link IdlTypeFlat} for unresolved.
+ * Construct via static factory methods; dispatch via {@link traverse}.
  */
 export class IdlTypeFull {
   private readonly discriminant: IdlTypeFullDiscriminant;
@@ -182,9 +180,7 @@ export class IdlTypeFull {
     });
   }
 
-  /**
-   * Returns `true` if this type is the `primitive` variant and equals the given primitive instance.
-   */
+  /** Returns `true` if this type is the `primitive` variant and equals the given primitive instance. */
   public isPrimitive(primitive: IdlTypePrimitive): boolean {
     return this.discriminant === "primitive" && this.content === primitive;
   }

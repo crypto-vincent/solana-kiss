@@ -1,16 +1,13 @@
 import { Result } from "./Utils";
 
 /**
- * Creates a memoized wrapper around an async function, caching results by a derived key.
- * Supports optional approver callbacks to control cache reads and writes.
- * @param inputToCacheKey - Async function that maps an input to a cache key.
- * @param invocation - The async function to memoize.
- * @param options - Optional approvers to control when cached values are used or stored.
- * @param options.cacheUseApprover - Called before using a cached value; return `false` to invalidate
- *   and bypass the cached entry. The `context` provides the current cache size and the cached entry.
+ * Memoizes an async function, caching results by a derived key.
+ * @param inputToCacheKey - Maps input to a cache key.
+ * @param invocation - Async function to memoize.
+ * @param options - Optional approvers for cache reads/writes.
+ * @param options.cacheUseApprover - Called before using a cached value; return `false` to invalidate.
  * @param options.cacheSetApprover - Called before storing a result; return `false` to skip caching.
- *   The `context` provides the current cache size and the result about to be stored.
- * @returns An async function with the same signature as `invocation` that uses the cache.
+ * @returns Memoized async function.
  */
 export function memoize<CacheKey, In, Out>(
   inputToCacheKey: (input: In) => Promise<CacheKey>,
@@ -19,18 +16,18 @@ export function memoize<CacheKey, In, Out>(
     cacheUseApprover?: (
       input: In,
       context: {
-        /** The number of entries currently in the cache. */
+        /** Number of entries currently in the cache. */
         cacheSize: number;
-        /** The cached entry whose reuse is being evaluated. */
+        /** Cached entry being evaluated for reuse. */
         cacheValue: { result: Result<Out>; at: Date };
       },
     ) => Promise<boolean>;
     cacheSetApprover?: (
       input: In,
       context: {
-        /** The number of entries currently in the cache (before this potential insertion). */
+        /** Cache size before this potential insertion. */
         cacheSize: number;
-        /** The result about to be cached, along with the timestamp of the invocation. */
+        /** Result about to be cached, with invocation timestamp. */
         cacheValue: { result: Result<Out>; at: Date };
       },
     ) => Promise<boolean>;

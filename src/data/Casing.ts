@@ -8,10 +8,9 @@ const codeUpperToLower = codeLowerA - codeUpperA;
 const cacheCodes = new Array<number>();
 
 /**
- * Converts a camelCase string to snake_case without data loss (losslessly reversible).
- * Each uppercase letter is replaced with an underscore followed by its lowercase equivalent.
- * @param string - The camelCase string to convert.
- * @returns The snake_case equivalent string.
+ * Converts camelCase to snake_case (losslessly reversible).
+ * @param string - camelCase input.
+ * @returns snake_case result.
  */
 export function casingLosslessConvertToSnake(string: string): string {
   cacheCodes.length = 0;
@@ -28,10 +27,9 @@ export function casingLosslessConvertToSnake(string: string): string {
 }
 
 /**
- * Converts a snake_case string to camelCase without data loss (losslessly reversible).
- * Each underscore followed by a lowercase letter is replaced with the uppercase letter.
- * @param string - The snake_case string to convert.
- * @returns The camelCase equivalent string.
+ * Converts snake_case to camelCase (losslessly reversible).
+ * @param string - snake_case input.
+ * @returns camelCase result.
  */
 export function casingLosslessConvertToCamel(string: string): string {
   cacheCodes.length = 0;

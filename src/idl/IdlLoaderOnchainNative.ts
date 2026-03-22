@@ -28,16 +28,12 @@ import { IdlLoader } from "./IdlLoader";
 import { idlProgramParse } from "./IdlProgram";
 
 /**
- * Creates an {@link IdlLoader} that fetches a program's IDL from on-chain
- * storage via the Solana Program Metadata program. It derives the metadata PDA
- * using the program address and `idl` seed, decodes the account, validates the
- * seed and format, optionally decompresses the payload, then parses the result
- * as an {@link IdlProgram}.
- * @param accountDataFetcher - A function that fetches raw account data by address.
- * @param params - Optional parameters for handling non-canonical authority addresses and custom JSON fetching.
- * @param params.nonCanonicalAuthorityAddress - An optional non-canonical authority address to use in the PDA derivation, if the program does not follow the canonical pattern.
- * @param params.customJsonFetcher - An optional custom JSON fetcher function to retrieve IDL JSON from URLs, if needed.
- * @returns A new {@link IdlLoader} backed by on-chain native IDL storage.
+ * {@link IdlLoader} backed by on-chain Solana Program Metadata.
+ * Derives metadata PDA, decodes and optionally decompresses, then parses as {@link IdlProgram}.
+ * @param accountDataFetcher - Fetches raw account data by address.
+ * @param params.nonCanonicalAuthorityAddress - Optional non-canonical authority for PDA derivation.
+ * @param params.customJsonFetcher - Optional custom JSON fetcher.
+ * @returns {@link IdlLoader} backed by on-chain native storage.
  */
 export function idlLoaderFromOnchainNative(
   accountDataFetcher: (accountAddress: Pubkey) => Promise<Uint8Array>,

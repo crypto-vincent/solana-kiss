@@ -22,39 +22,29 @@ import {
   idlUtilsExpectBlobAt,
 } from "./IdlUtils";
 
-/**
- * Represents a parsed IDL account definition, including its discriminator,
- * expected data layout, and associated type information.
- */
+/** Parsed IDL account definition with discriminator and type info. */
 export type IdlAccount = {
-  /** The camelCase name of the account as declared in the IDL (e.g. `"TokenAccount"`). */
+  /** camelCase account name. */
   name: string;
-  /** Human-readable documentation strings attached to this account definition, or `undefined`. */
+  /** Documentation strings, or `undefined`. */
   docs: IdlDocs;
-  /**
-   * The byte sequence used to identify this account type at the start of its data.
-   * Defaults to the first 8 bytes of SHA-256(`"account:<name>"`).
-   */
+  /** Discriminator bytes (default: first 8 bytes of SHA-256(`"account:<name>"`)). */
   discriminator: Uint8Array;
-  /** The exact expected byte length of the account's data, or `undefined` if variable-length. */
+  /** Expected data byte length, or `undefined` if variable-length. */
   dataSpace: number | undefined;
-  /**
-   * A list of expected byte blobs at fixed offsets within the account data
-   * (e.g. the discriminator at offset 0 plus any additional sentinels).
-   */
+  /** Expected byte blobs at fixed offsets (e.g. discriminator at offset 0). */
   dataBlobs: Array<{ offset: number; bytes: Uint8Array }>;
-  /** The unresolved flat type representation of the account layout. */
+  /** Unresolved flat type representation. */
   typeFlat: IdlTypeFlat;
-  /** The fully-resolved type representation used for encoding and decoding. */
+  /** Fully-resolved type for encoding and decoding. */
   typeFull: IdlTypeFull;
 };
 
 /**
- * Encodes an account state value into its binary representation,
- * prepending the account's discriminator bytes.
- * @param self - The IDL account definition.
- * @param accountState - The account state to encode as a JSON value.
- * @returns An object containing the encoded `accountData` bytes.
+ * Encodes an account state value, prepending the discriminator.
+ * @param self - IDL account definition.
+ * @param accountState - Value to encode.
+ * @returns `{ accountData }`.
  */
 export function idlAccountEncode(self: IdlAccount, accountState: JsonValue) {
   return {
@@ -65,11 +55,10 @@ export function idlAccountEncode(self: IdlAccount, accountState: JsonValue) {
 }
 
 /**
- * Decodes raw account data bytes into a structured account state value,
- * after first validating the data against the account's constraints.
- * @param self - The IDL account definition.
- * @param accountData - The raw account data bytes to decode.
- * @returns An object containing the decoded `accountState`.
+ * Decodes raw account data bytes after validating constraints.
+ * @param self - IDL account definition.
+ * @param accountData - Raw account data.
+ * @returns `{ accountState }`.
  */
 export function idlAccountDecode(self: IdlAccount, accountData: Uint8Array) {
   idlAccountCheck(self, accountData);
@@ -82,10 +71,10 @@ export function idlAccountDecode(self: IdlAccount, accountData: Uint8Array) {
 }
 
 /**
- * Validates raw account data bytes against the account's expected data space
- * and required data blobs (e.g. discriminator). Throws if validation fails.
- * @param self - The IDL account definition.
- * @param accountData - The raw account data bytes to validate.
+ * Validates raw account data against expected space and discriminator blobs.
+ * @param self - IDL account definition.
+ * @param accountData - Raw account data to validate.
+ * @throws If validation fails.
  */
 export function idlAccountCheck(
   self: IdlAccount,
@@ -104,13 +93,11 @@ export function idlAccountCheck(
 }
 
 /**
- * Parses an IDL account definition from its raw JSON representation.
- * Resolves type references using the provided typedef map and derives a
- * discriminator (defaulting to the Anchor `account:<name>` hash if not specified).
- * @param accountName - The name of the account.
- * @param accountValue - The raw JSON value describing the account.
- * @param typedefsIdls - A map of known typedef definitions for type resolution.
- * @returns The parsed {@link IdlAccount}.
+ * Parses an IDL account definition from JSON. Resolves types from `typedefsIdls`.
+ * Discriminator defaults to Anchor `account:<name>` hash if not specified.
+ * @param accountValue - Raw JSON value.
+ * @param typedefsIdls - Known typedef definitions.
+ * @returns Parsed {@link IdlAccount}.
  */
 export function idlAccountParse(
   accountName: string,

@@ -4,10 +4,10 @@ import { Branded } from "./Utils";
 export type Signature = Branded<Uint8Array, "Signature">;
 
 /**
- * Creates a {@link Signature} from a raw 64-byte array.
- * @param bytes - Exactly 64 bytes representing the signature.
- * @returns The typed {@link Signature}.
- * @throws {Error} If `bytes` is not exactly 64 bytes.
+ * Creates a {@link Signature} from 64 bytes.
+ * @param bytes - Exactly 64 bytes.
+ * @returns Typed {@link Signature}.
+ * @throws If not exactly 64 bytes.
  */
 export function signatureFromBytes(bytes: Uint8Array): Signature {
   if (bytes.length !== 64) {
@@ -17,9 +17,9 @@ export function signatureFromBytes(bytes: Uint8Array): Signature {
 }
 
 /**
- * Returns the raw byte array from a {@link Signature}
- * @param signature - The signature to decode.
- * @returns A 64-byte `Uint8Array`.
+ * Returns the raw bytes of a {@link Signature}.
+ * @param signature - Signature to decode.
+ * @returns 64-byte `Uint8Array`.
  */
 export function signatureToBytes(signature: Signature): Uint8Array {
   return signature as Uint8Array;

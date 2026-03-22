@@ -12,30 +12,25 @@ import { idlTypeFlatParse } from "./IdlTypeFlatParse";
 import { IdlTypeFull } from "./IdlTypeFull";
 import { idlUtilsJsonRustedParse } from "./IdlUtils";
 
-/**
- * Represents a parsed IDL constant definition, including its name, documentation,
- * value, and associated type information.
- */
+/** Parsed IDL constant definition. */
 export type IdlConstant = {
-  /** The camelCase name of the constant as declared in the IDL. */
+  /** camelCase constant name. */
   name: string;
-  /** Human-readable documentation strings attached to this constant, or `undefined`. */
+  /** Documentation strings, or `undefined`. */
   docs: IdlDocs;
-  /** The resolved JSON-compatible value of the constant. */
+  /** Resolved JSON-compatible value. */
   value: JsonValue;
-  /** The unresolved flat type representation of the constant's type. */
+  /** Unresolved flat type. */
   typeFlat: IdlTypeFlat;
-  /** The fully-resolved type used for encoding and decoding. */
+  /** Fully-resolved type for encoding and decoding. */
   typeFull: IdlTypeFull;
 };
 
 /**
  * Parses an IDL constant definition from its raw JSON representation.
- * Resolves the constant's type using the provided typedef map.
- * @param constantName - The name of the constant.
- * @param constantValue - The raw JSON value describing the constant.
- * @param typedefsIdls - A map of known typedef definitions for type resolution.
- * @returns The parsed {@link IdlConstant}.
+ * @param constantValue - Raw JSON value.
+ * @param typedefsIdls - Known typedef definitions.
+ * @returns Parsed {@link IdlConstant}.
  */
 export function idlConstantParse(
   constantName: string,

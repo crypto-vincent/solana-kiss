@@ -1,9 +1,9 @@
 /**
- * Wraps a function call with error context, re-throwing any caught error as an {@link ErrorStack}.
- * @param message - A context message describing the operation being attempted.
- * @param fn - The function to execute.
- * @returns The return value of `fn`.
- * @throws {@link ErrorStack} If `fn` throws, wraps the original error with the provided message.
+ * Wraps a function call with error context, re-throwing as {@link ErrorStack}.
+ * @param message - Context message.
+ * @param fn - Function to execute.
+ * @returns Return value of `fn`.
+ * @throws {@link ErrorStack} wrapping the original error.
  */
 export function withErrorContext<T>(message: string, fn: () => T): T {
   try {
@@ -13,14 +13,11 @@ export function withErrorContext<T>(message: string, fn: () => T): T {
   }
 }
 
-/**
- * An error that preserves a tree of nested inner errors for debugging.
- * The message includes a visual tree of all inner error messages.
- */
+/** Error that preserves a tree of nested inner errors. */
 export class ErrorStack extends Error {
   /**
-   * @param message - The top-level context message.
-   * @param inner - An optional inner error or array of inner errors to nest beneath this message.
+   * @param message - Top-level context message.
+   * @param inner - Optional inner error(s) to nest.
    */
   constructor(message: string, inner?: any | Array<any>) {
     if (inner === undefined) {

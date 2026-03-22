@@ -73,10 +73,7 @@ type IdlInstructionBlobContent =
   | IdlInstructionBlobArg
   | IdlInstructionBlobAccount;
 
-/**
- * A discriminated union representing a blob value that can be a constant byte array,
- * a reference into the instruction arguments, or a reference into an account's state.
- */
+/** Blob value: constant bytes, instruction arg reference, or account state reference. */
 export class IdlInstructionBlob {
   private readonly discriminant: IdlInstructionBlobDiscriminant;
   private readonly content: IdlInstructionBlobContent;
@@ -103,12 +100,11 @@ export class IdlInstructionBlob {
   }
 
   /**
-   * Dispatches to the appropriate visitor branch based on the blob's variant,
-   * forwarding two extra parameters and returning the visitor's result.
-   * @param visitor - An object with one handler per variant (`const`, `arg`, `account`).
-   * @param p1 - First context parameter forwarded to the visitor.
-   * @param p2 - Second context parameter forwarded to the visitor.
-   * @returns The value returned by the matched visitor branch.
+   * Dispatches to the matching visitor branch.
+   * @param visitor - Handler per variant (`const`, `arg`, `account`).
+   * @param p1 - Forwarded context.
+   * @param p2 - Forwarded context.
+   * @returns Visitor result.
    */
   public traverse<P1, P2, T>(
     visitor: {
@@ -124,10 +120,10 @@ export class IdlInstructionBlob {
 }
 
 /**
- * Computes the raw byte representation of a blob by resolving its variant against the given find context.
- * @param self - The {@link IdlInstructionBlob} to compute.
- * @param findContext - The resolution context providing instruction addresses, payload, and account data.
- * @returns The computed bytes.
+ * Computes raw bytes for a blob by resolving its variant against the find context.
+ * @param self - Blob to compute.
+ * @param findContext - Resolution context.
+ * @returns Computed bytes.
  */
 export async function idlInstructionBlobCompute(
   self: IdlInstructionBlob,
@@ -137,11 +133,11 @@ export async function idlInstructionBlobCompute(
 }
 
 /**
- * Parses a raw IDL blob JSON value into an {@link IdlInstructionBlob}, resolving constant, arg, or account variants.
- * @param instructionBlobValue - The raw JSON value describing the blob.
- * @param instructionArgsTypeFullFields - The instruction's resolved argument fields, used for arg-path blob parsing.
- * @param typedefsIdls - A map of known typedef definitions for type resolution.
- * @returns The parsed {@link IdlInstructionBlob}.
+ * Parses a raw IDL blob JSON value into an {@link IdlInstructionBlob}.
+ * @param instructionBlobValue - Raw JSON blob value.
+ * @param instructionArgsTypeFullFields - Resolved arg fields for arg-path parsing.
+ * @param typedefsIdls - Known typedef definitions.
+ * @returns Parsed {@link IdlInstructionBlob}.
  */
 export function idlInstructionBlobParse(
   instructionBlobValue: JsonValue,
