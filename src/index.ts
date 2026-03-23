@@ -19,6 +19,7 @@ export * from "./data/Transaction";
 export * from "./data/Url";
 export * from "./data/Utf8";
 export * from "./data/Utils";
+export * from "./data/VarInt";
 export * from "./data/Wallet";
 
 export * from "./idl/IdlAccount";

@@ -11,6 +11,7 @@ import {
 import { Signature, signatureFromBytes, signatureToBytes } from "./Signature";
 import { Signer } from "./Signer";
 import { Branded } from "./Utils";
+import { varIntDecode } from "./VarInt";
 import { WalletAccount } from "./Wallet";
 
 /** Inputs required to build a Solana transaction. */
@@ -417,7 +418,7 @@ export function transactionDecompileRequest(
   );
   offset += 32;
   const instructionCount = varIntRead(transactionMessage, offset);
-  offset += instructionCount.size;
+  offset += instructionCount.length;
   const compiledInstructions = new Array<{
     programIndex: number;
     inputsIndexes: Array<number>;
@@ -426,13 +427,13 @@ export function transactionDecompileRequest(
   for (let i = 0; i < instructionCount.value; i++) {
     const programIndex = byteRead(transactionMessage, offset++);
     const inputCount = varIntRead(transactionMessage, offset);
-    offset += inputCount.size;
+    offset += inputCount.length;
     const inputsIndexes = new Array<number>();
     for (let j = 0; j < inputCount.value; j++) {
       inputsIndexes.push(byteRead(transactionMessage, offset++));
     }
     const dataLength = varIntRead(transactionMessage, offset);
-    offset += dataLength.size;
+    offset += dataLength.length;
     const dataBytes = bytesRead(transactionMessage, offset, dataLength.value);
     offset += dataLength.value;
     compiledInstructions.push({ programIndex, inputsIndexes, dataBytes });
@@ -597,14 +598,9 @@ function varIntWrite(byteArray: Array<number>, value: number) {
 function varIntRead(
   data: Uint8Array | TransactionMessage | TransactionPacket,
   offset: number,
-): { value: number; size: number } {
-  const firstByte = byteRead(data, offset);
-  if ((firstByte & 0x80) === 0) {
-    return { value: firstByte, size: 1 };
-  }
-  const secondByte = byteRead(data, offset + 1);
-  const length = (firstByte & 0x7f) | (secondByte << 7);
-  return { value: length, size: 2 };
+): { value: number; length: number } {
+  const [length, value] = varIntDecode(byteRead, data, offset);
+  return { value: Number(value), length };
 }
 
 function byteRead(
@@ -670,13 +666,13 @@ function checkPacket(transactionPacket: TransactionPacket) {
   offset += staticAddressesCount * 32;
   offset += 32;
   const instructionCount = varIntRead(transactionPacket, offset);
-  offset += instructionCount.size;
+  offset += instructionCount.length;
   for (let i = 0; i < instructionCount.value; i++) {
     offset++;
     const inputCount = varIntRead(transactionPacket, offset);
-    offset += inputCount.size + inputCount.value;
+    offset += inputCount.length + inputCount.value;
     const dataLength = varIntRead(transactionPacket, offset);
-    offset += dataLength.size + dataLength.value;
+    offset += dataLength.length + dataLength.value;
   }
   if (offset < transactionPacket.length) {
     const loadedAddressLookupTablesCount = byteRead(

@@ -35,57 +35,57 @@ import { IdlTypePrimitive, idlTypePrimitiveDecode } from "./IdlTypePrimitive";
  * Decodes a byte array into a JSON-compatible value.
  * @param self - Full IDL type describing the binary layout.
  * @param data - Raw binary buffer.
- * @param dataOffset - Byte offset to start reading.
+ * @param offset - Byte offset to start reading.
  * @returns Tuple of `[bytesConsumed, decodedJsonValue]`.
  */
 export function idlTypeFullDecode(
   self: IdlTypeFull,
   data: DataView,
-  dataOffset: number,
+  offset: number,
 ): [number, JsonValue] {
-  return self.traverse(visitorDecode, data, dataOffset, null);
+  return self.traverse(visitorDecode, data, offset, null);
 }
 
 /**
  * Decodes a byte array into a JSON-compatible value using IDL fields.
  * @param self - Full IDL fields describing the binary layout.
  * @param data - Raw binary buffer.
- * @param dataOffset - Byte offset to start reading.
+ * @param offset - Byte offset to start reading.
  * @returns Tuple of `[bytesConsumed, decodedJsonValue]`.
  */
 export function idlTypeFullFieldsDecode(
   self: IdlTypeFullFields,
   data: DataView,
-  dataOffset: number,
+  offset: number,
 ): [number, JsonValue] {
-  return self.traverse(visitorFieldsDecode, data, dataOffset, null);
+  return self.traverse(visitorFieldsDecode, data, offset, null);
 }
 
 const visitorDecode = {
   typedef: (
     self: IdlTypeFullTypedef,
     data: DataView,
-    dataOffset: number,
+    offset: number,
   ): [number, JsonValue] => {
     return withErrorContext(
-      `Decode: Typedef: ${self.name} (offset: ${dataOffset})`,
-      () => idlTypeFullDecode(self.content, data, dataOffset),
+      `Decode: Typedef: ${self.name} (offset: ${offset})`,
+      () => idlTypeFullDecode(self.content, data, offset),
     );
   },
   option: (
     self: IdlTypeFullOption,
     data: DataView,
-    dataOffset: number,
+    offset: number,
   ): [number, JsonValue] => {
     let [dataSize, dataPrefix] = idlTypePrefixDecode(
       self.prefix ?? idlTypePrefixDefaultOption,
       data,
-      dataOffset,
+      offset,
     );
     if ((dataPrefix & 1n) === 0n) {
       return [dataSize, null];
     }
-    const dataContentOffset = dataOffset + dataSize;
+    const dataContentOffset = offset + dataSize;
     const [dataContentSize, dataContent] = idlTypeFullDecode(
       self.content,
       data,
@@ -97,17 +97,17 @@ const visitorDecode = {
   vec: (
     self: IdlTypeFullVec,
     data: DataView,
-    dataOffset: number,
+    offset: number,
   ): [number, JsonValue] => {
     let [dataSize, dataPrefix] = idlTypePrefixDecode(
       self.prefix ?? idlTypePrefixDefaultVec,
       data,
-      dataOffset,
+      offset,
     );
     const dataLength = Number(dataPrefix);
     const dataItems = [];
     for (let i = 0; i < dataLength; i++) {
-      const dataItemOffset = dataOffset + dataSize;
+      const dataItemOffset = offset + dataSize;
       const [dataItemSize, dataItem] = idlTypeFullDecode(
         self.items,
         data,
@@ -121,12 +121,12 @@ const visitorDecode = {
   loop: (
     self: IdlTypeFullLoop,
     data: DataView,
-    dataOffset: number,
+    offset: number,
   ): [number, JsonValue] => {
     let dataSize = 0;
     const dataItems = [];
     while (true) {
-      const dataItemOffset = dataOffset + dataSize;
+      const dataItemOffset = offset + dataSize;
       if (self.stop === "end" && data.byteLength === dataItemOffset) {
         return [dataSize, dataItems];
       }
@@ -147,12 +147,12 @@ const visitorDecode = {
   array: (
     self: IdlTypeFullArray,
     data: DataView,
-    dataOffset: number,
+    offset: number,
   ): [number, JsonValue] => {
     let dataSize = 0;
     const dataItems = [];
     for (let i = 0; i < self.length; i++) {
-      const dataItemOffset = dataOffset + dataSize;
+      const dataItemOffset = offset + dataSize;
       const [dataItemSize, dataItem] = idlTypeFullDecode(
         self.items,
         data,
@@ -166,15 +166,15 @@ const visitorDecode = {
   string: (
     self: IdlTypeFullString,
     data: DataView,
-    dataOffset: number,
+    offset: number,
   ): [number, JsonValue] => {
     let [dataSize, dataPrefix] = idlTypePrefixDecode(
       self.prefix ?? idlTypePrefixDefaultString,
       data,
-      dataOffset,
+      offset,
     );
     const dataLength = Number(dataPrefix);
-    const dataCharsOffset = dataOffset + dataSize;
+    const dataCharsOffset = offset + dataSize;
     const dataBytes = new Uint8Array(data.buffer, dataCharsOffset, dataLength);
     const dataString = utf8Decode(dataBytes);
     dataSize += dataLength;
@@ -183,14 +183,14 @@ const visitorDecode = {
   struct: (
     self: IdlTypeFullStruct,
     data: DataView,
-    dataOffset: number,
+    offset: number,
   ): [number, JsonValue] => {
-    return idlTypeFullFieldsDecode(self.fields, data, dataOffset);
+    return idlTypeFullFieldsDecode(self.fields, data, offset);
   },
   enum: (
     self: IdlTypeFullEnum,
     data: DataView,
-    dataOffset: number,
+    offset: number,
   ): [number, JsonValue] => {
     if (self.variants.length === 0) {
       return [0, null];
@@ -198,14 +198,14 @@ const visitorDecode = {
     let [dataSize, dataPrefix] = idlTypePrefixDecode(
       self.prefix ?? idlTypePrefixDefaultEnum,
       data,
-      dataOffset,
+      offset,
     );
     const dataCode = dataPrefix & self.mask;
-    const dataVariantOffset = dataOffset + dataSize;
+    const dataVariantOffset = offset + dataSize;
     const variantIndex = self.indexByCodeBigInt.get(dataCode);
     if (variantIndex === undefined) {
       throw new Error(
-        `Decode: Unknown enum code: ${dataCode} (offset: ${dataOffset})`,
+        `Decode: Unknown enum code: ${dataCode} (offset: ${offset})`,
       );
     }
     const variant = self.variants[variantIndex]!;
@@ -223,10 +223,10 @@ const visitorDecode = {
   padded: (
     self: IdlTypeFullPadded,
     data: DataView,
-    dataOffset: number,
+    offset: number,
   ): [number, JsonValue] => {
     let dataSize = self.before;
-    const dataContentOffset = dataOffset + dataSize;
+    const dataContentOffset = offset + dataSize;
     const [dataContentSize, dataContent] = idlTypeFullDecode(
       self.content,
       data,
@@ -238,14 +238,14 @@ const visitorDecode = {
   blob: (
     self: IdlTypeFullBlob,
     data: DataView,
-    dataOffset: number,
+    offset: number,
   ): [number, JsonValue] => {
     for (
       let expectedIndex = 0;
       expectedIndex < self.bytes.length;
       expectedIndex++
     ) {
-      const foundIndex = dataOffset + expectedIndex;
+      const foundIndex = offset + expectedIndex;
       const expectedByte = self.bytes[expectedIndex];
       const foundByte = data.getUint8(foundIndex);
       if (foundByte !== expectedByte) {
@@ -259,9 +259,9 @@ const visitorDecode = {
   primitive: (
     self: IdlTypePrimitive,
     data: DataView,
-    dataOffset: number,
+    offset: number,
   ): [number, JsonValue] => {
-    return idlTypePrimitiveDecode(self, data, dataOffset);
+    return idlTypePrimitiveDecode(self, data, offset);
   },
 };
 
@@ -269,19 +269,19 @@ const visitorFieldsDecode = {
   nothing: (
     _self: {},
     _data: DataView,
-    _dataOffset: number,
+    _offset: number,
   ): [number, JsonValue] => {
     return [0, null];
   },
   named: (
     self: Array<IdlTypeFullFieldNamed>,
     data: DataView,
-    dataOffset: number,
+    offset: number,
   ): [number, JsonValue] => {
     let dataSize = 0;
     const dataFields = {} as JsonObject;
     for (const field of self) {
-      const dataFieldOffset = dataOffset + dataSize;
+      const dataFieldOffset = offset + dataSize;
       const [dataFieldSize, dataField] = withErrorContext(
         `Decode: Field: ${field.name} (offset: ${dataFieldOffset})`,
         () => idlTypeFullDecode(field.content, data, dataFieldOffset),
@@ -294,13 +294,13 @@ const visitorFieldsDecode = {
   unnamed: (
     self: Array<IdlTypeFullFieldUnnamed>,
     data: DataView,
-    dataOffset: number,
+    offset: number,
   ): [number, JsonValue] => {
     let dataSize = 0;
     const dataFields = [] as JsonArray;
     for (let index = 0; index < self.length; index++) {
       const field = self[index]!;
-      const dataFieldOffset = dataOffset + dataSize;
+      const dataFieldOffset = offset + dataSize;
       const [dataFieldSize, dataField] = withErrorContext(
         `Decode: Field: Unamed: ${index} (offset: ${dataFieldOffset})`,
         () => idlTypeFullDecode(field.content, data, dataFieldOffset),

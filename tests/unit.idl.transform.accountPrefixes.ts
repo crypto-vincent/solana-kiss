@@ -95,21 +95,21 @@ it("run", () => {
   const accountBytes = new Uint8Array(
     [
       [77],
-      makeBlob([0, 0, 0, 0], [0]),
-      makeBlob([1, 0, 0, 0], [39]),
-      makeBlob([1, 0, 0, 0], Array.from(pubkeyToBytes(accountState.coption3))),
-      makeBlob([1], [40]),
-      makeBlob([1], [41]),
-      makeBlob([1, 0], [42]),
-      makeBlob([1, 0, 0, 0], [43]),
-      makeBlob([1, 0, 0, 0], [50]),
-      makeBlob([1], [51]),
-      makeBlob([1, 0], [52]),
-      makeBlob([1, 0, 0, 0], [53]),
-      makeBlob([0, 0, 0, 0], []),
-      makeBlob([1], [65]),
-      makeBlob([2, 0], [66, 66]),
-      makeBlob([3, 0, 0, 0], [67, 67, 67]),
+      flat([0, 0, 0, 0], [0]),
+      flat([1, 0, 0, 0], [39]),
+      flat([1, 0, 0, 0], Array.from(pubkeyToBytes(accountState.coption3))),
+      flat([1], [40]),
+      flat([1], [41]),
+      flat([1, 0], [42]),
+      flat([1, 0, 0, 0], [43]),
+      flat([1, 0, 0, 0], [50]),
+      flat([1], [51]),
+      flat([1, 0], [52]),
+      flat([1, 0, 0, 0], [53]),
+      flat([0, 0, 0, 0], []),
+      flat([1], [65]),
+      flat([2, 0], [66, 66]),
+      flat([3, 0, 0, 0], [67, 67, 67]),
       [0],
       [1],
       [2, 0],
@@ -124,6 +124,6 @@ it("run", () => {
   );
 });
 
-function makeBlob(prefix: number[], content: number[]): number[] {
-  return [...prefix, ...content];
+function flat(...arrays: Array<Array<number>>): number[] {
+  return arrays.flat();
 }

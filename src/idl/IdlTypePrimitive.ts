@@ -42,18 +42,18 @@ export function idlTypePrimitiveEncode(
 }
 
 /**
- * Decodes a JSON value from `data` at `dataOffset` using `self`'s primitive type.
+ * Decodes a JSON value from `data` at `offset` using `self`'s primitive type.
  * @param self - Primitive type to decode.
  * @param data - Raw binary `DataView`.
- * @param dataOffset - Byte offset.
+ * @param offset - Byte offset.
  * @returns `[bytesConsumed, decodedJsonValue]`.
  */
 export function idlTypePrimitiveDecode(
   self: IdlTypePrimitive,
   data: DataView,
-  dataOffset: number,
+  offset: number,
 ): [number, JsonValue] {
-  return visitorDecode[self](data, dataOffset);
+  return visitorDecode[self](data, offset);
 }
 
 const visitorEncode: {
@@ -192,54 +192,54 @@ const visitorEncode: {
 const visitorDecode: {
   [K in IdlTypePrimitive]: (
     data: DataView,
-    dataOffset: number,
+    offset: number,
   ) => [number, JsonValue];
 } = {
-  u8: (data: DataView, dataOffset: number) => {
-    return [1, jsonCodecNumber.encoder(data.getUint8(dataOffset))];
+  u8: (data: DataView, offset: number) => {
+    return [1, jsonCodecNumber.encoder(data.getUint8(offset))];
   },
-  u16: (data: DataView, dataOffset: number) => {
-    return [2, jsonCodecNumber.encoder(data.getUint16(dataOffset, true))];
+  u16: (data: DataView, offset: number) => {
+    return [2, jsonCodecNumber.encoder(data.getUint16(offset, true))];
   },
-  u32: (data: DataView, dataOffset: number) => {
-    return [4, jsonCodecNumber.encoder(data.getUint32(dataOffset, true))];
+  u32: (data: DataView, offset: number) => {
+    return [4, jsonCodecNumber.encoder(data.getUint32(offset, true))];
   },
-  u64: (data: DataView, dataOffset: number) => {
-    return [8, jsonCodecBigInt.encoder(data.getBigUint64(dataOffset, true))];
+  u64: (data: DataView, offset: number) => {
+    return [8, jsonCodecBigInt.encoder(data.getBigUint64(offset, true))];
   },
-  u128: (data: DataView, dataOffset: number) => {
-    const low = data.getBigUint64(dataOffset, true);
-    const high = data.getBigUint64(dataOffset + 8, true);
+  u128: (data: DataView, offset: number) => {
+    const low = data.getBigUint64(offset, true);
+    const high = data.getBigUint64(offset + 8, true);
     return [16, jsonCodecBigInt.encoder(low | (high << 64n))];
   },
-  i8: (data: DataView, dataOffset: number) => {
-    return [1, jsonCodecNumber.encoder(data.getInt8(dataOffset))];
+  i8: (data: DataView, offset: number) => {
+    return [1, jsonCodecNumber.encoder(data.getInt8(offset))];
   },
-  i16: (data: DataView, dataOffset: number) => {
-    return [2, jsonCodecNumber.encoder(data.getInt16(dataOffset, true))];
+  i16: (data: DataView, offset: number) => {
+    return [2, jsonCodecNumber.encoder(data.getInt16(offset, true))];
   },
-  i32: (data: DataView, dataOffset: number) => {
-    return [4, jsonCodecNumber.encoder(data.getInt32(dataOffset, true))];
+  i32: (data: DataView, offset: number) => {
+    return [4, jsonCodecNumber.encoder(data.getInt32(offset, true))];
   },
-  i64: (data: DataView, dataOffset: number) => {
-    return [8, jsonCodecBigInt.encoder(data.getBigInt64(dataOffset, true))];
+  i64: (data: DataView, offset: number) => {
+    return [8, jsonCodecBigInt.encoder(data.getBigInt64(offset, true))];
   },
-  i128: (data: DataView, dataOffset: number) => {
-    const low = data.getBigUint64(dataOffset, true);
-    const high = data.getBigInt64(dataOffset + 8, true);
+  i128: (data: DataView, offset: number) => {
+    const low = data.getBigUint64(offset, true);
+    const high = data.getBigInt64(offset + 8, true);
     return [16, jsonCodecBigInt.encoder(low | (high << 64n))];
   },
-  f32: (data: DataView, dataOffset: number) => {
-    return [4, jsonCodecNumber.encoder(data.getFloat32(dataOffset, true))];
+  f32: (data: DataView, offset: number) => {
+    return [4, jsonCodecNumber.encoder(data.getFloat32(offset, true))];
   },
-  f64: (data: DataView, dataOffset: number) => {
-    return [8, jsonCodecNumber.encoder(data.getFloat64(dataOffset, true))];
+  f64: (data: DataView, offset: number) => {
+    return [8, jsonCodecNumber.encoder(data.getFloat64(offset, true))];
   },
-  bool: (data: DataView, dataOffset: number) => {
-    return [1, jsonCodecBoolean.encoder(data.getUint8(dataOffset) != 0)];
+  bool: (data: DataView, offset: number) => {
+    return [1, jsonCodecBoolean.encoder(data.getUint8(offset) != 0)];
   },
-  pubkey: (data: DataView, dataOffset: number) => {
-    const bytes = new Uint8Array(data.buffer, dataOffset, 32);
+  pubkey: (data: DataView, offset: number) => {
+    const bytes = new Uint8Array(data.buffer, offset, 32);
     return [32, jsonCodecPubkey.encoder(pubkeyFromBytes(bytes))];
   },
 };
