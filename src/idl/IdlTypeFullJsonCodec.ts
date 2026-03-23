@@ -167,6 +167,7 @@ const visitorExpressionPrimitive: {
   f64: () => `jsonCodecNumber`,
   bool: () => `jsonCodecBoolean`,
   pubkey: () => `jsonCodecPubkey`,
+  varint: () => `jsonCodecBigInt`,
 };
 
 function stringFunctionCall(

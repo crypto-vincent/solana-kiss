@@ -7,6 +7,7 @@ import {
   jsonCodecPubkey,
 } from "../data/Json";
 import { pubkeyFromBytes, pubkeyToBytes } from "../data/Pubkey";
+import { varIntDecode, varIntEncode } from "../data/VarInt";
 
 /** Primitive scalar type supported for encoding/decoding. */
 export type IdlTypePrimitive =
@@ -23,7 +24,8 @@ export type IdlTypePrimitive =
   | "f32"
   | "f64"
   | "bool"
-  | "pubkey";
+  | "pubkey"
+  | "varint";
 
 /**
  * Encodes a JSON value into the byte representation of `self`'s primitive type, appending to `blobs`.
@@ -187,6 +189,13 @@ const visitorEncode: {
   pubkey: (value: JsonValue, blobs: Array<Uint8Array>) => {
     blobs.push(pubkeyToBytes(jsonCodecPubkey.decoder(value)));
   },
+  varint: (value: JsonValue, blobs: Array<Uint8Array>) => {
+    const num = jsonCodecBigInt.decoder(value);
+    if (num < 0n) {
+      throw new Error(`Value out of bounds for varint: ${num}`);
+    }
+    blobs.push(varIntEncode(num));
+  },
 };
 
 const visitorDecode: {
@@ -242,4 +251,12 @@ const visitorDecode: {
     const bytes = new Uint8Array(data.buffer, offset, 32);
     return [32, jsonCodecPubkey.encoder(pubkeyFromBytes(bytes))];
   },
+  varint: (data: DataView, offset: number) => {
+    const [length, value] = varIntDecode(byteGetter, data, offset);
+    return [length, jsonCodecBigInt.encoder(value)];
+  },
 };
+
+function byteGetter(data: DataView, offset: number) {
+  return data.getUint8(offset);
+}
