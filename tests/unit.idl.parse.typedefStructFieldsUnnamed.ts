@@ -1,11 +1,5 @@
 import { expect, it } from "@jest/globals";
-import {
-  idlProgramParse,
-  IdlTypeFlat,
-  IdlTypeFlatFields,
-  IdlTypePrefix,
-  IdlTypePrimitive,
-} from "../src";
+import { idlProgramParse, IdlTypeFlat, IdlTypeFlatFields } from "../src";
 
 it("run", async () => {
   // Create IDLs using different shortened formats
@@ -80,11 +74,11 @@ it("run", async () => {
       fields: IdlTypeFlatFields.unnamed([
         {
           docs: undefined,
-          content: IdlTypeFlat.primitive(IdlTypePrimitive.u8),
+          content: IdlTypeFlat.primitive("u8"),
         },
         {
           docs: undefined,
-          content: IdlTypeFlat.primitive(IdlTypePrimitive.u64),
+          content: IdlTypeFlat.primitive("u64"),
         },
         {
           docs: undefined,
@@ -94,27 +88,27 @@ it("run", async () => {
           docs: undefined,
           content: IdlTypeFlat.vec({
             prefix: undefined,
-            items: IdlTypeFlat.primitive(IdlTypePrimitive.u8),
+            items: IdlTypeFlat.primitive("u8"),
           }),
         },
         {
           docs: undefined,
           content: IdlTypeFlat.vec({
             prefix: undefined,
-            items: IdlTypeFlat.primitive(IdlTypePrimitive.u8),
+            items: IdlTypeFlat.primitive("u8"),
           }),
         },
         {
           docs: undefined,
           content: IdlTypeFlat.array({
-            items: IdlTypeFlat.primitive(IdlTypePrimitive.u32),
+            items: IdlTypeFlat.primitive("u32"),
             length: IdlTypeFlat.const({ literal: 4 }),
           }),
         },
         {
           docs: undefined,
           content: IdlTypeFlat.array({
-            items: IdlTypeFlat.primitive(IdlTypePrimitive.u32),
+            items: IdlTypeFlat.primitive("u32"),
             length: IdlTypeFlat.const({ literal: 4 }),
           }),
         },
@@ -146,14 +140,14 @@ it("run", async () => {
           docs: undefined,
           content: IdlTypeFlat.option({
             prefix: undefined,
-            content: IdlTypeFlat.primitive(IdlTypePrimitive.u8),
+            content: IdlTypeFlat.primitive("u8"),
           }),
         },
         {
           docs: undefined,
           content: IdlTypeFlat.option({
-            prefix: IdlTypePrefix.u32,
-            content: IdlTypeFlat.primitive(IdlTypePrimitive.u8),
+            prefix: "u32",
+            content: IdlTypeFlat.primitive("u8"),
           }),
         },
         {
@@ -166,11 +160,11 @@ it("run", async () => {
             fields: IdlTypeFlatFields.unnamed([
               {
                 docs: undefined,
-                content: IdlTypeFlat.primitive(IdlTypePrimitive.u16),
+                content: IdlTypeFlat.primitive("u16"),
               },
               {
                 docs: ["a"],
-                content: IdlTypeFlat.primitive(IdlTypePrimitive.f32),
+                content: IdlTypeFlat.primitive("f32"),
               },
             ]),
           }),

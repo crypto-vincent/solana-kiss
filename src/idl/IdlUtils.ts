@@ -25,7 +25,6 @@ import { idlTypeFlatHydrate } from "./IdlTypeFlatHydrate";
 import { idlTypeFlatParse } from "./IdlTypeFlatParse";
 import { IdlTypeFull } from "./IdlTypeFull";
 import { idlTypeFullEncode } from "./IdlTypeFullEncode";
-import { IdlTypePrimitive } from "./IdlTypePrimitive";
 
 /**
  * JSON decoder for byte arrays. Accepted formats:
@@ -145,13 +144,13 @@ export function idlUtilsBlobTypeValueParse(
  */
 export function idlUtilsBlobValueGuessType(blobValue: JsonValue) {
   if (jsonAsString(blobValue) !== undefined) {
-    return IdlTypeFull.primitive(IdlTypePrimitive.pubkey);
+    return IdlTypeFull.primitive("pubkey");
   }
   if (
     jsonAsArray(blobValue) !== undefined ||
     jsonAsObject(blobValue) !== undefined
   ) {
-    const u8 = IdlTypeFull.primitive(IdlTypePrimitive.u8);
+    const u8 = IdlTypeFull.primitive("u8");
     return IdlTypeFull.vec({ prefix: undefined, items: u8 });
   }
   return null;

@@ -95,7 +95,10 @@ const visitorBytemuckC = {
   option: (self: IdlTypeFullOption): IdlTypeFullBytemuck => {
     const contentPod = bytemuckC(self.content);
     const prefix = self.prefix ?? idlTypePrefixDefaultOption;
-    const alignment = Math.max(prefix.size, contentPod.alignment);
+    const alignment = Math.max(
+      alignemntFromPrefix(prefix),
+      contentPod.alignment,
+    );
     const size = alignment + contentPod.size;
     return {
       alignment,
@@ -104,7 +107,7 @@ const visitorBytemuckC = {
         before: 0,
         minSize: size,
         content: IdlTypeFull.option({
-          prefix: internalPrefixFromAlignment(alignment),
+          prefix: prefixFromAlignment(alignment),
           content: contentPod.value,
         }),
       }),
@@ -151,7 +154,7 @@ const visitorBytemuckC = {
       };
     }
     const prefix = self.prefix ?? idlTypePrefixDefaultEnum;
-    let alignment = Math.max(4, prefix.size);
+    let alignment = Math.max(4, alignemntFromPrefix(prefix));
     let size = 0;
     const variantsReprC = [];
     for (const variant of self.variants) {
@@ -175,7 +178,7 @@ const visitorBytemuckC = {
         before: 0,
         minSize: size,
         content: IdlTypeFull.enum({
-          prefix: internalPrefixFromAlignment(alignment),
+          prefix: prefixFromAlignment(alignment),
           mask: self.mask,
           indexByName: self.indexByName,
           indexByCodeBigInt: self.indexByCodeBigInt,
@@ -202,11 +205,7 @@ const visitorBytemuckC = {
     throw new Error("Bytemuck: Repr(C): Blob is not supported");
   },
   primitive: (self: IdlTypePrimitive): IdlTypeFullBytemuck => {
-    return {
-      alignment: self.alignment,
-      size: self.size,
-      value: IdlTypeFull.primitive(self),
-    };
+    return bytemuckPrimitive(self);
   },
 };
 
@@ -217,7 +216,10 @@ const visitorBytemuckRust = {
   option: (self: IdlTypeFullOption): IdlTypeFullBytemuck => {
     const contentPod = bytemuckRust(self.content);
     const prefix = self.prefix ?? idlTypePrefixDefaultOption;
-    const alignment = Math.max(prefix.size, contentPod.alignment);
+    const alignment = Math.max(
+      alignemntFromPrefix(prefix),
+      contentPod.alignment,
+    );
     const size = alignment + contentPod.size;
     return {
       alignment,
@@ -226,7 +228,7 @@ const visitorBytemuckRust = {
         before: 0,
         minSize: size,
         content: IdlTypeFull.option({
-          prefix: internalPrefixFromAlignment(alignment),
+          prefix: prefixFromAlignment(alignment),
           content: contentPod.value,
         }),
       }),
@@ -273,13 +275,14 @@ const visitorBytemuckRust = {
       };
     }
     const prefix = self.prefix ?? idlTypePrefixDefaultEnum;
-    let alignment = prefix.size;
-    let size = prefix.size;
+    const prefixAlignment = alignemntFromPrefix(prefix);
+    let alignment = prefixAlignment;
+    let size = alignment;
     const variantsReprRust = [];
     for (const variant of self.variants) {
       const variantFieldsPod = withErrorContext(
         `Bytemuck: Repr(Rust): Enum Variant: ${variant.name}`,
-        () => bytemuckFields(variant.fields, prefix.size, true),
+        () => bytemuckFields(variant.fields, prefixAlignment, true),
       );
       alignment = Math.max(alignment, variantFieldsPod.alignment);
       size = Math.max(size, variantFieldsPod.size);
@@ -324,11 +327,7 @@ const visitorBytemuckRust = {
     throw new Error("Bytemuck: Repr(Rust): Blob is not supported");
   },
   primitive: (self: IdlTypePrimitive): IdlTypeFullBytemuck => {
-    return {
-      alignment: self.alignment,
-      size: self.size,
-      value: IdlTypeFull.primitive(self),
-    };
+    return bytemuckPrimitive(self);
   },
 };
 
@@ -490,20 +489,80 @@ function internalVerifyUnstableOrder(prefixSize: number, fieldsCount: number) {
   );
 }
 
-function internalPrefixFromAlignment(alignment: number): IdlTypePrefix {
-  const prefix = prefixBySize.get(alignment);
+function prefixFromAlignment(alignment: number): IdlTypePrefix {
+  const prefix = prefixByKnownSize.get(alignment);
   if (prefix === undefined) {
     throw new Error(`Bytemuck: Unknown alignment: ${alignment}`);
   }
   return prefix;
 }
 
-const prefixBySize = new Map(
-  [
-    IdlTypePrefix.u8,
-    IdlTypePrefix.u16,
-    IdlTypePrefix.u32,
-    IdlTypePrefix.u64,
-    IdlTypePrefix.u128,
-  ].map((prefix) => [prefix.size, prefix]),
+function alignemntFromPrefix(prefix: IdlTypePrefix): number {
+  const alignment = knownSizeByPrefix.get(prefix);
+  if (alignment === undefined) {
+    throw new Error(`Bytemuck: Unknown prefix: ${prefix}`);
+  }
+  return alignment;
+}
+
+function bytemuckPrimitive(primitive: IdlTypePrimitive): IdlTypeFullBytemuck {
+  const alignment = knownAlignmentByPrimitive.get(primitive);
+  if (alignment === undefined) {
+    throw new Error(`Bytemuck: Unknown primitive alignment: ${primitive}`);
+  }
+  const size = knownSizeByPrimitive.get(primitive);
+  if (size === undefined) {
+    throw new Error(`Bytemuck: Unknown primitive size: ${primitive}`);
+  }
+  const value = IdlTypeFull.primitive(primitive);
+  return { alignment, size, value };
+}
+
+const prefixByKnownSize: Map<number, IdlTypePrefix> = new Map([
+  [1, "u8"],
+  [2, "u16"],
+  [4, "u32"],
+  [8, "u64"],
+  [16, "u128"],
+]);
+
+const knownSizeByPrefix: Map<IdlTypePrefix, number> = new Map(
+  Array.from(prefixByKnownSize.entries()).map(([size, prefix]) => [
+    prefix,
+    size,
+  ]),
 );
+
+const knownSizeByPrimitive: Map<IdlTypePrimitive, number> = new Map([
+  ["u8", 1],
+  ["u16", 2],
+  ["u32", 4],
+  ["u64", 8],
+  ["u128", 16],
+  ["i8", 1],
+  ["i16", 2],
+  ["i32", 4],
+  ["i64", 8],
+  ["i128", 16],
+  ["f32", 4],
+  ["f64", 8],
+  ["bool", 1],
+  ["pubkey", 32],
+]);
+
+const knownAlignmentByPrimitive: Map<IdlTypePrimitive, number> = new Map([
+  ["u8", 1],
+  ["u16", 2],
+  ["u32", 4],
+  ["u64", 8],
+  ["u128", 16],
+  ["i8", 1],
+  ["i16", 2],
+  ["i32", 4],
+  ["i64", 8],
+  ["i128", 16],
+  ["f32", 4],
+  ["f64", 8],
+  ["bool", 1],
+  ["pubkey", 1],
+]);

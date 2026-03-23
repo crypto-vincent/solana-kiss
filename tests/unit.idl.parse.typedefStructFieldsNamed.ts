@@ -1,10 +1,5 @@
 import { expect, it } from "@jest/globals";
-import {
-  idlProgramParse,
-  IdlTypeFlat,
-  IdlTypeFlatFields,
-  IdlTypePrimitive,
-} from "../src";
+import { idlProgramParse, IdlTypeFlat, IdlTypeFlatFields } from "../src";
 
 it("run", () => {
   // Create IDL on the fly
@@ -52,12 +47,12 @@ it("run", () => {
         {
           name: "u8",
           docs: undefined,
-          content: IdlTypeFlat.primitive(IdlTypePrimitive.u8),
+          content: IdlTypeFlat.primitive("u8"),
         },
         {
           name: "u64",
           docs: undefined,
-          content: IdlTypeFlat.primitive(IdlTypePrimitive.u64),
+          content: IdlTypeFlat.primitive("u64"),
         },
         {
           name: "string",
@@ -69,7 +64,7 @@ it("run", () => {
           docs: undefined,
           content: IdlTypeFlat.vec({
             prefix: undefined,
-            items: IdlTypeFlat.primitive(IdlTypePrimitive.u8),
+            items: IdlTypeFlat.primitive("u8"),
           }),
         },
         {
@@ -77,7 +72,7 @@ it("run", () => {
           docs: undefined,
           content: IdlTypeFlat.vec({
             prefix: undefined,
-            items: IdlTypeFlat.primitive(IdlTypePrimitive.u8),
+            items: IdlTypeFlat.primitive("u8"),
           }),
         },
         {
@@ -87,7 +82,7 @@ it("run", () => {
             prefix: undefined,
             items: IdlTypeFlat.vec({
               prefix: undefined,
-              items: IdlTypeFlat.primitive(IdlTypePrimitive.u8),
+              items: IdlTypeFlat.primitive("u8"),
             }),
           }),
         },
@@ -98,7 +93,7 @@ it("run", () => {
             prefix: undefined,
             items: IdlTypeFlat.vec({
               prefix: undefined,
-              items: IdlTypeFlat.primitive(IdlTypePrimitive.u8),
+              items: IdlTypeFlat.primitive("u8"),
             }),
           }),
         },
@@ -106,7 +101,7 @@ it("run", () => {
           name: "array1_u32_4",
           docs: undefined,
           content: IdlTypeFlat.array({
-            items: IdlTypeFlat.primitive(IdlTypePrimitive.u32),
+            items: IdlTypeFlat.primitive("u32"),
             length: IdlTypeFlat.const({ literal: 4 }),
           }),
         },
@@ -114,7 +109,7 @@ it("run", () => {
           name: "array2_u32_4",
           docs: undefined,
           content: IdlTypeFlat.array({
-            items: IdlTypeFlat.primitive(IdlTypePrimitive.u32),
+            items: IdlTypeFlat.primitive("u32"),
             length: IdlTypeFlat.const({ literal: 4 }),
           }),
         },
@@ -181,7 +176,7 @@ it("run", () => {
           docs: undefined,
           content: IdlTypeFlat.option({
             prefix: undefined,
-            content: IdlTypeFlat.primitive(IdlTypePrimitive.f32),
+            content: IdlTypeFlat.primitive("f32"),
           }),
         },
         {
@@ -189,7 +184,7 @@ it("run", () => {
           docs: undefined,
           content: IdlTypeFlat.option({
             prefix: undefined,
-            content: IdlTypeFlat.primitive(IdlTypePrimitive.f32),
+            content: IdlTypeFlat.primitive("f32"),
           }),
         },
         {
@@ -209,7 +204,7 @@ it("run", () => {
         {
           name: "docs",
           docs: ["Hello"],
-          content: IdlTypeFlat.primitive(IdlTypePrimitive.u8),
+          content: IdlTypeFlat.primitive("u8"),
         },
         {
           name: "alias",
@@ -229,7 +224,7 @@ it("run", () => {
                 docs: undefined,
                 content: IdlTypeFlat.vec({
                   prefix: undefined,
-                  items: IdlTypeFlat.primitive(IdlTypePrimitive.u8),
+                  items: IdlTypeFlat.primitive("u8"),
                 }),
               },
             ]),

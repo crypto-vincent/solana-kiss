@@ -4,6 +4,8 @@ import {
   idlAccountDecode,
   idlAccountEncode,
   idlProgramParse,
+  pubkeyNewDummy,
+  pubkeyToBytes,
 } from "../src";
 
 it("run", () => {
@@ -15,6 +17,7 @@ it("run", () => {
         fields: [
           { name: "coption1", coption: "u8" },
           { name: "coption2", coption: "u8" },
+          { name: "coption3", type: "COption<PublicKey>" },
           { name: "option", option: "u8" },
           { name: "option8", option8: "u8" },
           { name: "option16", option16: "u8" },
@@ -23,6 +26,10 @@ it("run", () => {
           { name: "vec8", vec8: "u8" },
           { name: "vec16", vec16: "u8" },
           { name: "vec32", vec32: "u8" },
+          { name: "string", type: "string" },
+          { name: "string8", type: "string8" },
+          { name: "string16", type: "string16" },
+          { name: "string32", type: "string32" },
           { name: "variants", variants: ["A", "B", "C", "D"] },
           { name: "variants8", variants8: ["A", "B", "C", "D"] },
           { name: "variants16", variants16: ["A", "B", "C", "D"] },
@@ -38,6 +45,7 @@ it("run", () => {
         fields: [
           { name: "coption1", type: { coption: "u8" } },
           { name: "coption2", type: { coption: "u8" } },
+          { name: "coption3", type: "COption<Pubkey>" },
           { name: "option", type: { option: "u8" } },
           { name: "option8", type: { option8: "u8" } },
           { name: "option16", type: { option16: "u8" } },
@@ -46,6 +54,10 @@ it("run", () => {
           { name: "vec8", type: { vec8: "u8" } },
           { name: "vec16", type: { vec16: "u8" } },
           { name: "vec32", type: { vec32: "u8" } },
+          { name: "string", type: "string" },
+          { name: "string8", type: "string8" },
+          { name: "string16", type: "string16" },
+          { name: "string32", type: "string32" },
           { name: "variants", type: { variants: ["A", "B", "C", "D"] } },
           { name: "variants8", type: { variants8: ["A", "B", "C", "D"] } },
           { name: "variants16", type: { variants16: ["A", "B", "C", "D"] } },
@@ -62,6 +74,7 @@ it("run", () => {
   const accountState = {
     coption1: null,
     coption2: 39,
+    coption3: pubkeyNewDummy(),
     option: 40,
     option8: 41,
     option16: 42,
@@ -70,20 +83,47 @@ it("run", () => {
     vec8: [51],
     vec16: [52],
     vec32: [53],
+    string: "",
+    string8: "A",
+    string16: "BB",
+    string32: "CCC",
     variants: "A",
     variants8: "B",
     variants16: "C",
     variants32: "D",
   };
+  const accountBytes = new Uint8Array(
+    [
+      [77],
+      makeBlob([0, 0, 0, 0], [0]),
+      makeBlob([1, 0, 0, 0], [39]),
+      makeBlob([1, 0, 0, 0], Array.from(pubkeyToBytes(accountState.coption3))),
+      makeBlob([1], [40]),
+      makeBlob([1], [41]),
+      makeBlob([1, 0], [42]),
+      makeBlob([1, 0, 0, 0], [43]),
+      makeBlob([1, 0, 0, 0], [50]),
+      makeBlob([1], [51]),
+      makeBlob([1, 0], [52]),
+      makeBlob([1, 0, 0, 0], [53]),
+      makeBlob([0, 0, 0, 0], []),
+      makeBlob([1], [65]),
+      makeBlob([2, 0], [66, 66]),
+      makeBlob([3, 0, 0, 0], [67, 67, 67]),
+      [0],
+      [1],
+      [2, 0],
+      [3, 0, 0, 0],
+    ].flat(),
+  );
   // Check that we can use the manual IDL to encode/decode our account
   const { accountData } = idlAccountEncode(accountIdl, accountState);
-  expect(accountData).toStrictEqual(
-    new Uint8Array([
-      77, 0, 0, 0, 0, 0, 1, 0, 0, 0, 39, 1, 40, 1, 41, 1, 0, 42, 1, 0, 0, 0, 43,
-      1, 0, 0, 0, 50, 1, 51, 1, 0, 52, 1, 0, 0, 0, 53, 0, 1, 2, 0, 3, 0, 0, 0,
-    ]),
-  );
+  expect(accountData).toStrictEqual(accountBytes);
   expect(idlAccountDecode(accountIdl, accountData).accountState).toStrictEqual(
     accountState,
   );
 });
+
+function makeBlob(prefix: number[], content: number[]): number[] {
+  return [...prefix, ...content];
+}

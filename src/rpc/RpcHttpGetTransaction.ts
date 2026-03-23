@@ -30,6 +30,7 @@ import {
 import { RpcHttp } from "./RpcHttp";
 
 // TODO - provide a Solana level getter with IDL parsing for instructionRequests ?
+// TODO - parse error to find custom program errors ? (Solana level API?)
 
 /**
  * Fetches a confirmed transaction with full execution details.
@@ -88,7 +89,7 @@ export async function rpcHttpGetTransaction(
     blockTime: result.blockTime ? new Date(result.blockTime * 1000) : undefined,
     blockSlot: result.slot,
     transactionLogs: meta.logMessages ?? undefined,
-    transactionError: meta.err, // TODO - parse error to find custom program errors ?
+    transactionError: meta.err,
     consumedComputeUnits: meta.computeUnitsConsumed,
     chargedFeesLamports: meta.fee ? BigInt(meta.fee) : undefined,
   };

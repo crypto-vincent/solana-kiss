@@ -1,10 +1,5 @@
 import { expect, it } from "@jest/globals";
-import {
-  idlProgramParse,
-  IdlTypeFull,
-  IdlTypeFullFields,
-  IdlTypePrimitive,
-} from "../src";
+import { idlProgramParse, IdlTypeFull, IdlTypeFullFields } from "../src";
 
 it("run", () => {
   // Create IDLs using different shortened formats
@@ -84,13 +79,13 @@ it("run", () => {
           fields: IdlTypeFullFields.named([
             {
               name: "f1",
-              content: IdlTypeFull.primitive(IdlTypePrimitive.u16),
+              content: IdlTypeFull.primitive("u16"),
             },
             {
               name: "f2",
               content: IdlTypeFull.vec({
                 prefix: undefined,
-                items: IdlTypeFull.primitive(IdlTypePrimitive.u8),
+                items: IdlTypeFull.primitive("u8"),
               }),
             },
             {
@@ -104,18 +99,18 @@ it("run", () => {
           code: 1n,
           fields: IdlTypeFullFields.unnamed([
             {
-              content: IdlTypeFull.primitive(IdlTypePrimitive.u64),
+              content: IdlTypeFull.primitive("u64"),
             },
             {
               content: IdlTypeFull.vec({
                 prefix: undefined,
-                items: IdlTypeFull.primitive(IdlTypePrimitive.u8),
+                items: IdlTypeFull.primitive("u8"),
               }),
             },
             {
               content: IdlTypeFull.vec({
                 prefix: undefined,
-                items: IdlTypeFull.primitive(IdlTypePrimitive.u8),
+                items: IdlTypeFull.primitive("u8"),
               }),
             },
           ]),

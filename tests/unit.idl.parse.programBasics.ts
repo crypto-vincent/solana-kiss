@@ -5,7 +5,6 @@ import {
   IdlTypeFlatFields,
   IdlTypeFull,
   IdlTypeFullFields,
-  IdlTypePrimitive,
 } from "../src";
 
 it("run", () => {
@@ -170,22 +169,22 @@ it("run", () => {
         {
           name: "index",
           docs: undefined,
-          content: IdlTypeFlat.primitive(IdlTypePrimitive.u32),
+          content: IdlTypeFlat.primitive("u32"),
         },
         {
           name: "id",
           docs: undefined,
-          content: IdlTypeFlat.primitive(IdlTypePrimitive.i64),
+          content: IdlTypeFlat.primitive("i64"),
         },
       ]),
       typeFullFields: IdlTypeFullFields.named([
         {
           name: "index",
-          content: IdlTypeFull.primitive(IdlTypePrimitive.u32),
+          content: IdlTypeFull.primitive("u32"),
         },
         {
           name: "id",
-          content: IdlTypeFull.primitive(IdlTypePrimitive.i64),
+          content: IdlTypeFull.primitive("i64"),
         },
       ]),
     },
@@ -208,12 +207,12 @@ it("run", () => {
         {
           name: "field1",
           docs: undefined,
-          content: IdlTypeFlat.primitive(IdlTypePrimitive.u64),
+          content: IdlTypeFlat.primitive("u64"),
         },
         {
           name: "field2",
           docs: undefined,
-          content: IdlTypeFlat.primitive(IdlTypePrimitive.u32),
+          content: IdlTypeFlat.primitive("u32"),
         },
       ]),
     }),
@@ -221,11 +220,11 @@ it("run", () => {
       fields: IdlTypeFullFields.named([
         {
           name: "field1",
-          content: IdlTypeFull.primitive(IdlTypePrimitive.u64),
+          content: IdlTypeFull.primitive("u64"),
         },
         {
           name: "field2",
-          content: IdlTypeFull.primitive(IdlTypePrimitive.u32),
+          content: IdlTypeFull.primitive("u32"),
         },
       ]),
     }),
@@ -240,12 +239,12 @@ it("run", () => {
         {
           name: "field1",
           docs: undefined,
-          content: IdlTypeFlat.primitive(IdlTypePrimitive.u64),
+          content: IdlTypeFlat.primitive("u64"),
         },
         {
           name: "field2",
           docs: undefined,
-          content: IdlTypeFlat.primitive(IdlTypePrimitive.u32),
+          content: IdlTypeFlat.primitive("u32"),
         },
       ]),
     }),
@@ -253,11 +252,11 @@ it("run", () => {
       fields: IdlTypeFullFields.named([
         {
           name: "field1",
-          content: IdlTypeFull.primitive(IdlTypePrimitive.u64),
+          content: IdlTypeFull.primitive("u64"),
         },
         {
           name: "field2",
-          content: IdlTypeFull.primitive(IdlTypePrimitive.u32),
+          content: IdlTypeFull.primitive("u32"),
         },
       ]),
     }),
@@ -276,11 +275,11 @@ it("run", () => {
     value: [420_420, 69.069_0],
     typeFlat: IdlTypeFlat.vec({
       prefix: undefined,
-      items: IdlTypeFlat.primitive(IdlTypePrimitive.f32),
+      items: IdlTypeFlat.primitive("f32"),
     }),
     typeFull: IdlTypeFull.vec({
       prefix: undefined,
-      items: IdlTypeFull.primitive(IdlTypePrimitive.f32),
+      items: IdlTypeFull.primitive("f32"),
     }),
   });
 });

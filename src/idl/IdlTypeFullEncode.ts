@@ -29,7 +29,6 @@ import {
   IdlTypeFullVec,
 } from "./IdlTypeFull";
 import {
-  IdlTypePrefix,
   idlTypePrefixDefaultEnum,
   idlTypePrefixDefaultOption,
   idlTypePrefixDefaultString,
@@ -117,7 +116,7 @@ const visitorEncode = {
     prefixed: boolean,
   ) => {
     const prefix =
-      self.prefix ?? (prefixed ? idlTypePrefixDefaultOption : IdlTypePrefix.u0);
+      self.prefix ?? (prefixed ? idlTypePrefixDefaultOption : "u0");
     if (value === null) {
       idlTypePrefixEncode(prefix, 0n, blobs);
       return;
@@ -131,9 +130,8 @@ const visitorEncode = {
     blobs: Array<Uint8Array>,
     prefixed: boolean,
   ) => {
-    const prefix =
-      self.prefix ?? (prefixed ? idlTypePrefixDefaultVec : IdlTypePrefix.u0);
-    if (self.items.isPrimitive(IdlTypePrimitive.u8)) {
+    const prefix = self.prefix ?? (prefixed ? idlTypePrefixDefaultVec : "u0");
+    if (self.items.isPrimitive("u8")) {
       const bytes = idlUtilsBytesJsonDecoder(value);
       idlTypePrefixEncode(prefix, BigInt(bytes.length), blobs);
       blobs.push(bytes);
@@ -165,7 +163,7 @@ const visitorEncode = {
     blobs: Array<Uint8Array>,
     prefixed: boolean,
   ) => {
-    if (self.items.isPrimitive(IdlTypePrimitive.u8)) {
+    if (self.items.isPrimitive("u8")) {
       const bytes = idlUtilsBytesJsonDecoder(value);
       if (bytes.length != self.length) {
         throw new Error(
@@ -192,7 +190,7 @@ const visitorEncode = {
     prefixed: boolean,
   ) => {
     const prefix =
-      self.prefix ?? (prefixed ? idlTypePrefixDefaultString : IdlTypePrefix.u0);
+      self.prefix ?? (prefixed ? idlTypePrefixDefaultString : "u0");
     const bytes = utf8Encode(jsonCodecString.decoder(value));
     idlTypePrefixEncode(prefix, BigInt(bytes.length), blobs);
     blobs.push(bytes);
@@ -223,8 +221,7 @@ const visitorEncode = {
     ) {
       withErrorContext(`Encode: Enum Variant: ${variant.name}`, () => {
         const prefix =
-          self.prefix ??
-          (prefixed ? idlTypePrefixDefaultEnum : IdlTypePrefix.u0);
+          self.prefix ?? (prefixed ? idlTypePrefixDefaultEnum : "u0");
         idlTypePrefixEncode(prefix, variant.code, blobs);
         typeFullFieldsEncode(variant.fields, value, blobs, prefixed);
       });

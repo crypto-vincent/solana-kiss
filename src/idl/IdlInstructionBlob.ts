@@ -21,7 +21,6 @@ import { IdlTypedef } from "./IdlTypedef";
 import { IdlTypeFull, IdlTypeFullFields } from "./IdlTypeFull";
 import { idlTypeFullEncode } from "./IdlTypeFullEncode";
 import { idlTypeFullFieldsGetAt, idlTypeFullGetAt } from "./IdlTypeFullGetAt";
-import { IdlTypePrimitive } from "./IdlTypePrimitive";
 import {
   idlUtilsBlobTypeValueParse,
   idlUtilsBlobValueGuessType,
@@ -205,10 +204,7 @@ const computeVisitor = {
     self: IdlInstructionBlobAccount,
     findContext: IdlInstructionAccountFindContext,
   ) => {
-    if (
-      self.typeFull === undefined ||
-      self.typeFull.isPrimitive(IdlTypePrimitive.pubkey)
-    ) {
+    if (self.typeFull === undefined || self.typeFull.isPrimitive("pubkey")) {
       for (const [accountField, instructionAddress] of Object.entries(
         findContext.instructionAddresses,
       )) {

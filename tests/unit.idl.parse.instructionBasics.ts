@@ -5,7 +5,6 @@ import {
   IdlTypeFlatFields,
   IdlTypeFull,
   IdlTypeFullFields,
-  IdlTypePrimitive,
 } from "../src";
 
 it("run", () => {
@@ -144,7 +143,7 @@ it("run", () => {
           docs: undefined,
           content: IdlTypeFlat.vec({
             prefix: undefined,
-            items: IdlTypeFlat.primitive(IdlTypePrimitive.u8),
+            items: IdlTypeFlat.primitive("u8"),
           }),
         },
       ]),
@@ -153,14 +152,14 @@ it("run", () => {
           name: "arg",
           content: IdlTypeFull.vec({
             prefix: undefined,
-            items: IdlTypeFull.primitive(IdlTypePrimitive.u8),
+            items: IdlTypeFull.primitive("u8"),
           }),
         },
       ]),
     },
     return: {
-      typeFlat: IdlTypeFlat.primitive(IdlTypePrimitive.i8),
-      typeFull: IdlTypeFull.primitive(IdlTypePrimitive.i8),
+      typeFlat: IdlTypeFlat.primitive("i8"),
+      typeFull: IdlTypeFull.primitive("i8"),
     },
   });
 });

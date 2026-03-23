@@ -1,50 +1,5 @@
 /** Unsigned integer prefix for encoding length or discriminant of variable-size fields. */
-export class IdlTypePrefix {
-  /** No prefix case (u0). */
-  public static readonly u0 = new IdlTypePrefix("u0", 0);
-  /** 1-byte unsigned prefix (u8). */
-  public static readonly u8 = new IdlTypePrefix("u8", 1);
-  /** 2-byte unsigned prefix (u16, little-endian). */
-  public static readonly u16 = new IdlTypePrefix("u16", 2);
-  /** 4-byte unsigned prefix (u32, little-endian). */
-  public static readonly u32 = new IdlTypePrefix("u32", 4);
-  /** 8-byte unsigned prefix (u64, little-endian). */
-  public static readonly u64 = new IdlTypePrefix("u64", 8);
-  /** 16-byte unsigned prefix (u128, little-endian). */
-  public static readonly u128 = new IdlTypePrefix("u128", 16);
-
-  /** The name of this prefix type (e.g. `"u8"`, `"u32"`). */
-  public readonly name: string;
-  /** The byte width of this prefix. */
-  public readonly size: number;
-
-  private constructor(name: string, size: number) {
-    this.name = name;
-    this.size = size;
-  }
-
-  /**
-   * Dispatches to the matching prefix width handler.
-   * @param visitor - Handler per prefix size.
-   * @param p1 - Forwarded context.
-   * @param p2 - Forwarded context.
-   * @returns Visitor result.
-   */
-  public traverse<P1, P2, T>(
-    visitor: {
-      u0: (p1: P1, p2: P2) => T;
-      u8: (p1: P1, p2: P2) => T;
-      u16: (p1: P1, p2: P2) => T;
-      u32: (p1: P1, p2: P2) => T;
-      u64: (p1: P1, p2: P2) => T;
-      u128: (p1: P1, p2: P2) => T;
-    },
-    p1: P1,
-    p2: P2,
-  ): T {
-    return visitor[this.name as keyof typeof visitor](p1, p2);
-  }
-}
+export type IdlTypePrefix = "u0" | "u8" | "u16" | "u32" | "u64" | "u128";
 
 /**
  * Encodes a `bigint` value using `self`'s width and appends it to `blobs`.
@@ -57,9 +12,7 @@ export function idlTypePrefixEncode(
   value: bigint,
   blobs: Array<Uint8Array>,
 ) {
-  const blob = new Uint8Array(self.size);
-  self.traverse(visitorEncode, blob, value);
-  blobs.push(blob);
+  visitorEncode[self](value, blobs);
 }
 
 /**
@@ -74,80 +27,94 @@ export function idlTypePrefixDecode(
   data: DataView,
   dataOffset: number,
 ): [number, bigint] {
-  return [self.size, self.traverse(visitorDecode, data, dataOffset)];
+  return visitorDecode[self](data, dataOffset);
 }
 
 /** Default prefix for `option` types. */
-export const idlTypePrefixDefaultOption = IdlTypePrefix.u8;
+export const idlTypePrefixDefaultOption = "u8";
 /** Default prefix for `vec` types. */
-export const idlTypePrefixDefaultVec = IdlTypePrefix.u32;
+export const idlTypePrefixDefaultVec = "u32";
 /** Default prefix for `string` types. */
-export const idlTypePrefixDefaultString = IdlTypePrefix.u32;
+export const idlTypePrefixDefaultString = "u32";
 /** Default prefix for `enum` types. */
-export const idlTypePrefixDefaultEnum = IdlTypePrefix.u8;
+export const idlTypePrefixDefaultEnum = "u8";
 
-const visitorEncode = {
-  u0: (_blob: Uint8Array, value: bigint) => {
+const visitorEncode: {
+  [K in IdlTypePrefix]: (value: bigint, blobs: Array<Uint8Array>) => void;
+} = {
+  u0: (value: bigint) => {
     if (value < 0n) {
       throw new Error(`Value out of bounds for u0: ${value}`);
     }
   },
-  u8: (blob: Uint8Array, value: bigint) => {
+  u8: (value: bigint, blobs: Array<Uint8Array>) => {
     if (value < 0n || value > 0xffn) {
       throw new Error(`Value out of bounds for u8: ${value}`);
     }
+    const blob = new Uint8Array(1);
     blob[0] = Number(value);
+    blobs.push(blob);
   },
-  u16: (blob: Uint8Array, value: bigint) => {
+  u16: (value: bigint, blobs: Array<Uint8Array>) => {
     if (value < 0n || value > 0xffffn) {
       throw new Error(`Value out of bounds for u16: ${value}`);
     }
+    const blob = new Uint8Array(2);
     const data = new DataView(blob.buffer);
     data.setUint16(0, Number(value), true);
+    blobs.push(blob);
   },
-  u32: (blob: Uint8Array, value: bigint) => {
+  u32: (value: bigint, blobs: Array<Uint8Array>) => {
     if (value < 0n || value > 0xffffffffn) {
       throw new Error(`Value out of bounds for u32: ${value}`);
     }
+    const blob = new Uint8Array(4);
     const data = new DataView(blob.buffer);
     data.setUint32(0, Number(value), true);
+    blobs.push(blob);
   },
-  u64: (blob: Uint8Array, value: bigint) => {
+  u64: (value: bigint, blobs: Array<Uint8Array>) => {
     if (value < 0n || value > 0xffffffffffffffffn) {
       throw new Error(`Value out of bounds for u64: ${value}`);
     }
+    const blob = new Uint8Array(8);
     const data = new DataView(blob.buffer);
     data.setBigUint64(0, value, true);
+    blobs.push(blob);
   },
-  u128: (blob: Uint8Array, value: bigint) => {
+  u128: (value: bigint, blobs: Array<Uint8Array>) => {
     if (value < 0n || value > 0xffffffffffffffffffffffffffffffffn) {
       throw new Error(`Value out of bounds for u128: ${value}`);
     }
+    const blob = new Uint8Array(16);
     const data = new DataView(blob.buffer);
     data.setBigUint64(0, value, true);
     data.setBigUint64(8, value >> 64n, true);
+    blobs.push(blob);
   },
 };
 
-const visitorDecode = {
+const visitorDecode: {
+  [K in IdlTypePrefix]: (data: DataView, offset: number) => [number, bigint];
+} = {
   u0: () => {
     throw new Error("Cannot decode u0 prefix");
   },
-  u8: (data: DataView, dataOffset: number) => {
-    return BigInt(data.getUint8(dataOffset));
+  u8: (data: DataView, offset: number) => {
+    return [1, BigInt(data.getUint8(offset))];
   },
-  u16: (data: DataView, dataOffset: number) => {
-    return BigInt(data.getUint16(dataOffset, true));
+  u16: (data: DataView, offset: number) => {
+    return [2, BigInt(data.getUint16(offset, true))];
   },
-  u32: (data: DataView, dataOffset: number) => {
-    return BigInt(data.getUint32(dataOffset, true));
+  u32: (data: DataView, offset: number) => {
+    return [4, BigInt(data.getUint32(offset, true))];
   },
-  u64: (data: DataView, dataOffset: number) => {
-    return data.getBigUint64(dataOffset, true);
+  u64: (data: DataView, offset: number) => {
+    return [8, data.getBigUint64(offset, true)];
   },
-  u128: (data: DataView, dataOffset: number) => {
-    const low = data.getBigUint64(dataOffset, true);
-    const high = data.getBigUint64(dataOffset + 8, true);
-    return low | (high << 64n);
+  u128: (data: DataView, offset: number) => {
+    const low = data.getBigUint64(offset, true);
+    const high = data.getBigUint64(offset + 8, true);
+    return [16, low | (high << 64n)];
   },
 };

@@ -4,7 +4,6 @@ import {
   idlProgramParse,
   IdlTypeFull,
   IdlTypeFullFields,
-  IdlTypePrimitive,
 } from "../src";
 
 it("run", () => {
@@ -227,13 +226,13 @@ function makeTypeFullArray(items: IdlTypeFull, length: number): IdlTypeFull {
 }
 
 function makeTypeFullU8(): IdlTypeFull {
-  return IdlTypeFull.primitive(IdlTypePrimitive.u8);
+  return IdlTypeFull.primitive("u8");
 }
 
 function makeTypeFullU32(): IdlTypeFull {
-  return IdlTypeFull.primitive(IdlTypePrimitive.u32);
+  return IdlTypeFull.primitive("u32");
 }
 
 function makeTypeFullU64(): IdlTypeFull {
-  return IdlTypeFull.primitive(IdlTypePrimitive.u64);
+  return IdlTypeFull.primitive("u64");
 }

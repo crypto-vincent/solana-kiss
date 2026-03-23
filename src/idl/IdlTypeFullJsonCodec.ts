@@ -65,7 +65,7 @@ function expressionFields(
 }
 
 function expressionArray(items: IdlTypeFull, context: GenContext): string {
-  if (items.isPrimitive(IdlTypePrimitive.u8)) {
+  if (items.isPrimitive("u8")) {
     return stringFunctionCall(context, "jsonCodecArrayToBytes");
   }
   return stringFunctionCall(context, "jsonCodecArrayToArray", [
@@ -122,11 +122,7 @@ const visitorExpression = {
     return stringFunctionCall(context, "jsonCodecConst", ["null"]);
   },
   primitive: (self: IdlTypePrimitive, context: GenContext) => {
-    const functionName = self.traverse(
-      visitorExpressionPrimitive,
-      context,
-      null,
-    );
+    const functionName = visitorExpressionPrimitive[self](context);
     return stringFunctionCall(context, functionName);
   },
 };
@@ -154,7 +150,9 @@ const visitorExpressionFields = {
   },
 };
 
-const visitorExpressionPrimitive = {
+const visitorExpressionPrimitive: {
+  [K in IdlTypePrimitive]: (context: GenContext) => string;
+} = {
   u8: () => `jsonCodecNumber`,
   u16: () => `jsonCodecNumber`,
   u32: () => `jsonCodecNumber`,
