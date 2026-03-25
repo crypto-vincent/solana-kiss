@@ -46,7 +46,7 @@ export function idlPdaFind(
     );
   }
   if (programAddress === undefined) {
-    throw new Error("Idl: Program address must be provided");
+    throw new Error("Idl: Pda: Program address must be provided");
   }
   return pubkeyFindPdaAddress(programAddress, seedsBytes);
 }
@@ -67,12 +67,12 @@ export function idlPdaParse(
     name: pdaName,
     docs: decoded.docs,
     seeds: decoded.seeds.map((seedValue, seedIndex) =>
-      withErrorContext(`Idl: PDA: Seed: ${seedIndex}`, () =>
+      withErrorContext(`Idl: Pda: Seed: ${seedIndex}`, () =>
         idlPdaBlobParse(seedValue, typedefsIdls),
       ),
     ),
     program: decoded.program
-      ? withErrorContext(`Idl: PDA: Program`, () =>
+      ? withErrorContext(`Idl: Pda: Program`, () =>
           idlPdaBlobParse(decoded.program, typedefsIdls),
         )
       : undefined,

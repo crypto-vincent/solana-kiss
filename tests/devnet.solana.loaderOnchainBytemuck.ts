@@ -2,7 +2,8 @@ import { promises as fsp } from "fs";
 import {
   idlAccountDecode,
   idlAccountEncode,
-  idlTypeFullJsonCodecModule,
+  IdlTypeFull,
+  idlTypeFullJsonCodecExpression,
   jsonGetAt,
   pubkeyFromBase58,
   Solana,
@@ -25,10 +26,7 @@ it("run", async () => {
   ).toStrictEqual(24);
 
   const moduleName = "jsonCodecAccountBytemuck";
-  const moduleCode = idlTypeFullJsonCodecModule(
-    accountIdl.typeFull,
-    "../../src",
-  );
+  const moduleCode = makeModuleCode(accountIdl.typeFull);
   await fsp.writeFile(`./tests/fixtures/${moduleName}.ts`, moduleCode);
   const requirePath = `./fixtures/${moduleName}.ts`;
   delete require.cache[require.resolve(requirePath)];
@@ -47,3 +45,12 @@ it("run", async () => {
     accountState,
   );
 });
+
+function makeModuleCode(self: IdlTypeFull) {
+  const dependencies = new Set<string>();
+  const codecExpression = idlTypeFullJsonCodecExpression(self, dependencies);
+  return [
+    `import {${[...dependencies].join(",")}} from "../../src";`,
+    `export const jsonCodec = ${codecExpression};`,
+  ].join("\n");
+}

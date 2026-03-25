@@ -5,8 +5,8 @@ import {
   idlAccountDecode,
   idlAccountEncode,
   idlProgramParse,
+  IdlTypeFull,
   idlTypeFullJsonCodecExpression,
-  idlTypeFullJsonCodecModule,
   pubkeyDefault,
 } from "../src";
 
@@ -105,10 +105,7 @@ it("run", async () => {
   );
 
   const moduleName = "jsonCodecAccountDummy";
-  const moduleCode = idlTypeFullJsonCodecModule(
-    accountIdl.typeFull,
-    "../../src",
-  );
+  const moduleCode = makeModuleCode(accountIdl.typeFull);
   await fsp.writeFile(`./tests/fixtures/${moduleName}.ts`, moduleCode);
   const requirePath = `./fixtures/${moduleName}.ts`;
   delete require.cache[require.resolve(requirePath)];
@@ -173,4 +170,13 @@ function checkRoundTrip(accountIdl: IdlAccount, jsonCodec: any, decoded: any) {
       idlAccountDecode(accountIdl, accountData).accountState,
     ).accountData,
   ).toStrictEqual(accountData);
+}
+
+function makeModuleCode(self: IdlTypeFull) {
+  const dependencies = new Set<string>();
+  const codecExpression = idlTypeFullJsonCodecExpression(self, dependencies);
+  return [
+    `import {${[...dependencies].join(",")}} from "../../src";`,
+    `export const jsonCodec = ${codecExpression};`,
+  ].join("\n");
 }

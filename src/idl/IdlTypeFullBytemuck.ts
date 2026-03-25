@@ -100,18 +100,15 @@ const visitorBytemuckC = {
       contentPod.alignment,
     );
     const size = alignment + contentPod.size;
-    return {
-      alignment,
-      size,
-      value: IdlTypeFull.padded({
-        before: 0,
-        minSize: size,
-        content: IdlTypeFull.option({
-          prefix: prefixFromAlignment(alignment),
-          content: contentPod.value,
-        }),
+    const value = IdlTypeFull.padded({
+      before: 0,
+      minSize: size,
+      content: IdlTypeFull.option({
+        prefix: prefixFromAlignment(alignment),
+        content: contentPod.value,
       }),
-    };
+    });
+    return { alignment, size, value };
   },
   vec: (_self: IdlTypeFullVec): IdlTypeFullBytemuck => {
     throw new Error("Bytemuck: Repr(C): Vec is not supported");
@@ -123,14 +120,11 @@ const visitorBytemuckC = {
     const itemsPod = bytemuckC(self.items);
     const alignment = itemsPod.alignment;
     const size = itemsPod.size * self.length;
-    return {
-      alignment,
-      size,
-      value: IdlTypeFull.array({
-        items: itemsPod.value,
-        length: self.length,
-      }),
-    };
+    const value = IdlTypeFull.array({
+      items: itemsPod.value,
+      length: self.length,
+    });
+    return { alignment, size, value };
   },
   string: (_self: IdlTypeFullString): IdlTypeFullBytemuck => {
     throw new Error("Bytemuck: Repr(C): String is not supported");
@@ -140,18 +134,12 @@ const visitorBytemuckC = {
     return {
       alignment: fieldsPod.alignment,
       size: fieldsPod.size,
-      value: IdlTypeFull.struct({
-        fields: fieldsPod.value,
-      }),
+      value: IdlTypeFull.struct({ fields: fieldsPod.value }),
     };
   },
   enum: (self: IdlTypeFullEnum): IdlTypeFullBytemuck => {
     if (self.variants.length === 0) {
-      return {
-        alignment: 1,
-        size: 0,
-        value: IdlTypeFull.enum(self),
-      };
+      return { alignment: 1, size: 0, value: IdlTypeFull.enum(self) };
     }
     const prefix = self.prefix ?? idlTypePrefixDefaultEnum;
     let alignment = Math.max(4, alignemntFromPrefix(prefix));
@@ -205,7 +193,7 @@ const visitorBytemuckC = {
     throw new Error("Bytemuck: Repr(C): Blob is not supported");
   },
   primitive: (self: IdlTypePrimitive): IdlTypeFullBytemuck => {
-    return bytemuckPrimitive(self);
+    return fromPrimitive(self);
   },
 };
 
@@ -221,18 +209,15 @@ const visitorBytemuckRust = {
       contentPod.alignment,
     );
     const size = alignment + contentPod.size;
-    return {
-      alignment,
-      size,
-      value: IdlTypeFull.padded({
-        before: 0,
-        minSize: size,
-        content: IdlTypeFull.option({
-          prefix: prefixFromAlignment(alignment),
-          content: contentPod.value,
-        }),
+    const value = IdlTypeFull.padded({
+      before: 0,
+      minSize: size,
+      content: IdlTypeFull.option({
+        prefix: prefixFromAlignment(alignment),
+        content: contentPod.value,
       }),
-    };
+    });
+    return { alignment, size, value };
   },
   vec: (_self: IdlTypeFullVec): IdlTypeFullBytemuck => {
     throw new Error("Bytemuck: Repr(Rust): Vec is not supported");
@@ -244,14 +229,11 @@ const visitorBytemuckRust = {
     const itemsPod = bytemuckRust(self.items);
     const alignment = itemsPod.alignment;
     const size = itemsPod.size * self.length;
-    return {
-      alignment,
-      size,
-      value: IdlTypeFull.array({
-        items: itemsPod.value,
-        length: self.length,
-      }),
-    };
+    const value = IdlTypeFull.array({
+      items: itemsPod.value,
+      length: self.length,
+    });
+    return { alignment, size, value };
   },
   string: (_self: IdlTypeFullString): IdlTypeFullBytemuck => {
     throw new Error("Bytemuck: Repr(Rust): String is not supported");
@@ -268,11 +250,7 @@ const visitorBytemuckRust = {
   },
   enum: (self: IdlTypeFullEnum): IdlTypeFullBytemuck => {
     if (self.variants.length === 0) {
-      return {
-        alignment: 1,
-        size: 0,
-        value: IdlTypeFull.enum(self),
-      };
+      return { alignment: 1, size: 0, value: IdlTypeFull.enum(self) };
     }
     const prefix = self.prefix ?? idlTypePrefixDefaultEnum;
     const prefixAlignment = alignemntFromPrefix(prefix);
@@ -327,7 +305,7 @@ const visitorBytemuckRust = {
     throw new Error("Bytemuck: Repr(Rust): Blob is not supported");
   },
   primitive: (self: IdlTypePrimitive): IdlTypeFullBytemuck => {
-    return bytemuckPrimitive(self);
+    return fromPrimitive(self);
   },
 };
 
@@ -459,11 +437,7 @@ function internalFieldsInfoAligned<T>(
       });
     }
   }
-  return {
-    alignment,
-    size,
-    value: fieldsInfoPadded,
-  };
+  return { alignment, size, value: fieldsInfoPadded };
 }
 
 function internalAlignmentPaddingNeeded(
@@ -505,19 +479,6 @@ function alignemntFromPrefix(prefix: IdlTypePrefix): number {
   return alignment;
 }
 
-function bytemuckPrimitive(primitive: IdlTypePrimitive): IdlTypeFullBytemuck {
-  const alignment = knownAlignmentByPrimitive.get(primitive);
-  if (alignment === undefined) {
-    throw new Error(`Bytemuck: Unknown primitive alignment: ${primitive}`);
-  }
-  const size = knownSizeByPrimitive.get(primitive);
-  if (size === undefined) {
-    throw new Error(`Bytemuck: Unknown primitive size: ${primitive}`);
-  }
-  const value = IdlTypeFull.primitive(primitive);
-  return { alignment, size, value };
-}
-
 const prefixByKnownSize: Map<number, IdlTypePrefix> = new Map([
   [1, "u8"],
   [2, "u16"],
@@ -532,6 +493,19 @@ const knownSizeByPrefix: Map<IdlTypePrefix, number> = new Map(
     size,
   ]),
 );
+
+function fromPrimitive(primitive: IdlTypePrimitive): IdlTypeFullBytemuck {
+  const alignment = knownAlignmentByPrimitive.get(primitive);
+  if (alignment === undefined) {
+    throw new Error(`Bytemuck: Unknown primitive alignment: ${primitive}`);
+  }
+  const size = knownSizeByPrimitive.get(primitive);
+  if (size === undefined) {
+    throw new Error(`Bytemuck: Unknown primitive size: ${primitive}`);
+  }
+  const value = IdlTypeFull.primitive(primitive);
+  return { alignment, size, value };
+}
 
 const knownSizeByPrimitive: Map<IdlTypePrimitive, number> = new Map([
   ["u8", 1],

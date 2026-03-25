@@ -85,10 +85,14 @@ export function idlInstructionAccountsEncode(
 ) {
   const instructionInputs = new Array<InstructionInput>();
   for (const instructionAccountIdl of self.accounts) {
-    const instructionAddress = objectGetOwnProperty(
-      instructionAddresses,
-      objectGuessIntendedKey(instructionAddresses, instructionAccountIdl.name),
-    );
+    const instructionAddress =
+      objectGetOwnProperty(
+        instructionAddresses,
+        objectGuessIntendedKey(
+          instructionAddresses,
+          instructionAccountIdl.name,
+        ),
+      ) ?? instructionAccountIdl.address;
     if (instructionAddress === undefined) {
       if (instructionAccountIdl.optional) {
         continue;

@@ -392,6 +392,7 @@ const presetsByName = new Map<string, IdlTypeFlat>([
   ["bytes32", presetBytes("u32")],
   ["bytes64", presetBytes("u64")],
   ["bytes128", presetBytes("u128")],
+  ["bytesVar", presetBytes("varint")],
 ]);
 function stringJsonDecoder(string: string): IdlTypeFlat {
   const preset = presetsByName.get(string);

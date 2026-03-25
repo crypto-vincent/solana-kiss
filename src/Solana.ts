@@ -254,7 +254,10 @@ export class Solana {
       instructionPayload: JsonValue;
       accountsContext?: IdlInstructionBlobAccountsContext;
     },
-  ): Promise<{ instructionRequest: InstructionRequest }> {
+  ): Promise<{
+    instructionAddresses: IdlInstructionAddresses;
+    instructionRequest: InstructionRequest;
+  }> {
     const { instructionAddresses: hydratedInstructionAddresses } =
       await this.hydrateInstructionAddresses(programAddress, instructionName, {
         throwOnMissing: true,
@@ -273,6 +276,7 @@ export class Solana {
       options.instructionPayload,
     );
     return {
+      instructionAddresses: hydratedInstructionAddresses,
       instructionRequest: {
         programAddress,
         instructionInputs,

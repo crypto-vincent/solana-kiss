@@ -156,9 +156,9 @@ export function idlProgramGuessError(
 }
 
 // TODO - support CODAMA IDLs
+
 /**
- * Parses a raw JSON value into an {@link IdlProgram}.
- * Supports Anchor IDL format; CODAMA IDL support is not yet implemented.
+ * Parses a raw IDL's JSON value into an {@link IdlProgram}.
  * @param programValue - The raw JSON value representing the IDL.
  * @returns The parsed {@link IdlProgram}.
  */
@@ -259,6 +259,8 @@ class IdlProgramOriginal {
     return this.#json;
   }
 }
+
+// TODO - should it be possible to export just an account not the whole program?
 
 function parseScopedNamedValues<Content, Param>(
   programObject: JsonObject,

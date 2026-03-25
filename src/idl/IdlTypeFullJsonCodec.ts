@@ -17,30 +17,6 @@ import {
 import { IdlTypePrimitive } from "./IdlTypePrimitive";
 
 /**
- * Generates a TypeScript module source string exporting a `jsonCodec` constant and `JsonDecoded` type for the given IDL type.
- * @param self - Full IDL type to generate a codec for.
- * @param importPath - Import path for codec helpers (default: `"solana-kiss"`).
- * @returns TypeScript module source string.
- */
-export function idlTypeFullJsonCodecModule(
-  self: IdlTypeFull,
-  importPath?: string,
-): string {
-  const dependencies = new Set<string>();
-  dependencies.add("JsonCodecContent");
-  const codecExpression = idlTypeFullJsonCodecExpression(self, dependencies);
-  const importNames = [...dependencies].join(",");
-  return [
-    `import {${importNames}} from "${importPath ?? "solana-kiss"}";`,
-    ``,
-    `export type JsonDecoded = JsonCodecContent<typeof jsonCodec>;`,
-    ``,
-    `export const jsonCodec = ${codecExpression};`,
-    ``,
-  ].join("\n");
-}
-
-/**
  * Generates a TypeScript expression string for the JSON codec of the given IDL type.
  * @param self - Full IDL type to generate a codec expression for.
  * @param dependencies - Optional set to collect required codec helper names.
