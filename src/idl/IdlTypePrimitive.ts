@@ -11,6 +11,7 @@ import { varIntDecode, varIntEncode } from "../data/VarInt";
 
 /** Primitive scalar type supported for encoding/decoding. */
 export type IdlTypePrimitive =
+  | "varint"
   | "u8"
   | "u16"
   | "u32"
@@ -24,8 +25,7 @@ export type IdlTypePrimitive =
   | "f32"
   | "f64"
   | "bool"
-  | "pubkey"
-  | "varint";
+  | "pubkey";
 
 /**
  * Encodes a JSON value into the byte representation of `self`'s primitive type, appending to `blobs`.
@@ -61,6 +61,13 @@ export function idlTypePrimitiveDecode(
 const visitorEncode: {
   [K in IdlTypePrimitive]: (value: JsonValue, blobs: Array<Uint8Array>) => void;
 } = {
+  varint: (value: JsonValue, blobs: Array<Uint8Array>) => {
+    const num = jsonCodecBigInt.decoder(value);
+    if (num < 0n) {
+      throw new Error(`Value out of bounds for varint: ${num}`);
+    }
+    blobs.push(varIntEncode(num));
+  },
   u8: (value: JsonValue, blobs: Array<Uint8Array>) => {
     const num = jsonCodecBigInt.decoder(value);
     if (num < 0 || num > 0xffn) {
@@ -189,13 +196,6 @@ const visitorEncode: {
   pubkey: (value: JsonValue, blobs: Array<Uint8Array>) => {
     blobs.push(pubkeyToBytes(jsonCodecPubkey.decoder(value)));
   },
-  varint: (value: JsonValue, blobs: Array<Uint8Array>) => {
-    const num = jsonCodecBigInt.decoder(value);
-    if (num < 0n) {
-      throw new Error(`Value out of bounds for varint: ${num}`);
-    }
-    blobs.push(varIntEncode(num));
-  },
 };
 
 const visitorDecode: {
@@ -204,6 +204,10 @@ const visitorDecode: {
     offset: number,
   ) => [number, JsonValue];
 } = {
+  varint: (data: DataView, offset: number) => {
+    const [length, value] = varIntDecode(byteGetter, data, offset);
+    return [length, jsonCodecBigInt.encoder(value)];
+  },
   u8: (data: DataView, offset: number) => {
     return [1, jsonCodecNumber.encoder(data.getUint8(offset))];
   },
@@ -250,10 +254,6 @@ const visitorDecode: {
   pubkey: (data: DataView, offset: number) => {
     const bytes = new Uint8Array(data.buffer, offset, 32);
     return [32, jsonCodecPubkey.encoder(pubkeyFromBytes(bytes))];
-  },
-  varint: (data: DataView, offset: number) => {
-    const [length, value] = varIntDecode(byteGetter, data, offset);
-    return [length, jsonCodecBigInt.encoder(value)];
   },
 };
 

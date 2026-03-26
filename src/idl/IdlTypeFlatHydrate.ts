@@ -306,7 +306,7 @@ const visitorHydrateOrConstLiteral = {
 
 const visitorHydrateFields = {
   nothing: (
-    _self: {},
+    _self: Array<never>,
     _genericsBySymbol: Map<string, IdlTypeFull | number>,
     _typedefsByName: Map<string, IdlTypedef> | null,
   ): IdlTypeFullFields => {

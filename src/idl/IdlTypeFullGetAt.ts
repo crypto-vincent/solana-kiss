@@ -186,7 +186,11 @@ const visitorTypeFull = {
 };
 
 const visitorTypeFullFields = {
-  nothing: (_self: {}, pointer: Array<number | string>, tokenIndex: number) => {
+  nothing: (
+    _self: Array<never>,
+    pointer: Array<number | string>,
+    tokenIndex: number,
+  ) => {
     throw new Error(
       `Idl: Expected a struct/vec/array at path ${jsonPointerPreview(pointer, tokenIndex)} (found empty type)`,
     );

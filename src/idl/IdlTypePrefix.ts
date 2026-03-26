@@ -2,13 +2,13 @@ import { varIntDecode, varIntEncode } from "../data/VarInt";
 
 /** Unsigned integer prefix for encoding length or discriminant of variable-size fields. */
 export type IdlTypePrefix =
+  | "varint"
   | "u0"
   | "u8"
   | "u16"
   | "u32"
   | "u64"
-  | "u128"
-  | "varint";
+  | "u128";
 
 /**
  * Encodes a `bigint` value using `self`'s width and appends it to `blobs`.
@@ -51,6 +51,12 @@ export const idlTypePrefixDefaultEnum = "u8";
 const visitorEncode: {
   [K in IdlTypePrefix]: (value: bigint, blobs: Array<Uint8Array>) => void;
 } = {
+  varint: (value: bigint, blobs: Array<Uint8Array>) => {
+    if (value < 0n) {
+      throw new Error(`Value out of bounds for varint: ${value}`);
+    }
+    blobs.push(varIntEncode(value));
+  },
   u0: (value: bigint) => {
     if (value < 0n) {
       throw new Error(`Value out of bounds for u0: ${value}`);
@@ -101,17 +107,14 @@ const visitorEncode: {
     data.setBigUint64(8, value >> 64n, true);
     blobs.push(blob);
   },
-  varint: (value: bigint, blobs: Array<Uint8Array>) => {
-    if (value < 0n) {
-      throw new Error(`Value out of bounds for varint: ${value}`);
-    }
-    blobs.push(varIntEncode(value));
-  },
 };
 
 const visitorDecode: {
   [K in IdlTypePrefix]: (data: DataView, offset: number) => [number, bigint];
 } = {
+  varint: (data: DataView, offset: number) => {
+    return varIntDecode(byteGetter, data, offset);
+  },
   u0: () => {
     throw new Error("Cannot decode u0 prefix");
   },
@@ -131,9 +134,6 @@ const visitorDecode: {
     const low = data.getBigUint64(offset, true);
     const high = data.getBigUint64(offset + 8, true);
     return [16, low | (high << 64n)];
-  },
-  varint: (data: DataView, offset: number) => {
-    return varIntDecode(byteGetter, data, offset);
   },
 };
 

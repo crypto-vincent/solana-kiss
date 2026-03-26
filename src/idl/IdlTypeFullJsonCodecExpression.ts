@@ -18,24 +18,24 @@ import { IdlTypePrimitive } from "./IdlTypePrimitive";
 
 /**
  * Generates a TypeScript expression string for the JSON codec of the given IDL type.
- * @param self - Full IDL type to generate a codec expression for.
- * @param dependencies - Optional set to collect required codec helper names.
+ * @param self - Full IDL type to generate an expression string for.
+ * @param dependencies - Optional set to collect import names.
  * @returns TypeScript expression string.
  */
 export function idlTypeFullJsonCodecExpression(
   self: IdlTypeFull,
   dependencies?: Set<string>,
 ): string {
-  return expression({ dependencies }, self);
+  return expression(self, { dependencies });
 }
 
-function expression(context: GenContext, typeFull: IdlTypeFull): string {
+function expression(typeFull: IdlTypeFull, context: GenContext): string {
   return typeFull.traverse(visitorExpression, context, null, null);
 }
 
 function expressionFields(
-  context: GenContext,
   typeFullFields: IdlTypeFullFields,
+  context: GenContext,
 ): string {
   return typeFullFields.traverse(visitorExpressionFields, context, null, null);
 }
@@ -45,17 +45,17 @@ function expressionArray(items: IdlTypeFull, context: GenContext): string {
     return stringFunctionCall(context, "jsonCodecArrayToBytes");
   }
   return stringFunctionCall(context, "jsonCodecArrayToArray", [
-    expression(context, items),
+    expression(items, context),
   ]);
 }
 
 const visitorExpression = {
   typedef: (self: IdlTypeFullTypedef, context: GenContext) => {
-    return expression(context, self.content);
+    return expression(self.content, context);
   },
   option: (self: IdlTypeFullOption, context: GenContext) => {
     return stringFunctionCall(context, "jsonCodecNullable", [
-      expression(context, self.content),
+      expression(self.content, context),
     ]);
   },
   vec: (self: IdlTypeFullVec, context: GenContext) => {
@@ -71,7 +71,7 @@ const visitorExpression = {
     return stringFunctionCall(context, "jsonCodecString");
   },
   struct: (self: IdlTypeFullStruct, context: GenContext) => {
-    return expressionFields(context, self.fields);
+    return expressionFields(self.fields, context);
   },
   enum: (self: IdlTypeFullEnum, context: GenContext) => {
     if (self.variants.length === 0) {
@@ -84,7 +84,7 @@ const visitorExpression = {
     const variants = self.variants.map((variant) => {
       return {
         key: variant.name,
-        value: expressionFields(context, variant.fields),
+        value: expressionFields(variant.fields, context),
       };
     });
     return stringFunctionCall(context, "jsonCodecObjectToEnum", [
@@ -92,7 +92,7 @@ const visitorExpression = {
     ]);
   },
   padded: (self: IdlTypeFullPadded, context: GenContext) => {
-    return expression(context, self.content);
+    return expression(self.content, context);
   },
   blob: (_self: IdlTypeFullBlob, context: GenContext) => {
     return stringFunctionCall(context, "jsonCodecConst", ["null"]);
@@ -104,13 +104,13 @@ const visitorExpression = {
 };
 
 const visitorExpressionFields = {
-  nothing: (_self: {}, context: GenContext) => {
+  nothing: (_self: Array<never>, context: GenContext) => {
     return stringFunctionCall(context, "jsonCodecConst", ["null"]);
   },
   named: (self: Array<IdlTypeFullFieldNamed>, context: GenContext) => {
     const entries = [];
     for (const field of self) {
-      const value = expression(context, field.content);
+      const value = expression(field.content, context);
       if (value !== "jsonCodecConst(null)") {
         entries.push({ key: field.name, value });
       }
@@ -121,7 +121,7 @@ const visitorExpressionFields = {
   },
   unnamed: (self: Array<IdlTypeFullFieldUnnamed>, context: GenContext) => {
     return stringFunctionCall(context, "jsonCodecArrayToTuple", [
-      stringArray(self.map((field) => expression(context, field.content))),
+      stringArray(self.map((field) => expression(field.content, context))),
     ]);
   },
 };
@@ -129,6 +129,7 @@ const visitorExpressionFields = {
 const visitorExpressionPrimitive: {
   [K in IdlTypePrimitive]: (context: GenContext) => string;
 } = {
+  varint: () => `jsonCodecBigInt`,
   u8: () => `jsonCodecNumber`,
   u16: () => `jsonCodecNumber`,
   u32: () => `jsonCodecNumber`,
@@ -143,7 +144,6 @@ const visitorExpressionPrimitive: {
   f64: () => `jsonCodecNumber`,
   bool: () => `jsonCodecBoolean`,
   pubkey: () => `jsonCodecPubkey`,
-  varint: () => `jsonCodecBigInt`,
 };
 
 function stringFunctionCall(

@@ -7,6 +7,7 @@ import {
   idlProgramParse,
   IdlTypeFull,
   idlTypeFullJsonCodecExpression,
+  idlTypeFullJsonCodecTyping,
   pubkeyDefault,
 } from "../src";
 
@@ -45,12 +46,12 @@ it("run", async () => {
   });
   const accountIdl = programIdl.accounts.get("DummyAccount")!;
 
-  const dependencies = new Set<string>();
+  const dependenciesExpression = new Set<string>();
   const codecExpression = idlTypeFullJsonCodecExpression(
     accountIdl.typeFull,
-    dependencies,
+    dependenciesExpression,
   );
-  expect(dependencies).toStrictEqual(
+  expect(dependenciesExpression).toStrictEqual(
     new Set<string>([
       "jsonCodecConst",
       "jsonCodecString",
@@ -102,6 +103,39 @@ it("run", async () => {
         fieldSnakeCase: "jsonCodecNumber",
       }),
     ),
+  );
+
+  const dependenciesTyping = new Set<string>();
+  const codecTyping = idlTypeFullJsonCodecTyping(
+    accountIdl.typeFull,
+    dependenciesTyping,
+  );
+  expect(dependenciesTyping).toStrictEqual(new Set<string>(["Pubkey"]));
+  expect(codecTyping.replace(/\s/g, "")).toStrictEqual(
+    stringObject({
+      field1: "number",
+      field2: "Array<number>",
+      field3: "null|number",
+      field4: `"variant1"|"variant2"`,
+      field5: [
+        stringObject({
+          0: stringArray(["string", "Uint8Array"]),
+        }),
+        stringObject({
+          1: stringArray(["number", "bigint"]),
+        }),
+        stringObject({
+          Misc: stringObject({
+            key: "Pubkey",
+            bool: "boolean",
+          }),
+        }),
+        stringObject({
+          Empty: "null",
+        }),
+      ].join("|"),
+      fieldSnakeCase: "number",
+    }),
   );
 
   const moduleName = "jsonCodecAccountDummy";

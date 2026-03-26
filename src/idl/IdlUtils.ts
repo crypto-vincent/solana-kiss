@@ -124,7 +124,7 @@ export function idlUtilsBlobTypeValueParse(
   typedefsIdls: Map<string, IdlTypedef>,
 ) {
   const decoded = blobJsonDecoder(blobValue);
-  if (decoded.value === null && decoded.type === null) {
+  if (decoded.value === null && decoded.type === null && decoded.isObject) {
     return { value: blobValue, typeFull: null };
   }
   if (decoded.type === null) {
@@ -159,14 +159,16 @@ export function idlUtilsBlobValueGuessType(blobValue: JsonValue) {
 const blobJsonDecoder = jsonDecoderByType<{
   value: JsonValue;
   type: IdlTypeFlat | null;
+  isObject: boolean;
 }>({
-  null: () => ({ value: null, type: null }),
-  boolean: (boolean) => ({ value: boolean, type: null }),
-  number: (number) => ({ value: number, type: null }),
-  string: (string) => ({ value: string, type: null }),
-  array: (array) => ({ value: array, type: null }),
+  null: () => ({ value: null, type: null, isObject: false }),
+  boolean: (boolean) => ({ value: boolean, type: null, isObject: false }),
+  number: (number) => ({ value: number, type: null, isObject: false }),
+  string: (string) => ({ value: string, type: null, isObject: false }),
+  array: (array) => ({ value: array, type: null, isObject: false }),
   object: jsonDecoderObjectToObject({
     value: jsonCodecValue.decoder,
     type: jsonDecoderNullable(idlTypeFlatParse),
+    isObject: () => true,
   }),
 });
