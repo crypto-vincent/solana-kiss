@@ -7,7 +7,17 @@ export const splSysvarClockAddress = pubkeyFromBase58(
 
 /** The on-chain address of the Rent sysvar. */
 export const splSysvarRentAddress = pubkeyFromBase58(
-  "SysvarRent11111111111111111111111111111111",
+  "SysvarRent111111111111111111111111111111111",
+);
+
+/** The on-chain address of the Fees sysvar. */
+export const splSysvarFeesAddress = pubkeyFromBase58(
+  "SysvarFees111111111111111111111111111111111",
+);
+
+/** The on-chain address of the Instructions sysvar. */
+export const splSysvarInstructionsAddress = pubkeyFromBase58(
+  "Sysvar1nstructions1111111111111111111111111",
 );
 
 /** The on-chain address of the System program. */
