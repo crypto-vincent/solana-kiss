@@ -258,25 +258,25 @@ export class Solana {
     instructionAddresses: IdlInstructionAddresses;
     instructionRequest: InstructionRequest;
   }> {
-    const { instructionAddresses: hydratedInstructionAddresses } =
-      await this.hydrateInstructionAddresses(programAddress, instructionName, {
-        throwOnMissing: true,
-        ...options,
-      });
+    const { instructionAddresses } = await this.hydrateInstructionAddresses(
+      programAddress,
+      instructionName,
+      { throwOnMissing: true, ...options },
+    );
     const { instructionIdl } = await this.getOrLoadInstructionIdl(
       programAddress,
       instructionName,
     );
     const { instructionInputs } = idlInstructionAccountsEncode(
       instructionIdl,
-      hydratedInstructionAddresses,
+      instructionAddresses,
     );
     const { instructionData } = idlInstructionArgsEncode(
       instructionIdl,
       options.instructionPayload,
     );
     return {
-      instructionAddresses: hydratedInstructionAddresses,
+      instructionAddresses,
       instructionRequest: {
         programAddress,
         instructionInputs,

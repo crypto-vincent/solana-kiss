@@ -260,8 +260,6 @@ class IdlProgramOriginal {
   }
 }
 
-// TODO - should it be possible to export just an account not the whole program?
-
 function parseScopedNamedValues<Content, Param>(
   programObject: JsonObject,
   collectionName: string,

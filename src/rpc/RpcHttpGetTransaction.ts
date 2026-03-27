@@ -29,7 +29,7 @@ import {
 } from "../data/Transaction";
 import { RpcHttp } from "./RpcHttp";
 
-// TODO - provide a Solana level getter with IDL parsing for instructionRequests ?
+// TODO - provide a Solana level getter with IDL parsing for executionReport ?
 // TODO - parse error to find custom program errors ? (Solana level API?)
 
 /**

@@ -128,7 +128,7 @@ const computeVisitor = {
   input: (self: IdlPdaBlobInput, inputs: Record<string, JsonValue>) => {
     return withErrorContext(`Idl: Pda Blob: Input: ${self.name}`, () => {
       const value = inputs[self.name];
-      // TODO - default value is weird
+      // TODO - default value is weird (no undefined value ?)
       if (value !== undefined) {
         return idlTypeFullEncode(self.typeFull, value, { blobMode: true });
       }
