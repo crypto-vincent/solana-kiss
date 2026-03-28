@@ -58,7 +58,7 @@ function visitFields(
 ): IdlTypeFull {
   if (tokenIndex >= pointer.length) {
     throw new Error(
-      `Idl: Expected path ${jsonPointerPreview(pointer, tokenIndex)} to point to a type (found fields)`,
+      `Expected path ${jsonPointerPreview(pointer, tokenIndex)} to point to a type (found fields)`,
     );
   }
   return self.traverse(visitorTypeFullFields, pointer, tokenIndex, null);
@@ -89,7 +89,7 @@ const visitorTypeFull = {
       return visit(self.items, pointer, tokenIndex + 1);
     }
     throw new Error(
-      `Idl: Expected path ${jsonPointerPreview(pointer, tokenIndex)} to be able to index into a Vec`,
+      `Expected path ${jsonPointerPreview(pointer, tokenIndex)} to be able to index into a Vec`,
     );
   },
   loop: (
@@ -102,7 +102,7 @@ const visitorTypeFull = {
       return visit(self.items, pointer, tokenIndex + 1);
     }
     throw new Error(
-      `Idl: Expected path ${jsonPointerPreview(pointer, tokenIndex)} to be able to index into a Loop`,
+      `Expected path ${jsonPointerPreview(pointer, tokenIndex)} to be able to index into a Loop`,
     );
   },
   array: (
@@ -115,7 +115,7 @@ const visitorTypeFull = {
       return visit(self.items, pointer, tokenIndex + 1);
     }
     throw new Error(
-      `Idl: Expected path ${jsonPointerPreview(pointer, tokenIndex)} to be a valid index for an Array of length ${self.length}`,
+      `Expected path ${jsonPointerPreview(pointer, tokenIndex)} to be a valid index for an Array of length ${self.length}`,
     );
   },
   string: (
@@ -124,7 +124,7 @@ const visitorTypeFull = {
     tokenIndex: number,
   ) => {
     throw new Error(
-      `Idl: Expected a struct/vec/array at path ${jsonPointerPreview(pointer, tokenIndex)} (found string)`,
+      `Expected a struct/vec/array at path ${jsonPointerPreview(pointer, tokenIndex)} (found string)`,
     );
   },
   struct: (
@@ -140,7 +140,7 @@ const visitorTypeFull = {
     tokenIndex: number,
   ) => {
     throw new Error(
-      `Idl: Expected a struct/vec/array at path ${jsonPointerPreview(pointer, tokenIndex)} (found enum)`,
+      `Expected a struct/vec/array at path ${jsonPointerPreview(pointer, tokenIndex)} (found enum)`,
     );
   },
   trial: (
@@ -149,7 +149,7 @@ const visitorTypeFull = {
     tokenIndex: number,
   ) => {
     throw new Error(
-      `Idl: Expected a struct/vec/array at path ${jsonPointerPreview(pointer, tokenIndex)} (found trial)`,
+      `Expected a struct/vec/array at path ${jsonPointerPreview(pointer, tokenIndex)} (found trial)`,
     );
   },
   padded: (
@@ -165,7 +165,7 @@ const visitorTypeFull = {
     tokenIndex: number,
   ) => {
     throw new Error(
-      `Idl: Expected a struct/vec/array at path ${jsonPointerPreview(pointer, tokenIndex)} (found blob)`,
+      `Expected a struct/vec/array at path ${jsonPointerPreview(pointer, tokenIndex)} (found blob)`,
     );
   },
   primitive: (
@@ -174,7 +174,7 @@ const visitorTypeFull = {
     tokenIndex: number,
   ) => {
     throw new Error(
-      `Idl: Expected a struct/vec/array at path ${jsonPointerPreview(pointer, tokenIndex)} (found ${self})`,
+      `Expected a struct/vec/array at path ${jsonPointerPreview(pointer, tokenIndex)} (found ${self})`,
     );
   },
 };
@@ -186,7 +186,7 @@ const visitorTypeFullFields = {
     tokenIndex: number,
   ) => {
     throw new Error(
-      `Idl: Expected a struct/vec/array at path ${jsonPointerPreview(pointer, tokenIndex)} (found empty type)`,
+      `Expected a struct/vec/array at path ${jsonPointerPreview(pointer, tokenIndex)} (found empty type)`,
     );
   },
   named: (
@@ -208,7 +208,7 @@ const visitorTypeFullFields = {
     }
     const names = self.map((field) => field.name).join("/");
     throw new Error(
-      `Idl: Expected path ${jsonPointerPreview(pointer, tokenIndex)}, to be a valid accessor for on of the fields: ${names}`,
+      `Expected path ${jsonPointerPreview(pointer, tokenIndex)}, to be a valid accessor for on of the fields: ${names}`,
     );
   },
   unnamed: (
@@ -220,7 +220,7 @@ const visitorTypeFullFields = {
     const arrayIndex = jsonPointerTokenAsArrayIndex(token, self.length);
     if (arrayIndex === undefined) {
       throw new Error(
-        `Idl: Expected path ${jsonPointerPreview(pointer, tokenIndex)}, to be a valid index for a Tuple of length: ${self.length}`,
+        `Expected path ${jsonPointerPreview(pointer, tokenIndex)}, to be a valid index for a Tuple of length: ${self.length}`,
       );
     }
     return visit(self[arrayIndex]!.content, pointer, tokenIndex + 1);

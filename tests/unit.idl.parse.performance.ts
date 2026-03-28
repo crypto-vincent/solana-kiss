@@ -4,7 +4,17 @@ import { idlProgramParse } from "../src";
 const iterationCount = 100;
 
 it("run", async () => {
-  const benchDurationMs = timeIt(() => {
+  const computeDurationsMs = new Array<number>();
+  for (let i = 0; i < iterationCount; i++) {
+    computeDurationsMs.push(
+      timeIt(() => {
+        idlProgramParse(require("./fixtures/idl_anchor_26.json"));
+      }),
+    );
+  }
+  computeDurationsMs.sort((a, b) => a - b);
+
+  const reasonableDurationMs = timeIt(() => {
     const dummy: Record<string, number> = {};
     let sum = 0;
     for (let i = 0; i < 500_000; i++) {
@@ -15,17 +25,9 @@ it("run", async () => {
     }
   });
 
-  const durationsMs = new Array<number>();
-  for (let i = 0; i < iterationCount; i++) {
-    durationsMs.push(
-      timeIt(() => {
-        idlProgramParse(require("./fixtures/idl_anchor_26.json"));
-      }),
-    );
-  }
-  durationsMs.sort((a, b) => a - b);
-
-  expect(getPercentile(0.75, durationsMs)).toBeLessThanOrEqual(benchDurationMs);
+  expect(getPercentile(0.75, computeDurationsMs)).toBeLessThanOrEqual(
+    reasonableDurationMs,
+  );
 });
 
 function getPercentile(

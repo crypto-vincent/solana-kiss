@@ -44,7 +44,9 @@ export function idlTypeFullDecode(
   data: DataView,
   offset: number,
 ): [number, JsonValue] {
-  return visit(self, data, offset);
+  return withErrorContext(`Idl: Decode (offset: ${offset})`, () =>
+    visit(self, data, offset),
+  );
 }
 
 function visit(self: IdlTypeFull, data: DataView, offset: number) {
@@ -61,9 +63,8 @@ const visitor = {
     data: DataView,
     offset: number,
   ): [number, JsonValue] => {
-    return withErrorContext(
-      `Decode: Typedef: ${self.name} (offset: ${offset})`,
-      () => visit(self.content, data, offset),
+    return withErrorContext(`Typedef: ${self.name} (offset: ${offset})`, () =>
+      visit(self.content, data, offset),
     );
   },
   option: (
@@ -186,13 +187,11 @@ const visitor = {
     const dataVariantOffset = offset + dataSize;
     const variantIndex = self.indexByCodeBigInt.get(dataCode);
     if (variantIndex === undefined) {
-      throw new Error(
-        `Decode: Unknown enum code: ${dataCode} (offset: ${offset})`,
-      );
+      throw new Error(`Unknown enum code: ${dataCode} (offset: ${offset})`);
     }
     const variant = self.variants[variantIndex]!;
     const [dataVariantSize, dataVariant] = withErrorContext(
-      `Decode: Enum Variant: ${variant.name} (offset: ${dataVariantOffset})`,
+      `Enum Variant: ${variant.name} (offset: ${dataVariantOffset})`,
       () => visitFields(variant.fields, data, dataVariantOffset),
     );
     dataSize += dataVariantSize;
@@ -217,7 +216,7 @@ const visitor = {
       }
     }
     throw new ErrorStack(
-      `Decode: First: No matching candidate (offset: ${offset})`,
+      `First: No matching candidate (offset: ${offset})`,
       errors,
     );
   },
@@ -249,7 +248,7 @@ const visitor = {
       const foundByte = data.getUint8(foundIndex);
       if (foundByte !== expectedByte) {
         throw new Error(
-          `Decode: Expected byte ${expectedByte} at blob index ${expectedIndex} (offset ${foundIndex}, found: ${foundByte})`,
+          `Expected byte ${expectedByte} at blob index ${expectedIndex} (offset ${foundIndex}, found: ${foundByte})`,
         );
       }
     }
@@ -282,7 +281,7 @@ const visitorFields = {
     for (const field of self) {
       const dataFieldOffset = offset + dataSize;
       const [dataFieldSize, dataField] = withErrorContext(
-        `Decode: Field: ${field.name} (offset: ${dataFieldOffset})`,
+        `Field: ${field.name} (offset: ${dataFieldOffset})`,
         () => visit(field.content, data, dataFieldOffset),
       );
       dataSize += dataFieldSize;
@@ -301,7 +300,7 @@ const visitorFields = {
       const field = self[index]!;
       const dataFieldOffset = offset + dataSize;
       const [dataFieldSize, dataField] = withErrorContext(
-        `Decode: Field: Unamed: ${index} (offset: ${dataFieldOffset})`,
+        `Field: Unamed: ${index} (offset: ${dataFieldOffset})`,
         () => visit(field.content, data, dataFieldOffset),
       );
       dataSize += dataFieldSize;

@@ -52,7 +52,7 @@ export function idlLoaderFromOnchainNative(
     ]);
     const idlData = await accountDataFetcher(idlAddress);
     if (idlData.length === 0) {
-      throw new ErrorStack(`IDL: No native idl found at address ${idlAddress}`);
+      throw new ErrorStack(`Idl: No native idl found at address ${idlAddress}`);
     }
     const { accountState: idlState } = idlAccountDecode(
       metadataProgramAccount,
@@ -60,10 +60,10 @@ export function idlLoaderFromOnchainNative(
     );
     const idlContent = metadataProgramJsonCodec.decoder(idlState);
     if (bytesCompare(idlContent.seed, metadataProgramIdlSeed) !== 0) {
-      throw new ErrorStack(`IDL: Invalid seed value`);
+      throw new ErrorStack(`Idl: Invalid seed value`);
     }
     if (idlContent.format !== "None" && idlContent.format !== "Json") {
-      throw new ErrorStack(`IDL: Unexpected format ${idlContent.format}`);
+      throw new ErrorStack(`Idl: Unexpected format ${idlContent.format}`);
     }
     const idlJson = await resolveIdlJson(
       idlContent,
@@ -115,7 +115,7 @@ async function resolveIdlJson(
     const urlString = utf8Decode(urlBytes);
     return await (customJsonFetcher ?? jsonFetcherDefault)(new URL(urlString));
   }
-  throw new ErrorStack(`IDL: Unsupported data source ${idlContent.dataSource}`);
+  throw new ErrorStack(`Idl: Unsupported data source ${idlContent.dataSource}`);
 }
 
 function decompressIfNeeded(
@@ -128,7 +128,7 @@ function decompressIfNeeded(
   if (idlCompression === "ZLib") {
     return inflate(idlBytes, null);
   }
-  throw new ErrorStack(`IDL: Unexpected compression ${idlCompression}`);
+  throw new ErrorStack(`Idl: Unexpected compression ${idlCompression}`);
 }
 
 const metadataProgramAddress = pubkeyFromBase58(

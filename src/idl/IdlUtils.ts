@@ -1,7 +1,4 @@
 import {
-  jsonAsArray,
-  jsonAsObject,
-  jsonAsString,
   jsonCodecArrayToBytes,
   jsonCodecBase16ToBytes,
   jsonCodecBase58ToBytes,
@@ -9,7 +6,9 @@ import {
   jsonCodecNumber,
   jsonCodecUtf8ToBytes,
   jsonCodecValue,
+  JsonDecoder,
   jsonDecoderByType,
+  jsonDecoderFirstMatch,
   jsonDecoderNullable,
   jsonDecoderObjectToObject,
   jsonDecoderOneOfKeys,
@@ -19,70 +18,18 @@ import {
 } from "../data/Json";
 import { sha256Hash } from "../data/Sha256";
 import { utf8Encode } from "../data/Utf8";
-import { IdlTypedef } from "./IdlTypedef";
 import { IdlTypeFlat } from "./IdlTypeFlat";
 import { idlTypeFlatHydrate } from "./IdlTypeFlatHydrate";
 import { idlTypeFlatParse } from "./IdlTypeFlatParse";
-import { IdlTypeFull } from "./IdlTypeFull";
 import { idlTypeFullEncode } from "./IdlTypeFullEncode";
 
 /**
- * JSON decoder for byte arrays. Accepted formats:
- * - JSON array of numbers
- * - Object keys: `utf8`, `base16`, `base58`, `base64`, `zeroes`, `encode`
+ * Computes the 8-byte Anchor discriminator (first 8 bytes of SHA-256(name)).
+ * @param name - Account or instruction name (e.g. `"account:MyAccount"`).
+ * @returns 8-byte discriminator.
  */
-export const idlUtilsBytesJsonDecoder = jsonDecoderByType({
-  array: jsonCodecArrayToBytes.decoder,
-  object: jsonDecoderOneOfKeys({
-    utf8: jsonCodecUtf8ToBytes.decoder,
-    base16: jsonCodecBase16ToBytes.decoder,
-    base58: jsonCodecBase58ToBytes.decoder,
-    base64: jsonCodecBase64ToBytes.decoder,
-    zeroes: jsonDecoderWrapped(
-      jsonCodecNumber.decoder,
-      (n) => new Uint8Array(n),
-    ),
-    encoded: jsonDecoderWrapped(
-      jsonDecoderObjectToObject({
-        type: idlTypeFlatParse,
-        value: jsonCodecValue.decoder,
-      }),
-      (info) => {
-        const typeFull = idlTypeFlatHydrate(info.type, new Map(), null);
-        return idlTypeFullEncode(typeFull, info.value, { blobMode: true });
-      },
-    ),
-  }),
-});
-
-/**
- * Asserts a specific byte sequence is present in `data` at `blobOffset`.
- * @param blobOffset - Start byte offset.
- * @param blobBytes - Expected bytes.
- * @param data - Buffer to verify.
- * @throws If data is too short or bytes don't match.
- */
-export function idlUtilsExpectBlobAt(
-  blobOffset: number,
-  blobBytes: Uint8Array,
-  data: Uint8Array,
-): void {
-  const start = blobOffset;
-  const end = start + blobBytes.length;
-  if (end > data.length) {
-    throw new Error(
-      `Idl: Expected bytes length of at least ${end} (found: ${data.length})`,
-    );
-  }
-  for (let index = 0; index < blobBytes.length; index++) {
-    const byteNeedle = blobBytes[index]!;
-    const byteHaystack = data[start + index]!;
-    if (byteNeedle !== byteHaystack) {
-      throw new Error(
-        `Idl: Expected byte at index ${index} to be: ${byteNeedle} (found: ${byteHaystack})`,
-      );
-    }
-  }
+export function idlUtilsAnchorDiscriminator(name: string): Uint8Array {
+  return sha256Hash([utf8Encode(name)]).slice(0, 8);
 }
 
 /**
@@ -105,70 +52,108 @@ export function idlUtilsJsonRustedParse(jsonRusted: string): JsonValue {
 }
 
 /**
- * Computes the 8-byte Anchor discriminator (first 8 bytes of SHA-256(name)).
- * @param name - Account or instruction name (e.g. `"account:MyAccount"`).
- * @returns 8-byte discriminator.
+ * Asserts a specific byte sequence is present in `data` at `blobOffset`.
+ * @param blobOffset - Start byte offset.
+ * @param blobBytes - Expected bytes.
+ * @param data - Buffer to verify.
+ * @throws If data is too short or bytes don't match.
  */
-export function idlUtilsAnchorDiscriminator(name: string): Uint8Array {
-  return sha256Hash([utf8Encode(name)]).slice(0, 8);
+export function idlUtilsExpectBlobAt(
+  blobOffset: number,
+  blobBytes: Uint8Array,
+  data: Uint8Array,
+): void {
+  const start = blobOffset;
+  const end = start + blobBytes.length;
+  if (end > data.length) {
+    throw new Error(
+      `Expected bytes length of at least ${end} (found: ${data.length})`,
+    );
+  }
+  for (let index = 0; index < blobBytes.length; index++) {
+    const byteNeedle = blobBytes[index]!;
+    const byteHaystack = data[start + index]!;
+    if (byteNeedle !== byteHaystack) {
+      throw new Error(
+        `Expected byte at index ${index} to be: ${byteNeedle} (found: ${byteHaystack})`,
+      );
+    }
+  }
 }
 
-/**
- * Parses a blob value into a structured format with type information.
- * @param blobValue - JSON value for the blob.
- * @param typedefsIdls - Typedefs for type resolution.
- * @returns Parsed blob info.
- */
-export function idlUtilsBlobTypeValueParse(
-  blobValue: JsonValue,
-  typedefsIdls: Map<string, IdlTypedef>,
-) {
-  const decoded = blobJsonDecoder(blobValue);
-  if (decoded.value === null && decoded.type === null && decoded.isObject) {
-    return { value: blobValue, typeFull: null };
-  }
-  if (decoded.type === null) {
-    return { value: decoded.value, typeFull: null };
-  }
-  return {
-    value: decoded.value,
-    typeFull: idlTypeFlatHydrate(decoded.type, new Map(), typedefsIdls),
-  };
-}
-
-/**
- * Infers the type of a blob value based on its structure.
- * For example, if the value is a JSON array, it infers a vector of bytes.
- * @param blobValue - The JSON value representing the blob's value.
- * @returns The inferred {@link IdlTypeFull} or `null` if the type cannot be inferred.
- */
-export function idlUtilsBlobValueGuessType(blobValue: JsonValue) {
-  if (jsonAsString(blobValue) !== undefined) {
-    return IdlTypeFull.primitive("pubkey");
-  }
-  if (
-    jsonAsArray(blobValue) !== undefined ||
-    jsonAsObject(blobValue) !== undefined
-  ) {
-    const u8 = IdlTypeFull.primitive("u8");
-    return IdlTypeFull.vec({ prefix: undefined, items: u8 });
-  }
-  return null;
-}
-
-const blobJsonDecoder = jsonDecoderByType<{
-  value: JsonValue;
-  type: IdlTypeFlat | null;
-  isObject: boolean;
-}>({
-  null: () => ({ value: null, type: null, isObject: false }),
-  boolean: (boolean) => ({ value: boolean, type: null, isObject: false }),
-  number: (number) => ({ value: number, type: null, isObject: false }),
-  string: (string) => ({ value: string, type: null, isObject: false }),
-  array: (array) => ({ value: array, type: null, isObject: false }),
-  object: jsonDecoderObjectToObject({
-    value: jsonCodecValue.decoder,
-    type: jsonDecoderNullable(idlTypeFlatParse),
-    isObject: () => true,
+const objectBytesJsonDecoder: JsonDecoder<Uint8Array> = jsonDecoderOneOfKeys({
+  blob: jsonDecoderWrapped(idlUtilsBlobTypeValueJsonDecoder, (blob) => {
+    if (blob.typeFlat === null) {
+      throw new Error(`Idl: Expected type for blob value`);
+    }
+    const typeFull = idlTypeFlatHydrate(blob.typeFlat, new Map(), null);
+    return idlTypeFullEncode(typeFull, blob.value, { blobMode: true });
   }),
+  base16: jsonCodecBase16ToBytes.decoder,
+  base58: jsonCodecBase58ToBytes.decoder,
+  base64: jsonCodecBase64ToBytes.decoder,
+  utf8: jsonCodecUtf8ToBytes.decoder,
+  fill: jsonDecoderWrapped(
+    jsonDecoderObjectToObject({
+      length: jsonCodecNumber.decoder,
+      byte: jsonCodecNumber.decoder,
+    }),
+    (object) => new Uint8Array(object.length).fill(object.byte),
+  ),
+});
+const blobBytesJsonDecoder = jsonDecoderByType<{
+  typeFlat: IdlTypeFlat;
+  value: JsonValue;
+}>({
+  string: (string) => ({
+    typeFlat: idlTypeFlatParse("pubkey"),
+    value: string,
+  }),
+  array: (array) => ({
+    typeFlat: idlTypeFlatParse("bytes"),
+    value: array,
+  }),
+  object: jsonDecoderWrapped(objectBytesJsonDecoder, (bytes) => ({
+    typeFlat: idlTypeFlatParse("bytes"),
+    value: Array.from(bytes),
+  })),
+});
+const blobTypeValueJsonDecoder = jsonDecoderFirstMatch<{
+  typeFlat: IdlTypeFlat | null;
+  value: JsonValue;
+}>([
+  blobBytesJsonDecoder,
+  jsonDecoderWrapped(
+    jsonDecoderObjectToObject({
+      type: jsonDecoderNullable(idlTypeFlatParse),
+      value: jsonCodecValue.decoder,
+    }),
+    (object) => {
+      if (object.type === null && object.value !== null) {
+        return blobBytesJsonDecoder(object.value);
+      }
+      return {
+        typeFlat: object.type,
+        value: object.value,
+      };
+    },
+  ),
+]);
+
+/**
+ * JSON decoder for IDL blob values (used in PDA blobs constants and inputs).
+ */
+export function idlUtilsBlobTypeValueJsonDecoder(blobValue: JsonValue): {
+  typeFlat: IdlTypeFlat | null;
+  value: JsonValue;
+} {
+  return blobTypeValueJsonDecoder(blobValue);
+}
+
+/**
+ * JSON decoder for byte arrays constants.
+ */
+export const idlUtilsBytesJsonDecoder = jsonDecoderByType({
+  array: jsonCodecArrayToBytes.decoder,
+  object: objectBytesJsonDecoder,
 });

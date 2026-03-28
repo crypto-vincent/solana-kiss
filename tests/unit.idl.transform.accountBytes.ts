@@ -33,21 +33,21 @@ it("run", () => {
   });
   const case4 = idlAccountEncode(accountIdl, {
     vec_u8: {
-      encoded: { type: "string0", value: "CoordinatorJoinRun" },
+      blob: { type: "string0", value: "CoordinatorJoinRun" },
     },
     arr_u8: {
-      encoded: { type: "bytes0", value: { utf8: "CoordinatorJoinRun" } },
+      blob: { type: "bytes0", value: { utf8: "CoordinatorJoinRun" } },
     },
   });
   const case5 = idlAccountEncode(accountIdl, {
     vec_u8: {
-      encoded: {
+      blob: {
         type: [{ vec0: "u8" }, 3],
         value: [{ utf8: "Coordinator" }, { utf8: "Join" }, [82, 117, 110]],
       },
     },
     arr_u8: {
-      encoded: {
+      blob: {
         type: { vec0: "string0" },
         value: ["Coordinator", "Join", "Run"],
       },

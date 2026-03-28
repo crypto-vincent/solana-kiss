@@ -13,18 +13,15 @@ import {
   jsonGetAt,
   jsonPointerParse,
   jsonPointerPreview,
-  jsonPreview,
 } from "../data/Json";
 import { Pubkey, pubkeyToBytes } from "../data/Pubkey";
 import { IdlInstructionAccountFindContext } from "./IdlInstructionAccount";
 import { IdlTypedef } from "./IdlTypedef";
+import { idlTypeFlatHydrate } from "./IdlTypeFlatHydrate";
 import { IdlTypeFull } from "./IdlTypeFull";
 import { idlTypeFullEncode } from "./IdlTypeFullEncode";
 import { idlTypeFullGetAt } from "./IdlTypeFullGetAt";
-import {
-  idlUtilsBlobTypeValueParse,
-  idlUtilsBlobValueGuessType,
-} from "./IdlUtils";
+import { idlUtilsBlobTypeValueJsonDecoder } from "./IdlUtils";
 
 /** A pre-fetched map of account content keyed by instruction account name, used to avoid redundant on-chain fetches. */
 export type IdlInstructionBlobAccountsContext = {
@@ -143,27 +140,27 @@ export function idlInstructionBlobParse(
   instructionArgsTypeFull: IdlTypeFull,
   typedefsIdls: Map<string, IdlTypedef>,
 ): IdlInstructionBlob {
-  const { kind, path } = jsonDecoder(instructionBlobValue);
-  const { value, typeFull: baseTypeFull } = idlUtilsBlobTypeValueParse(
-    instructionBlobValue,
-    typedefsIdls,
-  );
+  const { kind, path } = metaJsonDecoder(instructionBlobValue);
   if (path === null) {
-    const typeFull = baseTypeFull ?? idlUtilsBlobValueGuessType(value);
-    if (typeFull === null) {
-      throw new ErrorStack(
-        `Idl: Instruction Blob: Unknown const value type`,
-        jsonPreview(value),
-      );
-    }
-    return IdlInstructionBlob.const({
-      bytes: idlTypeFullEncode(typeFull, value, { blobMode: true }),
+    return withErrorContext(`Const`, () => {
+      const { typeFlat, value } =
+        idlUtilsBlobTypeValueJsonDecoder(instructionBlobValue);
+      if (typeFlat === null) {
+        throw new Error(`Missing type`);
+      }
+      const typeFull = idlTypeFlatHydrate(typeFlat, new Map(), typedefsIdls);
+      const bytes = idlTypeFullEncode(typeFull, value, { blobMode: true });
+      return IdlInstructionBlob.const({ bytes });
     });
   }
   if (kind === "arg") {
     const pointer = jsonPointerParse(path);
-    const typeFull =
-      baseTypeFull ?? idlTypeFullGetAt(instructionArgsTypeFull, pointer);
+    const { typeFlat } = idlUtilsBlobTypeValueJsonDecoder(instructionBlobValue);
+    if (typeFlat === null) {
+      const typeFull = idlTypeFullGetAt(instructionArgsTypeFull, pointer);
+      return IdlInstructionBlob.arg({ pointer, typeFull });
+    }
+    const typeFull = idlTypeFlatHydrate(typeFlat, new Map(), typedefsIdls);
     return IdlInstructionBlob.arg({ pointer, typeFull });
   }
   if (kind === null || kind === "account") {
@@ -172,10 +169,14 @@ export function idlInstructionBlobParse(
       casingLosslessConvertToCamel(path),
       casingLosslessConvertToSnake(path),
     ];
-    const typeFull = baseTypeFull ?? undefined;
+    const { typeFlat } = idlUtilsBlobTypeValueJsonDecoder(instructionBlobValue);
+    if (typeFlat === null) {
+      return IdlInstructionBlob.account({ paths, typeFull: undefined });
+    }
+    const typeFull = idlTypeFlatHydrate(typeFlat, new Map(), typedefsIdls);
     return IdlInstructionBlob.account({ paths, typeFull });
   }
-  throw new Error(`Idl: Invalid instruction blob kind: ${kind}`);
+  throw new Error(`Idl: Instruction Blob: Invalid kind: ${kind}`);
 }
 
 const computeVisitor = {
@@ -192,7 +193,7 @@ const computeVisitor = {
       () => {
         const instructionPayload = findContext.instructionPayload;
         if (instructionPayload === undefined) {
-          throw new Error(`Idl: Arg: ${pointerPreview}: Missing IX payload`);
+          throw new ErrorStack(`Missing payload: ${pointerPreview}`);
         }
         const value = jsonGetAt(instructionPayload, self.pointer);
         return idlTypeFullEncode(self.typeFull, value, { blobMode: true });
@@ -273,10 +274,7 @@ function encodeExtractedAccountState(
   });
 }
 
-const jsonDecoder = jsonDecoderByType({
-  null: () => ({ kind: null, path: null }),
-  boolean: () => ({ kind: null, path: null }),
-  number: () => ({ kind: null, path: null }),
+const metaJsonDecoder = jsonDecoderByType({
   string: () => ({ kind: null, path: null }),
   array: () => ({ kind: null, path: null }),
   object: jsonDecoderObjectToObject({

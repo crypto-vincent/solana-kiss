@@ -56,7 +56,9 @@ export function idlTypeFullEncode(
   if (options?.discriminator !== undefined) {
     blobs.push(options.discriminator);
   }
-  visit(self, value, blobs, !options?.blobMode);
+  withErrorContext(`Idl: Encode`, () => {
+    visit(self, value, blobs, !options?.blobMode);
+  });
   return blobsFlatten(blobs);
 }
 
@@ -85,7 +87,7 @@ const visitor = {
     blobs: Array<Uint8Array>,
     prefixed: boolean,
   ) => {
-    withErrorContext(`Encode: Typedef: ${self.name}`, () => {
+    withErrorContext(`Typedef: ${self.name}`, () => {
       return visit(self.content, value, blobs, prefixed);
     });
   },
@@ -199,7 +201,7 @@ const visitor = {
       variant: IdlTypeFullEnumVariant,
       value: JsonValue,
     ) {
-      withErrorContext(`Encode: Enum Variant: ${variant.name}`, () => {
+      withErrorContext(`Enum Variant: ${variant.name}`, () => {
         const prefix =
           self.prefix ?? (prefixed ? idlTypePrefixDefaultEnum : "u0");
         idlTypePrefixEncode(prefix, variant.code, blobs);
@@ -257,7 +259,7 @@ const visitor = {
       if (candidateValue === undefined) {
         continue;
       }
-      withErrorContext(`Encode: Trial: Candidate: ${candidate.name}`, () => {
+      withErrorContext(`Trial: Candidate: ${candidate.name}`, () => {
         visit(candidate.content, candidateValue, blobs, prefixed);
       });
       return;
@@ -321,7 +323,7 @@ const visitorFields = {
     for (const field of self) {
       const fieldName = objectGuessIntendedKey(object, field.name);
       const fieldValue = objectGetOwnProperty(object, fieldName);
-      withErrorContext(`Encode: Field: ${fieldName}`, () => {
+      withErrorContext(`Field: ${fieldName}`, () => {
         visit(field.content, fieldValue ?? null, blobs, prefixed);
       });
     }
@@ -335,7 +337,7 @@ const visitorFields = {
     const array = jsonCodecArray.decoder(value);
     for (let index = 0; index < self.length; index++) {
       const field = self[index]!;
-      withErrorContext(`Encode: Field: Unamed: ${index}`, () => {
+      withErrorContext(`Field: Unamed: ${index}`, () => {
         visit(field.content, array[index] ?? null, blobs, prefixed);
       });
     }

@@ -33,7 +33,7 @@ export function idlLoaderFromOnchainAnchor(
     );
     const idlData = await accountDataFetcher(idlAddress);
     if (idlData.length === 0) {
-      throw new ErrorStack(`IDL: No anchor idl found at address ${idlAddress}`);
+      throw new ErrorStack(`Idl: No anchor idl found at address ${idlAddress}`);
     }
     const { accountState: idlState } = idlAccountDecode(
       anchorIdlAccount,

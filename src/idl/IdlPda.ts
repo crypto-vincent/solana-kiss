@@ -38,12 +38,17 @@ export function idlPdaFind(
   inputs: Record<string, JsonValue>,
   programAddress?: Pubkey,
 ) {
-  const seedsBytes = self.seeds.map((seed) => idlPdaBlobCompute(seed, inputs));
-  if (self.program !== undefined) {
-    return pubkeyFindPdaAddress(
-      pubkeyFromBytes(idlPdaBlobCompute(self.program, inputs)),
-      seedsBytes,
+  const seedsBytes = self.seeds.map((seed, index) =>
+    withErrorContext(`Idl: Pda: Seed: ${index}: Compute`, () =>
+      idlPdaBlobCompute(seed, inputs),
+    ),
+  );
+  const programBlob = self.program;
+  if (programBlob !== undefined) {
+    const programAddress = withErrorContext(`Idl: Pda: Program: Compute`, () =>
+      pubkeyFromBytes(idlPdaBlobCompute(programBlob, inputs)),
     );
+    return pubkeyFindPdaAddress(programAddress, seedsBytes);
   }
   if (programAddress === undefined) {
     throw new Error("Idl: Pda: Program address must be provided");
@@ -67,12 +72,12 @@ export function idlPdaParse(
     name: pdaName,
     docs: decoded.docs,
     seeds: decoded.seeds.map((seedValue, seedIndex) =>
-      withErrorContext(`Idl: Pda: Seed: ${seedIndex}`, () =>
+      withErrorContext(`Idl: Pda: Seed: ${seedIndex}: Parse`, () =>
         idlPdaBlobParse(seedValue, typedefsIdls),
       ),
     ),
     program: decoded.program
-      ? withErrorContext(`Idl: Pda: Program`, () =>
+      ? withErrorContext(`Idl: Pda: Program: Parse`, () =>
           idlPdaBlobParse(decoded.program, typedefsIdls),
         )
       : undefined,

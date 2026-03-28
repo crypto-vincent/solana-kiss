@@ -83,7 +83,7 @@ export function idlAccountCheck(
   if (self.dataSpace !== undefined) {
     if (self.dataSpace !== accountData.length) {
       throw new Error(
-        `Idl: Expected account space ${self.dataSpace} (found: ${accountData.length})`,
+        `Idl: Account: Expected space ${self.dataSpace} (found: ${accountData.length})`,
       );
     }
   }
@@ -115,7 +115,7 @@ export function idlAccountParse(
     for (const blob of decoded.blobs) {
       if (blob.offset < 0) {
         throw new Error(
-          `Idl: Account blob offset must be >= 0 (found: ${blob.offset})`,
+          `Idl: Account: Blob offset must be >= 0 (found: ${blob.offset})`,
         );
       }
       dataBlobs.push(blob);
@@ -138,6 +138,7 @@ export function idlAccountParse(
 
 const jsonDecoder = jsonDecoderObjectToObject({
   docs: idlDocsParse,
+  discriminator: jsonDecoderNullable(idlUtilsBytesJsonDecoder),
   space: jsonDecoderNullable(jsonCodecNumber.decoder),
   blobs: jsonDecoderNullable(
     jsonDecoderArrayToArray(
@@ -147,5 +148,4 @@ const jsonDecoder = jsonDecoderObjectToObject({
       }),
     ),
   ),
-  discriminator: jsonDecoderNullable(idlUtilsBytesJsonDecoder),
 });

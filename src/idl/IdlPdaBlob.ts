@@ -4,16 +4,13 @@ import {
   jsonDecoderByType,
   jsonDecoderNullable,
   jsonDecoderObjectToObject,
-  jsonPreview,
   JsonValue,
 } from "../data/Json";
 import { IdlTypedef } from "./IdlTypedef";
+import { idlTypeFlatHydrate } from "./IdlTypeFlatHydrate";
 import { IdlTypeFull } from "./IdlTypeFull";
 import { idlTypeFullEncode } from "./IdlTypeFullEncode";
-import {
-  idlUtilsBlobTypeValueParse,
-  idlUtilsBlobValueGuessType,
-} from "./IdlUtils";
+import { idlUtilsBlobTypeValueJsonDecoder } from "./IdlUtils";
 
 /** A PDA seed variant that holds a pre-encoded constant byte array. */
 export type IdlPdaBlobConst = {
@@ -24,10 +21,10 @@ export type IdlPdaBlobConst = {
 export type IdlPdaBlobInput = {
   /** The name of the runtime input parameter that provides this seed's value. */
   name: string;
-  /** The default JSON-compatible value to use when the named input is not supplied. */
-  value: JsonValue;
   /** The fully-resolved IDL type used to encode the input value into seed bytes. */
   typeFull: IdlTypeFull;
+  /** The bytes to use when the input value is not supplied. */
+  bytes: Uint8Array | undefined;
 };
 
 type IdlPdaBlobDiscriminant = "const" | "input";
@@ -97,29 +94,31 @@ export function idlPdaBlobParse(
   pdaBlobValue: JsonValue,
   typedefsIdls: Map<string, IdlTypedef>,
 ): IdlPdaBlob {
-  const { input } = jsonDecoder(pdaBlobValue);
-  const { value, typeFull: baseTypeFull } = idlUtilsBlobTypeValueParse(
-    pdaBlobValue,
-    typedefsIdls,
-  );
-  const typeFull = baseTypeFull ?? idlUtilsBlobValueGuessType(value);
-  if (typeFull === null) {
-    throw new ErrorStack(
-      `Idl: Pda Blob: Unknown value type`,
-      jsonPreview(value),
-    );
+  const { input } = metaJsonDecoder(pdaBlobValue);
+  const { typeFlat, value } = idlUtilsBlobTypeValueJsonDecoder(pdaBlobValue);
+  if (typeFlat === null) {
+    throw new Error(`Missing type`);
   }
-  if (input === null) {
-    return IdlPdaBlob.const({
-      bytes: idlTypeFullEncode(typeFull, value, { blobMode: true }),
-    });
+  const typeFull = idlTypeFlatHydrate(typeFlat, new Map(), typedefsIdls);
+  try {
+    const bytes = idlTypeFullEncode(typeFull, value, { blobMode: true });
+    if (input === null) {
+      return IdlPdaBlob.const({ bytes });
+    }
+    return IdlPdaBlob.input({ name: input, typeFull, bytes });
+  } catch (error) {
+    if (value !== null) {
+      throw new ErrorStack(`Invalid value`, error);
+    }
+    if (input !== null) {
+      return IdlPdaBlob.input({
+        name: input,
+        typeFull: typeFull,
+        bytes: undefined,
+      });
+    }
+    throw new ErrorStack(`Invalid const value`, error);
   }
-  // TODO - default value is weird (no undefined value ?)
-  return IdlPdaBlob.input({
-    name: input,
-    value: value,
-    typeFull: typeFull,
-  });
 }
 
 const computeVisitor = {
@@ -127,20 +126,20 @@ const computeVisitor = {
     return self.bytes;
   },
   input: (self: IdlPdaBlobInput, inputs: Record<string, JsonValue>) => {
-    return withErrorContext(`Idl: Pda Blob: Input: ${self.name}`, () => {
+    return withErrorContext(`Input: ${self.name}`, () => {
       const value = inputs[self.name];
       if (value !== undefined) {
         return idlTypeFullEncode(self.typeFull, value, { blobMode: true });
       }
-      return idlTypeFullEncode(self.typeFull, self.value, { blobMode: true });
+      if (self.bytes !== undefined) {
+        return self.bytes;
+      }
+      throw new Error(`Missing value`);
     });
   },
 };
 
-const jsonDecoder = jsonDecoderByType({
-  null: () => ({ input: null }),
-  boolean: () => ({ input: null }),
-  number: () => ({ input: null }),
+const metaJsonDecoder = jsonDecoderByType({
   string: () => ({ input: null }),
   array: () => ({ input: null }),
   object: jsonDecoderObjectToObject({

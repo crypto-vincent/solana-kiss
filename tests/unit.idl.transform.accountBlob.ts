@@ -15,10 +15,10 @@ it("run", () => {
         fields: [
           {
             name: "blob_before",
-            bytes: { encoded: { type: ["u8", 3], value: [1, 2, 3] } },
+            bytes: { blob: { type: ["u8", 3], value: [1, 2, 3] } },
           },
           { name: "value", type: "u8" },
-          { name: "blob_empty", bytes: { zeroes: 0 } },
+          { name: "blob_empty", bytes: { fill: { length: 0, byte: 0 } } },
           { name: "blob_after", bytes: { base16: "040506" } },
         ],
       },
@@ -48,7 +48,7 @@ it("run", () => {
           {
             name: "blob_after",
             bytes: {
-              encoded: {
+              blob: {
                 value: { a: [null, null, null, null], c: 6 },
                 type: {
                   fields: [
