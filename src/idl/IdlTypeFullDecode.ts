@@ -1,4 +1,4 @@
-import { withErrorContext } from "../data/Error";
+import { ErrorStack, withErrorContext } from "../data/Error";
 import {
   JsonArray,
   jsonIsDeepEqual,
@@ -14,6 +14,7 @@ import {
   IdlTypeFullFieldNamed,
   IdlTypeFullFields,
   IdlTypeFullFieldUnnamed,
+  IdlTypeFullFirst,
   IdlTypeFullLoop,
   IdlTypeFullOption,
   IdlTypeFullPadded,
@@ -219,6 +220,29 @@ const visitorDecode = {
     } else {
       return [dataSize, { [variant.name]: dataVariant }];
     }
+  },
+  first: (
+    self: IdlTypeFullFirst,
+    data: DataView,
+    offset: number,
+  ): [number, JsonValue] => {
+    const errors = [];
+    for (const candidate of self.candidates) {
+      try {
+        const [dataSize, dataValue] = idlTypeFullDecode(
+          candidate.content,
+          data,
+          offset,
+        );
+        return [dataSize, { [candidate.name]: dataValue }];
+      } catch (error) {
+        errors.push(error);
+      }
+    }
+    throw new ErrorStack(
+      `Decode: First: No matching candidate (offset: ${offset})`,
+      errors,
+    );
   },
   padded: (
     self: IdlTypeFullPadded,

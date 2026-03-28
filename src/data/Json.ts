@@ -21,6 +21,7 @@ import { utf8Decode, utf8Encode } from "./Utf8";
 import {
   objectGetOwnProperty,
   objectGuessIntendedKey,
+  objectMapValues,
   OneKeyOf,
 } from "./Utils";
 
@@ -715,12 +716,8 @@ export function jsonCodecArrayToObject<
 >(valuesCodecs: {
   [K in keyof Content]: JsonCodec<Content[K]>;
 }): JsonCodec<Content> {
-  const valuesDecoders = Object.fromEntries(
-    Object.entries(valuesCodecs).map(([key, type]) => [key, type.decoder]),
-  );
-  const valuesEncoders = Object.fromEntries(
-    Object.entries(valuesCodecs).map(([key, type]) => [key, type.encoder]),
-  );
+  const valuesDecoders = objectMapValues(valuesCodecs, (c) => c.decoder);
+  const valuesEncoders = objectMapValues(valuesCodecs, (c) => c.encoder);
   return {
     decoder: jsonDecoderArrayToObject<Content>(valuesDecoders as any),
     encoder: jsonEncoderArrayToObject<Content>(valuesEncoders as any),
@@ -832,12 +829,8 @@ export function jsonCodecObjectToObject<
 >(valuesCodecs: {
   [K in keyof Content]: JsonCodec<Content[K]>;
 }): JsonCodec<Content> {
-  const valuesDecoders = Object.fromEntries(
-    Object.entries(valuesCodecs).map(([key, type]) => [key, type.decoder]),
-  );
-  const valuesEncoders = Object.fromEntries(
-    Object.entries(valuesCodecs).map(([key, type]) => [key, type.encoder]),
-  );
+  const valuesDecoders = objectMapValues(valuesCodecs, (c) => c.decoder);
+  const valuesEncoders = objectMapValues(valuesCodecs, (c) => c.encoder);
   return {
     decoder: jsonDecoderObjectToObject(valuesDecoders as any),
     encoder: jsonEncoderObjectToObject(valuesEncoders as any),
@@ -967,10 +960,11 @@ export function jsonDecoderObjectToEnum<
 >(variantsDecoders: {
   [K in keyof Variants]: JsonDecoder<Variants[K]>;
 }): JsonDecoder<OneKeyOf<Variants>> {
-  const variantsEntries = Object.entries(variantsDecoders).map(
-    ([key, decoder]) => [key, (value: any) => ({ [key]: decoder(value) })],
+  return jsonDecoderOneOfKeys(
+    objectMapValues(variantsDecoders, (c, key) => (value) => ({
+      [key]: c(value),
+    })) as { [K in keyof Variants]: JsonDecoder<Variants[K]> },
   );
-  return jsonDecoderOneOfKeys(Object.fromEntries(variantsEntries));
 }
 /**
  * Creates a {@link JsonEncoder} for a discriminated-union enum: encodes
@@ -994,15 +988,11 @@ export function jsonCodecObjectToEnum<
 >(variantsCodecs: { [K in keyof Variants]: JsonCodec<Variants[K]> }): JsonCodec<
   OneKeyOf<Variants>
 > {
-  const variantsDecoders = Object.fromEntries(
-    Object.entries(variantsCodecs).map(([key, type]) => [key, type.decoder]),
-  );
-  const variantsEncoders = Object.fromEntries(
-    Object.entries(variantsCodecs).map(([key, type]) => [key, type.encoder]),
-  );
+  const variantsDecoders = objectMapValues(variantsCodecs, (c) => c.decoder);
+  const variantsEncoders = objectMapValues(variantsCodecs, (c) => c.encoder);
   return {
-    decoder: jsonDecoderObjectToEnum<Variants>(variantsDecoders as any),
-    encoder: jsonEncoderObjectToEnum<Variants>(variantsEncoders as any),
+    decoder: jsonDecoderObjectToEnum(variantsDecoders as any),
+    encoder: jsonEncoderObjectToEnum(variantsEncoders as any),
   };
 }
 
@@ -1095,22 +1085,25 @@ export function jsonDecoderOneOfKeys<
     } else {
       object = jsonCodecObject.decoder(encoded);
     }
-    let found: { key: string; valueEncoded: JsonValue } | undefined = undefined;
-    for (const key in variantsDecoders) {
-      const valueEncoded = objectGetOwnProperty(object, key);
-      if (valueEncoded !== undefined) {
-        if (found !== undefined) {
-          throw new Error(
-            `JSON: Expected key ${key} to be unique in enum (also found: ${found.key})`,
-          );
+    let foundEntry: { key: string; valueEncoded: JsonValue } | undefined =
+      undefined;
+    for (const [key, valueEncoded] of Object.entries(object)) {
+      if (key in variantsDecoders) {
+        if (valueEncoded !== undefined) {
+          if (foundEntry !== undefined) {
+            throw new Error(
+              `JSON: Expected key ${key} to be unique in enum (also found: ${foundEntry.key})`,
+            );
+          }
+          foundEntry = { key, valueEncoded };
         }
-        found = { key, valueEncoded };
       }
     }
-    if (found !== undefined) {
+    if (foundEntry !== undefined) {
+      const { key, valueEncoded } = foundEntry;
       const valueDecoded = withErrorContext(
-        `JSON: Decode Object["${found.key}"] =>`,
-        () => variantsDecoders[found.key]!(found.valueEncoded),
+        `JSON: Decode Object["${key}"] =>`,
+        () => variantsDecoders[key]!(valueEncoded),
       );
       return valueDecoded;
     }
@@ -1166,7 +1159,7 @@ export function jsonDecoderByType<Content>(decoders: {
 /**
  * Creates a {@link JsonDecoder} that runs every decoder in `Branches` and collects all results into a single object.
  */
-export function jsonDecoderInParallel<
+export function jsonDecoderConjunction<
   Branches extends { [key: string]: any },
 >(variantsDecoders: {
   [K in keyof Branches]: JsonDecoder<Branches[K]>;
@@ -1184,7 +1177,7 @@ export function jsonDecoderInParallel<
  * Creates a {@link JsonDecoder} that tries each decoder in order, returning
  * the first success. Throws an aggregated error if all fail.
  */
-export function jsonDecoderTrySequentially<Content>(
+export function jsonDecoderFirstMatch<Content>(
   decoders: Array<JsonDecoder<Content>>,
 ): JsonDecoder<Content> {
   return (encoded) => {

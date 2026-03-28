@@ -2,7 +2,7 @@ import { varIntDecode, varIntEncode } from "../data/VarInt";
 
 /** Unsigned integer prefix for encoding length or discriminant of variable-size fields. */
 export type IdlTypePrefix =
-  | "varint"
+  | "uVar"
   | "u0"
   | "u8"
   | "u16"
@@ -51,9 +51,9 @@ export const idlTypePrefixDefaultEnum = "u8";
 const visitorEncode: {
   [K in IdlTypePrefix]: (value: bigint, blobs: Array<Uint8Array>) => void;
 } = {
-  varint: (value: bigint, blobs: Array<Uint8Array>) => {
+  uVar: (value: bigint, blobs: Array<Uint8Array>) => {
     if (value < 0n) {
-      throw new Error(`Value out of bounds for varint: ${value}`);
+      throw new Error(`Value out of bounds for uVar: ${value}`);
     }
     blobs.push(varIntEncode(value));
   },
@@ -112,7 +112,7 @@ const visitorEncode: {
 const visitorDecode: {
   [K in IdlTypePrefix]: (data: DataView, offset: number) => [number, bigint];
 } = {
-  varint: (data: DataView, offset: number) => {
+  uVar: (data: DataView, offset: number) => {
     return varIntDecode(byteGetter, data, offset);
   },
   u0: () => {

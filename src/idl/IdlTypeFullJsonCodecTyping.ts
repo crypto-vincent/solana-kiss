@@ -6,6 +6,7 @@ import {
   IdlTypeFullFieldNamed,
   IdlTypeFullFields,
   IdlTypeFullFieldUnnamed,
+  IdlTypeFullFirst,
   IdlTypeFullLoop,
   IdlTypeFullOption,
   IdlTypeFullPadded,
@@ -34,8 +35,8 @@ function typing(typeFull: IdlTypeFull, context: GenContext): string {
 }
 
 function typingFields(
-  context: GenContext,
   typeFullFields: IdlTypeFullFields,
+  context: GenContext,
 ): string {
   return typeFullFields.traverse(visitorTypingFields, context, null, null);
 }
@@ -67,7 +68,7 @@ const visitorTyping = {
     return "string";
   },
   struct: (self: IdlTypeFullStruct, context: GenContext) => {
-    return typingFields(context, self.fields);
+    return typingFields(self.fields, context);
   },
   enum: (self: IdlTypeFullEnum, context: GenContext) => {
     if (self.variants.length === 0) {
@@ -77,11 +78,24 @@ const visitorTyping = {
       const names = self.variants.map((variant) => `"${variant.name}"`);
       return names.join("|");
     }
-    const variants = self.variants.map((variant) => {
-      const variantTyping = typingFields(context, variant.fields);
-      return stringObject([{ key: variant.name, value: variantTyping }]);
-    });
-    return variants.join("|");
+    const variants = self.variants.map((variant) => ({
+      key: variant.name,
+      value: typingFields(variant.fields, context),
+    }));
+    if (context.dependencies !== undefined) {
+      context.dependencies.add("OneKeyOf");
+    }
+    return `OneKeyOf<${stringObject(variants)}>`;
+  },
+  first: (self: IdlTypeFullFirst, context: GenContext) => {
+    const candidates = self.candidates.map((variant) => ({
+      key: variant.name,
+      value: typing(variant.content, context),
+    }));
+    if (context.dependencies !== undefined) {
+      context.dependencies.add("OneKeyOf");
+    }
+    return `OneKeyOf<${stringObject(candidates)}>`;
   },
   padded: (self: IdlTypeFullPadded, context: GenContext) => {
     return typing(self.content, context);
@@ -116,7 +130,7 @@ const visitorTypingFields = {
 const visitorExpressionPrimitive: {
   [K in IdlTypePrimitive]: (context: GenContext) => string;
 } = {
-  varint: () => `bigint`,
+  uVar: () => `bigint`,
   u8: () => `number`,
   u16: () => `number`,
   u32: () => `number`,

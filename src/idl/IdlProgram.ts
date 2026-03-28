@@ -9,7 +9,7 @@ import {
   jsonCodecValue,
   jsonDecoderArrayToArray,
   jsonDecoderByType,
-  jsonDecoderInParallel,
+  jsonDecoderConjunction,
   jsonDecoderObjectToMap,
   jsonDecoderObjectToObject,
   jsonDecoderWrapped,
@@ -294,7 +294,7 @@ const collectionJsonDecoder = jsonDecoderByType({
   }),
   array: jsonDecoderWrapped(
     jsonDecoderArrayToArray(
-      jsonDecoderInParallel({
+      jsonDecoderConjunction({
         key: jsonDecoderObjectToObject({ name: jsonCodecString.decoder }),
         value: jsonCodecValue.decoder,
       }),

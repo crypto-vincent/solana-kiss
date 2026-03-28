@@ -7,8 +7,8 @@ import {
   jsonDecoderArrayToObject,
   jsonDecoderArrayToTuple,
   jsonDecoderByType,
+  jsonDecoderConjunction,
   jsonDecoderConst,
-  jsonDecoderInParallel,
   jsonDecoderNullable,
   jsonDecoderObjectToEnum,
   jsonDecoderObjectToMap,
@@ -74,7 +74,7 @@ it("run", async () => {
     },
     {
       encoded: 42,
-      decoder: jsonDecoderInParallel({
+      decoder: jsonDecoderConjunction({
         number: jsonCodecNumber.decoder,
         bigint: jsonCodecBigInt.decoder,
       }),

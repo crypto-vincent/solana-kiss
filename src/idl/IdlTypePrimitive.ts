@@ -11,7 +11,7 @@ import { varIntDecode, varIntEncode } from "../data/VarInt";
 
 /** Primitive scalar type supported for encoding/decoding. */
 export type IdlTypePrimitive =
-  | "varint"
+  | "uVar"
   | "u8"
   | "u16"
   | "u32"
@@ -61,10 +61,10 @@ export function idlTypePrimitiveDecode(
 const visitorEncode: {
   [K in IdlTypePrimitive]: (value: JsonValue, blobs: Array<Uint8Array>) => void;
 } = {
-  varint: (value: JsonValue, blobs: Array<Uint8Array>) => {
+  uVar: (value: JsonValue, blobs: Array<Uint8Array>) => {
     const num = jsonCodecBigInt.decoder(value);
     if (num < 0n) {
-      throw new Error(`Value out of bounds for varint: ${num}`);
+      throw new Error(`Value out of bounds for uVar: ${num}`);
     }
     blobs.push(varIntEncode(num));
   },
@@ -204,7 +204,7 @@ const visitorDecode: {
     offset: number,
   ) => [number, JsonValue];
 } = {
-  varint: (data: DataView, offset: number) => {
+  uVar: (data: DataView, offset: number) => {
     const [length, value] = varIntDecode(byteGetter, data, offset);
     return [length, jsonCodecBigInt.encoder(value)];
   },

@@ -40,6 +40,15 @@ it("run", async () => {
           { name: "invisible_blob", bytes: [77, 78, 79] },
           { name: "invisible_enum", variants: [] },
           { name: "invisible_struct", fields: [] },
+          {
+            name: "field_ending",
+            candidates: [
+              { name: "candidate1", type: "string" },
+              { name: "candidate2", fields: [{ name: "x", type: "u64" }] },
+              { name: "candidate3", type: "u8" },
+              { name: "candidate4", fields: [] },
+            ],
+          },
         ],
       },
     },
@@ -101,6 +110,18 @@ it("run", async () => {
           }),
         ),
         fieldSnakeCase: "jsonCodecNumber",
+        fieldEnding: stringCall(
+          "jsonCodecObjectToEnum",
+          stringObject({
+            candidate1: "jsonCodecString",
+            candidate2: stringCall(
+              "jsonCodecObjectToObject",
+              stringObject({ x: "jsonCodecBigInt" }),
+            ),
+            candidate3: "jsonCodecNumber",
+            candidate4: stringCall("jsonCodecConst", "null"),
+          }),
+        ),
       }),
     ),
   );
@@ -110,31 +131,31 @@ it("run", async () => {
     accountIdl.typeFull,
     dependenciesTyping,
   );
-  expect(dependenciesTyping).toStrictEqual(new Set<string>(["Pubkey"]));
+  expect(dependenciesTyping).toStrictEqual(
+    new Set<string>(["Pubkey", "OneKeyOf"]),
+  );
   expect(codecTyping.replace(/\s/g, "")).toStrictEqual(
     stringObject({
       field1: "number",
       field2: "Array<number>",
       field3: "null|number",
       field4: `"variant1"|"variant2"`,
-      field5: [
-        stringObject({
-          0: stringArray(["string", "Uint8Array"]),
+      field5: `OneKeyOf<${stringObject({
+        0: stringArray(["string", "Uint8Array"]),
+        1: stringArray(["number", "bigint"]),
+        Misc: stringObject({
+          key: "Pubkey",
+          bool: "boolean",
         }),
-        stringObject({
-          1: stringArray(["number", "bigint"]),
-        }),
-        stringObject({
-          Misc: stringObject({
-            key: "Pubkey",
-            bool: "boolean",
-          }),
-        }),
-        stringObject({
-          Empty: "null",
-        }),
-      ].join("|"),
+        Empty: "null",
+      })}>`,
       fieldSnakeCase: "number",
+      fieldEnding: `OneKeyOf<${stringObject({
+        candidate1: "string",
+        candidate2: stringObject({ x: "bigint" }),
+        candidate3: "number",
+        candidate4: "null",
+      })}>`,
     }),
   );
 
@@ -152,6 +173,7 @@ it("run", async () => {
     field4: "variant1",
     field5: { 0: ["hello", new Uint8Array(42).fill(255)] },
     fieldSnakeCase: 1,
+    fieldEnding: { candidate1: "string" },
   });
   checkRoundTrip(accountIdl, jsonCodec, {
     field1: 0,
@@ -160,6 +182,7 @@ it("run", async () => {
     field4: "variant2",
     field5: { Empty: null },
     fieldSnakeCase: 2,
+    fieldEnding: { candidate2: { x: 42 } },
   });
   checkRoundTrip(accountIdl, jsonCodec, {
     field1: 128,
@@ -168,6 +191,7 @@ it("run", async () => {
     field4: "variant1",
     field5: { 1: [255, -1234567890123456789n] },
     fieldSnakeCase: 3,
+    fieldEnding: { candidate3: 255 },
   });
   checkRoundTrip(accountIdl, jsonCodec, {
     field1: 7,
@@ -176,6 +200,7 @@ it("run", async () => {
     field4: "variant2",
     field5: { Misc: { key: pubkeyDefault, bool: true } },
     fieldSnakeCase: 4,
+    fieldEnding: { candidate4: null },
   });
 });
 

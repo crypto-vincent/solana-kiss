@@ -6,6 +6,7 @@ import {
   IdlTypeFullFieldNamed,
   IdlTypeFullFields,
   IdlTypeFullFieldUnnamed,
+  IdlTypeFullFirst,
   IdlTypeFullLoop,
   IdlTypeFullOption,
   IdlTypeFullPadded,
@@ -81,14 +82,21 @@ const visitorExpression = {
       const names = self.variants.map((variant) => `"${variant.name}"`);
       return stringFunctionCall(context, "jsonCodecConst", names);
     }
-    const variants = self.variants.map((variant) => {
-      return {
-        key: variant.name,
-        value: expressionFields(variant.fields, context),
-      };
-    });
+    const variants = self.variants.map((variant) => ({
+      key: variant.name,
+      value: expressionFields(variant.fields, context),
+    }));
     return stringFunctionCall(context, "jsonCodecObjectToEnum", [
       stringObject(variants),
+    ]);
+  },
+  first: (self: IdlTypeFullFirst, context: GenContext) => {
+    const candidates = self.candidates.map((candidate) => ({
+      key: candidate.name,
+      value: expression(candidate.content, context),
+    }));
+    return stringFunctionCall(context, "jsonCodecObjectToEnum", [
+      stringObject(candidates),
     ]);
   },
   padded: (self: IdlTypeFullPadded, context: GenContext) => {
@@ -129,7 +137,7 @@ const visitorExpressionFields = {
 const visitorExpressionPrimitive: {
   [K in IdlTypePrimitive]: (context: GenContext) => string;
 } = {
-  varint: () => `jsonCodecBigInt`,
+  uVar: () => `jsonCodecBigInt`,
   u8: () => `jsonCodecNumber`,
   u16: () => `jsonCodecNumber`,
   u32: () => `jsonCodecNumber`,

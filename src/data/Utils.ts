@@ -40,30 +40,29 @@ export function expectDefined<T>(value: T | undefined, context?: string): T {
 }
 
 /**
- * Asserts two values are equal, throwing if not.
- * @param a - First value.
- * @param b - Second value.
- * @param context - Optional error context.
- * @throws {@link ErrorStack} if `a !== b`.
- */
-export function expectEqual<T>(a: T, b: T, context?: string): void {
-  if (a !== b) {
-    const error = new ErrorStack(`Values are not equal`, [a, b]);
-    if (context) {
-      throw new ErrorStack(context, error);
-    } else {
-      throw error;
-    }
-  }
-}
-
-/**
  * Returns a promise that resolves after `durationMs` milliseconds.
  * @param durationMs - Delay in milliseconds.
  * @returns `Promise<void>`.
  */
 export function timeoutMs(durationMs: number): Promise<void> {
   return new Promise((resolve) => setTimeout(resolve, durationMs));
+}
+
+/**
+ * Returns an object mapping each value of `object` to the result of `mapValue`.
+ * @param object - Input object to re-map.
+ * @param mapValue - Function to map each value, receiving the key and value.
+ * @returns New object with re-mapped values.
+ */
+export function objectMapValues<Object extends object, Value>(
+  object: Object,
+  mapValue: (value: Object[keyof Object], key: keyof Object) => Value,
+): { [Key in keyof Object]: Value } {
+  const result = {} as { [Key in keyof Object]: Value };
+  for (const [key, value] of Object.entries(object)) {
+    result[key as keyof Object] = mapValue(value, key as keyof Object);
+  }
+  return result;
 }
 
 /**

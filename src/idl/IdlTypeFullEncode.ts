@@ -20,6 +20,7 @@ import {
   IdlTypeFullFieldNamed,
   IdlTypeFullFields,
   IdlTypeFullFieldUnnamed,
+  IdlTypeFullFirst,
   IdlTypeFullLoop,
   IdlTypeFullOption,
   IdlTypeFullPadded,
@@ -264,6 +265,25 @@ const visitorEncode = {
     throw new Error(
       `Expected enum value to be: number, string or object (found: ${jsonPreview(value)})`,
     );
+  },
+  first: (
+    self: IdlTypeFullFirst,
+    value: JsonValue,
+    blobs: Array<Uint8Array>,
+    prefixed: boolean,
+  ) => {
+    const object = jsonCodecObject.decoder(value);
+    for (const candidate of self.candidates) {
+      const candidateValue = objectGetOwnProperty(object, candidate.name);
+      if (candidateValue === undefined) {
+        continue;
+      }
+      withErrorContext(`Encode: First: Candidate: ${candidate.name}`, () => {
+        typeFullEncode(candidate.content, candidateValue, blobs, prefixed);
+      });
+      return;
+    }
+    throw new Error("Could not guess candidate from object key");
   },
   padded: (
     self: IdlTypeFullPadded,

@@ -14,8 +14,8 @@ import {
   jsonDecoderArrayToArray,
   jsonDecoderArrayToObject,
   jsonDecoderByType,
+  jsonDecoderConjunction,
   jsonDecoderConst,
-  jsonDecoderInParallel,
   jsonDecoderNullable,
   jsonDecoderObjectToMap,
   jsonDecoderObjectToObject,
@@ -57,7 +57,7 @@ export function idlTypeFlatParseIsPossible(value: JsonValue): boolean {
     if (objectValue === undefined) {
       continue;
     }
-    if (objectJsonDecoderKeys.has(objectKey)) {
+    if (objectKey in objectJsonDecoderCases) {
       return true;
     }
   }
@@ -95,7 +95,7 @@ const arrayJsonDecoder = jsonDecoderWrapped(
   },
 );
 
-const fieldsItemJsonDecoder = jsonDecoderInParallel({
+const fieldsItemJsonDecoder = jsonDecoderConjunction({
   meta: jsonDecoderByType({
     null: () => ({ name: null, docs: undefined }),
     string: () => ({ name: null, docs: undefined }),
@@ -286,6 +286,28 @@ function objectEnumJsonDecoder(prefix: IdlTypePrefix | undefined) {
   });
 }
 
+const objectCandidatesJsonDecoder = jsonDecoderWrapped(
+  jsonDecoderArrayToArray(
+    jsonDecoderWrapped(
+      jsonDecoderConjunction({
+        meta: jsonDecoderObjectToObject({
+          name: jsonCodecString.decoder,
+          docs: idlDocsParse,
+        }),
+        type: idlTypeFlatParse,
+      }),
+      (candidate) => ({
+        name: candidate.meta.name,
+        docs: candidate.meta.docs,
+        content: candidate.type,
+      }),
+    ),
+  ),
+  (candidates) => {
+    return IdlTypeFlat.first({ candidates });
+  },
+);
+
 const objectPadInfoJsonDecoder = jsonDecoderObjectToObject({
   before: jsonDecoderNullable(jsonCodecNumber.decoder),
   minSize: jsonDecoderNullable(jsonCodecNumber.decoder),
@@ -318,39 +340,39 @@ const objectJsonDecoderCases = {
   defined: objectDefinedJsonDecoder,
   generic: objectGenericJsonDecoder,
   coption: objectCOptionJsonDecoder,
-  option: objectOptionJsonDecoder(undefined),
+  optionVar: objectOptionJsonDecoder("uVar"),
   option0: objectOptionJsonDecoder("u0"),
   option8: objectOptionJsonDecoder("u8"),
   option16: objectOptionJsonDecoder("u16"),
   option32: objectOptionJsonDecoder("u32"),
   option64: objectOptionJsonDecoder("u64"),
   option128: objectOptionJsonDecoder("u128"),
-  vec: objectVecJsonDecoder(undefined),
+  option: objectOptionJsonDecoder(undefined),
+  vecVar: objectVecJsonDecoder("uVar"),
   vec0: objectVecJsonDecoder("u0"),
   vec8: objectVecJsonDecoder("u8"),
   vec16: objectVecJsonDecoder("u16"),
   vec32: objectVecJsonDecoder("u32"),
   vec64: objectVecJsonDecoder("u64"),
   vec128: objectVecJsonDecoder("u128"),
-  vecVar: objectVecJsonDecoder("varint"),
-  // TODO (experiment) - support for backup decoding ?
+  vec: objectVecJsonDecoder(undefined),
   loop: objectLoopJsonDecoder,
   array: arrayJsonDecoder,
-  fields: objectStructJsonDecoder, // TODO (experiment) - support for partial structs ?
+  fields: objectStructJsonDecoder,
   tuple: objectStructJsonDecoder,
-  variants: objectEnumJsonDecoder(undefined),
+  variantsVar: objectEnumJsonDecoder("uVar"),
   variants0: objectEnumJsonDecoder("u0"),
   variants8: objectEnumJsonDecoder("u8"),
   variants16: objectEnumJsonDecoder("u16"),
   variants32: objectEnumJsonDecoder("u32"),
   variants64: objectEnumJsonDecoder("u64"),
   variants128: objectEnumJsonDecoder("u128"),
-  variantsVar: objectEnumJsonDecoder("varint"),
+  variants: objectEnumJsonDecoder(undefined),
+  candidates: objectCandidatesJsonDecoder,
   padded: objectPadJsonDecoder,
   bytes: objectBlobJsonDecoder,
   value: objectConstJsonDecoder,
 };
-const objectJsonDecoderKeys = new Set(Object.keys(objectJsonDecoderCases));
 const objectJsonDecoder: JsonDecoder<IdlTypeFlat> = jsonDecoderOneOfKeys(
   objectJsonDecoderCases,
 );
@@ -360,6 +382,7 @@ function presetBytes(prefix: IdlTypePrefix | undefined): IdlTypeFlat {
   return IdlTypeFlat.vec({ prefix, items });
 }
 const presetsByName = new Map<string, IdlTypeFlat>([
+  ["uVar", IdlTypeFlat.primitive("uVar")],
   ["u8", IdlTypeFlat.primitive("u8")],
   ["u16", IdlTypeFlat.primitive("u16")],
   ["u32", IdlTypeFlat.primitive("u32")],
@@ -377,22 +400,22 @@ const presetsByName = new Map<string, IdlTypeFlat>([
   ["PublicKey", IdlTypeFlat.primitive("pubkey")],
   ["pubkey", IdlTypeFlat.primitive("pubkey")],
   ["Pubkey", IdlTypeFlat.primitive("pubkey")],
-  ["string", IdlTypeFlat.string({ prefix: undefined })],
+  ["stringVar", IdlTypeFlat.string({ prefix: "uVar" })],
   ["string0", IdlTypeFlat.string({ prefix: "u0" })],
   ["string8", IdlTypeFlat.string({ prefix: "u8" })],
   ["string16", IdlTypeFlat.string({ prefix: "u16" })],
   ["string32", IdlTypeFlat.string({ prefix: "u32" })],
   ["string64", IdlTypeFlat.string({ prefix: "u64" })],
   ["string128", IdlTypeFlat.string({ prefix: "u128" })],
-  ["stringVar", IdlTypeFlat.string({ prefix: "varint" })],
-  ["bytes", presetBytes(undefined)],
+  ["string", IdlTypeFlat.string({ prefix: undefined })],
+  ["bytesVar", presetBytes("uVar")],
   ["bytes0", presetBytes("u0")],
   ["bytes8", presetBytes("u8")],
   ["bytes16", presetBytes("u16")],
   ["bytes32", presetBytes("u32")],
   ["bytes64", presetBytes("u64")],
   ["bytes128", presetBytes("u128")],
-  ["bytesVar", presetBytes("varint")],
+  ["bytes", presetBytes(undefined)],
 ]);
 function stringJsonDecoder(string: string): IdlTypeFlat {
   const preset = presetsByName.get(string);

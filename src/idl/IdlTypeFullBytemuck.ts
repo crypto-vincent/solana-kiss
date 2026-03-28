@@ -7,6 +7,7 @@ import {
   IdlTypeFullFieldNamed,
   IdlTypeFullFields,
   IdlTypeFullFieldUnnamed,
+  IdlTypeFullFirst,
   IdlTypeFullLoop,
   IdlTypeFullOption,
   IdlTypeFullPadded,
@@ -177,6 +178,9 @@ const visitorBytemuckC = {
       }),
     };
   },
+  first: (_self: IdlTypeFullFirst): IdlTypeFullBytemuck => {
+    throw new Error("Bytemuck: Repr(C): First is not supported");
+  },
   padded: (self: IdlTypeFullPadded): IdlTypeFullBytemuck => {
     const contentPod = bytemuckC(self.content);
     return {
@@ -288,6 +292,9 @@ const visitorBytemuckRust = {
         }),
       }),
     };
+  },
+  first: (_self: IdlTypeFullFirst): IdlTypeFullBytemuck => {
+    throw new Error("Bytemuck: Repr(Rust): First is not supported");
   },
   padded: (self: IdlTypeFullPadded): IdlTypeFullBytemuck => {
     const contentPod = bytemuckRust(self.content);

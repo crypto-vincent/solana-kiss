@@ -10,6 +10,7 @@ import {
   IdlTypeFlatFieldNamed,
   IdlTypeFlatFields,
   IdlTypeFlatFieldUnnamed,
+  IdlTypeFlatFirst,
   IdlTypeFlatGeneric,
   IdlTypeFlatLoop,
   IdlTypeFlatOption,
@@ -264,6 +265,22 @@ const visitorHydrateOrConstLiteral = {
       indexByCodeString,
       fieldless,
       variants,
+    });
+  },
+  first: (
+    self: IdlTypeFlatFirst,
+    genericsBySymbol: Map<string, IdlTypeFull | number>,
+    typedefsByName: Map<string, IdlTypedef> | null,
+  ): IdlTypeFull | number => {
+    return IdlTypeFull.first({
+      candidates: self.candidates.map((candidate) => ({
+        name: candidate.name,
+        content: idlTypeFlatHydrate(
+          candidate.content,
+          genericsBySymbol,
+          typedefsByName,
+        ),
+      })),
     });
   },
   padded: (

@@ -50,7 +50,6 @@ import { rpcHttpSendTransaction } from "./rpc/RpcHttpSendTransaction";
 import { rpcHttpSimulateTransaction } from "./rpc/RpcHttpSimulateTransaction";
 import { rpcHttpWaitForTransaction } from "./rpc/RpcHttpWaitForTransaction";
 
-// TODO - add documentation website
 // TODO - add versioning for slots and IDLs upgrades
 
 /** High-level Solana client. Wraps RPC + IDL loader. */

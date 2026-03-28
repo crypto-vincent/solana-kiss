@@ -13,6 +13,7 @@ import {
   IdlTypeFullFieldNamed,
   IdlTypeFullFields,
   IdlTypeFullFieldUnnamed,
+  IdlTypeFullFirst,
   IdlTypeFullLoop,
   IdlTypeFullOption,
   IdlTypeFullPadded,
@@ -156,6 +157,15 @@ const visitorTypeFull = {
   ) => {
     throw new Error(
       `Idl: Expected a struct/vec/array at path ${jsonPointerPreview(pointer, tokenIndex)} (found enum)`,
+    );
+  },
+  first: (
+    _self: IdlTypeFullFirst,
+    pointer: Array<number | string>,
+    tokenIndex: number,
+  ) => {
+    throw new Error(
+      `Idl: Expected a struct/vec/array at path ${jsonPointerPreview(pointer, tokenIndex)} (found first)`,
     );
   },
   padded: (
