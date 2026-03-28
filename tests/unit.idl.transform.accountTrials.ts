@@ -17,20 +17,21 @@ it("run", () => {
         fields: [
           {
             candidates: [
+              { name: "vArray", array: ["u8", 99] },
               { name: "vString", type: "string" },
               {
                 name: "vObj1",
                 fields: [
-                  { name: "f64_1", type: "u64" },
-                  { name: "f64_2", type: "u64" },
-                  { name: "f64_3", type: "u64" },
+                  { name: "u64_1", type: "u64" },
+                  { name: "u64_2", type: "u64" },
+                  { name: "u64_3", type: "u64" },
                 ],
               },
               {
                 name: "vObj2",
                 fields: [
-                  { name: "f64_1", type: "u64" },
-                  { name: "f64_2", type: "u64" },
+                  { name: "u64_1", type: "u64" },
+                  { name: "u64_2", type: "u64" },
                 ],
               },
               { name: "v64", type: "u64" },
@@ -47,18 +48,23 @@ it("run", () => {
   const accountIdl = expectDefined(programIdl.accounts.get("MyAccount"));
   roundTrip(
     accountIdl,
+    [{ vArray: new Array(99).fill(22) }],
+    [[18], new Array(99).fill(22)].flat(),
+  );
+  roundTrip(
+    accountIdl,
     [{ vString: "hello" }],
     [[18], [5, 0, 0, 0], [104, 101, 108, 108, 111]].flat(),
   );
   roundTrip(
     accountIdl,
-    [{ vObj1: { f64_1: "64", f64_2: "64", f64_3: "64" } }],
-    [[18], u64(64n), u64(64n), u64(64n)].flat(),
+    [{ vObj1: { u64_1: "77", u64_2: "88", u64_3: "99" } }],
+    [[18], u64(77n), u64(88n), u64(99n)].flat(),
   );
   roundTrip(
     accountIdl,
-    [{ vObj2: { f64_1: "64", f64_2: "64" } }],
-    [[18], u64(64n), u64(64n)].flat(),
+    [{ vObj2: { u64_1: "55", u64_2: "66" } }],
+    [[18], u64(55n), u64(66n)].flat(),
   );
   roundTrip(accountIdl, [{ v64: "64" }], [18, ...u64(64n)]);
   roundTrip(accountIdl, [{ v32: 32 }], [18, 32, 0, 0, 0]);

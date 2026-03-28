@@ -232,10 +232,11 @@ function checkRoundTrip(accountIdl: IdlAccount, jsonCodec: any, decoded: any) {
 }
 
 function makeModuleCode(self: IdlTypeFull) {
-  const dependencies = new Set<string>();
+  const dependencies = new Set<string>(["JsonCodec"]);
+  const codecTyping = idlTypeFullJsonCodecTyping(self, dependencies);
   const codecExpression = idlTypeFullJsonCodecExpression(self, dependencies);
   return [
     `import {${[...dependencies].join(",")}} from "../../src";`,
-    `export const jsonCodec = ${codecExpression};`,
+    `export const jsonCodec: JsonCodec<${codecTyping}> = ${codecExpression};`,
   ].join("\n");
 }
