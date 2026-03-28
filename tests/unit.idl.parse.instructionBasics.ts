@@ -137,25 +137,29 @@ it("run", () => {
       simpleInstructionAccount("nester.nested.b", false, false),
     ],
     args: {
-      typeFlatFields: IdlTypeFlatFields.named([
-        {
-          name: "arg",
-          docs: undefined,
-          content: IdlTypeFlat.vec({
-            prefix: undefined,
-            items: IdlTypeFlat.primitive("u8"),
-          }),
-        },
-      ]),
-      typeFullFields: IdlTypeFullFields.named([
-        {
-          name: "arg",
-          content: IdlTypeFull.vec({
-            prefix: undefined,
-            items: IdlTypeFull.primitive("u8"),
-          }),
-        },
-      ]),
+      typeFlat: IdlTypeFlat.struct({
+        fields: IdlTypeFlatFields.named([
+          {
+            name: "arg",
+            docs: undefined,
+            content: IdlTypeFlat.vec({
+              prefix: undefined,
+              items: IdlTypeFlat.primitive("u8"),
+            }),
+          },
+        ]),
+      }),
+      typeFull: IdlTypeFull.struct({
+        fields: IdlTypeFullFields.named([
+          {
+            name: "arg",
+            content: IdlTypeFull.vec({
+              prefix: undefined,
+              items: IdlTypeFull.primitive("u8"),
+            }),
+          },
+        ]),
+      }),
     },
     return: {
       typeFlat: IdlTypeFlat.primitive("i8"),

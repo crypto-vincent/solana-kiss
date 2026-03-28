@@ -165,28 +165,32 @@ it("run", () => {
       },
     ],
     args: {
-      typeFlatFields: IdlTypeFlatFields.named([
-        {
-          name: "index",
-          docs: undefined,
-          content: IdlTypeFlat.primitive("u32"),
-        },
-        {
-          name: "id",
-          docs: undefined,
-          content: IdlTypeFlat.primitive("i64"),
-        },
-      ]),
-      typeFullFields: IdlTypeFullFields.named([
-        {
-          name: "index",
-          content: IdlTypeFull.primitive("u32"),
-        },
-        {
-          name: "id",
-          content: IdlTypeFull.primitive("i64"),
-        },
-      ]),
+      typeFlat: IdlTypeFlat.struct({
+        fields: IdlTypeFlatFields.named([
+          {
+            name: "index",
+            docs: undefined,
+            content: IdlTypeFlat.primitive("u32"),
+          },
+          {
+            name: "id",
+            docs: undefined,
+            content: IdlTypeFlat.primitive("i64"),
+          },
+        ]),
+      }),
+      typeFull: IdlTypeFull.struct({
+        fields: IdlTypeFullFields.named([
+          {
+            name: "index",
+            content: IdlTypeFull.primitive("u32"),
+          },
+          {
+            name: "id",
+            content: IdlTypeFull.primitive("i64"),
+          },
+        ]),
+      }),
     },
     return: {
       typeFlat: IdlTypeFlat.structNothing(),

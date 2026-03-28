@@ -23,7 +23,7 @@ import {
   idlInstructionBlobParse,
 } from "./IdlInstructionBlob";
 import { IdlTypedef } from "./IdlTypedef";
-import { IdlTypeFullFields } from "./IdlTypeFull";
+import { IdlTypeFull } from "./IdlTypeFull";
 
 /** Single instruction account with constraints and optional PDA derivation. */
 export type IdlInstructionAccount = {
@@ -110,14 +110,14 @@ export async function idlInstructionAccountFind(
  * Parses a raw IDL account JSON value into {@link IdlInstructionAccount} entries, expanding nested groups.
  * @param instructionAccountGroups - Accumulated parent group names for nested accounts.
  * @param instructionAccountValue - Raw JSON account or group value.
- * @param instructionArgsTypeFullFields - Resolved arg fields for PDA seed blob parsing.
+ * @param instructionArgsTypeFull - Resolved arg for PDA seed blob parsing.
  * @param typedefsIdls - Known typedef definitions.
  * @returns Array of parsed {@link IdlInstructionAccount} entries.
  */
 export function idlInstructionAccountParse(
   instructionAccountGroups: Array<string>,
   instructionAccountValue: JsonValue,
-  instructionArgsTypeFullFields: IdlTypeFullFields,
+  instructionArgsTypeFull: IdlTypeFull,
   typedefsIdls: Map<string, IdlTypedef>,
 ): Array<IdlInstructionAccount> {
   const decoded = jsonDecoder(instructionAccountValue);
@@ -143,7 +143,7 @@ export function idlInstructionAccountParse(
         ...idlInstructionAccountParse(
           [...instructionAccountGroups, decoded.name],
           nestedAccount,
-          instructionArgsTypeFullFields,
+          instructionArgsTypeFull,
           typedefsIdls,
         ),
       );
@@ -158,7 +158,7 @@ export function idlInstructionAccountParse(
         () =>
           idlInstructionBlobParse(
             seedValue,
-            instructionArgsTypeFullFields,
+            instructionArgsTypeFull,
             typedefsIdls,
           ),
       ),
@@ -171,7 +171,7 @@ export function idlInstructionAccountParse(
         () =>
           idlInstructionBlobParse(
             decodedPdaProgram,
-            instructionArgsTypeFullFields,
+            instructionArgsTypeFull,
             typedefsIdls,
           ),
       );

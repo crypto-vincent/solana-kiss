@@ -304,7 +304,7 @@ const objectCandidatesJsonDecoder = jsonDecoderWrapped(
     ),
   ),
   (candidates) => {
-    return IdlTypeFlat.first({ candidates });
+    return IdlTypeFlat.trial({ candidates });
   },
 );
 
@@ -438,7 +438,7 @@ const valueJsonDecoder: JsonDecoder<IdlTypeFlat> = jsonDecoderByType({
 
 function coptionWrapper(content: IdlTypeFlat): IdlTypeFlat {
   return IdlTypeFlat.defined({
-    name: "$C", // TODO (repr) - should the option content be aligned to 4 ?
+    name: "$C", // TODO (repr) - should the option content be aligned to 4 or just the prefix ?
     generics: [IdlTypeFlat.option({ prefix: "u32", content })],
   });
 }

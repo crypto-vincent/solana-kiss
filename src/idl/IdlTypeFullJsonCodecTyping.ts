@@ -6,12 +6,12 @@ import {
   IdlTypeFullFieldNamed,
   IdlTypeFullFields,
   IdlTypeFullFieldUnnamed,
-  IdlTypeFullFirst,
   IdlTypeFullLoop,
   IdlTypeFullOption,
   IdlTypeFullPadded,
   IdlTypeFullString,
   IdlTypeFullStruct,
+  IdlTypeFullTrial,
   IdlTypeFullTypedef,
   IdlTypeFullVec,
 } from "./IdlTypeFull";
@@ -27,48 +27,48 @@ export function idlTypeFullJsonCodecTyping(
   self: IdlTypeFull,
   dependencies?: Set<string>,
 ): string {
-  return typing(self, { dependencies });
+  return visit(self, { dependencies });
 }
 
-function typing(typeFull: IdlTypeFull, context: GenContext): string {
-  return typeFull.traverse(visitorTyping, context, null, null);
+function visit(typeFull: IdlTypeFull, context: GenContext): string {
+  return typeFull.traverse(visitor, context, null, null);
 }
 
-function typingFields(
+function visitFields(
   typeFullFields: IdlTypeFullFields,
   context: GenContext,
 ): string {
-  return typeFullFields.traverse(visitorTypingFields, context, null, null);
+  return typeFullFields.traverse(visitorFields, context, null, null);
 }
 
-function typingArray(items: IdlTypeFull, context: GenContext): string {
+function visitArray(items: IdlTypeFull, context: GenContext): string {
   if (items.isPrimitive("u8")) {
     return "Uint8Array";
   }
-  return `Array<${typing(items, context)}>`;
+  return `Array<${visit(items, context)}>`;
 }
 
-const visitorTyping = {
+const visitor = {
   typedef: (self: IdlTypeFullTypedef, context: GenContext) => {
-    return typing(self.content, context);
+    return visit(self.content, context);
   },
   option: (self: IdlTypeFullOption, context: GenContext) => {
-    return `null | ${typing(self.content, context)}`;
+    return `null | ${visit(self.content, context)}`;
   },
   vec: (self: IdlTypeFullVec, context: GenContext) => {
-    return typingArray(self.items, context);
+    return visitArray(self.items, context);
   },
   loop: (self: IdlTypeFullLoop, context: GenContext) => {
-    return typingArray(self.items, context);
+    return visitArray(self.items, context);
   },
   array: (self: IdlTypeFullArray, context: GenContext) => {
-    return typingArray(self.items, context);
+    return visitArray(self.items, context);
   },
   string: (_self: IdlTypeFullString, _context: GenContext) => {
     return "string";
   },
   struct: (self: IdlTypeFullStruct, context: GenContext) => {
-    return typingFields(self.fields, context);
+    return visitFields(self.fields, context);
   },
   enum: (self: IdlTypeFullEnum, context: GenContext) => {
     if (self.variants.length === 0) {
@@ -80,17 +80,17 @@ const visitorTyping = {
     }
     const variants = self.variants.map((variant) => ({
       key: variant.name,
-      value: typingFields(variant.fields, context),
+      value: visitFields(variant.fields, context),
     }));
     if (context.dependencies !== undefined) {
       context.dependencies.add("OneKeyOf");
     }
     return `OneKeyOf<${stringObject(variants)}>`;
   },
-  first: (self: IdlTypeFullFirst, context: GenContext) => {
+  trial: (self: IdlTypeFullTrial, context: GenContext) => {
     const candidates = self.candidates.map((variant) => ({
       key: variant.name,
-      value: typing(variant.content, context),
+      value: visit(variant.content, context),
     }));
     if (context.dependencies !== undefined) {
       context.dependencies.add("OneKeyOf");
@@ -98,24 +98,24 @@ const visitorTyping = {
     return `OneKeyOf<${stringObject(candidates)}>`;
   },
   padded: (self: IdlTypeFullPadded, context: GenContext) => {
-    return typing(self.content, context);
+    return visit(self.content, context);
   },
   blob: (_self: IdlTypeFullBlob, _context: GenContext) => {
     return "null";
   },
   primitive: (self: IdlTypePrimitive, context: GenContext) => {
-    return visitorExpressionPrimitive[self](context);
+    return visitorPrimitive[self](context);
   },
 };
 
-const visitorTypingFields = {
+const visitorFields = {
   nothing: (_self: Array<never>, _context: GenContext) => {
     return "null";
   },
   named: (self: Array<IdlTypeFullFieldNamed>, context: GenContext) => {
     const entries = [];
     for (const field of self) {
-      const fieldTyping = typing(field.content, context);
+      const fieldTyping = visit(field.content, context);
       if (fieldTyping !== "null") {
         entries.push({ key: field.name, value: fieldTyping });
       }
@@ -123,11 +123,11 @@ const visitorTypingFields = {
     return stringObject(entries);
   },
   unnamed: (self: Array<IdlTypeFullFieldUnnamed>, context: GenContext) => {
-    return stringArray(self.map((field) => typing(field.content, context)));
+    return stringArray(self.map((field) => visit(field.content, context)));
   },
 };
 
-const visitorExpressionPrimitive: {
+const visitorPrimitive: {
   [K in IdlTypePrimitive]: (context: GenContext) => string;
 } = {
   uVar: () => `bigint`,

@@ -33,17 +33,19 @@ it("run", () => {
   );
   // Check that the instruction was parsed correctly
   const instructionIdl = expectDefined(programIdl.instructions.get("generic"));
-  expect(instructionIdl.args.typeFullFields).toStrictEqual(
-    IdlTypeFullFields.named([
-      {
-        name: "genericField",
-        content: makeTypeFullGenericType(
-          makeTypeFullU32(),
-          makeTypeFullU64(),
-          10,
-        ),
-      },
-    ]),
+  expect(instructionIdl.args.typeFull).toStrictEqual(
+    IdlTypeFull.struct({
+      fields: IdlTypeFullFields.named([
+        {
+          name: "genericField",
+          content: makeTypeFullGenericType(
+            makeTypeFullU32(),
+            makeTypeFullU64(),
+            10,
+          ),
+        },
+      ]),
+    }),
   );
 });
 

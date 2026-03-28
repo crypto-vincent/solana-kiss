@@ -10,17 +10,17 @@ import {
   IdlTypeFlatFieldNamed,
   IdlTypeFlatFields,
   IdlTypeFlatFieldUnnamed,
-  IdlTypeFlatFirst,
   IdlTypeFlatGeneric,
   IdlTypeFlatLoop,
   IdlTypeFlatOption,
   IdlTypeFlatPadded,
   IdlTypeFlatString,
   IdlTypeFlatStruct,
+  IdlTypeFlatTrial,
   IdlTypeFlatVec,
 } from "./IdlTypeFlat";
 import { IdlTypeFull, IdlTypeFullFields } from "./IdlTypeFull";
-import { idlTypeFullTypedefBytemuck } from "./IdlTypeFullBytemuck";
+import { idlTypeFullBytemuckTypedef } from "./IdlTypeFullBytemuck";
 import { IdlTypePrimitive } from "./IdlTypePrimitive";
 
 /**
@@ -35,25 +35,14 @@ export function idlTypeFlatHydrate(
   genericsBySymbol: Map<string, IdlTypeFull | number>,
   typedefsByName: Map<string, IdlTypedef> | null,
 ): IdlTypeFull {
-  const typeFullOrConstLiteral = idlTypeFlatHydrateOrConstLiteral(
-    self,
-    genericsBySymbol,
-    typedefsByName,
-  );
+  const typeFullOrConstLiteral = visit(self, genericsBySymbol, typedefsByName);
   if (typeof typeFullOrConstLiteral === "number") {
     throw new Error("Const is not supported as a standalone type");
   }
   return typeFullOrConstLiteral;
 }
 
-/**
- * Hydrates a flat IDL type into a resolved type or numeric const literal.
- * @param self - Flat IDL type to hydrate.
- * @param genericsBySymbol - Map of generic symbols to resolved types or const literals.
- * @param typedefsByName - Typedef definitions, or `null` if unavailable.
- * @returns Resolved {@link IdlTypeFull} or `number` for const literals.
- */
-export function idlTypeFlatHydrateOrConstLiteral(
+function visit(
   self: IdlTypeFlat,
   genericsBySymbol: Map<string, IdlTypeFull | number>,
   typedefsByName: Map<string, IdlTypedef> | null,
@@ -65,19 +54,12 @@ export function idlTypeFlatHydrateOrConstLiteral(
   );
 }
 
-/**
- * Hydrates flat IDL fields into fully-resolved fields.
- * @param self - Flat IDL fields to hydrate.
- * @param genericsBySymbol - Map of generic symbols to resolved types or const literals.
- * @param typedefsByName - Typedef definitions, or `null` if unavailable.
- * @returns Resolved {@link IdlTypeFullFields}.
- */
-export function idlTypeFlatFieldsHydrate(
+function visitFields(
   self: IdlTypeFlatFields,
   genericsBySymbol: Map<string, IdlTypeFull | number>,
   typedefsByName: Map<string, IdlTypedef> | null,
 ): IdlTypeFullFields {
-  return self.traverse(visitorHydrateFields, genericsBySymbol, typedefsByName);
+  return self.traverse(visitorFields, genericsBySymbol, typedefsByName);
 }
 
 const visitorHydrateOrConstLiteral = {
@@ -94,11 +76,7 @@ const visitorHydrateOrConstLiteral = {
       throw new Error("Insufficient set of generics");
     }
     const genericsFull = self.generics.map((genericFlat: IdlTypeFlat) => {
-      return idlTypeFlatHydrateOrConstLiteral(
-        genericFlat,
-        genericsBySymbol,
-        typedefsByName,
-      );
+      return visit(genericFlat, genericsBySymbol, typedefsByName);
     });
     const innerGenericsBySymbol = new Map<string, IdlTypeFull | number>();
     for (let i = 0; i < typedef.generics.length; i++) {
@@ -118,7 +96,7 @@ const visitorHydrateOrConstLiteral = {
       typedef.serialization === "bytemuck" ||
       typedef.serialization === "bytemuckunsafe"
     ) {
-      return idlTypeFullTypedefBytemuck(typeTypedef).value;
+      return idlTypeFullBytemuckTypedef(typeTypedef).value;
     }
     return IdlTypeFull.typedef(typeTypedef);
   },
@@ -172,11 +150,7 @@ const visitorHydrateOrConstLiteral = {
     genericsBySymbol: Map<string, IdlTypeFull | number>,
     typedefsByName: Map<string, IdlTypedef> | null,
   ): IdlTypeFull | number => {
-    const length = idlTypeFlatHydrateOrConstLiteral(
-      self.length,
-      genericsBySymbol,
-      typedefsByName,
-    );
+    const length = visit(self.length, genericsBySymbol, typedefsByName);
     if (typeof length !== "number") {
       throw new Error("Array length must resolve to a const literal number");
     }
@@ -198,11 +172,7 @@ const visitorHydrateOrConstLiteral = {
     typedefsByName: Map<string, IdlTypedef> | null,
   ): IdlTypeFull | number => {
     return IdlTypeFull.struct({
-      fields: idlTypeFlatFieldsHydrate(
-        self.fields,
-        genericsBySymbol,
-        typedefsByName,
-      ),
+      fields: visitFields(self.fields, genericsBySymbol, typedefsByName),
     });
   },
   enum: (
@@ -215,11 +185,7 @@ const visitorHydrateOrConstLiteral = {
       return {
         name: variant.name ?? String(code),
         code,
-        fields: idlTypeFlatFieldsHydrate(
-          variant.fields,
-          genericsBySymbol,
-          typedefsByName,
-        ),
+        fields: visitFields(variant.fields, genericsBySymbol, typedefsByName),
       };
     });
     variants.sort((a, b) => {
@@ -267,12 +233,12 @@ const visitorHydrateOrConstLiteral = {
       variants,
     });
   },
-  first: (
-    self: IdlTypeFlatFirst,
+  trial: (
+    self: IdlTypeFlatTrial,
     genericsBySymbol: Map<string, IdlTypeFull | number>,
     typedefsByName: Map<string, IdlTypedef> | null,
   ): IdlTypeFull | number => {
-    return IdlTypeFull.first({
+    return IdlTypeFull.trial({
       candidates: self.candidates.map((candidate) => ({
         name: candidate.name,
         content: idlTypeFlatHydrate(
@@ -321,7 +287,7 @@ const visitorHydrateOrConstLiteral = {
   },
 };
 
-const visitorHydrateFields = {
+const visitorFields = {
   nothing: (
     _self: Array<never>,
     _genericsBySymbol: Map<string, IdlTypeFull | number>,

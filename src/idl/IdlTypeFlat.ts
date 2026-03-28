@@ -61,7 +61,7 @@ export type IdlTypeFlatEnum = {
   variants: Array<IdlTypeFlatEnumVariant>;
 };
 /** A type that attempts to match one of several candidate against the same input data. */
-export type IdlTypeFlatFirst = {
+export type IdlTypeFlatTrial = {
   /** Ordered list of candidate types to attempt matching against the same input data. */
   candidates: Array<{ name: string; docs: IdlDocs; content: IdlTypeFlat }>;
 };
@@ -95,7 +95,7 @@ type IdlTypeFlatDiscriminant =
   | "string"
   | "struct"
   | "enum"
-  | "first"
+  | "trial"
   | "padded"
   | "blob"
   | "const"
@@ -110,7 +110,7 @@ type IdlTypeFlatContent =
   | IdlTypeFlatString
   | IdlTypeFlatStruct
   | IdlTypeFlatEnum
-  | IdlTypeFlatFirst
+  | IdlTypeFlatTrial
   | IdlTypeFlatPadded
   | IdlTypeFlatBlob
   | IdlTypeFlatConst
@@ -165,8 +165,8 @@ export class IdlTypeFlat {
   public static enum(value: IdlTypeFlatEnum): IdlTypeFlat {
     return new IdlTypeFlat("enum", value);
   }
-  public static first(value: IdlTypeFlatFirst): IdlTypeFlat {
-    return new IdlTypeFlat("first", value);
+  public static trial(value: IdlTypeFlatTrial): IdlTypeFlat {
+    return new IdlTypeFlat("trial", value);
   }
   /** Creates a `padded` variant that wraps an inner type with byte padding. */
   public static padded(value: IdlTypeFlatPadded): IdlTypeFlat {
@@ -210,7 +210,7 @@ export class IdlTypeFlat {
       string: (value: IdlTypeFlatString, p1: P1, p2: P2) => T;
       struct: (value: IdlTypeFlatStruct, p1: P1, p2: P2) => T;
       enum: (value: IdlTypeFlatEnum, p1: P1, p2: P2) => T;
-      first: (value: IdlTypeFlatFirst, p1: P1, p2: P2) => T;
+      trial: (value: IdlTypeFlatTrial, p1: P1, p2: P2) => T;
       padded: (value: IdlTypeFlatPadded, p1: P1, p2: P2) => T;
       blob: (value: IdlTypeFlatBlob, p1: P1, p2: P2) => T;
       const: (value: IdlTypeFlatConst, p1: P1, p2: P2) => T;

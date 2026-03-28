@@ -22,20 +22,11 @@ import {
 } from "./IdlInstructionBlob";
 import { IdlTypedef } from "./IdlTypedef";
 import { IdlTypeFlat, IdlTypeFlatFields } from "./IdlTypeFlat";
-import {
-  idlTypeFlatFieldsHydrate,
-  idlTypeFlatHydrate,
-} from "./IdlTypeFlatHydrate";
+import { idlTypeFlatHydrate } from "./IdlTypeFlatHydrate";
 import { idlTypeFlatFieldsParse, idlTypeFlatParse } from "./IdlTypeFlatParse";
-import { IdlTypeFull, IdlTypeFullFields } from "./IdlTypeFull";
-import {
-  idlTypeFullDecode,
-  idlTypeFullFieldsDecode,
-} from "./IdlTypeFullDecode";
-import {
-  idlTypeFullEncode,
-  idlTypeFullFieldsEncode,
-} from "./IdlTypeFullEncode";
+import { IdlTypeFull } from "./IdlTypeFull";
+import { idlTypeFullDecode } from "./IdlTypeFullDecode";
+import { idlTypeFullEncode } from "./IdlTypeFullEncode";
 import {
   idlUtilsAnchorDiscriminator,
   idlUtilsBytesJsonDecoder,
@@ -59,10 +50,10 @@ export type IdlInstruction = {
   accounts: Array<IdlInstructionAccount>;
   /** Arg fields (flat and full). */
   args: {
-    /** Flat arg type fields. */
-    typeFlatFields: IdlTypeFlatFields;
-    /** Full arg type fields. */
-    typeFullFields: IdlTypeFullFields;
+    /** Flat arg type. */
+    typeFlat: IdlTypeFlat;
+    /** Full arg type. */
+    typeFull: IdlTypeFull;
   };
   /** Return type (flat and full). */
   return: {
@@ -255,11 +246,9 @@ export function idlInstructionArgsEncode(
   instructionPayload: JsonValue,
 ) {
   return {
-    instructionData: idlTypeFullFieldsEncode(
-      self.args.typeFullFields,
-      instructionPayload,
-      { discriminator: self.discriminator },
-    ),
+    instructionData: idlTypeFullEncode(self.args.typeFull, instructionPayload, {
+      discriminator: self.discriminator,
+    }),
   };
 }
 
@@ -274,8 +263,8 @@ export function idlInstructionArgsDecode(
   instructionData: Uint8Array,
 ) {
   idlInstructionArgsCheck(self, instructionData);
-  const [, instructionPayload] = idlTypeFullFieldsDecode(
-    self.args.typeFullFields,
+  const [, instructionPayload] = idlTypeFullDecode(
+    self.args.typeFull,
     new DataView(instructionData.buffer),
     self.discriminator.length,
   );
@@ -343,8 +332,9 @@ export function idlInstructionParse(
 ): IdlInstruction {
   const decoded = jsonDecoder(instructionValue);
   const argsTypeFlatFields = decoded.args ?? IdlTypeFlatFields.nothing();
-  const argsTypeFullFields = idlTypeFlatFieldsHydrate(
-    argsTypeFlatFields,
+  const argsTypeFlat = IdlTypeFlat.struct({ fields: argsTypeFlatFields });
+  const argsTypeFull = idlTypeFlatHydrate(
+    argsTypeFlat,
     new Map(),
     typedefsIdls,
   );
@@ -361,7 +351,7 @@ export function idlInstructionParse(
         ...idlInstructionAccountParse(
           [],
           instructionAccount,
-          argsTypeFullFields,
+          argsTypeFull,
           typedefsIdls,
         ),
       );
@@ -375,8 +365,8 @@ export function idlInstructionParse(
       idlUtilsAnchorDiscriminator(`global:${instructionName}`),
     accounts,
     args: {
-      typeFlatFields: argsTypeFlatFields,
-      typeFullFields: argsTypeFullFields,
+      typeFlat: argsTypeFlat,
+      typeFull: argsTypeFull,
     },
     return: {
       typeFlat: returnTypeFlat,

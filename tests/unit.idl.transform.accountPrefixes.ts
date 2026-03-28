@@ -128,6 +128,6 @@ it("run", () => {
   );
 });
 
-function flat(...arrays: Array<Array<number>>): number[] {
+function flat(...arrays: Array<Array<number>>): Array<number> {
   return arrays.flat();
 }

@@ -13,12 +13,12 @@ import {
   IdlTypeFullFieldNamed,
   IdlTypeFullFields,
   IdlTypeFullFieldUnnamed,
-  IdlTypeFullFirst,
   IdlTypeFullLoop,
   IdlTypeFullOption,
   IdlTypeFullPadded,
   IdlTypeFullString,
   IdlTypeFullStruct,
+  IdlTypeFullTrial,
   IdlTypeFullTypedef,
   IdlTypeFullVec,
 } from "./IdlTypeFull";
@@ -37,26 +37,10 @@ export function idlTypeFullGetAt(
   const pointer = Array.isArray(pathOrPointer)
     ? pathOrPointer
     : jsonPointerParse(pathOrPointer);
-  return visitTypeFull(self, pointer, 0);
+  return visit(self, pointer, 0);
 }
 
-/**
- * Returns the sub-type at the given JSON Pointer path within IDL fields.
- * @param self - Full IDL fields to traverse.
- * @param pathOrPointer - JSON Pointer string or pre-parsed token array.
- * @returns {@link IdlTypeFull} at the specified path.
- */
-export function idlTypeFullFieldsGetAt(
-  self: IdlTypeFullFields,
-  pathOrPointer: string | JsonPointer,
-): IdlTypeFull {
-  const pointer = Array.isArray(pathOrPointer)
-    ? pathOrPointer
-    : jsonPointerParse(pathOrPointer);
-  return visitTypeFullFields(self, pointer, 0);
-}
-
-function visitTypeFull(
+function visit(
   self: IdlTypeFull,
   pointer: Array<number | string>,
   tokenIndex: number,
@@ -67,7 +51,7 @@ function visitTypeFull(
   return self.traverse(visitorTypeFull, pointer, tokenIndex, null);
 }
 
-function visitTypeFullFields(
+function visitFields(
   self: IdlTypeFullFields,
   pointer: Array<number | string>,
   tokenIndex: number,
@@ -86,14 +70,14 @@ const visitorTypeFull = {
     pointer: Array<number | string>,
     tokenIndex: number,
   ) => {
-    return visitTypeFull(self.content, pointer, tokenIndex);
+    return visit(self.content, pointer, tokenIndex);
   },
   option: (
     self: IdlTypeFullOption,
     pointer: Array<number | string>,
     tokenIndex: number,
   ) => {
-    return visitTypeFull(self.content, pointer, tokenIndex);
+    return visit(self.content, pointer, tokenIndex);
   },
   vec: (
     self: IdlTypeFullVec,
@@ -102,7 +86,7 @@ const visitorTypeFull = {
   ) => {
     const token = pointer[tokenIndex]!;
     if (jsonPointerTokenAsArrayIndex(token, Infinity) !== undefined) {
-      return visitTypeFull(self.items, pointer, tokenIndex + 1);
+      return visit(self.items, pointer, tokenIndex + 1);
     }
     throw new Error(
       `Idl: Expected path ${jsonPointerPreview(pointer, tokenIndex)} to be able to index into a Vec`,
@@ -115,7 +99,7 @@ const visitorTypeFull = {
   ) => {
     const token = pointer[tokenIndex]!;
     if (jsonPointerTokenAsArrayIndex(token, Infinity) !== undefined) {
-      return visitTypeFull(self.items, pointer, tokenIndex + 1);
+      return visit(self.items, pointer, tokenIndex + 1);
     }
     throw new Error(
       `Idl: Expected path ${jsonPointerPreview(pointer, tokenIndex)} to be able to index into a Loop`,
@@ -128,7 +112,7 @@ const visitorTypeFull = {
   ) => {
     const token = pointer[tokenIndex]!;
     if (jsonPointerTokenAsArrayIndex(token, self.length) !== undefined) {
-      return visitTypeFull(self.items, pointer, tokenIndex + 1);
+      return visit(self.items, pointer, tokenIndex + 1);
     }
     throw new Error(
       `Idl: Expected path ${jsonPointerPreview(pointer, tokenIndex)} to be a valid index for an Array of length ${self.length}`,
@@ -148,7 +132,7 @@ const visitorTypeFull = {
     pointer: Array<number | string>,
     tokenIndex: number,
   ) => {
-    return visitTypeFullFields(self.fields, pointer, tokenIndex);
+    return visitFields(self.fields, pointer, tokenIndex);
   },
   enum: (
     _self: IdlTypeFullEnum,
@@ -159,13 +143,13 @@ const visitorTypeFull = {
       `Idl: Expected a struct/vec/array at path ${jsonPointerPreview(pointer, tokenIndex)} (found enum)`,
     );
   },
-  first: (
-    _self: IdlTypeFullFirst,
+  trial: (
+    _self: IdlTypeFullTrial,
     pointer: Array<number | string>,
     tokenIndex: number,
   ) => {
     throw new Error(
-      `Idl: Expected a struct/vec/array at path ${jsonPointerPreview(pointer, tokenIndex)} (found first)`,
+      `Idl: Expected a struct/vec/array at path ${jsonPointerPreview(pointer, tokenIndex)} (found trial)`,
     );
   },
   padded: (
@@ -173,7 +157,7 @@ const visitorTypeFull = {
     pointer: Array<number | string>,
     tokenIndex: number,
   ) => {
-    return visitTypeFull(self.content, pointer, tokenIndex);
+    return visit(self.content, pointer, tokenIndex);
   },
   blob: (
     _self: IdlTypeFullBlob,
@@ -213,13 +197,13 @@ const visitorTypeFullFields = {
     const fieldName = String(pointer[tokenIndex]!);
     for (const field of self) {
       if (field.name === fieldName) {
-        return visitTypeFull(field.content, pointer, tokenIndex + 1);
+        return visit(field.content, pointer, tokenIndex + 1);
       }
     }
     const fieldNameCamel = casingLosslessConvertToCamel(fieldName);
     for (const field of self) {
       if (field.name === fieldNameCamel) {
-        return visitTypeFull(field.content, pointer, tokenIndex + 1);
+        return visit(field.content, pointer, tokenIndex + 1);
       }
     }
     const names = self.map((field) => field.name).join("/");
@@ -239,6 +223,6 @@ const visitorTypeFullFields = {
         `Idl: Expected path ${jsonPointerPreview(pointer, tokenIndex)}, to be a valid index for a Tuple of length: ${self.length}`,
       );
     }
-    return visitTypeFull(self[arrayIndex]!.content, pointer, tokenIndex + 1);
+    return visit(self[arrayIndex]!.content, pointer, tokenIndex + 1);
   },
 };

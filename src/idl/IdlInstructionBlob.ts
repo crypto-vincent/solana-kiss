@@ -18,9 +18,9 @@ import {
 import { Pubkey, pubkeyToBytes } from "../data/Pubkey";
 import { IdlInstructionAccountFindContext } from "./IdlInstructionAccount";
 import { IdlTypedef } from "./IdlTypedef";
-import { IdlTypeFull, IdlTypeFullFields } from "./IdlTypeFull";
+import { IdlTypeFull } from "./IdlTypeFull";
 import { idlTypeFullEncode } from "./IdlTypeFullEncode";
-import { idlTypeFullFieldsGetAt, idlTypeFullGetAt } from "./IdlTypeFullGetAt";
+import { idlTypeFullGetAt } from "./IdlTypeFullGetAt";
 import {
   idlUtilsBlobTypeValueParse,
   idlUtilsBlobValueGuessType,
@@ -134,13 +134,13 @@ export async function idlInstructionBlobCompute(
 /**
  * Parses a raw IDL blob JSON value into an {@link IdlInstructionBlob}.
  * @param instructionBlobValue - Raw JSON blob value.
- * @param instructionArgsTypeFullFields - Resolved arg fields for arg-path parsing.
+ * @param instructionArgsTypeFull - Resolved arg for arg-path parsing.
  * @param typedefsIdls - Known typedef definitions.
  * @returns Parsed {@link IdlInstructionBlob}.
  */
 export function idlInstructionBlobParse(
   instructionBlobValue: JsonValue,
-  instructionArgsTypeFullFields: IdlTypeFullFields,
+  instructionArgsTypeFull: IdlTypeFull,
   typedefsIdls: Map<string, IdlTypedef>,
 ): IdlInstructionBlob {
   const { kind, path } = jsonDecoder(instructionBlobValue);
@@ -163,8 +163,7 @@ export function idlInstructionBlobParse(
   if (kind === "arg") {
     const pointer = jsonPointerParse(path);
     const typeFull =
-      baseTypeFull ??
-      idlTypeFullFieldsGetAt(instructionArgsTypeFullFields, pointer);
+      baseTypeFull ?? idlTypeFullGetAt(instructionArgsTypeFull, pointer);
     return IdlInstructionBlob.arg({ pointer, typeFull });
   }
   if (kind === null || kind === "account") {

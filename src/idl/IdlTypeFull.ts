@@ -69,7 +69,7 @@ export type IdlTypeFullEnum = {
   variants: Array<IdlTypeFullEnumVariant>;
 };
 /** A type that attempts to match one of several candidate against the same input data. */
-export type IdlTypeFullFirst = {
+export type IdlTypeFullTrial = {
   /** Ordered list of candidate types to attempt matching against the same input data. */
   candidates: Array<{ name: string; content: IdlTypeFull }>;
 };
@@ -100,7 +100,7 @@ type IdlTypeFullDiscriminant =
   | "string"
   | "struct"
   | "enum"
-  | "first"
+  | "trial"
   | "padded"
   | "blob"
   | "primitive";
@@ -113,7 +113,7 @@ type IdlTypeFullContent =
   | IdlTypeFullString
   | IdlTypeFullStruct
   | IdlTypeFullEnum
-  | IdlTypeFullFirst
+  | IdlTypeFullTrial
   | IdlTypeFullPadded
   | IdlTypeFullBlob
   | IdlTypePrimitive;
@@ -167,9 +167,9 @@ export class IdlTypeFull {
   public static enum(value: IdlTypeFullEnum): IdlTypeFull {
     return new IdlTypeFull("enum", value);
   }
-  /** Creates a `first` variant that attempts to match one of several candidate types against the same input data. */
-  public static first(value: IdlTypeFullFirst): IdlTypeFull {
-    return new IdlTypeFull("first", value);
+  /** Creates a `trial` variant that attempts to match one of several candidate types against the same input data. */
+  public static trial(value: IdlTypeFullTrial): IdlTypeFull {
+    return new IdlTypeFull("trial", value);
   }
   /** Creates a `padded` variant that wraps an inner type with byte padding. */
   public static padded(value: IdlTypeFullPadded): IdlTypeFull {
@@ -214,7 +214,7 @@ export class IdlTypeFull {
       string: (value: IdlTypeFullString, p1: P1, p2: P2, p3: P3) => T;
       struct: (value: IdlTypeFullStruct, p1: P1, p2: P2, p3: P3) => T;
       enum: (value: IdlTypeFullEnum, p1: P1, p2: P2, p3: P3) => T;
-      first: (value: IdlTypeFullFirst, p1: P1, p2: P2, p3: P3) => T;
+      trial: (value: IdlTypeFullTrial, p1: P1, p2: P2, p3: P3) => T;
       padded: (value: IdlTypeFullPadded, p1: P1, p2: P2, p3: P3) => T;
       blob: (value: IdlTypeFullBlob, p1: P1, p2: P2, p3: P3) => T;
       primitive: (value: IdlTypePrimitive, p1: P1, p2: P2, p3: P3) => T;
