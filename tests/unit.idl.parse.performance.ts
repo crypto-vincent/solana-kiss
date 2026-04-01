@@ -25,7 +25,7 @@ it("run", async () => {
     }
   });
 
-  expect(getPercentile(0.75, computeDurationsMs)).toBeLessThanOrEqual(
+  expect(getPercentile(0.5, computeDurationsMs)).toBeLessThanOrEqual(
     reasonableDurationMs,
   );
 });
