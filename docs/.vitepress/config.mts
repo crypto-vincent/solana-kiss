@@ -18,7 +18,7 @@ export default defineConfig({
     search: { provider: "local", options: { detailedView: true } },
     nav: [
       { text: "Guide", link: "/guide/001_getting_started" },
-      { text: "npm", link: "https://www.npmjs.com/package/cli-kiss" },
+      { text: "npm", link: "https://www.npmjs.com/package/solana-kiss" },
     ],
     sidebar: [
       {
