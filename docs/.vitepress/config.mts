@@ -5,6 +5,7 @@ export default defineConfig({
   title: "solana-kiss 💋",
   base: "/solana-kiss/",
   head: [
+    ["link", { rel: "icon", href: "/solana-kiss/favicon.ico" }],
     [
       "style",
       {},
