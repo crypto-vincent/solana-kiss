@@ -44,10 +44,7 @@ export default defineConfig({
       },
     ],
     socialLinks: [
-      {
-        icon: "github",
-        link: "https://github.com/crypto-vincent/solana-kiss",
-      },
+      { icon: "github", link: "https://github.com/crypto-vincent/solana-kiss" },
     ],
     footer: {
       message: "Solana: Keep It Simple, Stupid. (KISS)",
