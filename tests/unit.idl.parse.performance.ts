@@ -17,10 +17,10 @@ it("run", async () => {
   const reasonableDurationMs = timeIt(() => {
     const dummy: Record<string, number> = {};
     let sum = 0;
-    for (let i = 0; i < 500_000; i++) {
+    for (let i = 0; i < 1_000_000; i++) {
       dummy[i.toString()] = i;
     }
-    for (let i = 0; i < 500_000; i++) {
+    for (let i = 0; i < 1_000_000; i++) {
       sum += dummy[i.toString()]!;
     }
   });
