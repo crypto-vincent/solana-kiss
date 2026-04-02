@@ -5,7 +5,7 @@
  * @returns Tuple of `[bytesConsumed, decodedValue]`.
  */
 export function varIntDecode<Data>(
-  byteGetter: (data: Data, offset: number) => number,
+  byteGetter: (data: Data, offset: number) => number, // TODO - this is ugly
   data: Data,
   offset: number,
 ): [number, bigint] {
