@@ -5,6 +5,7 @@ export default defineConfig({
   title: "solana-kiss 💋",
   base: "/solana-kiss/",
   head: [
+    ["link", { rel: "icon", href: "/solana-kiss/favicon.ico" }],
     [
       "style",
       {},
@@ -17,7 +18,7 @@ export default defineConfig({
     search: { provider: "local", options: { detailedView: true } },
     nav: [
       { text: "Guide", link: "/guide/001_getting_started" },
-      { text: "GitHub", link: "https://github.com/crypto-vincent/solana-kiss" },
+      { text: "npm", link: "https://www.npmjs.com/package/solana-kiss" },
     ],
     sidebar: [
       {
@@ -44,10 +45,7 @@ export default defineConfig({
       },
     ],
     socialLinks: [
-      {
-        icon: "github",
-        link: "https://github.com/crypto-vincent/solana-kiss",
-      },
+      { icon: "github", link: "https://github.com/crypto-vincent/solana-kiss" },
     ],
     footer: {
       message: "Solana: Keep It Simple, Stupid. (KISS)",
