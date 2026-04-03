@@ -7,7 +7,7 @@ const { Layout } = DefaultTheme
   <Layout>
     <template #nav-bar-title-before>
       <img
-        src="/solana-kiss/logo.png"
+        src="/logo.png"
         alt="logo"
         style="width:32px;height:32px;margin-right:8px;display:block;"
       >
