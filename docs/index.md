@@ -9,7 +9,7 @@ hero:
     browser wallets<br/>Nothing less, nothing more.
 
   image:
-    src: /hero.png
+    src: /logo.png
 
   actions:
     - theme: brand

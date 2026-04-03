@@ -2,7 +2,7 @@ import { defineConfig } from "vitepress";
 
 export default defineConfig({
   description: "Full-featured Solana framework. No bloat, no dependency.",
-  title: "solana-kiss 💋",
+  title: "solana-kiss",
   base: "/solana-kiss/",
   head: [
     ["link", { rel: "icon", href: "/solana-kiss/favicon.ico" }],
