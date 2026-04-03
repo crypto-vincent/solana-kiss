@@ -62,6 +62,7 @@ export function idlTypeFullEncode(
   return blobsFlatten(blobs);
 }
 
+// TODO - nicer "Bytes" class that can resize instead of "blobs" ?
 function visit(
   self: IdlTypeFull,
   value: JsonValue,

@@ -16,6 +16,7 @@ import {
   IdlTypeFullVec,
 } from "./IdlTypeFull";
 import { IdlTypePrimitive } from "./IdlTypePrimitive";
+// TODO - im not a big fan of the naming here
 
 /**
  * Generates a TypeScript expression string for the JSON codec of the given IDL type.
