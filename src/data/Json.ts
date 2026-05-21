@@ -632,17 +632,13 @@ export function jsonDecoderArrayToArray<Item>(
   itemDecoder: JsonDecoder<Item>,
 ): JsonDecoder<Array<Item>> {
   return (encoded) => {
-    const array = jsonAsArray(encoded);
-    if (array === undefined) {
-      throw new Error(
-        `JSON: Expected an array (found: ${jsonPreview(encoded)})`,
+    return jsonCodecArray
+      .decoder(encoded)
+      .map((item, index) =>
+        withErrorContext(`JSON: Decode Array[${index}] =>`, () =>
+          itemDecoder(item),
+        ),
       );
-    }
-    return array.map((item, index) =>
-      withErrorContext(`JSON: Decode Array[${index}] =>`, () =>
-        itemDecoder(item),
-      ),
-    );
   };
 }
 /** Creates a {@link JsonEncoder} that encodes a typed `Array<Item>` into a JSON array using `itemEncoder` for each element. */

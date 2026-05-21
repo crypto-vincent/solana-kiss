@@ -1,4 +1,4 @@
-import { it } from "@jest/globals";
+import { expect, it } from "@jest/globals";
 import { idlProgramParse } from "../src";
 
 const iterationCount = 100;

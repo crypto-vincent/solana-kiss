@@ -1,3 +1,4 @@
+import { expect, it } from "@jest/globals";
 import { jsonGetAt, pubkeyFromBase58, Solana } from "../src";
 
 it("run", async () => {

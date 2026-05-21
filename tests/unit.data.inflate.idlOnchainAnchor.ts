@@ -1,4 +1,4 @@
-import { it } from "@jest/globals";
+import { expect, it } from "@jest/globals";
 import { promises as fsp } from "fs";
 import { inflate as referenceInflate } from "uzip";
 import { idlProgramParse, inflate, jsonParse, utf8Decode } from "../src";

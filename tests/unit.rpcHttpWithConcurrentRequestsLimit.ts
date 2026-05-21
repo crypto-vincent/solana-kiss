@@ -1,4 +1,4 @@
-import { it } from "@jest/globals";
+import { expect, it } from "@jest/globals";
 import { JsonArray, RpcHttp, rpcHttpWithConcurrentRequestsLimit } from "../src";
 
 async function rpcHttp(method: string, params: Readonly<JsonArray>) {

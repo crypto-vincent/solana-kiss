@@ -1,4 +1,4 @@
-import { it } from "@jest/globals";
+import { expect, it } from "@jest/globals";
 import { JsonValue, RpcHttp, rpcHttpWithRequestsPerSecondLimit } from "../src";
 
 async function rpcHttp(): Promise<JsonValue> {
