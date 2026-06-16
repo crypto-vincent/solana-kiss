@@ -13,6 +13,8 @@ import {
   jsonDecoderObjectToMap,
   jsonDecoderObjectToObject,
   jsonDecoderWrapped,
+  jsonParse,
+  jsonStringify,
 } from "../data/Json";
 import { memoize } from "../data/Memoize";
 import { Pubkey } from "../data/Pubkey";
@@ -250,13 +252,13 @@ export const idlProgramUnknown = memoize(
  * Opaque accessor for the raw JSON value from which an {@link IdlProgram} was originally parsed.
  * Useful for forwarding the full original IDL JSON to downstream tools without re-serialisation.
  */
-class IdlProgramOriginal {
+export class IdlProgramOriginal {
   #json: JsonValue;
   constructor(json: JsonValue) {
     this.#json = json;
   }
   getJson() {
-    return this.#json;
+    return jsonParse(jsonStringify(this.#json));
   }
 }
 

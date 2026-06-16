@@ -4,10 +4,8 @@ Coding rules to apply to all files.
 
 ## Naming
 
-- camelCase for functions and variables.
-- camelCase for constants.
-- PascalCase for types.
-- PascalCase for files.
+- camelCase for functions and variables and constants.
+- PascalCase for types, classes and files.
 
 ## Globals
 
