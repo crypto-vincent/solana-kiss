@@ -200,7 +200,7 @@ export function idlProgramParse(programValue: JsonValue): IdlProgram {
     undefined,
     idlErrorParse,
   );
-  // TODO - auto-generate pdas if instructions agree on seeds
+  // TODO - auto-generate pdas if instructions agree on seeds ?
   const pdas = parseScopedNamedValues(
     programObject,
     "pdas",

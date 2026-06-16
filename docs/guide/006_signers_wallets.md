@@ -4,9 +4,9 @@ title: Signers & Wallets
 
 # Signers & Wallets
 
-| Interface | Use case |
-|---|---|
-| `Signer` | Node.js / server — private key lives in Web Crypto |
+| Interface       | Use case                                             |
+| --------------- | ---------------------------------------------------- |
+| `Signer`        | Node.js / server — private key lives in Web Crypto   |
 | `WalletAccount` | Browser — signing is delegated to a wallet extension |
 
 Both work wherever signatures are needed (e.g. `transactionCompileAndSign`).
@@ -32,8 +32,10 @@ console.log(signer.address); // Pubkey
 ```ts
 import { walletProviders } from "solana-kiss";
 
-walletProviders.subscribe((providers) => {
-  for (const p of providers) console.log(p.name, p.icon);
+walletProviders.subscribe(function (providers) {
+  for (const provider of providers) {
+    console.log(provider.name, provider.icon);
+  }
 });
 ```
 
@@ -41,7 +43,9 @@ walletProviders.subscribe((providers) => {
 
 ```ts
 const providers = walletProviders.get?.() ?? [];
-const phantom = providers.find((p) => p.name === "Phantom");
+const phantom = providers.find(function (provider) {
+  return provider.name === "Phantom";
+});
 
 if (phantom) {
   const [account] = await phantom.connect();
@@ -60,8 +64,8 @@ await phantom.disconnect();
 ### Reactive account list
 
 ```ts
-const unsubscribe = phantom.accounts.subscribe((accounts) => {
-  currentAccounts = accounts; // called immediately and on change
+const unsubscribe = phantom.accounts.subscribe(function (accounts) {
+  console.log("phantom accounts", accounts); // called immediately and on change
 });
 unsubscribe(); // stop listening
 ```
