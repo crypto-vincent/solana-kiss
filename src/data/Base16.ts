@@ -1,20 +1,5 @@
 import { utf8Decode } from "./Utf8";
 
-const alphabetLower = "0123456789abcdef";
-const alphabetUpper = "0123456789ABCDEF";
-
-const digitToCode = new Uint8Array(16);
-for (let digit = 0; digit < alphabetLower.length; digit++) {
-  digitToCode[digit] = alphabetLower.charCodeAt(digit);
-}
-const codeToDigit = new Int8Array(256).fill(-1);
-for (let digit = 0; digit < alphabetLower.length; digit++) {
-  codeToDigit[alphabetLower.charCodeAt(digit)] = digit;
-}
-for (let digit = 0; digit < alphabetUpper.length; digit++) {
-  codeToDigit[alphabetUpper.charCodeAt(digit)] = digit;
-}
-
 /**
  * Encodes bytes a lowercase hex.
  * @param bytes - Bytes to encode.
@@ -62,4 +47,19 @@ function base16DecodeDigit(base16: string, codeIndex: number): number {
     );
   }
   return digit;
+}
+
+const alphabetLower = "0123456789abcdef";
+const alphabetUpper = "0123456789ABCDEF";
+
+const digitToCode = new Uint8Array(16);
+for (let digit = 0; digit < alphabetLower.length; digit++) {
+  digitToCode[digit] = alphabetLower.charCodeAt(digit);
+}
+const codeToDigit = new Int8Array(256).fill(-1);
+for (let digit = 0; digit < alphabetLower.length; digit++) {
+  codeToDigit[alphabetLower.charCodeAt(digit)] = digit;
+}
+for (let digit = 0; digit < alphabetUpper.length; digit++) {
+  codeToDigit[alphabetUpper.charCodeAt(digit)] = digit;
 }

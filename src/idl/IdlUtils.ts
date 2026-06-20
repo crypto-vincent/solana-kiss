@@ -81,26 +81,50 @@ export function idlUtilsExpectBlobAt(
   }
 }
 
-const objectBytesJsonDecoder: JsonDecoder<Uint8Array> = jsonDecoderOneOfKeys({
-  blob: jsonDecoderWrapped(idlUtilsBlobTypeValueJsonDecoder, (blob) => {
-    if (blob.typeFlat === null) {
-      throw new Error(`Idl: Expected type for blob value`);
-    }
-    const typeFull = idlTypeFlatHydrate(blob.typeFlat, new Map(), null);
-    return idlTypeFullEncode(typeFull, blob.value, { blobMode: true });
-  }),
-  base16: jsonCodecBase16ToBytes.decoder,
-  base58: jsonCodecBase58ToBytes.decoder,
-  base64: jsonCodecBase64ToBytes.decoder,
-  utf8: jsonCodecUtf8ToBytes.decoder,
-  fill: jsonDecoderWrapped(
-    jsonDecoderObjectToObject({
-      length: jsonCodecNumber.decoder,
-      byte: jsonCodecNumber.decoder,
-    }),
-    (object) => new Uint8Array(object.length).fill(object.byte),
-  ),
+/**
+ * JSON decoder for IDL blob values (used in PDA blobs constants and inputs).
+ */
+export function idlUtilsBlobTypeValueJsonDecoder(blobValue: JsonValue): {
+  typeFlat: IdlTypeFlat | null;
+  value: JsonValue;
+} {
+  return blobTypeValueJsonDecoder(blobValue);
+}
+
+/**
+ * JSON decoder for byte arrays constants.
+ */
+export const idlUtilsBytesJsonDecoder = jsonDecoderByType({
+  array: jsonCodecArrayToBytes.decoder,
+  object: objectBytesJsonDecoder,
 });
+
+function objectBytesJsonDecoder(encoded: JsonValue): Uint8Array {
+  return objectBytesJsonDecoderInner(encoded);
+}
+
+const objectBytesJsonDecoderInner: JsonDecoder<Uint8Array> =
+  jsonDecoderOneOfKeys({
+    blob: jsonDecoderWrapped(idlUtilsBlobTypeValueJsonDecoder, (blob) => {
+      if (blob.typeFlat === null) {
+        throw new Error(`Idl: Expected type for blob value`);
+      }
+      const typeFull = idlTypeFlatHydrate(blob.typeFlat, new Map(), null);
+      return idlTypeFullEncode(typeFull, blob.value, { blobMode: true });
+    }),
+    base16: jsonCodecBase16ToBytes.decoder,
+    base58: jsonCodecBase58ToBytes.decoder,
+    base64: jsonCodecBase64ToBytes.decoder,
+    utf8: jsonCodecUtf8ToBytes.decoder,
+    fill: jsonDecoderWrapped(
+      jsonDecoderObjectToObject({
+        length: jsonCodecNumber.decoder,
+        byte: jsonCodecNumber.decoder,
+      }),
+      (object) => new Uint8Array(object.length).fill(object.byte),
+    ),
+  });
+
 const blobBytesJsonDecoder = jsonDecoderByType<{
   typeFlat: IdlTypeFlat;
   value: JsonValue;
@@ -118,6 +142,7 @@ const blobBytesJsonDecoder = jsonDecoderByType<{
     value: Array.from(bytes),
   })),
 });
+
 const blobTypeValueJsonDecoder = jsonDecoderFirstMatch<{
   typeFlat: IdlTypeFlat | null;
   value: JsonValue;
@@ -139,21 +164,3 @@ const blobTypeValueJsonDecoder = jsonDecoderFirstMatch<{
     },
   ),
 ]);
-
-/**
- * JSON decoder for IDL blob values (used in PDA blobs constants and inputs).
- */
-export function idlUtilsBlobTypeValueJsonDecoder(blobValue: JsonValue): {
-  typeFlat: IdlTypeFlat | null;
-  value: JsonValue;
-} {
-  return blobTypeValueJsonDecoder(blobValue);
-}
-
-/**
- * JSON decoder for byte arrays constants.
- */
-export const idlUtilsBytesJsonDecoder = jsonDecoderByType({
-  array: jsonCodecArrayToBytes.decoder,
-  object: objectBytesJsonDecoder,
-});

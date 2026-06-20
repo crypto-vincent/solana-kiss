@@ -32,9 +32,7 @@ export type JsonPrimitive = null | boolean | number | string;
 /** A JSON array whose elements are {@link JsonValue}. */
 export type JsonArray = Array<JsonValue>;
 /** A JSON object with string keys and {@link JsonValue} values. */
-export interface JsonObject {
-  [key: string]: JsonValue | undefined;
-}
+export type JsonObject = { [key: string]: JsonValue | undefined };
 
 /**
  * Parses a JSON string.

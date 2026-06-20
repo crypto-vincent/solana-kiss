@@ -110,21 +110,20 @@ function urlExplorer(
       args.push(`${encodeURIComponent(key)}=${encodeURIComponent(value)}`);
     }
   }
-  args.push(urlExplorerArgCluster(urlRpc));
+  switch (urlRpc) {
+    case urlRpcPublicMainnet:
+      args.push("cluster=mainnet-beta");
+      break;
+    case urlRpcPublicDevnet:
+      args.push("cluster=devnet");
+      break;
+    case urlRpcPublicTestnet:
+      args.push("cluster=testnet");
+      break;
+    default:
+      args.push(`customUrl=${encodeURIComponent(urlRpc.toString())}`);
+  }
   return new URL(
     `https://explorer.solana.com/${category}/${payload}?${args.join("&")}`,
   );
-}
-
-function urlExplorerArgCluster(urlRpc: URL) {
-  switch (urlRpc) {
-    case urlRpcPublicMainnet:
-      return "cluster=mainnet-beta";
-    case urlRpcPublicDevnet:
-      return "cluster=devnet";
-    case urlRpcPublicTestnet:
-      return "cluster=testnet";
-    default:
-      return `customUrl=${encodeURIComponent(urlRpc.toString())}`;
-  }
 }

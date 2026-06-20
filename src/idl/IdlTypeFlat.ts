@@ -85,42 +85,10 @@ export type IdlTypeFlatConst = {
   literal: number;
 };
 
-type IdlTypeFlatDiscriminant =
-  | "defined"
-  | "generic"
-  | "option"
-  | "vec"
-  | "loop"
-  | "array"
-  | "string"
-  | "struct"
-  | "enum"
-  | "trial"
-  | "padded"
-  | "blob"
-  | "const"
-  | "primitive";
-type IdlTypeFlatContent =
-  | IdlTypeFlatDefined
-  | IdlTypeFlatGeneric
-  | IdlTypeFlatOption
-  | IdlTypeFlatVec
-  | IdlTypeFlatLoop
-  | IdlTypeFlatArray
-  | IdlTypeFlatString
-  | IdlTypeFlatStruct
-  | IdlTypeFlatEnum
-  | IdlTypeFlatTrial
-  | IdlTypeFlatPadded
-  | IdlTypeFlatBlob
-  | IdlTypeFlatConst
-  | IdlTypePrimitive;
-
 /** Algebraic sum type for unresolved IDL types. Use {@link IdlTypeFull} for resolved. Construct via static factories; dispatch via {@link traverse}. */
 export class IdlTypeFlat {
   private readonly discriminant: IdlTypeFlatDiscriminant;
   private readonly content: IdlTypeFlatContent;
-
   private constructor(
     discriminant: IdlTypeFlatDiscriminant,
     content: IdlTypeFlatContent,
@@ -128,7 +96,6 @@ export class IdlTypeFlat {
     this.discriminant = discriminant;
     this.content = content;
   }
-
   /** Creates a `defined` variant referencing a named typedef. */
   public static defined(value: IdlTypeFlatDefined): IdlTypeFlat {
     return new IdlTypeFlat("defined", value);
@@ -184,14 +151,12 @@ export class IdlTypeFlat {
   public static primitive(value: IdlTypePrimitive): IdlTypeFlat {
     return new IdlTypeFlat("primitive", value);
   }
-
   /** Creates a `struct` variant with no fields (empty struct). */
   public static structNothing(): IdlTypeFlat {
     return new IdlTypeFlat("struct", {
       fields: IdlTypeFlatFields.nothing(),
     });
   }
-
   /**
    * Dispatches to the matching variant handler.
    * @param visitor - Handler per variant.
@@ -240,17 +205,10 @@ export type IdlTypeFlatFieldUnnamed = {
   content: IdlTypeFlat;
 };
 
-type IdlTypeFlatFieldsDiscriminant = "nothing" | "named" | "unnamed";
-type IdlTypeFlatFieldsContent =
-  | Array<never>
-  | Array<IdlTypeFlatFieldNamed>
-  | Array<IdlTypeFlatFieldUnnamed>;
-
 /** Fields of a struct/enum variant: nothing (unit), named, or unnamed (tuple). */
 export class IdlTypeFlatFields {
   private readonly discriminant: IdlTypeFlatFieldsDiscriminant;
   private readonly content: IdlTypeFlatFieldsContent;
-
   private constructor(
     discriminant: IdlTypeFlatFieldsDiscriminant,
     content: IdlTypeFlatFieldsContent,
@@ -258,7 +216,6 @@ export class IdlTypeFlatFields {
     this.discriminant = discriminant;
     this.content = content;
   }
-
   /** Creates a `nothing` variant representing a unit (no fields). */
   public static nothing(): IdlTypeFlatFields {
     return new IdlTypeFlatFields("nothing", []);
@@ -273,7 +230,6 @@ export class IdlTypeFlatFields {
   ): IdlTypeFlatFields {
     return new IdlTypeFlatFields("unnamed", value);
   }
-
   /**
    * Dispatches to the matching variant handler.
    * @param visitor - Handler per variant (nothing/named/unnamed).
@@ -305,3 +261,40 @@ export type IdlTypeFlatEnumVariant = {
   /** Fields of this variant (unit, named, or unnamed). */
   fields: IdlTypeFlatFields;
 };
+
+type IdlTypeFlatDiscriminant =
+  | "defined"
+  | "generic"
+  | "option"
+  | "vec"
+  | "loop"
+  | "array"
+  | "string"
+  | "struct"
+  | "enum"
+  | "trial"
+  | "padded"
+  | "blob"
+  | "const"
+  | "primitive";
+type IdlTypeFlatContent =
+  | IdlTypeFlatDefined
+  | IdlTypeFlatGeneric
+  | IdlTypeFlatOption
+  | IdlTypeFlatVec
+  | IdlTypeFlatLoop
+  | IdlTypeFlatArray
+  | IdlTypeFlatString
+  | IdlTypeFlatStruct
+  | IdlTypeFlatEnum
+  | IdlTypeFlatTrial
+  | IdlTypeFlatPadded
+  | IdlTypeFlatBlob
+  | IdlTypeFlatConst
+  | IdlTypePrimitive;
+
+type IdlTypeFlatFieldsDiscriminant = "nothing" | "named" | "unnamed";
+type IdlTypeFlatFieldsContent =
+  | Array<never>
+  | Array<IdlTypeFlatFieldNamed>
+  | Array<IdlTypeFlatFieldUnnamed>;

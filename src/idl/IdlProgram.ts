@@ -257,7 +257,7 @@ export class IdlProgramOriginal {
   constructor(json: JsonValue) {
     this.#json = json;
   }
-  getJson() {
+  getJsonCopy() {
     return jsonParse(jsonStringify(this.#json));
   }
 }

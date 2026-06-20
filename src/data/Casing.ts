@@ -1,12 +1,3 @@
-const codeLowerA = "a".charCodeAt(0);
-const codeLowerZ = "z".charCodeAt(0);
-const codeUpperA = "A".charCodeAt(0);
-const codeUpperZ = "Z".charCodeAt(0);
-const codeUnderscore = "_".charCodeAt(0);
-const codeUpperToLower = codeLowerA - codeUpperA;
-
-const cacheCodes = new Array<number>();
-
 /**
  * Converts camelCase to snake_case (losslessly reversible).
  * @param string - camelCase input.
@@ -47,3 +38,12 @@ export function casingLosslessConvertToCamel(string: string): string {
   }
   return String.fromCharCode(...cacheCodes);
 }
+
+const codeLowerA = "a".charCodeAt(0);
+const codeLowerZ = "z".charCodeAt(0);
+const codeUpperA = "A".charCodeAt(0);
+const codeUpperZ = "Z".charCodeAt(0);
+const codeUnderscore = "_".charCodeAt(0);
+const codeUpperToLower = codeLowerA - codeUpperA;
+
+const cacheCodes = new Array<number>();
