@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import DefaultTheme from 'vitepress/theme'
-const { Layout } = DefaultTheme
+import DefaultTheme from "vitepress/theme";
+const { Layout } = DefaultTheme;
 </script>
 
 <template>
@@ -9,8 +9,8 @@ const { Layout } = DefaultTheme
       <img
         src="/logo.png"
         alt="logo"
-        style="width:32px;height:32px;margin-right:8px;display:block;"
-      >
+        style="width: 32px; height: 32px; margin-right: 8px; display: block"
+      />
     </template>
   </Layout>
 </template>

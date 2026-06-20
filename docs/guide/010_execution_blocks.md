@@ -6,8 +6,8 @@ title: Execution & Blocks
 
 ## `ExecutionReport`
 
-Returned by `prepareAndExecuteTransaction`, `prepareAndSimulateTransaction`,
-and `rpcHttpGetTransaction`. Contains `blockSlot`, `transactionError`,
+Returned by `prepareAndExecuteTransaction`, `prepareAndSimulateTransaction`, and
+`rpcHttpGetTransaction`. Contains `blockSlot`, `transactionError`,
 `transactionLogs`, `consumedComputeUnits`, and `chargedFeesLamports`.
 
 ## `ExecutionFlow`
@@ -68,13 +68,18 @@ import {
   rpcHttpFindAccountTransactions,
 } from "solana-kiss";
 
-const meta  = await rpcHttpGetBlockMetadata(rpc, slot);
+const meta = await rpcHttpGetBlockMetadata(rpc, slot);
 const block = await rpcHttpGetBlockWithTransactions(rpc, slot);
 
 // Find up to 100 block slots starting from startSlot
-const { blocksSlots } = await rpcHttpFindBlocks(rpc, 100, { lowBlockSlot: startSlot });
+const { blocksSlots } = await rpcHttpFindBlocks(rpc, 100, {
+  lowBlockSlot: startSlot,
+});
 
 // Get the 50 most recent transaction handles for an account
-const { newToOldTransactionsHandles } =
-  await rpcHttpFindAccountTransactions(rpc, accountAddress, 50);
+const { newToOldTransactionsHandles } = await rpcHttpFindAccountTransactions(
+  rpc,
+  accountAddress,
+  50,
+);
 ```

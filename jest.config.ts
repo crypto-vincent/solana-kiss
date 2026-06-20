@@ -3,5 +3,5 @@ export default {
   testEnvironment: "node",
   setupFiles: ["<rootDir>/jest.setup.ts"],
   testTimeout: 10000,
-  testMatch: ["**/tests/*.ts"],
+  testMatch: ["**/tests/*.test.ts"],
 };

@@ -12,7 +12,10 @@ Transactions carry one or more instructions.
 The easiest way — used by `Solana.hydrateAndEncodeInstruction` internally:
 
 ```ts
-import { idlInstructionAccountsEncode, idlInstructionArgsEncode } from "solana-kiss";
+import {
+  idlInstructionAccountsEncode,
+  idlInstructionArgsEncode,
+} from "solana-kiss";
 
 const { instructionInputs } = idlInstructionAccountsEncode(instructionIdl, {
   source: sourceTokenAccount,
@@ -24,7 +27,11 @@ const { instructionData } = idlInstructionArgsEncode(instructionIdl, {
   amount: 1_000_000n,
 });
 
-const ix: InstructionRequest = { programAddress, instructionInputs, instructionData };
+const ix: InstructionRequest = {
+  programAddress,
+  instructionInputs,
+  instructionData,
+};
 ```
 
 ## Build without an IDL

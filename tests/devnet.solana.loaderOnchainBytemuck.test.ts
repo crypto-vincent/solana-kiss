@@ -27,11 +27,13 @@ it("run", async () => {
   ).toStrictEqual(24);
 
   const moduleName = "jsonCodecAccountBytemuck";
+  const modulePath = `./tests/fixtures/${moduleName}.gen.ts`;
   const moduleCode = makeModuleCode(accountIdl.typeFull);
-  await fsp.writeFile(`./tests/fixtures/${moduleName}.ts`, moduleCode);
-  const requirePath = `./fixtures/${moduleName}.ts`;
+  await fsp.writeFile(modulePath, moduleCode);
+  const requirePath = `./fixtures/${moduleName}.gen.ts`;
   delete require.cache[require.resolve(requirePath)];
   const { jsonCodec } = require(requirePath);
+  await fsp.rm(modulePath);
 
   const contentDecoded = jsonCodec.decoder(accountState);
   expect(contentDecoded.state.metadata.vocabSize).toStrictEqual(129280n);
@@ -53,5 +55,6 @@ function makeModuleCode(self: IdlTypeFull) {
   return [
     `import {${[...dependencies].join(",")}} from "../../src";`,
     `export const jsonCodec = ${codecExpression};`,
+    ``,
   ].join("\n");
 }

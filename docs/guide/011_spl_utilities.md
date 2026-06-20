@@ -17,12 +17,12 @@ import {
 } from "solana-kiss";
 ```
 
-| Constant | Address |
-|---|---|
-| `splSystemProgramAddress` | `111...` (32 × `1`) |
-| `splComputeBudgetProgramAddress` | `ComputeBudget111...` |
-| `splTokenProgramAddress` | `TokenkegQfeZ...` |
-| `splAssociatedTokenProgramAddress` | `ATokenGPvbd...` |
+| Constant                           | Address               |
+| ---------------------------------- | --------------------- |
+| `splSystemProgramAddress`          | `111...` (32 × `1`)   |
+| `splComputeBudgetProgramAddress`   | `ComputeBudget111...` |
+| `splTokenProgramAddress`           | `TokenkegQfeZ...`     |
+| `splAssociatedTokenProgramAddress` | `ATokenGPvbd...`      |
 
 ## Lamports & fees
 
@@ -35,15 +35,15 @@ import {
   lamportsFeePerSignature,
 } from "solana-kiss";
 
-const sols    = approximateSolsForLamports(1_000_000_000n); // → 1.0
-const lamports = approximateLamportsForSols(0.5);           // → 500_000_000n
+const sols = approximateSolsForLamports(1_000_000_000n); // → 1.0
+const lamports = approximateLamportsForSols(0.5); // → 500_000_000n
 
 // Minimum balance to keep an account rent-exempt
 const min = lamportsRentExemptionMinimumForSpace(165); // for a token account
 
 // Constants
 lamportsFeePerBytePerYear; // 3480n
-lamportsFeePerSignature;   // 5000n
+lamportsFeePerSignature; // 5000n
 ```
 
 ## Explorer URLs
