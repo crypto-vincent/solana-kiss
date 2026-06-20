@@ -23,9 +23,11 @@ const rpc = rpcHttpFromUrl(new URL("https://api.mainnet-beta.solana.com"), {
 
 ```ts
 import {
+  type RpcHttp,
   rpcHttpWithTimeout,
   rpcHttpWithConcurrentRequestsLimit,
   rpcHttpWithRequestsPerSecondLimit,
+  rpcHttpFromUrl,
   rpcHttpWithRetryOnError,
   rpcHttpWithServerRateLimitRespect,
 } from "solana-kiss";
@@ -89,3 +91,8 @@ Every helper accepts `RpcHttp` as its first argument:
 | `rpcHttpSendTransaction`          | `sendTransaction`                |
 | `rpcHttpSimulateTransaction`      | `simulateTransaction`            |
 | `rpcHttpWaitForTransaction`       | polling via `getTransaction`     |
+
+## Source references
+
+- [`RpcHttp`](https://github.com/crypto-vincent/solana-kiss/blob/main/src/rpc/RpcHttp.ts)
+- [`ExecutionReport`](https://github.com/crypto-vincent/solana-kiss/blob/main/src/data/Execution.ts)

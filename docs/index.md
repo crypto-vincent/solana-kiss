@@ -4,9 +4,9 @@ layout: home
 hero:
   name: Solana-kiss
   text: Solana for TypeScript
-  tagline:
-    No bloat. No dependency.<br/>Encoding, Decoding, Signing.<br/>RPCs, IDLs and
-    browser wallets<br/>Nothing less, nothing more.
+  tagline: >
+    - No bloat, no dependencies.<br/>- Encoding, decoding and signing.<br/>-
+    RPCs, IDLs and browser wallets
 
   image:
     src: /logo.png
@@ -33,7 +33,7 @@ features:
   - title: Bytemuck support
     icon: ✨
     details:
-      Encode end decode accounts and instructions that uses rust Bytemuck
+      Encode and decode accounts and instructions that use Rust Bytemuck
       serialization.
   - title: Composable RPC
     icon: 🧩

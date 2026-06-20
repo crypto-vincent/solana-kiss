@@ -10,7 +10,16 @@ A Solana transaction is compiled from a `TransactionRequest`, signed into a
 ## Compile and sign
 
 ```ts
-import { transactionCompileAndSign } from "solana-kiss";
+import {
+  type TransactionRequest,
+  transactionCompileAndSign,
+} from "solana-kiss";
+
+const request: TransactionRequest = {
+  payerAddress: signer.address,
+  recentBlockHash,
+  instructionsRequests: [instructionRequest],
+};
 
 const packet = await transactionCompileAndSign(
   [signer], // Array<Signer | WalletAccount>
@@ -23,9 +32,11 @@ const packet = await transactionCompileAndSign(
 
 ```ts
 import {
+  type TransactionRequest,
   rpcHttpSendTransaction,
   rpcHttpWaitForTransaction,
   rpcHttpGetLatestBlockHash,
+  transactionCompileAndSign,
 } from "solana-kiss";
 
 const rpc = solana.getRpcHttp();
@@ -51,3 +62,8 @@ const { executionReport } = await rpcHttpWaitForTransaction(
 
 > **Tip:** The `Solana` class wraps all of the above into a single
 > `prepareAndExecuteTransaction` call. Prefer it for most use cases.
+
+## Source references
+
+- [`TransactionRequest`](https://github.com/crypto-vincent/solana-kiss/blob/main/src/data/Transaction.ts)
+- [`InstructionRequest`](https://github.com/crypto-vincent/solana-kiss/blob/main/src/data/Instruction.ts)

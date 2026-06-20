@@ -20,11 +20,13 @@ const idl = idlProgramParse(rawJson); // accepts a plain JS object
 
 ```ts
 import {
+  type Pubkey,
   idlLoaderFromOnchainNative, // newer Anchor native storage
   idlLoaderFromOnchainAnchor, // legacy Anchor IDL account
   idlLoaderFromUrl, // fetch from a URL
   idlLoaderFromLoaderSequence, // try loaders in order
   idlLoaderMemoized, // cache results in memory
+  rpcHttpGetAccountWithData,
 } from "solana-kiss";
 
 // Both on-chain loaders take an accountDataFetcher, not an RpcHttp directly
@@ -75,3 +77,8 @@ const errorIdl = idlProgramGuessError(programIdl, errorCode);
 ```
 
 All functions match by discriminator prefix.
+
+## Source references
+
+- [`IdlProgram`](https://github.com/crypto-vincent/solana-kiss/blob/main/src/idl/IdlProgram.ts)
+- [`IdlInstruction`](https://github.com/crypto-vincent/solana-kiss/blob/main/src/idl/IdlInstruction.ts)

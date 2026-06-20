@@ -27,45 +27,56 @@ console.log(signer.address); // Pubkey
 
 ## Browser wallets (`WalletAccount`)
 
-### Discover installed wallets
+### Discover installed wallet extensions
+
+To use the user's wallets, subscribe to the available wallet providers
 
 ```ts
 import { walletProviders } from "solana-kiss";
 
 walletProviders.subscribe(function (providers) {
+  // This will trigger when a wallet extension is detected
   for (const provider of providers) {
-    console.log(provider.name, provider.icon);
+    // provider is a WalletProvider
   }
 });
 ```
 
-### Connect and sign
+### Connect
+
+Once the wallet provider is selected, you can subscribe to its wallet accounts
 
 ```ts
-const providers = walletProviders.get?.() ?? [];
-const phantom = providers.find(function (provider) {
-  return provider.name === "Phantom";
+import { WalletProvider } from "solana-kiss";
+
+const provider: WalletProvider; // Previously discovered
+provider.accounts.subscribe(function (accounts) {
+  // This will trigger when the user have unlocked the wallet
+  for (const account of accounts) {
+    // account is a WalletAccount
+  }
 });
-
-if (phantom) {
-  const [account] = await phantom.connect();
-
-  // Pass the account directly to transactionCompileAndSign
-  const packet = await transactionCompileAndSign([account], request);
-}
-
-// Reconnect silently (no approval dialog)
-await phantom.connect({ silent: true });
-
-// Disconnect
-await phantom.disconnect();
 ```
 
-### Reactive account list
+Ask the user to unlock and connect the wallet, this will populate the `accounts`
 
 ```ts
-const unsubscribe = phantom.accounts.subscribe(function (accounts) {
-  console.log("phantom accounts", accounts); // called immediately and on change
-});
-unsubscribe(); // stop listening
+import { WalletProvider } from "solana-kiss";
+
+const provider: WalletProvider; // Previously discovered
+await provider.connect(); // This will open the wallet extension and ask for unlock
+```
+
+### Sign
+
+Discovered wallet accounts can then be used as signers
+
+```ts
+import { WalletAccount } from "solana-kiss";
+
+const account: WalletAccount; // Previously discovered
+const transactionPacket = await transactionCompileAndSign(
+  [account],
+  transactionRequest,
+);
 ```

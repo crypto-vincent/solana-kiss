@@ -48,7 +48,7 @@ Used internally to derive Anchor discriminators. Pure-JS, no native crypto.
 
 ## Branded types
 
-All serialised primitives are **branded** to prevent accidental misuse at
+All serialized primitives are **branded** to prevent accidental misuse at
 compile time:
 
 | Type                | Underlying   | Description                        |

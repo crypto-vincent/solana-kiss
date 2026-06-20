@@ -21,7 +21,7 @@ npm install solana-kiss
 ## Minimal example
 
 ```ts
-import { Solana } from "solana-kiss";
+import { Solana, pubkeyFromBase58 } from "solana-kiss";
 
 const solana = new Solana("mainnet");
 
@@ -31,6 +31,26 @@ const { accountState } = await solana.getAndInferAndDecodeAccount(
 
 console.log(accountState);
 ```
+
+## Which API should I use?
+
+Start with the `Solana` class for application code. It wires together RPC,
+IDL loading, decoding, simulation, signing, sending, and confirmation.
+
+Use the lower-level RPC helpers when you need custom request pipelines,
+middleware ordering, or transaction polling behavior. Use the IDL, codec, and
+encoding helpers directly when building libraries, explorers, indexers, or test
+tools.
+
+## Common failures
+
+| Error case                   | What to check                                             |
+| ---------------------------- | --------------------------------------------------------- |
+| Account cannot be decoded    | The owning program may not expose an IDL for that account |
+| Instruction cannot be built  | Required IDL account addresses may be missing             |
+| RPC returns HTTP `429`       | Add retry/rate-limit middleware or use a private RPC URL  |
+| Wallet signing is rejected   | Treat it as user cancellation and keep the unsigned state |
+| Transaction is not confirmed | Recent block hashes expire after roughly 90 seconds       |
 
 ## What's next?
 

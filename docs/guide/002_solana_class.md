@@ -12,26 +12,14 @@ exposes everything you need for the most common on-chain operations.
 ```ts
 import { Solana } from "solana-kiss";
 
-const solana = new Solana("mainnet"); // public endpoint
-const solana = new Solana("devnet");
-const solana = new Solana("http://localhost:8899");
+const solanaMainnet = new Solana("mainnet"); // public endpoint
+const solanaDevnet = new Solana("devnet");
+const solanaLocal = new Solana("http://localhost:8899");
 ```
 
 When created from a URL or RPC moniker, the default RPC client automatically
 waits and retries after HTTP `429 Too Many Requests` responses. Pass a custom
 `RpcHttp` if you want full control over middleware ordering.
-
-```ts
-// Custom RPC with middleware
-import { rpcHttpFromUrl, rpcHttpWithRetryOnError } from "solana-kiss";
-const rpc = rpcHttpWithRetryOnError(
-  rpcHttpFromUrl(new URL("https://my-rpc.example.com")),
-  async function ({ retriedCounter }) {
-    return retriedCounter < 3;
-  },
-);
-const solana = new Solana(rpc);
-```
 
 Optional constructor options:
 
@@ -60,6 +48,7 @@ throws if the block hash expires).
 ```ts
 import { signerFromSecret } from "solana-kiss";
 
+// Use your own 64-byte secret key and program/account addresses here.
 const signer = await signerFromSecret(secretBytes);
 
 // 1. Encode instruction (IDL-aware)
@@ -124,8 +113,31 @@ const accounts = await solana.findProgramOwnedAccounts(
 );
 ```
 
+## Custom RPC
+
+You can create a `Solana` instance with a custom RPC client, for example to add
+middleware or use different rules such as throttling, retries or timeouts.
+
+```ts
+import { Solana, rpcHttpFromUrl, rpcHttpWithRetryOnError } from "solana-kiss";
+// Custom RPC with middleware
+const rpcHttp = rpcHttpWithRetryOnError(
+  rpcHttpFromUrl(new URL("https://my-rpc.example.com")),
+  async function ({ retriedCounter }) {
+    return retriedCounter < 3;
+  },
+);
+const solana = new Solana(rpcHttp);
+```
+
 ## Access the underlying RPC client
 
 ```ts
 const rpc = solana.getRpcHttp();
 ```
+
+## Source references
+
+- [`Solana`](https://github.com/crypto-vincent/solana-kiss/blob/main/src/Solana.ts)
+- [`InstructionRequest`](https://github.com/crypto-vincent/solana-kiss/blob/main/src/data/Instruction.ts)
+- [`ExecutionReport`](https://github.com/crypto-vincent/solana-kiss/blob/main/src/data/Execution.ts)
