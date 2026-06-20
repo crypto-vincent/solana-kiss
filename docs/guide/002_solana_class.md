@@ -15,7 +15,13 @@ import { Solana } from "solana-kiss";
 const solana = new Solana("mainnet"); // public endpoint
 const solana = new Solana("devnet");
 const solana = new Solana("http://localhost:8899");
+```
 
+When created from a URL or RPC moniker, the default RPC client automatically
+waits and retries after HTTP `429 Too Many Requests` responses. Pass a custom
+`RpcHttp` if you want full control over middleware ordering.
+
+```ts
 // Custom RPC with middleware
 import { rpcHttpFromUrl, rpcHttpWithRetryOnError } from "solana-kiss";
 const rpc = rpcHttpWithRetryOnError(

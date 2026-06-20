@@ -27,12 +27,14 @@ import {
   rpcHttpWithConcurrentRequestsLimit,
   rpcHttpWithRequestsPerSecondLimit,
   rpcHttpWithRetryOnError,
+  rpcHttpWithServerRateLimitRespect,
 } from "solana-kiss";
 
 let rpc: RpcHttp = rpcHttpFromUrl(new URL("https://my-rpc.example.com"));
 rpc = rpcHttpWithTimeout(rpc, 5_000);
 rpc = rpcHttpWithRequestsPerSecondLimit(rpc, 40);
 rpc = rpcHttpWithConcurrentRequestsLimit(rpc, 10);
+rpc = rpcHttpWithServerRateLimitRespect(rpc);
 rpc = rpcHttpWithRetryOnError(
   rpc,
   async function ({ retriedCounter, totalDurationMs }) {
@@ -41,19 +43,30 @@ rpc = rpcHttpWithRetryOnError(
 );
 ```
 
+`rpcHttpWithServerRateLimitRespect` catches HTTP `429 Too Many Requests`
+responses, waits for the `retry-after` header when present, and otherwise waits
+one second before retrying. `new Solana("mainnet")`, `new Solana("devnet")`, and
+URL-based `Solana` instances apply this wrapper automatically.
+
 ## Error handling
 
 ```ts
-import { RpcHttpError } from "solana-kiss";
+import { RpcHttpFetchError, RpcHttpSolanaError } from "solana-kiss";
 
 try {
   await rpcHttpSendTransaction(rpc, packet);
 } catch (err) {
-  if (err instanceof RpcHttpError) {
+  if (err instanceof RpcHttpSolanaError) {
     console.error(err.code, err.desc, err.data);
+  } else if (err instanceof RpcHttpFetchError) {
+    console.error(err.status, err.headers);
   }
 }
 ```
+
+`RpcHttpSolanaError` represents a JSON-RPC error payload returned by the Solana
+node. `RpcHttpFetchError` represents a non-2xx HTTP response before a JSON-RPC
+payload could be accepted.
 
 ## RPC helper reference
 
