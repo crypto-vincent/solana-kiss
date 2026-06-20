@@ -10,8 +10,11 @@ import {
   JsonFetcher,
   jsonFetcherDefault,
   JsonObject,
+  jsonParse,
+  jsonStringify,
   JsonValue,
 } from "../data/Json";
+import { timeoutMs } from "../data/Utils";
 
 /**
  * Solana JSON-RPC HTTP client function.
@@ -26,8 +29,32 @@ export type RpcHttp = (
   config: Readonly<JsonObject> | "skip-configuration-object",
 ) => Promise<JsonValue>;
 
-/** Error thrown when a JSON-RPC response contains an error payload. */
-export class RpcHttpError extends Error {
+/**
+ * Error thrown when an HTTP fetch fails (non-2xx status)
+ */
+export class RpcHttpFetchError extends Error {
+  /** HTTP headers of the failed request, if any. */
+  public readonly headers: { [key: string]: string };
+  /** HTTP status code of the failed request. */
+  public readonly status: number;
+  /**
+   * @param message - Human-readable error message.
+   * @param info - Additional information about the error.
+   */
+  constructor(
+    message: string,
+    info: { headers: { [key: string]: string }; status: number },
+  ) {
+    super(message);
+    this.headers = info.headers;
+    this.status = info.status;
+  }
+}
+
+/**
+ * Error thrown when a JSON-RPC response contains an error payload.
+ */
+export class RpcHttpSolanaError extends Error {
   /** The numeric JSON-RPC error code. */
   public readonly code: number;
   /** A short description of the error returned by the node. */
@@ -36,15 +63,16 @@ export class RpcHttpError extends Error {
   public readonly data: JsonValue;
   /**
    * @param message - Human-readable error message.
-   * @param code - JSON-RPC error code.
-   * @param desc - Short description.
-   * @param data - Additional error data.
+   * @param info - Additional information about the error.
    */
-  constructor(message: string, code: number, desc: string, data: JsonValue) {
+  constructor(
+    message: string,
+    info: { code: number; desc: string; data: JsonValue },
+  ) {
     super(message);
-    this.code = code;
-    this.desc = desc;
-    this.data = data;
+    this.code = info.code;
+    this.desc = info.desc;
+    this.data = info.data;
   }
 }
 
@@ -66,6 +94,7 @@ export function rpcHttpFromUrl(
 ): RpcHttp {
   const jsonFetcher = options?.customJsonFetcher ?? jsonFetcherDefault;
   return async function (method, params, config) {
+    const paramsCopy = [...params];
     if (config !== "skip-configuration-object") {
       const commitmentLevel = options?.commitmentLevel ?? "confirmed";
       config = {
@@ -73,22 +102,31 @@ export function rpcHttpFromUrl(
         commitment: commitmentLevel,
         ...config,
       };
-      params = [...params, config];
+      paramsCopy.push(config);
     }
     const requestId = uniqueRequestId++;
-    const responseJson = await jsonFetcher(url, {
-      headers: {
-        "Content-Type": "application/json",
-        ...options?.extraRequestHeaders,
+    const responseJson = await jsonFetcher(
+      url,
+      {
+        headers: options?.extraRequestHeaders,
+        method: "POST",
+        body: jsonStringify({
+          jsonrpc: "2.0",
+          id: requestId,
+          method,
+          params: paramsCopy,
+        }),
       },
-      method: "POST",
-      body: JSON.stringify({
-        jsonrpc: "2.0",
-        id: requestId,
-        method,
-        params,
-      }),
-    });
+      async ({ headers, status, body }) => {
+        if (status < 200 || status >= 300) {
+          throw new RpcHttpFetchError(
+            `RpcHttp: HTTP error ${status} for method ${method}`,
+            { status, headers },
+          );
+        }
+        return jsonParse(body);
+      },
+    );
     const responseValue = responseJsonDecoder(responseJson);
     const responseId = responseValue.id;
     if (responseId !== requestId) {
@@ -98,12 +136,13 @@ export function rpcHttpFromUrl(
     }
     const responseError = responseValue.error;
     if (responseError !== null) {
-      // TODO - nicer exposure of the response value error data fields
-      throw new RpcHttpError(
+      throw new RpcHttpSolanaError(
         `RpcHttp: Error ${responseError.code}: ${responseError.message}`,
-        responseError.code,
-        responseError.message,
-        responseError.data,
+        {
+          code: responseError.code,
+          desc: responseError.message,
+          data: responseError.data,
+        },
       );
     }
     return responseValue.result;
@@ -228,6 +267,37 @@ export function rpcHttpWithRetryOnError(
           throw error;
         }
         retriedCounter++;
+      }
+    }
+  };
+}
+
+/**
+ * Wraps an {@link RpcHttp} client to automatically wait and retry on HTTP 429 (Too Many Requests) errors.
+ * @param self - {@link RpcHttp} client to wrap.
+ * @returns {@link RpcHttp} with automatic retry on 429 errors.
+ */
+export function rpcHttpWithServerRateLimitRespect(self: RpcHttp): RpcHttp {
+  return async function (method, params, config) {
+    while (true) {
+      try {
+        return await self(method, params, config);
+      } catch (error) {
+        if (error instanceof RpcHttpFetchError) {
+          if (error.status === 429) {
+            const retryAfterHeader = error.headers["retry-after"];
+            if (retryAfterHeader) {
+              const retryAfterSeconds = parseFloat(retryAfterHeader);
+              if (!isNaN(retryAfterSeconds)) {
+                await timeoutMs(retryAfterSeconds * 1000);
+                continue;
+              }
+            }
+            await timeoutMs(1000);
+            continue;
+          }
+        }
+        throw error;
       }
     }
   };

@@ -5,11 +5,14 @@ import {
   rpcHttpFindAccountTransactions,
   rpcHttpFromUrl,
   rpcHttpGetTransaction,
+  rpcHttpWithServerRateLimitRespect,
   urlRpcPublicDevnet,
 } from "../src";
 
 it("run", async () => {
-  const rpcHttp = rpcHttpFromUrl(urlRpcPublicDevnet);
+  const rpcHttp = rpcHttpWithServerRateLimitRespect(
+    rpcHttpFromUrl(urlRpcPublicDevnet),
+  );
   const { newToOldTransactionsHandles } = await rpcHttpFindAccountTransactions(
     rpcHttp,
     pubkeyFromBase58("vVeH6Xd43HAScbxjVtvfwDGqBMaMvNDLsAxwM5WK1pG"),

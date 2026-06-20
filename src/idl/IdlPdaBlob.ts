@@ -27,14 +27,10 @@ export type IdlPdaBlobInput = {
   bytes: Uint8Array | undefined;
 };
 
-type IdlPdaBlobDiscriminant = "const" | "input";
-type IdlPdaBlobContent = IdlPdaBlobConst | IdlPdaBlobInput;
-
 /** PDA seed: constant bytes or named runtime input. */
 export class IdlPdaBlob {
   private readonly discriminant: IdlPdaBlobDiscriminant;
   private readonly content: IdlPdaBlobContent;
-
   private constructor(
     discriminant: IdlPdaBlobDiscriminant,
     content: IdlPdaBlobContent,
@@ -42,7 +38,6 @@ export class IdlPdaBlob {
     this.discriminant = discriminant;
     this.content = content;
   }
-
   /** Creates a constant bytes PDA seed. */
   public static const(value: IdlPdaBlobConst): IdlPdaBlob {
     return new IdlPdaBlob("const", value);
@@ -51,7 +46,6 @@ export class IdlPdaBlob {
   public static input(value: IdlPdaBlobInput): IdlPdaBlob {
     return new IdlPdaBlob("input", value);
   }
-
   /**
    * Dispatches to the matching variant handler.
    * @param visitor - Handler per variant (`const`, `input`).
@@ -120,6 +114,9 @@ export function idlPdaBlobParse(
     throw new ErrorStack(`Invalid const value`, error);
   }
 }
+
+type IdlPdaBlobDiscriminant = "const" | "input";
+type IdlPdaBlobContent = IdlPdaBlobConst | IdlPdaBlobInput;
 
 const computeVisitor = {
   const: (self: IdlPdaBlobConst) => {

@@ -13,6 +13,8 @@ import {
   jsonDecoderObjectToMap,
   jsonDecoderObjectToObject,
   jsonDecoderWrapped,
+  jsonParse,
+  jsonStringify,
 } from "../data/Json";
 import { memoize } from "../data/Memoize";
 import { Pubkey } from "../data/Pubkey";
@@ -49,7 +51,7 @@ export type IdlProgram = {
   /** Constant definitions keyed by constant name (camelCase). */
   constants: Map<string, IdlConstant>;
   /** Accessor for the raw JSON value from which this IDL was originally parsed. */
-  original: IdlProgramOriginal;
+  stem: IdlProgramStem;
 };
 
 /**
@@ -200,7 +202,7 @@ export function idlProgramParse(programValue: JsonValue): IdlProgram {
     undefined,
     idlErrorParse,
   );
-  // TODO - auto-generate pdas if instructions agree on seeds
+  // TODO - auto-generate pdas if instructions agree on seeds ?
   const pdas = parseScopedNamedValues(
     programObject,
     "pdas",
@@ -224,7 +226,7 @@ export function idlProgramParse(programValue: JsonValue): IdlProgram {
     errors,
     pdas,
     constants,
-    original: new IdlProgramOriginal(programValue),
+    stem: new IdlProgramStem(programValue),
   };
 }
 
@@ -250,13 +252,13 @@ export const idlProgramUnknown = memoize(
  * Opaque accessor for the raw JSON value from which an {@link IdlProgram} was originally parsed.
  * Useful for forwarding the full original IDL JSON to downstream tools without re-serialisation.
  */
-class IdlProgramOriginal {
+export class IdlProgramStem {
   #json: JsonValue;
   constructor(json: JsonValue) {
     this.#json = json;
   }
-  getJson() {
-    return this.#json;
+  getJsonCopy() {
+    return jsonParse(jsonStringify(this.#json));
   }
 }
 

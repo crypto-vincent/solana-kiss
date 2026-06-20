@@ -63,17 +63,10 @@ export type IdlInstructionBlobAccount = {
   typeFull: IdlTypeFull | undefined;
 };
 
-type IdlInstructionBlobDiscriminant = "const" | "arg" | "account";
-type IdlInstructionBlobContent =
-  | IdlInstructionBlobConst
-  | IdlInstructionBlobArg
-  | IdlInstructionBlobAccount;
-
 /** Blob value: constant bytes, instruction arg reference, or account state reference. */
 export class IdlInstructionBlob {
   private readonly discriminant: IdlInstructionBlobDiscriminant;
   private readonly content: IdlInstructionBlobContent;
-
   private constructor(
     discriminant: IdlInstructionBlobDiscriminant,
     content: IdlInstructionBlobContent,
@@ -81,7 +74,6 @@ export class IdlInstructionBlob {
     this.discriminant = discriminant;
     this.content = content;
   }
-
   /** Creates a constant bytes blob. */
   public static const(value: IdlInstructionBlobConst): IdlInstructionBlob {
     return new IdlInstructionBlob("const", value);
@@ -94,7 +86,6 @@ export class IdlInstructionBlob {
   public static account(value: IdlInstructionBlobAccount): IdlInstructionBlob {
     return new IdlInstructionBlob("account", value);
   }
-
   /**
    * Dispatches to the matching visitor branch.
    * @param visitor - Handler per variant (`const`, `arg`, `account`).
@@ -179,6 +170,35 @@ export function idlInstructionBlobParse(
   throw new Error(`Idl: Instruction Blob: Invalid kind: ${kind}`);
 }
 
+type IdlInstructionBlobDiscriminant = "const" | "arg" | "account";
+type IdlInstructionBlobContent =
+  | IdlInstructionBlobConst
+  | IdlInstructionBlobArg
+  | IdlInstructionBlobAccount;
+
+function encodeExtractedAccountState(
+  path: string,
+  typeFull: IdlTypeFull | undefined,
+  accountField: string,
+  accountContent: IdlInstructionBlobAccountContent,
+) {
+  return withErrorContext(`Idl: Instruction Blob: Account: ${path}`, () => {
+    const statePath = path.slice(accountField.length);
+    const statePointer = jsonPointerParse(statePath);
+    const stateValue = jsonGetAt(accountContent.accountState, statePointer);
+    if (typeFull !== undefined) {
+      return idlTypeFullEncode(typeFull, stateValue, { blobMode: true });
+    }
+    if (accountContent.accountTypeFull === undefined) {
+      throw new Error(
+        `Idl: Cannot compute account blob at path: ${statePath} with just the state and no type information`,
+      );
+    }
+    typeFull = idlTypeFullGetAt(accountContent.accountTypeFull, statePointer);
+    return idlTypeFullEncode(typeFull, stateValue, { blobMode: true });
+  });
+}
+
 const computeVisitor = {
   const: async (self: IdlInstructionBlobConst) => {
     return self.bytes;
@@ -215,7 +235,7 @@ const computeVisitor = {
         }
       }
     }
-    if (findContext.accountsContext) {
+    if (findContext.accountsContext !== undefined) {
       for (const [accountField, accountContent] of Object.entries(
         findContext.accountsContext,
       )) {
@@ -231,7 +251,7 @@ const computeVisitor = {
         }
       }
     }
-    if (findContext.accountFetcher) {
+    if (findContext.accountFetcher !== undefined) {
       for (const [accountField, instructionAddress] of Object.entries(
         findContext.instructionAddresses,
       )) {
@@ -250,29 +270,6 @@ const computeVisitor = {
     throw new Error(`Idl: Instruction Blob: Account: failed: ${self.paths[0]}`);
   },
 };
-
-function encodeExtractedAccountState(
-  path: string,
-  typeFull: IdlTypeFull | undefined,
-  accountField: string,
-  accountContent: IdlInstructionBlobAccountContent,
-) {
-  return withErrorContext(`Idl: Instruction Blob: Account: ${path}`, () => {
-    const statePath = path.slice(accountField.length);
-    const statePointer = jsonPointerParse(statePath);
-    const stateValue = jsonGetAt(accountContent.accountState, statePointer);
-    if (typeFull !== undefined) {
-      return idlTypeFullEncode(typeFull, stateValue, { blobMode: true });
-    }
-    if (accountContent.accountTypeFull === undefined) {
-      throw new Error(
-        `Idl: Cannot compute account blob at path: ${statePath} with just the state and no type information`,
-      );
-    }
-    typeFull = idlTypeFullGetAt(accountContent.accountTypeFull, statePointer);
-    return idlTypeFullEncode(typeFull, stateValue, { blobMode: true });
-  });
-}
 
 const metaJsonDecoder = jsonDecoderByType({
   string: () => ({ kind: null, path: null }),

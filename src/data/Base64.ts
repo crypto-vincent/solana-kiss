@@ -1,19 +1,5 @@
 import { utf8Decode } from "./Utf8";
 
-const alphabet =
-  "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
-
-const digitToCode = new Uint8Array(alphabet.length);
-for (let digit = 0; digit < alphabet.length; digit++) {
-  digitToCode[digit] = alphabet.charCodeAt(digit);
-}
-const codeToDigit = new Int8Array(127).fill(-1);
-for (let digit = 0; digit < alphabet.length; digit++) {
-  codeToDigit[alphabet.charCodeAt(digit)] = digit;
-}
-
-const codePadding = "=".charCodeAt(0);
-
 /**
  * Encodes bytes as a Base64 string with `=` padding.
  * @param bytes - Bytes to encode.
@@ -122,3 +108,17 @@ function base64DecodeDigit(base64: string, codeIndex: number): number {
   }
   return digit;
 }
+
+const alphabet =
+  "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
+
+const digitToCode = new Uint8Array(alphabet.length);
+for (let digit = 0; digit < alphabet.length; digit++) {
+  digitToCode[digit] = alphabet.charCodeAt(digit);
+}
+const codeToDigit = new Int8Array(127).fill(-1);
+for (let digit = 0; digit < alphabet.length; digit++) {
+  codeToDigit[alphabet.charCodeAt(digit)] = digit;
+}
+
+const codePadding = "=".charCodeAt(0);

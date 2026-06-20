@@ -7,12 +7,15 @@ import {
   rpcHttpFromUrl,
   rpcHttpGetLatestBlockHash,
   rpcHttpIsBlockHashValid,
+  rpcHttpWithServerRateLimitRespect,
   timeoutMs,
   urlRpcPublicDevnet,
 } from "../src";
 
 it("run", async () => {
-  const rpcHttp = rpcHttpFromUrl(urlRpcPublicDevnet);
+  const rpcHttp = rpcHttpWithServerRateLimitRespect(
+    rpcHttpFromUrl(urlRpcPublicDevnet),
+  );
 
   const { blockHash: latestBlockHash1 } =
     await rpcHttpGetLatestBlockHash(rpcHttp);

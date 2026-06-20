@@ -41,7 +41,11 @@ import {
   idlProgramGuessInstruction,
   idlProgramUnknown,
 } from "./idl/IdlProgram";
-import { RpcHttp, rpcHttpFromUrl } from "./rpc/RpcHttp";
+import {
+  RpcHttp,
+  rpcHttpFromUrl,
+  rpcHttpWithServerRateLimitRespect,
+} from "./rpc/RpcHttp";
 import { rpcHttpFindProgramOwnedAccounts } from "./rpc/RpcHttpFindProgramOwnedAccounts";
 import { rpcHttpGetAccountWithData } from "./rpc/RpcHttpGetAccountWithData";
 import { rpcHttpGetLatestBlockHash } from "./rpc/RpcHttpGetLatestBlockHash";
@@ -57,13 +61,11 @@ export class Solana {
   readonly #rpcHttp: RpcHttp;
   readonly #idlOverrides: Map<Pubkey, Readonly<IdlProgram>>;
   readonly #idlLoader: IdlLoader;
-
   #recentBlockHashCacheDurationMs = 15_000;
   #recentBlockHashCacheValue: {
     blockHash: BlockHash;
     fetchTimeMs: number;
   } | null;
-
   /**
    * @param rpcHttpOrUrl - {@link RpcHttp}, URL, or moniker (`"mainnet"`, `"devnet"`, `"testnet"`).
    * @param options.idlLoader - Custom IDL loader (default: native → Anchor → GitHub).
@@ -71,17 +73,17 @@ export class Solana {
    * @param options.recentBlockHashCacheDurationMs - Block hash cache TTL (default: `15_000` ms).
    */
   constructor(
-    rpcHttpOrUrl: RpcHttp | URL | Parameters<typeof urlRpcFromUrlOrMoniker>[0],
+    rpcHttpOrUrl: RpcHttp | Parameters<typeof urlRpcFromUrlOrMoniker>[0],
     options?: {
       idlLoader?: IdlLoader;
       idlOverrides?: Map<Pubkey, Readonly<IdlProgram>>;
       recentBlockHashCacheDurationMs?: number;
     },
   ) {
-    if (typeof rpcHttpOrUrl === "string") {
-      this.#rpcHttp = rpcHttpFromUrl(urlRpcFromUrlOrMoniker(rpcHttpOrUrl));
-    } else if (rpcHttpOrUrl instanceof URL) {
-      this.#rpcHttp = rpcHttpFromUrl(rpcHttpOrUrl);
+    if (typeof rpcHttpOrUrl === "string" || rpcHttpOrUrl instanceof URL) {
+      this.#rpcHttp = rpcHttpWithServerRateLimitRespect(
+        rpcHttpFromUrl(urlRpcFromUrlOrMoniker(rpcHttpOrUrl)),
+      );
     } else {
       this.#rpcHttp = rpcHttpOrUrl;
     }
@@ -91,14 +93,12 @@ export class Solana {
       options?.recentBlockHashCacheDurationMs ?? 15_000;
     this.#recentBlockHashCacheValue = null;
   }
-
   /**
    * @returns The {@link RpcHttp} client.
    */
   public getRpcHttp() {
     return this.#rpcHttp;
   }
-
   /**
    * Registers or removes a program IDL override.
    * When set, {@link getOrLoadProgramIdl} returns it without consulting the loader.
@@ -114,7 +114,6 @@ export class Solana {
       this.#idlOverrides.set(programAddress, programIdl);
     }
   }
-
   /**
    * Returns the IDL for a program. Uses override if set; otherwise uses the IDL loader.
    * @param options.fallbackOnUnknown - Return minimal "unknown-program" IDL instead of throwing.
@@ -126,19 +125,18 @@ export class Solana {
     options?: { fallbackOnUnknown?: boolean },
   ): Promise<{ programIdl: Readonly<IdlProgram> }> {
     const programIdl = this.#idlOverrides.get(programAddress);
-    if (programIdl) {
+    if (programIdl !== undefined) {
       return { programIdl: programIdl };
     }
     try {
       return { programIdl: await this.#idlLoader(programAddress) };
     } catch (error) {
-      if (options?.fallbackOnUnknown) {
+      if (options?.fallbackOnUnknown === true) {
         return { programIdl: await idlProgramUnknown(programAddress) };
       }
       throw error;
     }
   }
-
   /**
    * Derives a PDA for a named PDA defined in the program's IDL.
    * @param pdaName - PDA name as declared in the IDL.
@@ -155,7 +153,6 @@ export class Solana {
     const pdaIdl = getFromMap("PDA", programIdl.pdas, pdaName, programAddress);
     return idlPdaFind(pdaIdl, pdaInputs ?? {}, programAddress);
   }
-
   /**
    * Returns the IDL for a specific instruction.
    * @param instructionName - Instruction name as declared in the IDL.
@@ -175,7 +172,6 @@ export class Solana {
     );
     return { instructionIdl };
   }
-
   /**
    * Fetches, infers, and decodes an on-chain account using its program's IDL.
    * @param accountAddress - Account to fetch.
@@ -201,7 +197,6 @@ export class Solana {
       accountState,
     };
   }
-
   /**
    * Infers and decodes an instruction's account addresses and argument payload.
    * @param instructionRequest - Raw instruction (program, accounts, data).
@@ -234,7 +229,6 @@ export class Solana {
       instructionPayload,
     };
   }
-
   /**
    * Builds an encoded {@link InstructionRequest} from named addresses and a JSON payload.
    * Missing accounts are resolved via {@link hydrateInstructionAddresses}.
@@ -283,7 +277,6 @@ export class Solana {
       },
     };
   }
-
   /**
    * Resolves missing account addresses for an instruction using IDL rules and on-chain state.
    * PDAs and ATAs derivable from known addresses are auto-resolved.
@@ -313,7 +306,7 @@ export class Solana {
       ...options,
       accountFetcher: async (accountAddress: Pubkey) => {
         const accountCached = accountsCache.get(accountAddress);
-        if (accountCached) {
+        if (accountCached !== undefined) {
           return accountCached;
         }
         const { accountIdl, accountState } =
@@ -327,7 +320,6 @@ export class Solana {
       },
     });
   }
-
   /**
    * Resolves a specific instruction account address by name.
    * @param instructionAccountName - Account name to resolve.
@@ -373,7 +365,6 @@ export class Solana {
       `Idl: Could not find instruction account '${instructionAccountName}' in instruction '${instructionName}'`,
     );
   }
-
   /**
    * Returns the most recent block hash (cached, TTL = `recentBlockHashCacheDurationMs`).
    * @returns Latest {@link BlockHash}.
@@ -381,7 +372,7 @@ export class Solana {
    */
   public async getRecentBlockHash(): Promise<BlockHash> {
     const nowTimeMs = Date.now();
-    if (this.#recentBlockHashCacheValue) {
+    if (this.#recentBlockHashCacheValue !== null) {
       const cachedDurationMs =
         nowTimeMs - this.#recentBlockHashCacheValue.fetchTimeMs;
       if (cachedDurationMs < this.#recentBlockHashCacheDurationMs) {
@@ -392,7 +383,6 @@ export class Solana {
     this.#recentBlockHashCacheValue = { blockHash, fetchTimeMs: nowTimeMs };
     return blockHash;
   }
-
   /**
    * Compiles, signs, and submits a transaction.
    * @param payerSigner - Fee-payer: {@link Signer}, {@link WalletAccount}, or `{ address, processor }`.
@@ -453,7 +443,6 @@ export class Solana {
       executionFlow,
     };
   }
-
   /**
    * Compiles, optionally signs, and simulates a transaction without broadcasting.
    * @param payer - Fee-payer: raw {@link Pubkey} (no signing) or {@link Signer}/{@link WalletAccount}.
@@ -501,7 +490,6 @@ export class Solana {
       options,
     );
   }
-
   /**
    * Fetches all accounts owned by a program that match a specific IDL account type.
    * @param accountName - Account type name as declared in the IDL.

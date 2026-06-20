@@ -30,12 +30,6 @@ export type IdlTypeFullBytemuck = {
   value: IdlTypeFull;
 };
 
-type IdlTypeFullFieldsBytemuck = {
-  alignment: number;
-  size: number;
-  value: IdlTypeFullFields;
-};
-
 // TODO (repr) - figure out how to handle discriminator alignment/offset
 // TODO (repr) - support Repr modifiers (packed, align(N))
 // TODO (repr) - support for transparent/custom
@@ -79,6 +73,12 @@ export function idlTypeFullBytemuckTypedef(
   });
 }
 
+type IdlTypeFullFieldsBytemuck = {
+  alignment: number;
+  size: number;
+  value: IdlTypeFullFields;
+};
+
 function visitC(self: IdlTypeFull): IdlTypeFullBytemuck {
   return self.traverse(visitorC, null, null, null);
 }
@@ -93,6 +93,104 @@ function visitFields(
   rustReorder: boolean,
 ): IdlTypeFullFieldsBytemuck {
   return self.traverse(visitorFields, prefixSize, rustReorder, null);
+}
+
+function internalFieldsInfoAligned<T>(
+  prefixSize: number,
+  fieldsInfo: Array<{
+    index: number;
+    alignment: number;
+    size: number;
+    meta: T;
+    type: IdlTypeFull;
+  }>,
+) {
+  let alignment = prefixSize;
+  let size = prefixSize;
+  const lastFieldIndex = fieldsInfo.length - 1;
+  const fieldsInfoPadded = [];
+  for (const fieldInfo of fieldsInfo) {
+    const {
+      index: fieldIndex,
+      alignment: fieldAlignment,
+      size: fieldSize,
+      meta: fieldMeta,
+      type: fieldType,
+    } = fieldInfo;
+    alignment = Math.max(alignment, fieldAlignment);
+    const paddingBefore = internalAlignmentPaddingNeeded(size, fieldAlignment);
+    size += paddingBefore + fieldSize;
+    let paddingAfter = 0;
+    if (fieldIndex === lastFieldIndex) {
+      paddingAfter = internalAlignmentPaddingNeeded(size, alignment);
+    }
+    size += paddingAfter;
+    if (paddingBefore === 0 && paddingAfter === 0) {
+      fieldsInfoPadded.push({ meta: fieldMeta, type: fieldType });
+    } else {
+      fieldsInfoPadded.push({
+        meta: fieldMeta,
+        type: IdlTypeFull.padded({
+          before: paddingBefore,
+          minSize: fieldSize + paddingAfter,
+          content: fieldType,
+        }),
+      });
+    }
+  }
+  return { alignment, size, value: fieldsInfoPadded };
+}
+
+function internalAlignmentPaddingNeeded(
+  offset: number,
+  alignment: number,
+): number {
+  const missalignment = offset % alignment;
+  if (missalignment === 0) {
+    return 0;
+  }
+  return alignment - missalignment;
+}
+
+function internalVerifyUnstableOrder(prefixSize: number, fieldsCount: number) {
+  if (prefixSize === 0 && fieldsCount <= 2) {
+    return;
+  }
+  if (fieldsCount <= 1) {
+    return;
+  }
+  throw new Error(
+    "Structs/Enums/Tuples fields ordering is compiler-dependent. Use Repr(C) instead.",
+  );
+}
+
+function prefixFromAlignment(alignment: number): IdlTypePrefix {
+  const prefix = prefixByKnownSize.get(alignment);
+  if (prefix === undefined) {
+    throw new Error(`Unknown alignment: ${alignment}`);
+  }
+  return prefix;
+}
+
+function alignemntFromPrefix(prefix: IdlTypePrefix): number {
+  const alignment = knownSizeByPrefix.get(prefix);
+  if (alignment === undefined) {
+    throw new Error(`Unknown prefix: ${prefix}`);
+  }
+  return alignment;
+}
+
+function fromPrimitive(primitive: IdlTypePrimitive): IdlTypeFullBytemuck {
+  const alignment = knownAlignmentByPrimitive.get(primitive);
+  if (alignment === undefined) {
+    throw new Error(`Unknown primitive alignment: ${primitive}`);
+  }
+  const size = knownSizeByPrimitive.get(primitive);
+  if (size === undefined) {
+    throw new Error(`Unknown primitive size: ${primitive}`);
+  }
+  const value = IdlTypeFull.primitive(primitive);
+  return { alignment, size, value };
 }
 
 const visitorC = {
@@ -351,7 +449,7 @@ const visitorFields = {
         type: contentPod.value,
       };
     });
-    if (rustReorder) {
+    if (rustReorder === true) {
       internalVerifyUnstableOrder(prefixSize, fieldsInfosPods.length);
     }
     const fieldsInfosPadded = internalFieldsInfoAligned(
@@ -386,7 +484,7 @@ const visitorFields = {
         type: contentPod.value,
       };
     });
-    if (rustReorder) {
+    if (rustReorder === true) {
       internalVerifyUnstableOrder(prefixSize, fieldsInfosPods.length);
     }
     const fieldsInfosPadded = internalFieldsInfoAligned(
@@ -405,91 +503,6 @@ const visitorFields = {
   },
 };
 
-function internalFieldsInfoAligned<T>(
-  prefixSize: number,
-  fieldsInfo: Array<{
-    index: number;
-    alignment: number;
-    size: number;
-    meta: T;
-    type: IdlTypeFull;
-  }>,
-) {
-  let alignment = prefixSize;
-  let size = prefixSize;
-  const lastFieldIndex = fieldsInfo.length - 1;
-  const fieldsInfoPadded = [];
-  for (const fieldInfo of fieldsInfo) {
-    const {
-      index: fieldIndex,
-      alignment: fieldAlignment,
-      size: fieldSize,
-      meta: fieldMeta,
-      type: fieldType,
-    } = fieldInfo;
-    alignment = Math.max(alignment, fieldAlignment);
-    const paddingBefore = internalAlignmentPaddingNeeded(size, fieldAlignment);
-    size += paddingBefore + fieldSize;
-    let paddingAfter = 0;
-    if (fieldIndex === lastFieldIndex) {
-      paddingAfter = internalAlignmentPaddingNeeded(size, alignment);
-    }
-    size += paddingAfter;
-    if (paddingBefore === 0 && paddingAfter === 0) {
-      fieldsInfoPadded.push({ meta: fieldMeta, type: fieldType });
-    } else {
-      fieldsInfoPadded.push({
-        meta: fieldMeta,
-        type: IdlTypeFull.padded({
-          before: paddingBefore,
-          minSize: fieldSize + paddingAfter,
-          content: fieldType,
-        }),
-      });
-    }
-  }
-  return { alignment, size, value: fieldsInfoPadded };
-}
-
-function internalAlignmentPaddingNeeded(
-  offset: number,
-  alignment: number,
-): number {
-  const missalignment = offset % alignment;
-  if (missalignment === 0) {
-    return 0;
-  }
-  return alignment - missalignment;
-}
-
-function internalVerifyUnstableOrder(prefixSize: number, fieldsCount: number) {
-  if (prefixSize === 0 && fieldsCount <= 2) {
-    return;
-  }
-  if (fieldsCount <= 1) {
-    return;
-  }
-  throw new Error(
-    "Structs/Enums/Tuples fields ordering is compiler-dependent. Use Repr(C) instead.",
-  );
-}
-
-function prefixFromAlignment(alignment: number): IdlTypePrefix {
-  const prefix = prefixByKnownSize.get(alignment);
-  if (prefix === undefined) {
-    throw new Error(`Unknown alignment: ${alignment}`);
-  }
-  return prefix;
-}
-
-function alignemntFromPrefix(prefix: IdlTypePrefix): number {
-  const alignment = knownSizeByPrefix.get(prefix);
-  if (alignment === undefined) {
-    throw new Error(`Unknown prefix: ${prefix}`);
-  }
-  return alignment;
-}
-
 const prefixByKnownSize: Map<number, IdlTypePrefix> = new Map([
   [1, "u8"],
   [2, "u16"],
@@ -504,19 +517,6 @@ const knownSizeByPrefix: Map<IdlTypePrefix, number> = new Map(
     size,
   ]),
 );
-
-function fromPrimitive(primitive: IdlTypePrimitive): IdlTypeFullBytemuck {
-  const alignment = knownAlignmentByPrimitive.get(primitive);
-  if (alignment === undefined) {
-    throw new Error(`Unknown primitive alignment: ${primitive}`);
-  }
-  const size = knownSizeByPrimitive.get(primitive);
-  if (size === undefined) {
-    throw new Error(`Unknown primitive size: ${primitive}`);
-  }
-  const value = IdlTypeFull.primitive(primitive);
-  return { alignment, size, value };
-}
 
 const knownSizeByPrimitive: Map<IdlTypePrimitive, number> = new Map([
   ["u8", 1],

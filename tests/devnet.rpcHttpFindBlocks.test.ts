@@ -1,16 +1,16 @@
+import { expect, it } from "@jest/globals";
 import {
   blockSlotFromNumber,
   rpcHttpFindBlocks,
   rpcHttpFromUrl,
+  rpcHttpWithServerRateLimitRespect,
   urlRpcPublicDevnet,
 } from "../src";
 
-const highBlockSlot = blockSlotFromNumber(378967387);
-const lowBlockSlot = blockSlotFromNumber(378967287);
-const blockDistance = 100;
-
 it("run", async () => {
-  const rpcHttp = rpcHttpFromUrl(urlRpcPublicDevnet);
+  const rpcHttp = rpcHttpWithServerRateLimitRespect(
+    rpcHttpFromUrl(urlRpcPublicDevnet),
+  );
 
   const { blocksSlots: blocksSlotsFromHigh } = await rpcHttpFindBlocks(
     rpcHttp,
@@ -48,3 +48,7 @@ it("run", async () => {
   );
   expect(blocksSlotsFromLowToHigh).toStrictEqual(blocksSlotsFromLow);
 });
+
+const highBlockSlot = blockSlotFromNumber(378967387);
+const lowBlockSlot = blockSlotFromNumber(378967287);
+const blockDistance = 100;

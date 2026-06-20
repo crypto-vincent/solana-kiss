@@ -5,12 +5,14 @@ import {
   rpcHttpGetBlockMetadata,
   rpcHttpGetBlockTimeOnly,
   rpcHttpGetBlockWithTransactions,
+  rpcHttpWithServerRateLimitRespect,
   urlRpcPublicDevnet,
 } from "../src";
 
 it("run", async () => {
-  const rpcHttp = rpcHttpFromUrl(urlRpcPublicDevnet);
-  const blockSlot = blockSlotFromNumber(378967387);
+  const rpcHttp = rpcHttpWithServerRateLimitRespect(
+    rpcHttpFromUrl(urlRpcPublicDevnet),
+  );
   const onlyMetadata = await rpcHttpGetBlockMetadata(rpcHttp, blockSlot);
   expect(onlyMetadata.previousBlockSlot).toStrictEqual(378967386);
   expect(onlyMetadata.blockHash).toStrictEqual(
@@ -37,3 +39,5 @@ it("run", async () => {
   const timeOnly = await rpcHttpGetBlockTimeOnly(rpcHttp, blockSlot);
   expect(timeOnly.blockTime).toStrictEqual(onlyMetadata.blockTime);
 });
+
+const blockSlot = blockSlotFromNumber(378967387);

@@ -32,9 +32,7 @@ export type JsonPrimitive = null | boolean | number | string;
 /** A JSON array whose elements are {@link JsonValue}. */
 export type JsonArray = Array<JsonValue>;
 /** A JSON object with string keys and {@link JsonValue} values. */
-export interface JsonObject {
-  [key: string]: JsonValue | undefined;
-}
+export type JsonObject = { [key: string]: JsonValue | undefined };
 
 /**
  * Parses a JSON string.
@@ -360,11 +358,16 @@ export function jsonGetAt(
 /** Function that fetches JSON from a URL with an optional request config. */
 export type JsonFetcher = (
   url: URL,
-  request?: {
-    headers: { [key: string]: string };
+  request: {
+    headers?: { [key: string]: string } | undefined;
     method: string;
-    body: string;
+    body: string | null;
   },
+  customParser?: (response: {
+    headers: { [key: string]: string };
+    status: number;
+    body: string;
+  }) => Promise<JsonValue>,
 ) => Promise<JsonValue>;
 
 /**
@@ -377,15 +380,32 @@ export type JsonFetcher = (
 export async function jsonFetcherDefault(
   url: Parameters<JsonFetcher>[0],
   request: Parameters<JsonFetcher>[1],
+  customParser: Parameters<JsonFetcher>[2],
 ): Promise<JsonValue> {
-  const response = await fetch(url, request);
+  const response = await fetch(url, {
+    headers: {
+      "Content-Type": "application/json",
+      ...request?.headers,
+    },
+    method: request.method,
+    body: request.body,
+  });
+  const status = response.status;
+  const headers = {} as { [key: string]: string };
+  for (const [key, value] of response.headers.entries()) {
+    headers[key] = value;
+  }
+  const body = await response.text();
+  if (customParser !== undefined) {
+    return customParser({ status, headers, body });
+  }
   if (!response.ok) {
     url.search = "";
     throw new ErrorStack(
       `Failed to fetch JSON from ${url}: ${response.status}: ${response.statusText}`,
     );
   }
-  return response.json() as Promise<JsonValue>;
+  return jsonParse(body);
 }
 
 /** Extracts the decoded content type `T` from a `JsonDecoder<T>`. */

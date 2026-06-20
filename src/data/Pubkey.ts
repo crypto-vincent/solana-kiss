@@ -196,7 +196,7 @@ export function pubkeyIsOnCurve(self: Pubkey): boolean {
   const y2 = mod(y * y);
   const u = mod(y2 - 1n);
   const v = mod(mod(edwardsD * y2) + 1n);
-  const vinv = inv(v);
+  const vinv = pow(v, fieldModulusP - 2n);
   const x2 = mod(u * vinv);
   const r = pow(x2, (fieldModulusP + 3n) / 8n);
   let x = r;
@@ -214,31 +214,23 @@ export function pubkeyIsOnCurve(self: Pubkey): boolean {
   return lhs === rhs;
 }
 
-const fieldModulusP = (1n << 255n) - 19n;
-const sqrtMinus1ModP =
-  19681161376707505956807079304988542015446066515923890162744021073123829784752n;
-const edwardsD =
-  37095705934669439343138083508754565189542113879843219016388785533085940283555n;
-
 function mod(value: bigint) {
   const r = value % fieldModulusP;
   return r >= 0n ? r : r + fieldModulusP;
 }
+
 function pow(value: bigint, exponent: bigint) {
   let r = 1n;
   let b = mod(value);
   let n = exponent;
   while (n > 0n) {
-    if (n & 1n) {
+    if ((n & 1n) !== 0n) {
       r = mod(r * b);
     }
     b = mod(b * b);
     n >>= 1n;
   }
   return r;
-}
-function inv(value: bigint) {
-  return pow(value, fieldModulusP - 2n);
 }
 
 function pubkeyBytesLengthCheck(bytesLength: number) {
@@ -256,7 +248,7 @@ function pubkeyCreatePdaAddress(
     throw new Error("Pubkey: Create PDA: Too many seeds, max is 16");
   }
   for (let seedIndex = 0; seedIndex < seedsBytes.length; seedIndex++) {
-    let seedBytes = seedsBytes[seedIndex]!;
+    const seedBytes = seedsBytes[seedIndex]!;
     if (seedBytes.length > 32) {
       throw new Error(
         `Pubkey: Create PDA: Seed at index ${seedIndex} is too big, max is 32 bytes`,
@@ -272,4 +264,9 @@ function pubkeyCreatePdaAddress(
   return pdaAddress;
 }
 
+const fieldModulusP = (1n << 255n) - 19n;
+const sqrtMinus1ModP =
+  19681161376707505956807079304988542015446066515923890162744021073123829784752n;
+const edwardsD =
+  37095705934669439343138083508754565189542113879843219016388785533085940283555n;
 const pdaMarker = utf8Encode("ProgramDerivedAddress");

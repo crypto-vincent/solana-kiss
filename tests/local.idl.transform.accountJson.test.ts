@@ -160,11 +160,13 @@ it("run", async () => {
   );
 
   const moduleName = "jsonCodecAccountDummy";
+  const modulePath = `./tests/fixtures/${moduleName}.gen.ts`;
   const moduleCode = makeModuleCode(accountIdl.typeFull);
-  await fsp.writeFile(`./tests/fixtures/${moduleName}.ts`, moduleCode);
-  const requirePath = `./fixtures/${moduleName}.ts`;
+  await fsp.writeFile(modulePath, moduleCode);
+  const requirePath = `./fixtures/${moduleName}.gen.ts`;
   delete require.cache[require.resolve(requirePath)];
   const { jsonCodec } = require(requirePath);
+  await fsp.rm(modulePath);
 
   checkRoundTrip(accountIdl, jsonCodec, {
     field1: 42,

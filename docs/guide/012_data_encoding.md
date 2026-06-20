@@ -51,11 +51,11 @@ Used internally to derive Anchor discriminators. Pure-JS, no native crypto.
 All serialised primitives are **branded** to prevent accidental misuse at
 compile time:
 
-| Type | Underlying | Description |
-|---|---|---|
-| `Pubkey` | `string` | Base58-encoded 32-byte public key |
-| `BlockHash` | `string` | Base58-encoded 32-byte block hash |
-| `TransactionHandle` | `string` | Base58-encoded 64-byte signature |
-| `Signature` | `Uint8Array` | 64-byte Ed25519 signature |
+| Type                | Underlying   | Description                        |
+| ------------------- | ------------ | ---------------------------------- |
+| `Pubkey`            | `string`     | Base58-encoded 32-byte public key  |
+| `BlockHash`         | `string`     | Base58-encoded 32-byte block hash  |
+| `TransactionHandle` | `string`     | Base58-encoded 64-byte signature   |
+| `Signature`         | `Uint8Array` | 64-byte Ed25519 signature          |
 | `TransactionPacket` | `Uint8Array` | Full wire-format transaction bytes |
-| `BlockSlot` | `number` | Solana slot number |
+| `BlockSlot`         | `number`     | Solana slot number                 |

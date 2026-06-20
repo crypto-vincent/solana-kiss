@@ -54,15 +54,13 @@ export function idlLoaderFromUrl(
   urlBuilder: (programAddress: Pubkey) => URL,
   options?: { customJsonFetcher?: JsonFetcher },
 ): IdlLoader {
-  const cacheIdls = new Map<Pubkey, IdlProgram>();
   const jsonFetcher = options?.customJsonFetcher ?? jsonFetcherDefault;
   return async (programAddress: Pubkey) => {
     const httpUrl = urlBuilder(programAddress);
-    const httpJson = await jsonFetcher(httpUrl);
+    const httpJson = await jsonFetcher(httpUrl, { method: "GET", body: null });
     const httpProgramIdl = idlProgramParse(httpJson);
     httpProgramIdl.metadata.address = programAddress;
     httpProgramIdl.metadata.source = httpUrl;
-    cacheIdls.set(programAddress, httpProgramIdl);
     return httpProgramIdl;
   };
 }

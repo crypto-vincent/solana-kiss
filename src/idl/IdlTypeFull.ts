@@ -91,33 +91,6 @@ export type IdlTypeFullBlob = {
   bytes: Uint8Array;
 };
 
-type IdlTypeFullDiscriminant =
-  | "typedef"
-  | "option"
-  | "vec"
-  | "loop"
-  | "array"
-  | "string"
-  | "struct"
-  | "enum"
-  | "trial"
-  | "padded"
-  | "blob"
-  | "primitive";
-type IdlTypeFullContent =
-  | IdlTypeFullTypedef
-  | IdlTypeFullOption
-  | IdlTypeFullVec
-  | IdlTypeFullLoop
-  | IdlTypeFullArray
-  | IdlTypeFullString
-  | IdlTypeFullStruct
-  | IdlTypeFullEnum
-  | IdlTypeFullTrial
-  | IdlTypeFullPadded
-  | IdlTypeFullBlob
-  | IdlTypePrimitive;
-
 /**
  * Algebraic sum type for any fully-resolved IDL type.
  * All typedef references linked; see {@link IdlTypeFlat} for unresolved.
@@ -126,7 +99,6 @@ type IdlTypeFullContent =
 export class IdlTypeFull {
   private readonly discriminant: IdlTypeFullDiscriminant;
   private readonly content: IdlTypeFullContent;
-
   private constructor(
     discriminant: IdlTypeFullDiscriminant,
     content: IdlTypeFullContent,
@@ -134,7 +106,6 @@ export class IdlTypeFull {
     this.discriminant = discriminant;
     this.content = content;
   }
-
   /** Creates a `typedef` variant wrapping a resolved typedef reference. */
   public static typedef(value: IdlTypeFullTypedef): IdlTypeFull {
     return new IdlTypeFull("typedef", value);
@@ -183,19 +154,16 @@ export class IdlTypeFull {
   public static primitive(value: IdlTypePrimitive): IdlTypeFull {
     return new IdlTypeFull("primitive", value);
   }
-
   /** Creates a `struct` variant with no fields (empty/unit struct). */
   public static structNothing(): IdlTypeFull {
     return new IdlTypeFull("struct", {
       fields: IdlTypeFullFields.nothing(),
     });
   }
-
   /** Returns `true` if this type is the `primitive` variant and equals the given primitive instance. */
   public isPrimitive(primitive: IdlTypePrimitive): boolean {
     return this.discriminant === "primitive" && this.content === primitive;
   }
-
   /**
    * Dispatches to the matching visitor branch based on this type's discriminant.
    * @param visitor - An object with one handler per variant.
@@ -240,12 +208,6 @@ export type IdlTypeFullFieldUnnamed = {
   content: IdlTypeFull;
 };
 
-type IdlTypeFullFieldsDiscriminant = "nothing" | "named" | "unnamed";
-type IdlTypeFullFieldsContent =
-  | Array<never>
-  | Array<IdlTypeFullFieldNamed>
-  | Array<IdlTypeFullFieldUnnamed>;
-
 /**
  * Algebraic sum type representing the fields of a struct or enum variant in the full (resolved) type system.
  * Can be nothing (unit), a list of named fields, or a list of unnamed (tuple) fields.
@@ -253,7 +215,6 @@ type IdlTypeFullFieldsContent =
 export class IdlTypeFullFields {
   private readonly discriminant: IdlTypeFullFieldsDiscriminant;
   private readonly content: IdlTypeFullFieldsContent;
-
   private constructor(
     discriminant: IdlTypeFullFieldsDiscriminant,
     content: IdlTypeFullFieldsContent,
@@ -261,7 +222,6 @@ export class IdlTypeFullFields {
     this.discriminant = discriminant;
     this.content = content;
   }
-
   /** Creates a `nothing` variant representing a unit (no fields). */
   public static nothing(): IdlTypeFullFields {
     return new IdlTypeFullFields("nothing", []);
@@ -276,12 +236,10 @@ export class IdlTypeFullFields {
   ): IdlTypeFullFields {
     return new IdlTypeFullFields("unnamed", value);
   }
-
   /** Returns `true` if this fields value is the `nothing` (unit) variant. */
   public isNothing(): boolean {
     return this.discriminant === "nothing";
   }
-
   /**
    * Dispatches to the matching visitor branch based on this fields discriminant.
    * @param visitor - An object with one handler per variant (nothing/named/unnamed).
@@ -318,3 +276,36 @@ export type IdlTypeFullEnumVariant = {
   /** The fully-resolved fields of this variant (unit, named, or unnamed). */
   fields: IdlTypeFullFields;
 };
+
+type IdlTypeFullDiscriminant =
+  | "typedef"
+  | "option"
+  | "vec"
+  | "loop"
+  | "array"
+  | "string"
+  | "struct"
+  | "enum"
+  | "trial"
+  | "padded"
+  | "blob"
+  | "primitive";
+type IdlTypeFullContent =
+  | IdlTypeFullTypedef
+  | IdlTypeFullOption
+  | IdlTypeFullVec
+  | IdlTypeFullLoop
+  | IdlTypeFullArray
+  | IdlTypeFullString
+  | IdlTypeFullStruct
+  | IdlTypeFullEnum
+  | IdlTypeFullTrial
+  | IdlTypeFullPadded
+  | IdlTypeFullBlob
+  | IdlTypePrimitive;
+
+type IdlTypeFullFieldsDiscriminant = "nothing" | "named" | "unnamed";
+type IdlTypeFullFieldsContent =
+  | Array<never>
+  | Array<IdlTypeFullFieldNamed>
+  | Array<IdlTypeFullFieldUnnamed>;

@@ -7,39 +7,42 @@ import {
   idlProgramParse,
   rpcHttpFromUrl,
   rpcHttpGetTransaction,
+  rpcHttpWithServerRateLimitRespect,
   transactionHandleFromBase58,
   urlRpcPublicDevnet,
 } from "../src";
 
 it("run", async () => {
   // Create the endpoint
-  const rpcHttp = rpcHttpFromUrl(urlRpcPublicDevnet);
+  const rpcHttp = rpcHttpWithServerRateLimitRespect(
+    rpcHttpFromUrl(urlRpcPublicDevnet),
+  );
   // Parse IDL from file JSON directly
-  const programIdl = idlProgramParse(require("./fixtures/idl_anchor_29.json"));
+  const programIdl = idlProgramParse(require("./fixtures/idl_anchor_30.json"));
   // Download an arbitrary instruction we should be able to decode
   const { transactionRequest } = expectDefined(
     await rpcHttpGetTransaction(
       rpcHttp,
       transactionHandleFromBase58(
-        "tBmH82bM3G5a7q8UFVPs9a3qbogwFzAXsbqnM29VYXYYWDkR8j2dbKP6sexNKTrtR9cWP4iBwFuj1Su2ui4QdY3",
+        "H8Kx9Qq8XHB8gfoGQ7o1gTRkZc7aRD336PA9Nbvucn3qQbtZFtb78PpdvuPVTSWGnymUoJfZWki9e28xAZVFbt5",
       ),
     ),
   );
   // Check we can decode the instruction correctly
   const instructionRequest = expectDefined(
-    transactionRequest.instructionsRequests[2],
+    transactionRequest.instructionsRequests[1],
   );
   const instructionIdl = expectDefined(
     idlProgramGuessInstruction(programIdl, instructionRequest),
   );
-  expect(instructionIdl.name).toStrictEqual("redeem_phase_one");
+  expect(instructionIdl.name).toStrictEqual("pledge_deposit");
   // Check instruction inputs decoding
   const { instructionAddresses } = idlInstructionAccountsDecode(
     instructionIdl,
     instructionRequest.instructionInputs,
   );
   expect(instructionAddresses["user"]).toStrictEqual(
-    "6cGTLr9bTCYis6KjsuZPQS7LrcPjyjibr9gFk2JH65Mn",
+    "99ywHQcPAYZ2te68Dah5CiSapqptNXvwGUqC1wP2qsi2",
   );
   // Check instruction data decoding
   const { instructionPayload } = idlInstructionArgsDecode(
@@ -47,6 +50,6 @@ it("run", async () => {
     instructionRequest.instructionData,
   );
   expect(instructionPayload).toStrictEqual({
-    uctAmount: "100000000000000",
+    params: { collateralAmount: "0" },
   });
 });

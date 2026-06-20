@@ -13,7 +13,7 @@ A Solana transaction is compiled from a `TransactionRequest`, signed into a
 import { transactionCompileAndSign } from "solana-kiss";
 
 const packet = await transactionCompileAndSign(
-  [signer],      // Array<Signer | WalletAccount>
+  [signer], // Array<Signer | WalletAccount>
   request,
   addressLookupTables, // optional ALTs
 );
@@ -43,7 +43,9 @@ const { transactionHandle } = await rpcHttpSendTransaction(rpc, packet);
 const { executionReport } = await rpcHttpWaitForTransaction(
   rpc,
   transactionHandle,
-  async ({ totalDurationMs }) => totalDurationMs < 60_000,
+  async function ({ totalDurationMs }) {
+    return totalDurationMs < 60_000;
+  },
 );
 ```
 

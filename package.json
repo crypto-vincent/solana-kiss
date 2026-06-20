@@ -17,11 +17,12 @@
     "tsup": "^8.5.0",
     "typescript": "^5.8.3",
     "uzip": "^0.20201231.0",
-    "vitepress": "^1.6.4"
+    "vitepress": "^1.6.4",
+    "vue-tsc": "^3.3.5"
   },
   "scripts": {
-    "format": "prettier --write src && prettier --write tests",
-    "checks": "tsc --noEmit --skipLibCheck && prettier --check src && prettier --check tests/*.ts",
+    "format": "prettier --write .",
+    "checks": "tsc --noEmit --skipLibCheck && prettier --check .",
     "tests": "jest --config jest.config.ts",
     "build": "tsup src/index.ts --dts --clean --minify --sourcemap --out-dir dist",
     "docs:dev": "vitepress dev docs",

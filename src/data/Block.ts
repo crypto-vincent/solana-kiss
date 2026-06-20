@@ -6,6 +6,9 @@ export type BlockSlot = Branded<number, "BlockSlot">;
 /** A branded string representing a Solana block hash (32-byte Base58-encoded value). */
 export type BlockHash = Branded<string, "BlockHash">;
 
+/** The default (all-zeroes) block hash. */
+export const blockHashDefault = blockHashFromBytes(new Uint8Array(32));
+
 /**
  * Creates a {@link BlockSlot} from a number.
  * @param value - Slot number.
@@ -23,9 +26,6 @@ export function blockSlotFromNumber(value: number): BlockSlot {
 export function blockSlotToNumber(self: BlockSlot): number {
   return self as number;
 }
-
-/** The default (all-zeroes) block hash. */
-export const blockHashDefault = blockHashFromBytes(new Uint8Array(32));
 
 /**
  * Creates a {@link BlockHash} from a Base58 string.

@@ -4,18 +4,23 @@ title: Public Keys
 
 # Public Keys (`Pubkey`)
 
-`Pubkey` is a **branded string** — base58-encoded 32 bytes. The TypeScript
-type system prevents mixing it up with plain strings.
+`Pubkey` is a **branded string** — base58-encoded 32 bytes. The TypeScript type
+system prevents mixing it up with plain strings.
 
 ## Create and convert
 
 ```ts
-import { pubkeyFromBase58, pubkeyFromBytes, pubkeyToBase58, pubkeyToBytes } from "solana-kiss";
+import {
+  pubkeyFromBase58,
+  pubkeyFromBytes,
+  pubkeyToBase58,
+  pubkeyToBytes,
+} from "solana-kiss";
 
-const pk  = pubkeyFromBase58("So11111111111111111111111111111111111111112");
+const pk = pubkeyFromBase58("So11111111111111111111111111111111111111112");
 const pk2 = pubkeyFromBytes(new Uint8Array(32));
 
-const str: string     = pubkeyToBase58(pk);
+const str: string = pubkeyToBase58(pk);
 const buf: Uint8Array = pubkeyToBytes(pk);
 ```
 
@@ -26,8 +31,8 @@ Both `from*` functions throw if the input does not decode to exactly 32 bytes.
 ```ts
 import { pubkeyDefault, pubkeyNewDummy } from "solana-kiss";
 
-pubkeyDefault;     // 11111111111111111111111111111111 (all zeros, a const)
-pubkeyNewDummy();  // random key for tests
+pubkeyDefault; // 11111111111111111111111111111111 (all zeros, a const)
+pubkeyNewDummy(); // random key for tests
 ```
 
 ## Program Derived Addresses (PDAs)

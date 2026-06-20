@@ -1,3 +1,4 @@
+import { expect, it } from "@jest/globals";
 import { blockSlotFromNumber, rpcHttpFindBlocks } from "../src";
 
 const highBlockSlot = blockSlotFromNumber(9);

@@ -20,11 +20,11 @@ const idl = idlProgramParse(rawJson); // accepts a plain JS object
 
 ```ts
 import {
-  idlLoaderFromOnchainNative,  // newer Anchor native storage
-  idlLoaderFromOnchainAnchor,  // legacy Anchor IDL account
-  idlLoaderFromUrl,            // fetch from a URL
+  idlLoaderFromOnchainNative, // newer Anchor native storage
+  idlLoaderFromOnchainAnchor, // legacy Anchor IDL account
+  idlLoaderFromUrl, // fetch from a URL
   idlLoaderFromLoaderSequence, // try loaders in order
-  idlLoaderMemoized,           // cache results in memory
+  idlLoaderMemoized, // cache results in memory
 } from "solana-kiss";
 
 // Both on-chain loaders take an accountDataFetcher, not an RpcHttp directly
@@ -38,7 +38,9 @@ const loader = idlLoaderMemoized(
   idlLoaderFromLoaderSequence([
     idlLoaderFromOnchainNative(accountDataFetcher),
     idlLoaderFromOnchainAnchor(accountDataFetcher),
-    idlLoaderFromUrl((addr) => new URL(`https://idls.example.com/${addr}.json`)),
+    idlLoaderFromUrl(
+      (addr) => new URL(`https://idls.example.com/${addr}.json`),
+    ),
   ]),
 );
 ```
@@ -63,10 +65,13 @@ import {
   idlProgramGuessError,
 } from "solana-kiss";
 
-const accountIdl     = idlProgramGuessAccount(programIdl, accountDataBytes);
-const instructionIdl = idlProgramGuessInstruction(programIdl, instructionRequest);
-const eventIdl       = idlProgramGuessEvent(programIdl, eventDataBytes);
-const errorIdl       = idlProgramGuessError(programIdl, errorCode);
+const accountIdl = idlProgramGuessAccount(programIdl, accountDataBytes);
+const instructionIdl = idlProgramGuessInstruction(
+  programIdl,
+  instructionRequest,
+);
+const eventIdl = idlProgramGuessEvent(programIdl, eventDataBytes);
+const errorIdl = idlProgramGuessError(programIdl, errorCode);
 ```
 
 All functions match by discriminator prefix.

@@ -1,6 +1,3 @@
-const cachedDecoder = new TextDecoder();
-const cachedEncoder = new TextEncoder();
-
 /**
  * Decodes UTF-8 bytes into a string.
  * @param encoded - UTF-8 bytes.
@@ -18,3 +15,6 @@ export function utf8Decode(encoded: Uint8Array): string {
 export function utf8Encode(decoded: string): Uint8Array {
   return cachedEncoder.encode(decoded);
 }
+
+const cachedDecoder = new TextDecoder();
+const cachedEncoder = new TextEncoder();
