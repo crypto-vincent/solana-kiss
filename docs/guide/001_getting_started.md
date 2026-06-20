@@ -34,8 +34,8 @@ console.log(accountState);
 
 ## Which API should I use?
 
-Start with the `Solana` class for application code. It wires together RPC,
-IDL loading, decoding, simulation, signing, sending, and confirmation.
+Start with the `Solana` class for application code. It wires together RPC, IDL
+loading, decoding, simulation, signing, sending, and confirmation.
 
 Use the lower-level RPC helpers when you need custom request pipelines,
 middleware ordering, or transaction polling behavior. Use the IDL, codec, and
