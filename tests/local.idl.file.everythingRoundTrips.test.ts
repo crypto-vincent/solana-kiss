@@ -13,7 +13,7 @@ it("run", async () => {
 
 function checkRoundTrip(originalJson: JsonValue) {
   const programIdl = idlProgramParse(originalJson);
-  const copiedJson = programIdl.original.getJsonCopy();
+  const copiedJson = programIdl.stem.getJsonCopy();
   expect(copiedJson).toStrictEqual(originalJson);
   expect(programIdl).toStrictEqual(idlProgramParse(copiedJson));
 }

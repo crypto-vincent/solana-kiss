@@ -7,13 +7,16 @@ import {
   idlProgramParse,
   rpcHttpFromUrl,
   rpcHttpGetTransaction,
+  rpcHttpWithServerRateLimitRespect,
   transactionHandleFromBase58,
   urlRpcPublicDevnet,
 } from "../src";
 
 it("run", async () => {
   // Create the endpoint
-  const rpcHttp = rpcHttpFromUrl(urlRpcPublicDevnet);
+  const rpcHttp = rpcHttpWithServerRateLimitRespect(
+    rpcHttpFromUrl(urlRpcPublicDevnet),
+  );
   // Parse IDL from file JSON directly
   const programIdl = idlProgramParse(require("./fixtures/idl_anchor_29.json"));
   // Download an arbitrary instruction we should be able to decode

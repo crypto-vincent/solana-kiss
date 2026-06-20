@@ -8,12 +8,15 @@ import {
   pubkeyFromBase58,
   rpcHttpFromUrl,
   rpcHttpGetTransaction,
+  rpcHttpWithServerRateLimitRespect,
   transactionHandleFromBase58,
   urlRpcPublicMainnet,
 } from "../src";
 
 it("run", async () => {
-  const rpcHttp = rpcHttpFromUrl(urlRpcPublicMainnet);
+  const rpcHttp = rpcHttpWithServerRateLimitRespect(
+    rpcHttpFromUrl(urlRpcPublicMainnet),
+  );
   // Complex transaction with many inner instructions nested
   const { transactionRequest, executionReport, executionFlow } = expectDefined(
     await rpcHttpGetTransaction(

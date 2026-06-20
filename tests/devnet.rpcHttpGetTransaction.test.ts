@@ -3,12 +3,15 @@ import {
   expectDefined,
   rpcHttpFromUrl,
   rpcHttpGetTransaction,
+  rpcHttpWithServerRateLimitRespect,
   transactionHandleFromBase58,
   urlRpcPublicDevnet,
 } from "../src";
 
 it("run", async () => {
-  const rpcHttp = rpcHttpFromUrl(urlRpcPublicDevnet);
+  const rpcHttp = rpcHttpWithServerRateLimitRespect(
+    rpcHttpFromUrl(urlRpcPublicDevnet),
+  );
   // This should be a simple success
   const {
     transactionRequest: transactionRequest1,

@@ -41,7 +41,11 @@ import {
   idlProgramGuessInstruction,
   idlProgramUnknown,
 } from "./idl/IdlProgram";
-import { RpcHttp, rpcHttpFromUrl } from "./rpc/RpcHttp";
+import {
+  RpcHttp,
+  rpcHttpFromUrl,
+  rpcHttpWithServerRateLimitRespect,
+} from "./rpc/RpcHttp";
 import { rpcHttpFindProgramOwnedAccounts } from "./rpc/RpcHttpFindProgramOwnedAccounts";
 import { rpcHttpGetAccountWithData } from "./rpc/RpcHttpGetAccountWithData";
 import { rpcHttpGetLatestBlockHash } from "./rpc/RpcHttpGetLatestBlockHash";
@@ -69,17 +73,17 @@ export class Solana {
    * @param options.recentBlockHashCacheDurationMs - Block hash cache TTL (default: `15_000` ms).
    */
   constructor(
-    rpcHttpOrUrl: RpcHttp | URL | Parameters<typeof urlRpcFromUrlOrMoniker>[0],
+    rpcHttpOrUrl: RpcHttp | Parameters<typeof urlRpcFromUrlOrMoniker>[0],
     options?: {
       idlLoader?: IdlLoader;
       idlOverrides?: Map<Pubkey, Readonly<IdlProgram>>;
       recentBlockHashCacheDurationMs?: number;
     },
   ) {
-    if (typeof rpcHttpOrUrl === "string") {
-      this.#rpcHttp = rpcHttpFromUrl(urlRpcFromUrlOrMoniker(rpcHttpOrUrl));
-    } else if (rpcHttpOrUrl instanceof URL) {
-      this.#rpcHttp = rpcHttpFromUrl(rpcHttpOrUrl);
+    if (typeof rpcHttpOrUrl === "string" || rpcHttpOrUrl instanceof URL) {
+      this.#rpcHttp = rpcHttpWithServerRateLimitRespect(
+        rpcHttpFromUrl(urlRpcFromUrlOrMoniker(rpcHttpOrUrl)),
+      );
     } else {
       this.#rpcHttp = rpcHttpOrUrl;
     }

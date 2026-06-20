@@ -113,7 +113,10 @@ async function resolveIdlJson(
   if (idlContent.dataSource == "Url") {
     const urlBytes = decompressIfNeeded(idlContent.compression, directData);
     const urlString = utf8Decode(urlBytes);
-    return await (customJsonFetcher ?? jsonFetcherDefault)(new URL(urlString));
+    return await (customJsonFetcher ?? jsonFetcherDefault)(new URL(urlString), {
+      method: "GET",
+      body: null,
+    });
   }
   throw new ErrorStack(`Idl: Unsupported data source ${idlContent.dataSource}`);
 }

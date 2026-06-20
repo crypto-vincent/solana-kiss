@@ -15,6 +15,7 @@ import {
   rpcHttpGetLatestBlockHash,
   rpcHttpSendTransaction,
   rpcHttpWaitForTransaction,
+  rpcHttpWithServerRateLimitRespect,
   Signer,
   signerFromSecret,
   signerGenerate,
@@ -28,7 +29,9 @@ import {
 } from "../src";
 
 it("run", async () => {
-  const rpcHttp = rpcHttpFromUrl(urlRpcPublicDevnet);
+  const rpcHttp = rpcHttpWithServerRateLimitRespect(
+    rpcHttpFromUrl(urlRpcPublicDevnet),
+  );
   const programAddress = pubkeyDefault;
   const ownerAddress = pubkeyNewDummy();
   const requestedSpace = 42;

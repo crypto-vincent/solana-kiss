@@ -13,6 +13,7 @@ import {
   rpcHttpFromUrl,
   rpcHttpGetLatestBlockHash,
   rpcHttpSimulateTransaction,
+  rpcHttpWithServerRateLimitRespect,
   signerFromSecret,
   signerGenerate,
   Solana,
@@ -23,7 +24,9 @@ import {
 } from "../src";
 
 it("run", async () => {
-  const rpcHttp = rpcHttpFromUrl(urlRpcPublicDevnet);
+  const rpcHttp = rpcHttpWithServerRateLimitRespect(
+    rpcHttpFromUrl(urlRpcPublicDevnet),
+  );
   // Find the necessary addresses
   const programAddress = pubkeyFromBase58(
     "UCNcQRtrbGmvuLKA3Jv719Cc6DS4r661ZRpyZduxu2j",

@@ -8,14 +8,16 @@ import {
   pubkeyFromBase58,
   pubkeyNewDummy,
   rpcHttpFromUrl,
+  rpcHttpWithServerRateLimitRespect,
   Solana,
   urlRpcPublicDevnet,
 } from "../src";
 
 it("run", async () => {
   const rpcCounters = new Map<string, number>();
-
-  const rpcHttp = rpcHttpFromUrl(urlRpcPublicDevnet);
+  const rpcHttp = rpcHttpWithServerRateLimitRespect(
+    rpcHttpFromUrl(urlRpcPublicDevnet),
+  );
   const solana = new Solana((method, params, config) => {
     const key = counterKey(method, params);
     const count = rpcCounters.get(key) ?? 0;
