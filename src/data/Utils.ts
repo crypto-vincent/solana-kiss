@@ -75,7 +75,7 @@ export function objectGetOwnProperty<
   Object extends object,
   Key extends keyof Object,
 >(object: Object, key: Key): Object[Key & keyof Object] | undefined {
-  if (Object.prototype.hasOwnProperty.call(object, key)) {
+  if (Object.hasOwn(object, key)) {
     return object[key];
   }
   return undefined;
@@ -94,15 +94,15 @@ export function objectGuessIntendedKey(
   if (typeof key === "number") {
     return String(key);
   }
-  if (Object.prototype.hasOwnProperty.call(object, key)) {
+  if (Object.hasOwn(object, key)) {
     return key;
   }
   const keyCamel = casingLosslessConvertToCamel(key);
-  if (Object.prototype.hasOwnProperty.call(object, keyCamel)) {
+  if (Object.hasOwn(object, keyCamel)) {
     return keyCamel;
   }
   const keySnake = casingLosslessConvertToSnake(key);
-  if (Object.prototype.hasOwnProperty.call(object, keySnake)) {
+  if (Object.hasOwn(object, keySnake)) {
     return keySnake;
   }
   return key;
