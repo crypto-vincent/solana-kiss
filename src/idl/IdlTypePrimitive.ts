@@ -37,7 +37,7 @@ export function idlTypePrimitiveEncode(
   self: IdlTypePrimitive,
   value: JsonValue,
   blobs: Array<Uint8Array>,
-) {
+): void {
   return withErrorContext(`Encode: ${self}`, () => {
     visitorEncode[self](value, blobs);
   });

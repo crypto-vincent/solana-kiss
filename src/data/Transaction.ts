@@ -259,7 +259,7 @@ export function transactionCompileUnsigned(
 export async function transactionSign(
   transactionPacket: TransactionPacket,
   signers: Array<Signer | WalletAccount | TransactionProcessor>,
-) {
+): Promise<TransactionPacket> {
   const signaturesBySignerAddress = new Map<Pubkey, Signature>();
   const transactionMessage = transactionExtractMessage(transactionPacket);
   for (const signer of signers) {

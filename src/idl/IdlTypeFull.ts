@@ -172,25 +172,25 @@ export class IdlTypeFull {
    * @param p3 - Third context parameter forwarded to the visitor.
    * @returns The value returned by the matched visitor branch.
    */
-  public traverse<P1, P2, P3, T>(
+  public traverse<P1, P2, P3, R>(
     visitor: {
-      typedef: (value: IdlTypeFullTypedef, p1: P1, p2: P2, p3: P3) => T;
-      option: (value: IdlTypeFullOption, p1: P1, p2: P2, p3: P3) => T;
-      vec: (value: IdlTypeFullVec, p1: P1, p2: P2, p3: P3) => T;
-      loop: (value: IdlTypeFullLoop, p1: P1, p2: P2, p3: P3) => T;
-      array: (value: IdlTypeFullArray, p1: P1, p2: P2, p3: P3) => T;
-      string: (value: IdlTypeFullString, p1: P1, p2: P2, p3: P3) => T;
-      struct: (value: IdlTypeFullStruct, p1: P1, p2: P2, p3: P3) => T;
-      enum: (value: IdlTypeFullEnum, p1: P1, p2: P2, p3: P3) => T;
-      trial: (value: IdlTypeFullTrial, p1: P1, p2: P2, p3: P3) => T;
-      padded: (value: IdlTypeFullPadded, p1: P1, p2: P2, p3: P3) => T;
-      blob: (value: IdlTypeFullBlob, p1: P1, p2: P2, p3: P3) => T;
-      primitive: (value: IdlTypePrimitive, p1: P1, p2: P2, p3: P3) => T;
+      typedef: (value: IdlTypeFullTypedef, p1: P1, p2: P2, p3: P3) => R;
+      option: (value: IdlTypeFullOption, p1: P1, p2: P2, p3: P3) => R;
+      vec: (value: IdlTypeFullVec, p1: P1, p2: P2, p3: P3) => R;
+      loop: (value: IdlTypeFullLoop, p1: P1, p2: P2, p3: P3) => R;
+      array: (value: IdlTypeFullArray, p1: P1, p2: P2, p3: P3) => R;
+      string: (value: IdlTypeFullString, p1: P1, p2: P2, p3: P3) => R;
+      struct: (value: IdlTypeFullStruct, p1: P1, p2: P2, p3: P3) => R;
+      enum: (value: IdlTypeFullEnum, p1: P1, p2: P2, p3: P3) => R;
+      trial: (value: IdlTypeFullTrial, p1: P1, p2: P2, p3: P3) => R;
+      padded: (value: IdlTypeFullPadded, p1: P1, p2: P2, p3: P3) => R;
+      blob: (value: IdlTypeFullBlob, p1: P1, p2: P2, p3: P3) => R;
+      primitive: (value: IdlTypePrimitive, p1: P1, p2: P2, p3: P3) => R;
     },
     p1: P1,
     p2: P2,
     p3: P3,
-  ): T {
+  ): R {
     return visitor[this.discriminant](this.content as any, p1, p2, p3);
   }
 }
@@ -248,21 +248,21 @@ export class IdlTypeFullFields {
    * @param p3 - Third context parameter forwarded to the visitor.
    * @returns The value returned by the matched visitor branch.
    */
-  public traverse<P1, P2, P3, T>(
+  public traverse<P1, P2, P3, R>(
     visitor: {
-      nothing: (value: Array<never>, p1: P1, p2: P2, p3: P3) => T;
-      named: (value: Array<IdlTypeFullFieldNamed>, p1: P1, p2: P2, p3: P3) => T;
+      nothing: (value: Array<never>, p1: P1, p2: P2, p3: P3) => R;
+      named: (value: Array<IdlTypeFullFieldNamed>, p1: P1, p2: P2, p3: P3) => R;
       unnamed: (
         value: Array<IdlTypeFullFieldUnnamed>,
         p1: P1,
         p2: P2,
         p3: P3,
-      ) => T;
+      ) => R;
     },
     p1: P1,
     p2: P2,
     p3: P3,
-  ) {
+  ): R {
     return visitor[this.discriminant](this.content as any, p1, p2, p3);
   }
 }

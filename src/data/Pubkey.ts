@@ -8,8 +8,14 @@ import { Branded } from "./Utils";
 /** A branded string type representing a Solana public key encoded in base58. */
 export type Pubkey = Branded<string, "Pubkey">;
 
+/** A function type for verifying signatures against a public key. */
+export type PubkeyVerifier = (
+  signature: Signature,
+  message: TransactionMessage | Uint8Array,
+) => Promise<boolean>;
+
 /** The default public key whose underlying 32 bytes are all zero. */
-export const pubkeyDefault = pubkeyFromBytes(new Uint8Array(32));
+export const pubkeyDefault: Pubkey = pubkeyFromBytes(new Uint8Array(32));
 
 /**
  * Dummy public key with a fixed prefix and random remaining bytes (for testing).
@@ -141,7 +147,7 @@ export function pubkeyCreateFromSeed(
  * @param self - Public key to import.
  * @returns Async function that verifies a {@link Signature} against a message.
  */
-export async function pubkeyToVerifier(self: Pubkey) {
+export async function pubkeyToVerifier(self: Pubkey): Promise<PubkeyVerifier> {
   const spkiBytes = new Uint8Array([
     0x30,
     0x2a,

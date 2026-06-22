@@ -7,7 +7,9 @@ export type BlockSlot = Branded<number, "BlockSlot">;
 export type BlockHash = Branded<string, "BlockHash">;
 
 /** The default (all-zeroes) block hash. */
-export const blockHashDefault = blockHashFromBytes(new Uint8Array(32));
+export const blockHashDefault: BlockHash = blockHashFromBytes(
+  new Uint8Array(32),
+);
 
 /**
  * Creates a {@link BlockSlot} from a number.

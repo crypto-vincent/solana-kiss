@@ -94,10 +94,11 @@ export function idlUtilsBlobTypeValueJsonDecoder(blobValue: JsonValue): {
 /**
  * JSON decoder for byte arrays constants.
  */
-export const idlUtilsBytesJsonDecoder = jsonDecoderByType({
-  array: jsonCodecArrayToBytes.decoder,
-  object: objectBytesJsonDecoder,
-});
+export const idlUtilsBytesJsonDecoder: JsonDecoder<Uint8Array> =
+  jsonDecoderByType({
+    array: jsonCodecArrayToBytes.decoder,
+    object: objectBytesJsonDecoder,
+  });
 
 function objectBytesJsonDecoder(encoded: JsonValue): Uint8Array {
   return objectBytesJsonDecoderInner(encoded);

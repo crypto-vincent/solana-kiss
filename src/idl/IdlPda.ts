@@ -37,7 +37,7 @@ export function idlPdaFind(
   self: IdlPda,
   inputs: Record<string, JsonValue>,
   programAddress?: Pubkey,
-) {
+): Pubkey {
   const seedsBytes = self.seeds.map((seed, index) =>
     withErrorContext(`Idl: Pda: Seed: ${index}: Compute`, () =>
       idlPdaBlobCompute(seed, inputs),

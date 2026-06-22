@@ -164,26 +164,26 @@ export class IdlTypeFlat {
    * @param p2 - Forwarded context.
    * @returns Visitor result.
    */
-  public traverse<P1, P2, T>(
+  public traverse<P1, P2, R>(
     visitor: {
-      defined: (value: IdlTypeFlatDefined, p1: P1, p2: P2) => T;
-      generic: (value: IdlTypeFlatGeneric, p1: P1, p2: P2) => T;
-      option: (value: IdlTypeFlatOption, p1: P1, p2: P2) => T;
-      vec: (value: IdlTypeFlatVec, p1: P1, p2: P2) => T;
-      loop: (value: IdlTypeFlatLoop, p1: P1, p2: P2) => T;
-      array: (value: IdlTypeFlatArray, p1: P1, p2: P2) => T;
-      string: (value: IdlTypeFlatString, p1: P1, p2: P2) => T;
-      struct: (value: IdlTypeFlatStruct, p1: P1, p2: P2) => T;
-      enum: (value: IdlTypeFlatEnum, p1: P1, p2: P2) => T;
-      trial: (value: IdlTypeFlatTrial, p1: P1, p2: P2) => T;
-      padded: (value: IdlTypeFlatPadded, p1: P1, p2: P2) => T;
-      blob: (value: IdlTypeFlatBlob, p1: P1, p2: P2) => T;
-      const: (value: IdlTypeFlatConst, p1: P1, p2: P2) => T;
-      primitive: (value: IdlTypePrimitive, p1: P1, p2: P2) => T;
+      defined: (value: IdlTypeFlatDefined, p1: P1, p2: P2) => R;
+      generic: (value: IdlTypeFlatGeneric, p1: P1, p2: P2) => R;
+      option: (value: IdlTypeFlatOption, p1: P1, p2: P2) => R;
+      vec: (value: IdlTypeFlatVec, p1: P1, p2: P2) => R;
+      loop: (value: IdlTypeFlatLoop, p1: P1, p2: P2) => R;
+      array: (value: IdlTypeFlatArray, p1: P1, p2: P2) => R;
+      string: (value: IdlTypeFlatString, p1: P1, p2: P2) => R;
+      struct: (value: IdlTypeFlatStruct, p1: P1, p2: P2) => R;
+      enum: (value: IdlTypeFlatEnum, p1: P1, p2: P2) => R;
+      trial: (value: IdlTypeFlatTrial, p1: P1, p2: P2) => R;
+      padded: (value: IdlTypeFlatPadded, p1: P1, p2: P2) => R;
+      blob: (value: IdlTypeFlatBlob, p1: P1, p2: P2) => R;
+      const: (value: IdlTypeFlatConst, p1: P1, p2: P2) => R;
+      primitive: (value: IdlTypePrimitive, p1: P1, p2: P2) => R;
     },
     p1: P1,
     p2: P2,
-  ): T {
+  ): R {
     return visitor[this.discriminant](this.content as any, p1, p2);
   }
 }
@@ -237,15 +237,15 @@ export class IdlTypeFlatFields {
    * @param p2 - Forwarded context.
    * @returns Visitor result.
    */
-  public traverse<P1, P2, T>(
+  public traverse<P1, P2, R>(
     visitor: {
-      nothing: (value: Array<never>, p1: P1, p2: P2) => T;
-      named: (value: Array<IdlTypeFlatFieldNamed>, p1: P1, p2: P2) => T;
-      unnamed: (value: Array<IdlTypeFlatFieldUnnamed>, p1: P1, p2: P2) => T;
+      nothing: (value: Array<never>, p1: P1, p2: P2) => R;
+      named: (value: Array<IdlTypeFlatFieldNamed>, p1: P1, p2: P2) => R;
+      unnamed: (value: Array<IdlTypeFlatFieldUnnamed>, p1: P1, p2: P2) => R;
     },
     p1: P1,
     p2: P2,
-  ) {
+  ): R {
     return visitor[this.discriminant](this.content as any, p1, p2);
   }
 }

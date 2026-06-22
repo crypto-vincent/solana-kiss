@@ -46,7 +46,10 @@ export type IdlAccount = {
  * @param accountState - Value to encode.
  * @returns `{ accountData }`.
  */
-export function idlAccountEncode(self: IdlAccount, accountState: JsonValue) {
+export function idlAccountEncode(
+  self: IdlAccount,
+  accountState: JsonValue,
+): { accountData: Uint8Array } {
   return {
     accountData: idlTypeFullEncode(self.typeFull, accountState, {
       discriminator: self.discriminator,
@@ -60,7 +63,10 @@ export function idlAccountEncode(self: IdlAccount, accountState: JsonValue) {
  * @param accountData - Raw account data.
  * @returns `{ accountState }`.
  */
-export function idlAccountDecode(self: IdlAccount, accountData: Uint8Array) {
+export function idlAccountDecode(
+  self: IdlAccount,
+  accountData: Uint8Array,
+): { accountState: JsonValue } {
   idlAccountCheck(self, accountData);
   const [, accountState] = idlTypeFullDecode(
     self.typeFull,

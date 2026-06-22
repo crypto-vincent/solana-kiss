@@ -11,15 +11,17 @@ import {
 } from "./Transaction";
 
 /** Public JSON-RPC endpoint for the Solana mainnet cluster. */
-export const urlRpcPublicMainnet = new URL(
+export const urlRpcPublicMainnet: URL = new URL(
   "https://api.mainnet-beta.solana.com",
 );
 
 /** Public JSON-RPC endpoint for the Solana devnet cluster. */
-export const urlRpcPublicDevnet = new URL("https://api.devnet.solana.com");
+export const urlRpcPublicDevnet: URL = new URL("https://api.devnet.solana.com");
 
 /** Public JSON-RPC endpoint for the Solana testnet cluster. */
-export const urlRpcPublicTestnet = new URL("https://api.testnet.solana.com");
+export const urlRpcPublicTestnet: URL = new URL(
+  "https://api.testnet.solana.com",
+);
 
 /**
  * Sanitizes a moniker or raw URL string to an RPC endpoint URL.
@@ -51,7 +53,7 @@ export function urlRpcFromUrlOrMoniker(
  * @param accountAddress - Account public key.
  * @returns Explorer URL.
  */
-export function urlExplorerAccount(urlRpc: URL, accountAddress: Pubkey) {
+export function urlExplorerAccount(urlRpc: URL, accountAddress: Pubkey): URL {
   return urlExplorer(urlRpc, "address", accountAddress.toString());
 }
 
@@ -61,7 +63,7 @@ export function urlExplorerAccount(urlRpc: URL, accountAddress: Pubkey) {
  * @param blockSlot - Block slot number.
  * @returns Explorer URL.
  */
-export function urlExplorerBlock(urlRpc: URL, blockSlot: BlockSlot) {
+export function urlExplorerBlock(urlRpc: URL, blockSlot: BlockSlot): URL {
   return urlExplorer(urlRpc, "block", blockSlot.toString());
 }
 
@@ -74,7 +76,7 @@ export function urlExplorerBlock(urlRpc: URL, blockSlot: BlockSlot) {
 export function urlExplorerTransaction(
   urlRpc: URL,
   transactionHandle: TransactionHandle,
-) {
+): URL {
   return urlExplorer(urlRpc, "tx", transactionHandle.toString());
 }
 
@@ -87,7 +89,7 @@ export function urlExplorerTransaction(
 export function urlExplorerSimulation(
   urlRpc: URL,
   transactionPacket: TransactionPacket,
-) {
+): URL {
   const message = transactionExtractMessage(transactionPacket);
   const signing = transactionExtractSigning(transactionPacket);
   return urlExplorer(urlRpc, "tx", "inspector", {

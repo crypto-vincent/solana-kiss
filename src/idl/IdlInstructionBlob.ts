@@ -93,15 +93,15 @@ export class IdlInstructionBlob {
    * @param p2 - Forwarded context.
    * @returns Visitor result.
    */
-  public traverse<P1, P2, T>(
+  public traverse<P1, P2, R>(
     visitor: {
-      const: (value: IdlInstructionBlobConst, p1: P1, p2: P2) => T;
-      arg: (value: IdlInstructionBlobArg, p1: P1, p2: P2) => T;
-      account: (value: IdlInstructionBlobAccount, p1: P1, p2: P2) => T;
+      const: (value: IdlInstructionBlobConst, p1: P1, p2: P2) => R;
+      arg: (value: IdlInstructionBlobArg, p1: P1, p2: P2) => R;
+      account: (value: IdlInstructionBlobAccount, p1: P1, p2: P2) => R;
     },
     p1: P1,
     p2: P2,
-  ): T {
+  ): R {
     return visitor[this.discriminant](this.content as any, p1, p2);
   }
 }
@@ -115,7 +115,7 @@ export class IdlInstructionBlob {
 export async function idlInstructionBlobCompute(
   self: IdlInstructionBlob,
   findContext: IdlInstructionAccountFindContext,
-) {
+): Promise<Uint8Array> {
   return self.traverse(computeVisitor, findContext, null);
 }
 

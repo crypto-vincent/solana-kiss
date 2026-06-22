@@ -136,7 +136,10 @@ export function jsonPreview(value: JsonValue): string {
   throw new Error(`JSON: Unknown value: ${value?.toString()}`);
 }
 /** Returns `true` if `leftValue` and `rightValue` are deeply equal JSON values. */
-export function jsonIsDeepEqual(leftValue: JsonValue, rightValue: JsonValue) {
+export function jsonIsDeepEqual(
+  leftValue: JsonValue,
+  rightValue: JsonValue,
+): boolean {
   if (leftValue === rightValue) {
     return true;
   }
@@ -196,7 +199,7 @@ export function jsonIsDeepEqual(leftValue: JsonValue, rightValue: JsonValue) {
 export function jsonIsDeepSubset(
   subsetValue: JsonValue,
   supersetValue: JsonValue,
-) {
+): boolean {
   if (subsetValue === supersetValue) {
     return true;
   }

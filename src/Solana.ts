@@ -1,4 +1,5 @@
 import { BlockHash, blockHashDefault } from "./data/Block";
+import { ExecutionFlow, ExecutionReport } from "./data/Execution";
 import { InstructionRequest } from "./data/Instruction";
 import { JsonValue } from "./data/Json";
 import { Pubkey } from "./data/Pubkey";
@@ -6,12 +7,15 @@ import { Signer } from "./data/Signer";
 import {
   TransactionAddressLookupTable,
   transactionCompileAndSign,
+  TransactionHandle,
+  TransactionPacket,
   TransactionProcessor,
+  TransactionRequest,
 } from "./data/Transaction";
 import { urlRpcFromUrlOrMoniker } from "./data/Url";
 import { mapGuessIntendedKey } from "./data/Utils";
 import { WalletAccount } from "./data/Wallet";
-import { idlAccountDecode } from "./idl/IdlAccount";
+import { IdlAccount, idlAccountDecode } from "./idl/IdlAccount";
 import {
   IdlInstruction,
   idlInstructionAccountsDecode,
@@ -96,7 +100,7 @@ export class Solana {
   /**
    * @returns The {@link RpcHttp} client.
    */
-  public getRpcHttp() {
+  public getRpcHttp(): RpcHttp {
     return this.#rpcHttp;
   }
   /**
@@ -107,7 +111,7 @@ export class Solana {
   public setProgramIdlOverride(
     programAddress: Pubkey,
     programIdl: Readonly<IdlProgram> | undefined,
-  ) {
+  ): void {
     if (programIdl === undefined) {
       this.#idlOverrides.delete(programAddress);
     } else {
@@ -178,7 +182,16 @@ export class Solana {
    * @returns `{ programAddress, programIdl, accountAddress, accountIdl, accountLamports, accountExecutable, accountData, accountState }`.
    * @throws If the RPC request fails or account data cannot be decoded.
    */
-  public async getAndInferAndDecodeAccount(accountAddress: Pubkey) {
+  public async getAndInferAndDecodeAccount(accountAddress: Pubkey): Promise<{
+    programAddress: Pubkey;
+    programIdl: Readonly<IdlProgram>;
+    accountAddress: Pubkey;
+    accountIdl: IdlAccount;
+    accountLamports: bigint;
+    accountExecutable: boolean;
+    accountData: Uint8Array;
+    accountState: JsonValue;
+  }> {
     const { programAddress, accountExecutable, accountLamports, accountData } =
       await rpcHttpGetAccountWithData(this.#rpcHttp, accountAddress);
     const { programIdl } = await this.getOrLoadProgramIdl(programAddress, {
@@ -205,7 +218,12 @@ export class Solana {
    */
   public async inferAndDecodeInstruction(
     instructionRequest: InstructionRequest,
-  ) {
+  ): Promise<{
+    programIdl: IdlProgram;
+    instructionIdl: IdlInstruction;
+    instructionAddresses: IdlInstructionAddresses;
+    instructionPayload: JsonValue;
+  }> {
     const { programIdl } = await this.getOrLoadProgramIdl(
       instructionRequest.programAddress,
       { fallbackOnUnknown: true },
@@ -406,7 +424,13 @@ export class Solana {
       skipPreflight?: boolean;
       skipExecutionFlowParsing?: boolean;
     },
-  ) {
+  ): Promise<{
+    transactionRequest: TransactionRequest;
+    transactionHandle: TransactionHandle;
+    transactionPacket: TransactionPacket;
+    executionReport: ExecutionReport;
+    executionFlow: ExecutionFlow | undefined;
+  }> {
     const payerAddress = payerSigner.address;
     const recentBlockHash = await this.getRecentBlockHash();
     const signers = new Array<Signer | WalletAccount | TransactionProcessor>();
@@ -463,7 +487,7 @@ export class Solana {
       verifySignaturesAndBlockHash?: boolean;
       simulatedAccountsAddresses?: Set<Pubkey>;
     },
-  ) {
+  ): Promise<Awaited<ReturnType<typeof rpcHttpSimulateTransaction>>> {
     let recentBlockHash = blockHashDefault;
     const signers = new Array<Signer | WalletAccount | TransactionProcessor>();
     if (options?.verifySignaturesAndBlockHash ?? true) {
@@ -499,7 +523,7 @@ export class Solana {
   public async findProgramOwnedAccounts(
     programAddress: Pubkey,
     accountName: string,
-  ) {
+  ): Promise<Awaited<ReturnType<typeof rpcHttpFindProgramOwnedAccounts>>> {
     const { programIdl } = await this.getOrLoadProgramIdl(programAddress, {
       fallbackOnUnknown: true,
     });

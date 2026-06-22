@@ -74,7 +74,7 @@ export async function idlInstructionAccountFind(
   self: IdlInstructionAccount,
   programAddress: Pubkey,
   findContext: IdlInstructionAccountFindContext,
-) {
+): Promise<Pubkey> {
   const instructionAddress = objectGetOwnProperty(
     findContext.instructionAddresses,
     self.name,

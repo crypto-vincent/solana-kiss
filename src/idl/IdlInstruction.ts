@@ -73,7 +73,7 @@ export type IdlInstruction = {
 export function idlInstructionAccountsEncode(
   self: IdlInstruction,
   instructionAddresses: IdlInstructionAddresses,
-) {
+): { instructionInputs: Array<InstructionInput> } {
   const instructionInputs = new Array<InstructionInput>();
   for (const instructionAccountIdl of self.accounts) {
     const instructionAddress =
@@ -110,7 +110,7 @@ export function idlInstructionAccountsEncode(
 export function idlInstructionAccountsDecode(
   self: IdlInstruction,
   instructionInputs: Array<InstructionInput>,
-) {
+): { instructionAddresses: IdlInstructionAddresses } {
   let instructionOptionals = 0;
   for (const instructionAccountIdl of self.accounts) {
     if (instructionAccountIdl.optional) {
@@ -169,7 +169,7 @@ export async function idlInstructionAccountsFind(
     accountsContext?: IdlInstructionBlobAccountsContext;
     accountFetcher?: IdlInstructionBlobAccountFetcher;
   },
-) {
+): Promise<{ instructionAddresses: IdlInstructionAddresses }> {
   const instructionAddresses: IdlInstructionAddresses = {};
   if (options?.instructionAddresses !== undefined) {
     for (const [accountField, instructionAddress] of Object.entries(
@@ -244,7 +244,7 @@ export function idlInstructionAccountsCheck(
 export function idlInstructionArgsEncode(
   self: IdlInstruction,
   instructionPayload: JsonValue,
-) {
+): { instructionData: Uint8Array } {
   return {
     instructionData: idlTypeFullEncode(self.args.typeFull, instructionPayload, {
       discriminator: self.discriminator,
@@ -261,7 +261,7 @@ export function idlInstructionArgsEncode(
 export function idlInstructionArgsDecode(
   self: IdlInstruction,
   instructionData: Uint8Array,
-) {
+): { instructionPayload: JsonValue } {
   idlInstructionArgsCheck(self, instructionData);
   const [, instructionPayload] = idlTypeFullDecode(
     self.args.typeFull,
@@ -292,7 +292,7 @@ export function idlInstructionArgsCheck(
 export function idlInstructionReturnEncode(
   self: IdlInstruction,
   instructionResult: JsonValue,
-) {
+): { instructionReturned: Uint8Array } {
   return {
     instructionReturned: idlTypeFullEncode(
       self.return.typeFull,
@@ -310,7 +310,7 @@ export function idlInstructionReturnEncode(
 export function idlInstructionReturnDecode(
   self: IdlInstruction,
   instructionReturned: Uint8Array,
-) {
+): { instructionResult: JsonValue } {
   const [, instructionResult] = idlTypeFullDecode(
     self.return.typeFull,
     new DataView(instructionReturned.buffer),

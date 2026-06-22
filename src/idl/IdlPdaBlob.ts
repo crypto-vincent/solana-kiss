@@ -53,14 +53,14 @@ export class IdlPdaBlob {
    * @param p2 - Forwarded context.
    * @returns Visitor result.
    */
-  public traverse<P1, P2, T>(
+  public traverse<P1, P2, R>(
     visitor: {
-      const: (value: IdlPdaBlobConst, p1: P1, p2: P2) => T;
-      input: (value: IdlPdaBlobInput, p1: P1, p2: P2) => T;
+      const: (value: IdlPdaBlobConst, p1: P1, p2: P2) => R;
+      input: (value: IdlPdaBlobInput, p1: P1, p2: P2) => R;
     },
     p1: P1,
     p2: P2,
-  ): T {
+  ): R {
     return visitor[this.discriminant](this.content as any, p1, p2);
   }
 }
@@ -74,7 +74,7 @@ export class IdlPdaBlob {
 export function idlPdaBlobCompute(
   self: IdlPdaBlob,
   inputs: Record<string, JsonValue>,
-) {
+): Uint8Array {
   return self.traverse(computeVisitor, inputs, null);
 }
 

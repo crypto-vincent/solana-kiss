@@ -40,7 +40,10 @@ export type IdlEvent = {
  * @param eventPayload - Payload to encode as JSON.
  * @returns Object with encoded `eventData` bytes.
  */
-export function idlEventEncode(self: IdlEvent, eventPayload: JsonValue) {
+export function idlEventEncode(
+  self: IdlEvent,
+  eventPayload: JsonValue,
+): { eventData: Uint8Array } {
   return {
     eventData: idlTypeFullEncode(self.typeFull, eventPayload, {
       discriminator: self.discriminator,
@@ -54,7 +57,10 @@ export function idlEventEncode(self: IdlEvent, eventPayload: JsonValue) {
  * @param eventData - Raw event data bytes.
  * @returns Object with decoded `eventPayload`.
  */
-export function idlEventDecode(self: IdlEvent, eventData: Uint8Array) {
+export function idlEventDecode(
+  self: IdlEvent,
+  eventData: Uint8Array,
+): { eventPayload: JsonValue } {
   idlEventCheck(self, eventData);
   const [_, eventPayload] = idlTypeFullDecode(
     self.typeFull,

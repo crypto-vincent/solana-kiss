@@ -20,7 +20,7 @@ export function idlTypePrefixEncode(
   self: IdlTypePrefix,
   value: bigint,
   blobs: Array<Uint8Array>,
-) {
+): void {
   visitorEncode[self](value, blobs);
 }
 

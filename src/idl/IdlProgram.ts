@@ -236,7 +236,9 @@ export function idlProgramParse(programValue: JsonValue): IdlProgram {
  * generic `UnknownAccount`, `unknown_instruction`, and `UnknownEvent` definitions
  * that accept arbitrary data without enforcing any schema constraints.
  */
-export const idlProgramUnknown = memoize(
+export const idlProgramUnknown: (
+  programAddress: Pubkey,
+) => Promise<IdlProgram> = memoize(
   async (programAddress: Pubkey) => programAddress,
   async (programAddress: Pubkey) => {
     return idlProgramParse({
@@ -257,7 +259,7 @@ export class IdlProgramStem {
   constructor(json: JsonValue) {
     this.#json = json;
   }
-  getJsonCopy() {
+  getJsonCopy(): JsonValue {
     return jsonParse(jsonStringify(this.#json));
   }
 }

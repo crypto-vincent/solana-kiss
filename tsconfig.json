@@ -8,6 +8,11 @@
     "resolveJsonModule": true,
     "esModuleInterop": true,
     "strict": true,
+    "strictBindCallApply": true,
+    "strictFunctionTypes": true,
+    "strictNullChecks": true,
+    "strictPropertyInitialization": true,
+    "strictBuiltinIteratorReturn": true,
     "alwaysStrict": true,
     "noImplicitOverride": true,
     "noImplicitAny": true,
@@ -21,6 +26,9 @@
     "exactOptionalPropertyTypes": true,
     "useUnknownInCatchVariables": true,
     "erasableSyntaxOnly": true,
+    "isolatedModules": true,
+    "isolatedDeclarations": true,
+    "noUncheckedSideEffectImports": true,
     "forceConsistentCasingInFileNames": true
   },
   "include": ["src", "tests"]
